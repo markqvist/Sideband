@@ -1,0 +1,13 @@
+.buildozer
+venv
+bin
+app_storage
+RNS
+LXMF
+precompiled
+*.DS_Store
+*.pyc
+build
+dist
+docs/build
+sideband*.egg-info
