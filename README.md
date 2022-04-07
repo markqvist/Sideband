@@ -10,4 +10,4 @@ Sideband is currently provided as an early alpha-quality preview release. No use
 
 If you want to help develop this program, get in touch.
 
-Please check back shortly for downloadable APK files for your device.
+For downloadable APK files for your device, [go here](https://unsigned.io/sideband).
