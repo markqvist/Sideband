@@ -1,5 +1,6 @@
 .buildozer
 buildozer.spec
+requirements.txt
 venv
 bin
 app_storage
