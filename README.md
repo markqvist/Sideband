@@ -11,3 +11,16 @@ Sideband is currently provided as an early alpha-quality preview release. No use
 If you want to help develop this program, get in touch.
 
 For downloadable APK files for your device, [go here](https://unsigned.io/sideband).
+
+### Run on Linux:
+
+~~~bash
+# Install RNS Dependencies if Needed
+pip3 install rns lxmf
+
+# Clone, Install Dependencies, and Run
+git clone https://github.com/markqvist/Sideband.git
+pip3 install plyer kivymd
+cd Sideband
+python3 main.py
+~~~
