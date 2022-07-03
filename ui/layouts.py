@@ -368,7 +368,7 @@ MDNavigationLayout:
                             hint_text: "Your LXMF Address"
                             text: ""
                             disabled: False
-                            max_text_length: 20
+                            max_text_length: 32
                             font_size: dp(24)
 
                         MDTextField:
@@ -376,7 +376,7 @@ MDNavigationLayout:
                             hint_text: "LXMF Propagation Node"
                             disabled: False
                             text: ""
-                            max_text_length: 20
+                            max_text_length: 32
                             font_size: dp(24)
 
                         MDTextField:
@@ -384,7 +384,7 @@ MDNavigationLayout:
                             hint_text: "Nomad Network Home Node"
                             disabled: False
                             text: ""
-                            max_text_length: 20
+                            max_text_length: 32
                             font_size: dp(24)
 
                         MDBoxLayout:
@@ -647,7 +647,7 @@ MDNavigationLayout:
 
     MDTextField:
         id: n_address_field
-        max_text_length: 20
+        max_text_length: 32
         hint_text: "Address"
         helper_text: "Error, check your input"
         helper_text_mode: "on_error"

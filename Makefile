@@ -15,9 +15,12 @@ debug:
 release:
 	buildozer android release
 
-apk: prepare release
+postbuild:
+	(mv setup.disabled setup.py)
 
-devapk: prepare debug
+apk: prepare release postbuild
+
+devapk: prepare debug postbuild
 
 install:
 	adb install bin/sideband-0.0.1-arm64-v8a-debug.apk
