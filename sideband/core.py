@@ -692,6 +692,14 @@ class SidebandCore():
 
         self.rns_dir = RNS.Reticulum.configdir
 
+        if self.config["lxmf_propagation_node"] != None and self.config["lxmf_propagation_node"] != "":
+            self.set_active_propagation_node(self.config["lxmf_propagation_node"])
+        else:
+            if self.config["last_lxmf_propagation_node"] != None and self.config["last_lxmf_propagation_node"] != "":
+                self.set_active_propagation_node(self.config["last_lxmf_propagation_node"])
+            else:
+                self.set_active_propagation_node(None)
+
     def message_notification(self, message):
         if message.state == LXMF.LXMessage.FAILED and hasattr(message, "try_propagation_on_fail") and message.try_propagation_on_fail:
             RNS.log("Direct delivery of "+str(message)+" failed. Retrying as propagated message.", RNS.LOG_VERBOSE)
@@ -768,10 +776,10 @@ class SidebandCore():
             context_dest = message.source_hash
 
         if self._db_message(message.hash):
-            RNS.log("Message exists, setting state to: "+str(message.state))
+            RNS.log("Message exists, setting state to: "+str(message.state), RNS.LOG_DEBUG)
             self._db_message_set_state(message.hash, message.state)
         else:
-            RNS.log("Message does not exist, saving")
+            RNS.log("Message does not exist, saving", RNS.LOG_DEBUG)
             self._db_save_lxm(message, context_dest)
 
         if self._db_conversation(context_dest) == None:
@@ -795,14 +803,6 @@ class SidebandCore():
     def start(self):
         self._db_clean_messages()
         self.__start_jobs_immediate()
-
-        if self.config["lxmf_propagation_node"] != None and self.config["lxmf_propagation_node"] != "":
-            self.set_active_propagation_node(self.config["lxmf_propagation_node"])
-        else:
-            if self.config["last_lxmf_propagation_node"] != None and self.config["last_lxmf_propagation_node"] != "":
-                self.set_active_propagation_node(self.config["last_lxmf_propagation_node"])
-            else:
-                self.set_active_propagation_node(None)
 
         thread = threading.Thread(target=self.__start_jobs_deferred)
         thread.setDaemon(True)
@@ -879,7 +879,7 @@ instance_control_port = 37429
 panic_on_interface_error = No
 
 [logging]
-loglevel = 7
+loglevel = 3
 
 [interfaces]
   [[Default Interface]]
