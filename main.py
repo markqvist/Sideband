@@ -9,6 +9,7 @@ from sideband.core import SidebandCore
 
 from kivymd.app import MDApp
 from kivy.core.window import Window
+from kivy.base import EventLoop
 from kivy.clock import Clock
 from kivy.lang.builder import Builder
 
@@ -85,12 +86,33 @@ class SidebandApp(MDApp):
                     self.announces_view.update()
 
     def on_start(self):
+        self.last_exit_event = time.time()
+        EventLoop.window.bind(on_keyboard=self.keyboard_event)
+        EventLoop.window.bind(on_key_down=self.keydown_event)
+
         self.root.ids.screen_manager.app = self
         self.root.ids.app_version_info.text = "Sideband v"+__version__+" "+__variant__
-
         self.open_conversations()
 
         Clock.schedule_interval(self.jobs, 1)
+
+    def keydown_event(self, instance, keyboard, keycode, text, modifiers):
+        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "w" or text == "q"):
+            self.quit_action(self)
+            
+    def keyboard_event(self, window, key, *largs):
+        # Handle escape/back
+        if key == 27:
+            if self.root.ids.screen_manager.current == "conversations_screen":
+                if time.time() - self.last_exit_event < 2:
+                    self.quit_action(self)
+                else:
+                    self.last_exit_event = time.time()
+
+            else:
+                self.open_conversations(direction="right")
+
+            return True
 
     def widget_hide(self, w, hide=True):
         if hasattr(w, "saved_attrs"):
@@ -276,6 +298,58 @@ class SidebandApp(MDApp):
 
         self.root.ids.screen_manager.current = "conversations_screen"
         self.root.ids.messages_scrollview.active_conversation = None
+
+    def connectivity_status(self, sender):
+        hs = dp(22)
+        connectivity_status = ""
+        if RNS.vendor.platformutils.get_platform() == "android":
+            if self.sideband.reticulum.is_connected_to_shared_instance:
+                connectivity_status = "[size=22dp][b]Connectivity Status[/b][/size]\n\nSideband is connected via a shared Reticulum instance running on this system. Use the rnstatus utility to obtain full connectivity info."
+
+            else:
+                ws = "Disabled"
+                ts = "Disabled"
+                i2s = "Disabled"
+
+                if self.sideband.interface_local != None:
+                    np = len(self.sideband.interface_local.peers)
+                    if np == 1:
+                        ws = "1 reachable peer"
+                    else:
+                        ws = str(np)+" reachable peers"
+
+                if self.sideband.interface_tcp != None:
+                    if self.sideband.interface_tcp.online:
+                        ts = "Connected to "+str(self.sideband.interface_tcp.target_ip)+":"+str(self.sideband.interface_tcp.target_port)
+                    else:
+                        ts = "Interface Down"
+
+                if self.sideband.interface_i2p != None:
+                    if self.sideband.interface_i2p.online:
+                        i2s = "Connected"
+                    else:
+                        i2s = "Connecting to I2P"
+
+                connectivity_status = "[size=22dp][b]Connectivity Status[/b][/size]\n\n[b]Local[/b]\n{ws}\n\n[b]TCP[/b]\n{ts}\n\n[b]I2P[/b]\n{i2s}".format(ws=ws, ts=ts, i2s=i2s)
+
+        else:
+            if self.sideband.reticulum.is_connected_to_shared_instance:
+                connectivity_status = "[size=22dp][b]Connectivity Status[/b][/size]\n\nSideband is connected via a shared Reticulum instance running on this system. Use the rnstatus utility to obtain full connectivity info."
+            else:
+                connectivity_status = "[size=22dp][b]Connectivity Status[/b][/size]\n\nSideband is currently running a standalone or master Reticulum instance on this system. Use the rnstatus utility to obtain full connectivity info."
+
+        yes_button = MDFlatButton(
+            text="OK",
+        )
+        dialog = MDDialog(
+            text=connectivity_status,
+            buttons=[ yes_button ],
+        )
+        def dl_yes(s):
+            dialog.dismiss()
+        
+        yes_button.bind(on_release=dl_yes)
+        dialog.open()
 
     def lxmf_sync_action(self, sender):
         if self.sideband.message_router.get_outbound_propagation_node() == None:

@@ -166,13 +166,13 @@ class Messages():
                     {
                         "viewclass": "OneLineListItem",
                         "text": "Copy",
-                        "height": dp(64),
+                        "height": dp(40),
                         "on_release": gen_copy(m["content"].decode("utf-8"), item)
                     },
                     {
                         "text": "Delete",
                         "viewclass": "OneLineListItem",
-                        "height": dp(64),
+                        "height": dp(40),
                         "on_release": gen_del(m["hash"], item)
                     }
                 ]

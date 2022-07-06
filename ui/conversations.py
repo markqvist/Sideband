@@ -186,19 +186,19 @@ class Conversations():
                     {
                         "viewclass": "OneLineListItem",
                         "text": "Edit",
-                        "height": dp(64),
+                        "height": dp(40),
                         "on_release": gen_edit(context_dest, item)
                     },
                     {
                         "text": "Clear Messages",
                         "viewclass": "OneLineListItem",
-                        "height": dp(64),
+                        "height": dp(40),
                         "on_release": gen_clear(context_dest, item)
                     },
                     {
                         "text": "Delete Conversation",
                         "viewclass": "OneLineListItem",
-                        "height": dp(64),
+                        "height": dp(40),
                         "on_release": gen_del(context_dest, item)
                     }
                 ]
@@ -208,7 +208,7 @@ class Conversations():
                 item.dmenu = MDDropdownMenu(
                     caller=item.iconr,
                     items=dm_items,
-                    position="center",
+                    position="auto",
                     width_mult=4,
                 )
 

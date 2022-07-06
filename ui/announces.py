@@ -115,7 +115,7 @@ class Announces():
                     {
                         "viewclass": "OneLineListItem",
                         "text": "Converse",
-                        "height": dp(64),
+                        "height": dp(40),
                         "on_release": gen_conv(context_dest, item)
                     },
                     # {

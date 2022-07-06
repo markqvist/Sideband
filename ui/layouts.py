@@ -10,14 +10,17 @@ MDNavigationLayout:
             BoxLayout:
                 orientation: "vertical"
 
-                MDToolbar:
+                MDTopAppBar:
                     title: "Conversations"
                     elevation: 10
                     pos_hint: {"top": 1}
                     left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
+                        [
+                        ['menu', lambda x: nav_drawer.set_state("open")],
+                        ]
                     right_action_items:
                         [
+                        ['webhook', lambda x: root.ids.screen_manager.app.connectivity_status(self)],
                         ['access-point', lambda x: root.ids.screen_manager.app.announce_now_action(self)],
                         ['email-sync', lambda x: root.ids.screen_manager.app.lxmf_sync_action(self)],
                         ['account-plus', lambda x: root.ids.screen_manager.app.new_conversation_action(self)],
@@ -33,7 +36,7 @@ MDNavigationLayout:
             BoxLayout:
                 orientation: "vertical"
 
-                MDToolbar:
+                MDTopAppBar:
                     id: messages_toolbar
                     title: "Messages"
                     elevation: 10
@@ -98,7 +101,7 @@ MDNavigationLayout:
             BoxLayout:
                 orientation: "vertical"
 
-                MDToolbar:
+                MDTopAppBar:
                     title: "Local Broadcasts"
                     elevation: 10
                     pos_hint: {"top": 1}
@@ -130,7 +133,7 @@ MDNavigationLayout:
             BoxLayout:
                 orientation: "vertical"
 
-                MDToolbar:
+                MDTopAppBar:
                     title: "Connectivity"
                     elevation: 10
                     pos_hint: {"top": 1}
@@ -318,7 +321,7 @@ MDNavigationLayout:
             BoxLayout:
                 orientation: "vertical"
 
-                MDToolbar:
+                MDTopAppBar:
                     title: "Guide"
                     elevation: 10
                     pos_hint: {"top": 1}
@@ -350,7 +353,7 @@ MDNavigationLayout:
             BoxLayout:
                 orientation: "vertical"
 
-                MDToolbar:
+                MDTopAppBar:
                     title: "App & Version Information"
                     elevation: 10
                     pos_hint: {"top": 1}
@@ -382,7 +385,7 @@ MDNavigationLayout:
             BoxLayout:
                 orientation: "vertical"
 
-                MDToolbar:
+                MDTopAppBar:
                     title: "Local Area Map"
                     elevation: 10
                     pos_hint: {"top": 1}
@@ -414,7 +417,7 @@ MDNavigationLayout:
             BoxLayout:
                 orientation: "vertical"
 
-                MDToolbar:
+                MDTopAppBar:
                     title: "Encryption Keys"
                     elevation: 10
                     pos_hint: {"top": 1}
@@ -446,7 +449,7 @@ MDNavigationLayout:
             BoxLayout:
                 orientation: "vertical"
 
-                MDToolbar:
+                MDTopAppBar:
                     title: "Announce Stream"
                     elevation: 10
                     pos_hint: {"top": 1}
@@ -483,7 +486,7 @@ MDNavigationLayout:
             BoxLayout:
                 orientation: "vertical"
 
-                MDToolbar:
+                MDTopAppBar:
                     title: "Settings"
                     elevation: 10
                     pos_hint: {"top": 1}

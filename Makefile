@@ -23,7 +23,10 @@ apk: prepare release postbuild
 devapk: prepare debug postbuild
 
 install:
-	adb install bin/sideband-0.1.4-arm64-v8a-debug.apk
+	adb install bin/sideband-0.1.5-arm64-v8a-debug.apk
+
+install-release:
+	adb install bin/sideband-0.1.5-arm64-v8a-release.apk
 
 console:
 	(adb logcat | grep python)

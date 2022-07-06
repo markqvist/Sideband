@@ -777,8 +777,6 @@ class SidebandCore():
 
                 if self.config["connect_i2p"]:
                     try:
-                        RNS.log("Adding I2P Interface...")
-
                         if self.config["connect_i2p_b32"].endswith(".b32.i2p"):
 
                             if self.config["connect_i2p_ifac_netname"] == "":
@@ -801,16 +799,16 @@ class SidebandCore():
 
                             i2pinterface.OUT = True
                             self.reticulum._add_interface(i2pinterface,ifac_netname=ifac_netname,ifac_netkey=ifac_netkey)
-                            self.interface_i2p = i2pinterface
+                            
+                            for si in RNS.Transport.interfaces:
+                                if type(si) == RNS.Interfaces.I2PInterface.I2PInterfacePeer:
+                                    self.interface_i2p = si
 
 
                     except Exception as e:
                         RNS.log("Error while adding I2P Interface. The contained exception was: "+str(e))
                         self.interface_i2p = None
 
-                        
-
-        RNS.log(str(RNS.Transport.interfaces))
 
         self.message_router = LXMF.LXMRouter(identity = self.identity, storagepath = self.lxmf_storage, autopeer = True)
         self.message_router.register_delivery_callback(self.lxmf_delivery)
