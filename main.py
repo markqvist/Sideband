@@ -510,7 +510,7 @@ class SidebandApp(MDApp):
             import webbrowser
             webbrowser.open("https://unsigned.io/sideband")
 
-        info = "This is Sideband v"+__version__+" "+__variant__+", running on RNS v"+RNS.__version__+"\n\nHumbly build using the following open components:\n\n - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)\n - [b]Kivy[/b] (MIT License)\n - [b]Python[/b] (PSF License)"+"\n\nGo to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2022 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of Sideband v"+__version__+" "+__variant__+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - USE AT YOUR OWN RISK AND RESPONSIBILITY"
+        info = "This is Sideband v"+__version__+" "+__variant__+", on RNS v"+RNS.__version__+"\n\nHumbly build using the following open components:\n\n - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)\n - [b]Kivy[/b] (MIT License)\n - [b]Python[/b] (PSF License)"+"\n\nGo to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2022 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of Sideband v"+__version__+" "+__variant__+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - USE AT YOUR OWN RISK AND RESPONSIBILITY"
         self.root.ids.information_info.text = info
         self.root.ids.information_info.bind(on_ref_press=link_exec)
         self.root.ids.screen_manager.transition.direction = "left"
@@ -630,6 +630,7 @@ class SidebandApp(MDApp):
             self.widget_hide(self.root.ids.connectivity_rnode_label)
             self.widget_hide(self.root.ids.connectivity_use_rnode)
             self.widget_hide(self.root.ids.connectivity_rnode_cid)
+            self.widget_hide(self.root.ids.rnode_support_info)
 
         def save_connectivity(sender=None, event=None):
             RNS.log("Save connectivity")
@@ -748,7 +749,7 @@ class SidebandApp(MDApp):
             import webbrowser
             webbrowser.open("https://unsigned.io/sideband")
 
-        info = "The [b]Encryption Keys[/b] import and export feature is not yet implemented in Sideband.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project."
+        info = "The [b]Encryption Keys[/b] import and export feature is not yet implemented in Sideband. In this section of the program, you will be able to export, import and back up your RNS identities, and to link Sideband with your Nomad Network identity, for fetching messages from it on the go.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project."
         self.root.ids.keys_info.text = info
         self.root.ids.keys_info.bind(on_ref_press=link_exec)
         self.root.ids.screen_manager.transition.direction = "left"

@@ -306,6 +306,14 @@ MDNavigationLayout:
                                 active: False
                                 disabled: True
 
+                        MDLabel:
+                            id: rnode_support_info
+                            markup: True
+                            text: "[i]RNode support is in development[/i]"
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
                         MDTextField:
                             id: connectivity_rnode_cid
                             hint_text: "RNode Pairing ID"
