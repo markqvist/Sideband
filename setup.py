@@ -1,6 +1,6 @@
 import setuptools
 
-exec(open("sideband/_version.py", "r").read())
+from main.py import __version__
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
