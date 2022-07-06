@@ -791,11 +791,11 @@ class SidebandCore():
                             else:
                                 ifac_netkey = self.config["connect_i2p_ifac_passphrase"]
 
-                            i2pinterface = I2PInterface.I2PInterface(
+                            i2pinterface = RNS.Interfaces.I2PInterface.I2PInterface(
                                 RNS.Transport,
                                 "I2PInterface",
                                 RNS.Reticulum.storagepath,
-                                self.config["connect_i2p_b32"],
+                                [self.config["connect_i2p_b32"]],
                                 connectable = False,
                             )
 

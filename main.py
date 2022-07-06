@@ -484,6 +484,27 @@ class SidebandApp(MDApp):
     ### Connectivity screen
     ######################################
     def connectivity_action(self, sender=None):
+        def con_hide_settings():
+            self.widget_hide(self.root.ids.connectivity_use_local)
+            self.widget_hide(self.root.ids.connectivity_local_groupid)
+            self.widget_hide(self.root.ids.connectivity_local_ifac_netname)
+            self.widget_hide(self.root.ids.connectivity_local_ifac_passphrase)
+            self.widget_hide(self.root.ids.connectivity_use_tcp)
+            self.widget_hide(self.root.ids.connectivity_tcp_host)
+            self.widget_hide(self.root.ids.connectivity_tcp_port)
+            self.widget_hide(self.root.ids.connectivity_tcp_ifac_netname)
+            self.widget_hide(self.root.ids.connectivity_tcp_ifac_passphrase)
+            self.widget_hide(self.root.ids.connectivity_use_i2p)
+            self.widget_hide(self.root.ids.connectivity_i2p_b32)
+            self.widget_hide(self.root.ids.connectivity_i2p_ifac_netname)
+            self.widget_hide(self.root.ids.connectivity_i2p_ifac_passphrase)
+            self.widget_hide(self.root.ids.connectivity_tcp_label)
+            self.widget_hide(self.root.ids.connectivity_local_label)
+            self.widget_hide(self.root.ids.connectivity_i2p_label)
+            self.widget_hide(self.root.ids.connectivity_rnode_label)
+            self.widget_hide(self.root.ids.connectivity_use_rnode)
+            self.widget_hide(self.root.ids.connectivity_rnode_cid)
+
         def save_connectivity(sender=None, event=None):
             RNS.log("Save connectivity")
             self.sideband.config["connect_local"] = self.root.ids.connectivity_use_local.active
@@ -501,40 +522,64 @@ class SidebandApp(MDApp):
             self.sideband.config["connect_i2p_ifac_passphrase"] = self.root.ids.connectivity_i2p_ifac_passphrase.text
             self.sideband.save_configuration()
 
-        info =  "By default, sideband will try to discover and connect to any available Reticulum network via active WiFi and/or Ethernet interfaces. If any Reticulum Transport Instances are found, Sideband will use these to connect to wider Reticulum networks. You can disable this behaviour if you don't want it.\n\n"
-        info += "You can connect also connect to a network via a remote or local Reticulum instance using TCP or I2P. [b]Please Note![/b] Connecting via I2P requires that you already have I2P running on your device, and the SAM API enabled.\n\n"
-        info += "For changes to connectivity to take effect, you must shut down and restart Sideband."
-        self.root.ids.connectivity_info.text = info
+        if RNS.vendor.platformutils.get_platform() == "android":
+            if self.sideband.reticulum.is_connected_to_shared_instance:
+                info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
+                info += "To configure connectivity, edit the relevant configuration file for the instance."
+                self.root.ids.connectivity_info.text = info
+                con_hide_settings()
 
-        self.root.ids.connectivity_use_local.active = self.sideband.config["connect_local"]
-        self.root.ids.connectivity_local_groupid.text = self.sideband.config["connect_local_groupid"]
-        self.root.ids.connectivity_local_ifac_netname.text = self.sideband.config["connect_local_ifac_netname"]
-        self.root.ids.connectivity_local_ifac_passphrase.text = self.sideband.config["connect_local_ifac_passphrase"]
+            else:
+                info =  "By default, Sideband will try to discover and connect to any available Reticulum networks via active WiFi and/or Ethernet interfaces. If any Reticulum Transport Instances are found, Sideband will use these to connect to wider Reticulum networks. You can disable this behaviour if you don't want it.\n\n"
+                info += "You can also connect to a network via a remote or local Reticulum instance using TCP or I2P. [b]Please Note![/b] Connecting via I2P requires that you already have I2P running on your device, and that the SAM API is enabled.\n\n"
+                info += "For changes to connectivity to take effect, you must shut down and restart Sideband."
+                self.root.ids.connectivity_info.text = info
 
-        self.root.ids.connectivity_use_tcp.active = self.sideband.config["connect_tcp"]
-        self.root.ids.connectivity_tcp_host.text = self.sideband.config["connect_tcp_host"]
-        self.root.ids.connectivity_tcp_port.text = self.sideband.config["connect_tcp_port"]
-        self.root.ids.connectivity_tcp_ifac_netname.text = self.sideband.config["connect_tcp_ifac_netname"]
-        self.root.ids.connectivity_tcp_ifac_passphrase.text = self.sideband.config["connect_tcp_ifac_passphrase"]
+                self.root.ids.connectivity_use_local.active = self.sideband.config["connect_local"]
+                self.root.ids.connectivity_local_groupid.text = self.sideband.config["connect_local_groupid"]
+                self.root.ids.connectivity_local_ifac_netname.text = self.sideband.config["connect_local_ifac_netname"]
+                self.root.ids.connectivity_local_ifac_passphrase.text = self.sideband.config["connect_local_ifac_passphrase"]
 
-        self.root.ids.connectivity_use_i2p.active = self.sideband.config["connect_i2p"]
-        self.root.ids.connectivity_i2p_b32.text = self.sideband.config["connect_i2p_b32"]
-        self.root.ids.connectivity_i2p_ifac_netname.text = self.sideband.config["connect_i2p_ifac_netname"]
-        self.root.ids.connectivity_i2p_ifac_passphrase.text = self.sideband.config["connect_i2p_ifac_passphrase"]
+                self.root.ids.connectivity_use_tcp.active = self.sideband.config["connect_tcp"]
+                self.root.ids.connectivity_tcp_host.text = self.sideband.config["connect_tcp_host"]
+                self.root.ids.connectivity_tcp_port.text = self.sideband.config["connect_tcp_port"]
+                self.root.ids.connectivity_tcp_ifac_netname.text = self.sideband.config["connect_tcp_ifac_netname"]
+                self.root.ids.connectivity_tcp_ifac_passphrase.text = self.sideband.config["connect_tcp_ifac_passphrase"]
 
-        self.root.ids.connectivity_use_local.bind(active=save_connectivity)
-        self.root.ids.connectivity_local_groupid.bind(on_text_validate=save_connectivity)
-        self.root.ids.connectivity_local_ifac_netname.bind(on_text_validate=save_connectivity)
-        self.root.ids.connectivity_local_ifac_passphrase.bind(on_text_validate=save_connectivity)
-        self.root.ids.connectivity_use_tcp.bind(active=save_connectivity)
-        self.root.ids.connectivity_tcp_host.bind(on_text_validate=save_connectivity)
-        self.root.ids.connectivity_tcp_port.bind(on_text_validate=save_connectivity)
-        self.root.ids.connectivity_tcp_ifac_netname.bind(on_text_validate=save_connectivity)
-        self.root.ids.connectivity_tcp_ifac_passphrase.bind(on_text_validate=save_connectivity)
-        self.root.ids.connectivity_use_i2p.bind(active=save_connectivity)
-        self.root.ids.connectivity_i2p_b32.bind(on_text_validate=save_connectivity)
-        self.root.ids.connectivity_i2p_ifac_netname.bind(on_text_validate=save_connectivity)
-        self.root.ids.connectivity_i2p_ifac_passphrase.bind(on_text_validate=save_connectivity)
+                self.root.ids.connectivity_use_i2p.active = self.sideband.config["connect_i2p"]
+                self.root.ids.connectivity_i2p_b32.text = self.sideband.config["connect_i2p_b32"]
+                self.root.ids.connectivity_i2p_ifac_netname.text = self.sideband.config["connect_i2p_ifac_netname"]
+                self.root.ids.connectivity_i2p_ifac_passphrase.text = self.sideband.config["connect_i2p_ifac_passphrase"]
+
+                self.root.ids.connectivity_use_local.bind(active=save_connectivity)
+                self.root.ids.connectivity_local_groupid.bind(on_text_validate=save_connectivity)
+                self.root.ids.connectivity_local_ifac_netname.bind(on_text_validate=save_connectivity)
+                self.root.ids.connectivity_local_ifac_passphrase.bind(on_text_validate=save_connectivity)
+                self.root.ids.connectivity_use_tcp.bind(active=save_connectivity)
+                self.root.ids.connectivity_tcp_host.bind(on_text_validate=save_connectivity)
+                self.root.ids.connectivity_tcp_port.bind(on_text_validate=save_connectivity)
+                self.root.ids.connectivity_tcp_ifac_netname.bind(on_text_validate=save_connectivity)
+                self.root.ids.connectivity_tcp_ifac_passphrase.bind(on_text_validate=save_connectivity)
+                self.root.ids.connectivity_use_i2p.bind(active=save_connectivity)
+                self.root.ids.connectivity_i2p_b32.bind(on_text_validate=save_connectivity)
+                self.root.ids.connectivity_i2p_ifac_netname.bind(on_text_validate=save_connectivity)
+                self.root.ids.connectivity_i2p_ifac_passphrase.bind(on_text_validate=save_connectivity)
+
+        else:
+            info = ""
+
+            if self.sideband.reticulum.is_connected_to_shared_instance:
+                info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
+                info += "To configure connectivity, edit the configuration file located at:\n\n"
+                info += str(RNS.Reticulum.configpath)
+            else:
+                info =  "Sideband is currently running a standalone or master Reticulum instance on this system.\n\n"
+                info += "To configure connectivity, edit the configuration file located at:\n\n"
+                info += str(RNS.Reticulum.configpath)
+
+            self.root.ids.connectivity_info.text = info
+
+            con_hide_settings()
 
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "connectivity_screen"

@@ -175,6 +175,7 @@ MDNavigationLayout:
                             height: dp(48)
                             
                             MDLabel:
+                                id: connectivity_local_label
                                 text: "Connect via local WiFi/Ethernet"
                                 font_style: "H6"
 
@@ -214,6 +215,7 @@ MDNavigationLayout:
                             height: dp(48)
                             
                             MDLabel:
+                                id: connectivity_tcp_label
                                 text: "Connect via TCP"
                                 font_style: "H6"
 
@@ -255,6 +257,7 @@ MDNavigationLayout:
                             height: dp(48)
                             
                             MDLabel:
+                                id: connectivity_i2p_label
                                 text: "Connect via I2P"
                                 font_style: "H6"
 
@@ -290,6 +293,7 @@ MDNavigationLayout:
                             height: dp(48)
                             
                             MDLabel:
+                                id: connectivity_rnode_label
                                 text: "Connect via RNode"
                                 font_style: "H6"
                                 disabled: True
