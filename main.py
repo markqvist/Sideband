@@ -99,6 +99,16 @@ class SidebandApp(MDApp):
     def keydown_event(self, instance, keyboard, keycode, text, modifiers):
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "w" or text == "q"):
             self.quit_action(self)
+        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "s" or text == "d"):
+            if self.root.ids.screen_manager.current == "messages_screen":
+                self.message_send_action()
+        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "l"):
+            self.announces_action(self)
+        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "n"):
+            if self.root.ids.screen_manager.current == "conversations_screen":
+                if not hasattr(self, "dialog_open") or not self.dialog_open:
+                    self.new_conversation_action(self)
+
             
     def keyboard_event(self, window, key, *largs):
         # Handle escape/back
@@ -443,9 +453,15 @@ class SidebandApp(MDApp):
             def dl_no(s):
                 dialog.dismiss()
 
+            def dl_ds(s):
+                self.dialog_open = False
+
             yes_button.bind(on_release=dl_yes)
             no_button.bind(on_release=dl_no)
+
+            dialog.bind(on_dismiss=dl_ds)
             dialog.open()
+            self.dialog_open = True
 
         except Exception as e:
             RNS.log("Error while creating new conversation dialog: "+str(e), RNS.LOG_ERROR)

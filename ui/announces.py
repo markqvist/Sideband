@@ -48,6 +48,7 @@ class Announces():
             context_dest = announce["dest"]
             ts = announce["time"]
             a_data = announce["data"]
+            dest_type = announce["type"]
 
             if not context_dest in self.added_item_dests:
                 if self.app.sideband.is_trusted(context_dest):
@@ -55,14 +56,20 @@ class Announces():
                 else:
                     trust_icon = "account-question"
 
-                def gen_info(ts, dest, name):
+                def gen_info(ts, dest, name, dtype):
                     def x(sender):
                         yes_button = MDFlatButton(
                             text="OK",
                         )
                         
+                        if dtype == "lxmf.delivery":
+                            ad_text = "[size=22dp]LXMF Peer[/size]\n\nReceived: "+ts+"\nAnnounced Name: "+name+"\nAddress: "+RNS.prettyhexrep(dest)
+
+                        if dtype == "lxmf.propagation":
+                            ad_text = "[size=22dp]LXMF Propagation Node[/size]\n\nReceived: "+ts+"\nAddress: "+RNS.prettyhexrep(dest)
+
                         dialog = MDDialog(
-                            text="Announce Received: "+ts+"\nAnnounced Name: "+name+"\nLXMF Address: "+RNS.prettyhexrep(dest),
+                            text=ad_text,
                             buttons=[ yes_button ],
                         )
                         def dl_yes(s):
@@ -74,9 +81,21 @@ class Announces():
                     return x
 
                 time_string = time.strftime(ts_format, time.localtime(ts))
-                disp_name = self.app.sideband.peer_display_name(context_dest)
-                iconl = IconLeftWidget(icon=trust_icon)
-                item = OneLineAvatarIconListItem(text=time_string+": "+disp_name, on_release=gen_info(time_string, context_dest, a_data))
+
+                if dest_type == "lxmf.delivery":
+                    disp_name = self.app.sideband.peer_display_name(context_dest)
+                    iconl = IconLeftWidget(icon=trust_icon)
+
+                elif dest_type == "lxmf.propagation":
+                    disp_name = "Propagation Node "+RNS.prettyhexrep(context_dest)
+                    iconl = IconLeftWidget(icon="upload-network")
+
+                else:
+                    disp_name = "Unknown Announce"
+                    iconl = IconLeftWidget(icon="progress-question")
+
+
+                item = OneLineAvatarIconListItem(text=time_string+": "+disp_name, on_release=gen_info(time_string, context_dest, a_data, dest_type))
                 item.add_widget(iconl)
                 item.sb_uid = context_dest
 
@@ -111,20 +130,42 @@ class Announces():
                         self.app.conversation_from_announce_action(dest)
                     return x
 
-                dm_items = [
-                    {
-                        "viewclass": "OneLineListItem",
-                        "text": "Converse",
-                        "height": dp(40),
-                        "on_release": gen_conv(context_dest, item)
-                    },
-                    # {
-                    #     "text": "Delete Announce",
-                    #     "viewclass": "OneLineListItem",
-                    #     "height": dp(64),
-                    #     "on_release": gen_del(context_dest, item)
-                    # }
-                ]
+                def gen_set_node(dest, item):
+                    def x():
+                        item.dmenu.dismiss()
+                        self.app.sideband.set_active_propagation_node(dest)
+                        self.app.sideband.config["lxmf_propagation_node"] = dest
+                        self.app.sideband.save_configuration()
+                    return x
+
+                if dest_type == "lxmf.delivery":
+                    dm_items = [
+                        {
+                            "viewclass": "OneLineListItem",
+                            "text": "Converse",
+                            "height": dp(40),
+                            "on_release": gen_conv(context_dest, item)
+                        },
+                        # {
+                        #     "text": "Delete Announce",
+                        #     "viewclass": "OneLineListItem",
+                        #     "height": dp(40),
+                        #     "on_release": gen_del(context_dest, item)
+                        # }
+                    ]
+
+                elif dest_type == "lxmf.propagation":
+                    dm_items = [
+                        {
+                            "viewclass": "OneLineListItem",
+                            "text": "Use this Propagation Node",
+                            "height": dp(40),
+                            "on_release": gen_set_node(context_dest, item)
+                        },
+                    ]
+
+                else:
+                    dm_items = []
 
                 item.iconr = IconRightWidget(icon="dots-vertical");
                 

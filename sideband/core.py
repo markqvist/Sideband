@@ -32,6 +32,7 @@ class PropagationNodeDetector():
                 pass
 
             RNS.log("Detected active propagation node "+RNS.prettyhexrep(destination_hash)+" emission "+str(age)+" seconds ago, "+str(hops)+" hops away")
+            self.owner.log_announce(destination_hash, RNS.prettyhexrep(destination_hash).encode("utf-8"), dest_type=PropagationNodeDetector.aspect_filter)
 
             if self.owner.config["lxmf_propagation_node"] == None:
                 if self.owner.active_propagation_node == None:
@@ -63,7 +64,7 @@ class SidebandCore():
     def received_announce(self, destination_hash, announced_identity, app_data):
         # Add the announce to the directory announce
         # stream logger
-        self.log_announce(destination_hash, app_data)
+        self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter)
 
     def __init__(self, owner_app):
         self.owner_app = owner_app
@@ -202,10 +203,10 @@ class SidebandCore():
                 RNS.log("Error while setting LXMF propagation node: "+str(e), RNS.LOG_ERROR)
 
 
-    def log_announce(self, dest, app_data):
+    def log_announce(self, dest, app_data, dest_type):
         try:
-            RNS.log("Received LXMF destination announce for "+RNS.prettyhexrep(dest)+" with data: "+app_data.decode("utf-8"))
-            self._db_save_announce(dest, app_data)
+            RNS.log("Received "+str(dest_type)+" announce for "+RNS.prettyhexrep(dest)+" with data: "+app_data.decode("utf-8"))
+            self._db_save_announce(dest, app_data, dest_type)
             self.owner_app.flag_new_announces = True
 
         except Exception as e:
@@ -290,7 +291,7 @@ class SidebandCore():
 
 
         except Exception as e:
-            RNS.log("Error while getting peer name: "+str(e), RNS.LOG_ERROR)
+            RNS.log("Could not decode a valid peer name from data: "+str(e), RNS.LOG_DEBUG)
             return RNS.prettyhexrep(context_dest)
 
     def clear_conversation(self, context_dest):
@@ -342,7 +343,7 @@ class SidebandCore():
         dbc.execute("CREATE TABLE conv (dest_context BLOB PRIMARY KEY, last_tx INTEGER, last_rx INTEGER, unread INTEGER, type INTEGER, trust INTEGER, name BLOB, data BLOB)")
 
         dbc.execute("DROP TABLE IF EXISTS announce")
-        dbc.execute("CREATE TABLE announce (id PRIMARY KEY, received INTEGER, source BLOB, data BLOB)")
+        dbc.execute("CREATE TABLE announce (id PRIMARY KEY, received INTEGER, source BLOB, data BLOB, dest_type BLOB)")
 
         db.commit()
         db.close()
@@ -424,6 +425,7 @@ class SidebandCore():
                         "dest": entry[2],
                         "data": entry[3].decode("utf-8"),
                         "time": entry[1],
+                        "type": entry[4]
                     }
                     announces.append(announce)
                 except Exception as e:
@@ -649,15 +651,16 @@ class SidebandCore():
 
         self.__event_conversation_changed(context_dest)
 
-    def _db_save_announce(self, destination_hash, app_data):
+    def _db_save_announce(self, destination_hash, app_data, dest_type="lxmf.delivery"):
         db = sqlite3.connect(self.db_path)
         dbc = db.cursor()
 
-        query = "INSERT INTO announce (received, source, data) values (?, ?, ?)"
+        query = "INSERT INTO announce (received, source, data, dest_type) values (?, ?, ?, ?)"
         data = (
             time.time(),
             destination_hash,
             app_data,
+            dest_type,
         )
 
         dbc.execute(query, data)
