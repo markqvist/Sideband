@@ -22,7 +22,7 @@ from kivy.metrics import dp
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 __variant__ = "alpha"
 
 class SidebandApp(MDApp):
