@@ -72,8 +72,7 @@ class SidebandCore():
         self.app_dir       = plyer.storagepath.get_application_dir()
         
         self.rns_configdir = None
-        # TODO: Reset
-        if RNS.vendor.platformutils.get_platform() == "android" or True:
+        if RNS.vendor.platformutils.get_platform() == "android":
             self.app_dir = self.app_dir+"/io.unsigned.sideband/files/"
             self.rns_configdir = self.app_dir+"/app_storage/reticulum"
 
@@ -98,8 +97,7 @@ class SidebandCore():
 
 
         # Initialise Reticulum configuration
-        # TODO: Reset
-        if RNS.vendor.platformutils.get_platform() == "android" or True:
+        if RNS.vendor.platformutils.get_platform() == "android":
             try:
                 self.rns_configdir = self.app_dir+"/app_storage/reticulum"
                 if not os.path.isdir(self.rns_configdir):
@@ -702,7 +700,7 @@ class SidebandCore():
         self.reticulum = RNS.Reticulum(configdir=self.rns_configdir)
         RNS.log("Reticulum started, activating LXMF...")
 
-        if RNS.vendor.platformutils.get_platform() == "android" or True:
+        if RNS.vendor.platformutils.get_platform() == "android":
             if not self.reticulum.is_connected_to_shared_instance:
                 RNS.log("Running as master or standalone instance, adding interfaces")
                 
@@ -1009,7 +1007,6 @@ instance_control_port = 37429
 panic_on_interface_error = No
 
 [logging]
-# TODO: Reset to 3
-loglevel = 6
+loglevel = 3
 
 """.encode("utf-8")
