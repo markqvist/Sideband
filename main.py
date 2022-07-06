@@ -2,6 +2,9 @@ import RNS
 import LXMF
 import time
 
+from kivy.logger import Logger, LOG_LEVELS
+Logger.setLevel(LOG_LEVELS["error"])
+
 from sideband.core import SidebandCore
 
 from kivymd.app import MDApp
@@ -478,6 +481,69 @@ class SidebandApp(MDApp):
         self.open_conversations(direction="right")
 
 
+    ### Connectivity screen
+    ######################################
+    def connectivity_action(self, sender=None):
+        def save_connectivity(sender=None, event=None):
+            RNS.log("Save connectivity")
+            self.sideband.config["connect_local"] = self.root.ids.connectivity_use_local.active
+            self.sideband.config["connect_local_groupid"] = self.root.ids.connectivity_local_groupid.text
+            self.sideband.config["connect_local_ifac_netname"] = self.root.ids.connectivity_local_ifac_netname.text
+            self.sideband.config["connect_local_ifac_passphrase"] = self.root.ids.connectivity_local_ifac_passphrase.text
+            self.sideband.config["connect_tcp"] = self.root.ids.connectivity_use_tcp.active
+            self.sideband.config["connect_tcp_host"] = self.root.ids.connectivity_tcp_host.text
+            self.sideband.config["connect_tcp_port"] = self.root.ids.connectivity_tcp_port.text
+            self.sideband.config["connect_tcp_ifac_netname"] = self.root.ids.connectivity_tcp_ifac_netname.text
+            self.sideband.config["connect_tcp_ifac_passphrase"] = self.root.ids.connectivity_tcp_ifac_passphrase.text
+            self.sideband.config["connect_i2p"] = self.root.ids.connectivity_use_i2p.active
+            self.sideband.config["connect_i2p_b32"] = self.root.ids.connectivity_i2p_b32.text
+            self.sideband.config["connect_i2p_ifac_netname"] = self.root.ids.connectivity_i2p_ifac_netname.text
+            self.sideband.config["connect_i2p_ifac_passphrase"] = self.root.ids.connectivity_i2p_ifac_passphrase.text
+            self.sideband.save_configuration()
+
+        info =  "By default, sideband will try to discover and connect to any available Reticulum network via active WiFi and/or Ethernet interfaces. If any Reticulum Transport Instances are found, Sideband will use these to connect to wider Reticulum networks. You can disable this behaviour if you don't want it.\n\n"
+        info += "You can connect also connect to a network via a remote or local Reticulum instance using TCP or I2P. [b]Please Note![/b] Connecting via I2P requires that you already have I2P running on your device, and the SAM API enabled.\n\n"
+        info += "For changes to connectivity to take effect, you must shut down and restart Sideband."
+        self.root.ids.connectivity_info.text = info
+
+        self.root.ids.connectivity_use_local.active = self.sideband.config["connect_local"]
+        self.root.ids.connectivity_local_groupid.text = self.sideband.config["connect_local_groupid"]
+        self.root.ids.connectivity_local_ifac_netname.text = self.sideband.config["connect_local_ifac_netname"]
+        self.root.ids.connectivity_local_ifac_passphrase.text = self.sideband.config["connect_local_ifac_passphrase"]
+
+        self.root.ids.connectivity_use_tcp.active = self.sideband.config["connect_tcp"]
+        self.root.ids.connectivity_tcp_host.text = self.sideband.config["connect_tcp_host"]
+        self.root.ids.connectivity_tcp_port.text = self.sideband.config["connect_tcp_port"]
+        self.root.ids.connectivity_tcp_ifac_netname.text = self.sideband.config["connect_tcp_ifac_netname"]
+        self.root.ids.connectivity_tcp_ifac_passphrase.text = self.sideband.config["connect_tcp_ifac_passphrase"]
+
+        self.root.ids.connectivity_use_i2p.active = self.sideband.config["connect_i2p"]
+        self.root.ids.connectivity_i2p_b32.text = self.sideband.config["connect_i2p_b32"]
+        self.root.ids.connectivity_i2p_ifac_netname.text = self.sideband.config["connect_i2p_ifac_netname"]
+        self.root.ids.connectivity_i2p_ifac_passphrase.text = self.sideband.config["connect_i2p_ifac_passphrase"]
+
+        self.root.ids.connectivity_use_local.bind(active=save_connectivity)
+        self.root.ids.connectivity_local_groupid.bind(on_text_validate=save_connectivity)
+        self.root.ids.connectivity_local_ifac_netname.bind(on_text_validate=save_connectivity)
+        self.root.ids.connectivity_local_ifac_passphrase.bind(on_text_validate=save_connectivity)
+        self.root.ids.connectivity_use_tcp.bind(active=save_connectivity)
+        self.root.ids.connectivity_tcp_host.bind(on_text_validate=save_connectivity)
+        self.root.ids.connectivity_tcp_port.bind(on_text_validate=save_connectivity)
+        self.root.ids.connectivity_tcp_ifac_netname.bind(on_text_validate=save_connectivity)
+        self.root.ids.connectivity_tcp_ifac_passphrase.bind(on_text_validate=save_connectivity)
+        self.root.ids.connectivity_use_i2p.bind(active=save_connectivity)
+        self.root.ids.connectivity_i2p_b32.bind(on_text_validate=save_connectivity)
+        self.root.ids.connectivity_i2p_ifac_netname.bind(on_text_validate=save_connectivity)
+        self.root.ids.connectivity_i2p_ifac_passphrase.bind(on_text_validate=save_connectivity)
+
+        self.root.ids.screen_manager.transition.direction = "left"
+        self.root.ids.screen_manager.current = "connectivity_screen"
+        self.root.ids.nav_drawer.set_state("closed")
+
+
+    def close_connectivity_action(self, sender=None):
+        self.open_conversations(direction="right")
+
     ### Announce Stream screen
     ######################################
     def announces_action(self, sender=None):
@@ -529,20 +595,6 @@ class SidebandApp(MDApp):
         self.root.ids.map_info.bind(on_ref_press=link_exec)
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "map_screen"
-        self.root.ids.nav_drawer.set_state("closed")
-
-    def connectivity_action(self, sender=None):
-        def link_exec(sender=None, event=None):
-            RNS.log("Click")
-            import webbrowser
-            webbrowser.open("https://unsigned.io/sideband")
-
-        info = "The [b]Connectivity[/b] feature will allow you use LoRa and radio interfaces directly on Android over USB or Bluetooth, through a simple and user-friendly setup process. It will also let you view advanced connectivity stats and options.\n\nThis feature is not yet implemented in Sideband.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project."
-        self.root.ids.connectivity_info.text = info
-        self.root.ids.connectivity_info.bind(on_ref_press=link_exec)
-
-        self.root.ids.screen_manager.transition.direction = "left"
-        self.root.ids.screen_manager.current = "connectivity_screen"
         self.root.ids.nav_drawer.set_state("closed")
 
     def broadcasts_action(self, sender=None):

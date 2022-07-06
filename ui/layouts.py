@@ -136,16 +136,28 @@ MDNavigationLayout:
                     pos_hint: {"top": 1}
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
+                    right_action_items:
+                        [
+                        ['close', lambda x: root.ids.screen_manager.app.close_connectivity_action(self)],
+                        ]
 
                 ScrollView:
-                    id:connectivity_scrollview
+                    id: connectivity_scrollview
 
                     MDBoxLayout:
                         orientation: "vertical"
                         spacing: "24dp"
                         size_hint_y: None
                         height: self.minimum_height
-                        padding: dp(64)
+                        padding: dp(16)
+
+                        MDLabel:
+                            text: ""
+                            font_style: "H6"
+
+                        MDLabel:
+                            text: "Configuring Connectivity"
+                            font_style: "H6"
 
                         MDLabel:
                             id: connectivity_info
@@ -154,6 +166,146 @@ MDNavigationLayout:
                             size_hint_y: None
                             text_size: self.width, None
                             height: self.texture_size[1]
+
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            # spacing: "24dp"
+                            size_hint_y: None
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Connect via local WiFi/Ethernet"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: connectivity_use_local
+                                active: False
+
+                        MDLabel:
+                            text: ""
+                            font_size: dp(16)
+
+                        MDTextField:
+                            id: connectivity_local_groupid
+                            hint_text: "Optional WiFi/Ethernet Group ID"
+                            text: ""
+                            max_text_length: 128
+                            font_size: dp(24)
+
+                        MDTextField:
+                            id: connectivity_local_ifac_netname
+                            hint_text: "Optional IFAC network name"
+                            text: ""
+                            font_size: dp(24)
+
+                        MDTextField:
+                            id: connectivity_local_ifac_passphrase
+                            hint_text: "Optional IFAC passphrase"
+                            text: ""
+                            font_size: dp(24)
+
+
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            # spacing: "24dp"
+                            size_hint_y: None
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Connect via TCP"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: connectivity_use_tcp
+                                active: False
+
+
+                        MDTextField:
+                            id: connectivity_tcp_host
+                            hint_text: "TCP Host"
+                            text: ""
+                            font_size: dp(24)
+
+                        MDTextField:
+                            id: connectivity_tcp_port
+                            hint_text: "TCP Port"
+                            text: ""
+                            font_size: dp(24)
+
+                        MDTextField:
+                            id: connectivity_tcp_ifac_netname
+                            hint_text: "Optional IFAC network name"
+                            text: ""
+                            font_size: dp(24)
+
+                        MDTextField:
+                            id: connectivity_tcp_ifac_passphrase
+                            hint_text: "Optional IFAC passphrase"
+                            text: ""
+                            font_size: dp(24)
+
+
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            # spacing: "24dp"
+                            size_hint_y: None
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Connect via I2P"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: connectivity_use_i2p
+                                active: False
+
+
+                        MDTextField:
+                            id: connectivity_i2p_b32
+                            hint_text: "I2P B32"
+                            text: ""
+                            font_size: dp(24)
+
+                        MDTextField:
+                            id: connectivity_i2p_ifac_netname
+                            hint_text: "Optional IFAC network name"
+                            text: ""
+                            font_size: dp(24)
+
+                        MDTextField:
+                            id: connectivity_i2p_ifac_passphrase
+                            hint_text: "Optional IFAC passphrase"
+                            text: ""
+                            font_size: dp(24)
+
+
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            # spacing: "24dp"
+                            size_hint_y: None
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Connect via RNode"
+                                font_style: "H6"
+                                disabled: True
+
+                            MDSwitch:
+                                id: connectivity_use_rnode
+                                active: False
+                                disabled: True
+
+                        MDTextField:
+                            id: connectivity_rnode_cid
+                            hint_text: "RNode Pairing ID"
+                            text: ""
+                            font_size: dp(24)
+                            disabled: True
+
         
 
         MDScreen:

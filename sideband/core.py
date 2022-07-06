@@ -72,7 +72,8 @@ class SidebandCore():
         self.app_dir       = plyer.storagepath.get_application_dir()
         
         self.rns_configdir = None
-        if RNS.vendor.platformutils.get_platform() == "android":
+        # TODO: Reset
+        if RNS.vendor.platformutils.get_platform() == "android" or True:
             self.app_dir = self.app_dir+"/io.unsigned.sideband/files/"
             self.rns_configdir = self.app_dir+"/app_storage/reticulum"
 
@@ -97,7 +98,8 @@ class SidebandCore():
 
 
         # Initialise Reticulum configuration
-        if RNS.vendor.platformutils.get_platform() == "android":
+        # TODO: Reset
+        if RNS.vendor.platformutils.get_platform() == "android" or True:
             try:
                 self.rns_configdir = self.app_dir+"/app_storage/reticulum"
                 if not os.path.isdir(self.rns_configdir):
@@ -132,6 +134,7 @@ class SidebandCore():
             self.identity.to_file(self.identity_path)
 
         self.config = {}
+        # Settings
         self.config["display_name"] = "Anonymous Peer"
         self.config["start_announce"] = False
         self.config["propagation_by_default"] = False
@@ -142,6 +145,21 @@ class SidebandCore():
         self.config["lxmf_sync_max"] = 3
         self.config["last_lxmf_propagation_node"] = None
         self.config["nn_home_node"] = None
+        # Connectivity
+        self.config["connect_local"] = True
+        self.config["connect_local_groupid"] = ""
+        self.config["connect_local_ifac_netname"] = ""
+        self.config["connect_local_ifac_passphrase"] = ""
+        self.config["connect_tcp"] = False
+        self.config["connect_tcp_host"] = "sideband.connect.reticulum.network"
+        self.config["connect_tcp_port"] = "7822"
+        self.config["connect_tcp_ifac_netname"] = ""
+        self.config["connect_tcp_ifac_passphrase"] = ""
+        self.config["connect_i2p"] = False
+        self.config["connect_i2p_b32"] = "mrwqlsioq4hoo2lmeeud7dkfscnm7yxak7dmiyvsrnpfag3z5tsq.b32.i2p"
+        self.config["connect_i2p_ifac_netname"] = ""
+        self.config["connect_i2p_ifac_passphrase"] = ""
+
         self.__save_config()
 
         if not os.path.isfile(self.db_path):
@@ -152,7 +170,7 @@ class SidebandCore():
         RNS.log("Loading Sideband identity...")
         self.identity = RNS.Identity.from_file(self.identity_path)
 
-        RNS.log("Loading Sideband configuration...")
+        RNS.log("Loading Sideband configuration... "+str(self.config_path))
         config_file = open(self.config_path, "rb")
         self.config = msgpack.unpackb(config_file.read())
         config_file.close()
@@ -684,6 +702,118 @@ class SidebandCore():
         self.reticulum = RNS.Reticulum(configdir=self.rns_configdir)
         RNS.log("Reticulum started, activating LXMF...")
 
+        if RNS.vendor.platformutils.get_platform() == "android" or True:
+            if not self.reticulum.is_connected_to_shared_instance:
+                RNS.log("Running as master or standalone instance, adding interfaces")
+                
+                self.interface_local = None
+                self.interface_tcp   = None
+                self.interface_i2p   = None
+
+                if self.config["connect_local"]:
+                    try:
+                        RNS.log("Adding Auto Interface...")
+                        if self.config["connect_local_groupid"] == "":
+                            group_id = None
+                        else:
+                            group_id = self.config["connect_local_groupid"]
+
+                        if self.config["connect_local_ifac_netname"] == "":
+                            ifac_netname = None
+                        else:
+                            ifac_netname = self.config["connect_local_ifac_netname"]
+
+                        if self.config["connect_local_ifac_passphrase"] == "":
+                            ifac_netkey = None
+                        else:
+                            ifac_netkey = self.config["connect_local_ifac_passphrase"]
+
+                        autointerface = RNS.Interfaces.AutoInterface.AutoInterface(
+                            RNS.Transport,
+                            name = "AutoInterface",
+                            group_id = group_id
+                        )
+                        autointerface.OUT = True
+                        self.reticulum._add_interface(autointerface,ifac_netname=ifac_netname,ifac_netkey=ifac_netkey)
+                        self.interface_local = autointerface
+
+                    except Exception as e:
+                        RNS.log("Error while adding AutoInterface. The contained exception was: "+str(e))
+                        self.interface_local = None
+
+                if self.config["connect_tcp"]:
+                    try:
+                        RNS.log("Adding TCP Interface...")
+
+                        if self.config["connect_tcp_host"] != "":
+                            tcp_host = self.config["connect_tcp_host"]
+                            tcp_port = int(self.config["connect_tcp_port"])
+
+                            if tcp_port > 0 and tcp_port <= 65536:
+                                if self.config["connect_tcp_ifac_netname"] == "":
+                                    ifac_netname = None
+                                else:
+                                    ifac_netname = self.config["connect_tcp_ifac_netname"]
+
+                                if self.config["connect_tcp_ifac_passphrase"] == "":
+                                    ifac_netkey = None
+                                else:
+                                    ifac_netkey = self.config["connect_tcp_ifac_passphrase"]
+
+                                tcpinterface = RNS.Interfaces.TCPInterface.TCPClientInterface(
+                                    RNS.Transport,
+                                    "TCPClientInterface",
+                                    tcp_host,
+                                    tcp_port,
+                                    kiss_framing = False,
+                                    i2p_tunneled = False
+                                )
+
+                                tcpinterface.OUT = True
+                                self.reticulum._add_interface(tcpinterface,ifac_netname=ifac_netname,ifac_netkey=ifac_netkey)
+                                self.interface_tcp = tcpinterface
+
+                    except Exception as e:
+                        RNS.log("Error while adding TCP Interface. The contained exception was: "+str(e))
+                        self.interface_tcp = None
+
+                if self.config["connect_i2p"]:
+                    try:
+                        RNS.log("Adding I2P Interface...")
+
+                        if self.config["connect_i2p_b32"].endswith(".b32.i2p"):
+
+                            if self.config["connect_i2p_ifac_netname"] == "":
+                                ifac_netname = None
+                            else:
+                                ifac_netname = self.config["connect_i2p_ifac_netname"]
+
+                            if self.config["connect_i2p_ifac_passphrase"] == "":
+                                ifac_netkey = None
+                            else:
+                                ifac_netkey = self.config["connect_i2p_ifac_passphrase"]
+
+                            i2pinterface = I2PInterface.I2PInterface(
+                                RNS.Transport,
+                                "I2PInterface",
+                                RNS.Reticulum.storagepath,
+                                self.config["connect_i2p_b32"],
+                                connectable = False,
+                            )
+
+                            i2pinterface.OUT = True
+                            self.reticulum._add_interface(i2pinterface,ifac_netname=ifac_netname,ifac_netkey=ifac_netkey)
+                            self.interface_i2p = i2pinterface
+
+
+                    except Exception as e:
+                        RNS.log("Error while adding I2P Interface. The contained exception was: "+str(e))
+                        self.interface_i2p = None
+
+                        
+
+        RNS.log(str(RNS.Transport.interfaces))
+
         self.message_router = LXMF.LXMRouter(identity = self.identity, storagepath = self.lxmf_storage, autopeer = True)
         self.message_router.register_delivery_callback(self.lxmf_delivery)
 
@@ -879,10 +1009,7 @@ instance_control_port = 37429
 panic_on_interface_error = No
 
 [logging]
-loglevel = 3
+# TODO: Reset to 3
+loglevel = 6
 
-[interfaces]
-  [[Default Interface]]
-    type = AutoInterface
-    interface_enabled = True
 """.encode("utf-8")
