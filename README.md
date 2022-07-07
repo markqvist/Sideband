@@ -12,8 +12,6 @@ The program currently includes basic functionality for secure and independent co
 
 If you want to help develop this program, get in touch.
 
-For downloadable APK files for your device, [go here](https://unsigned.io/sideband).
-
 ## How do I get started?
 
 You can download a pre-compiled APK for your device on the [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
