@@ -3,6 +3,8 @@ devapk:
 
 apk:
 	make -C sbapp apk
+	mkdir -p ./dist
+	cp sbapp/bin/sideband-*-release.apk ./dist/
 
 install:
 	make -C sbapp install
@@ -24,3 +26,7 @@ build_wheel:
 	python3 setup.py sdist bdist_wheel
 
 release: build_wheel apk
+
+upload:
+	@echo Uploading to PyPi...
+	twine upload dist/sbapp-*
