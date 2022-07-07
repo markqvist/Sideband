@@ -26,6 +26,6 @@ setuptools.setup(
             'sideband=sbapp:main.run',
         ]
     },
-    install_requires=['rns>=0.3.9', 'lxmf>=0.1.7', 'kivy==2.1.0'],
+    install_requires=['rns>=0.3.9', 'lxmf>=0.1.7', 'kivy==2.1.0', 'plyer'],
     python_requires='>=3.6',
 )
