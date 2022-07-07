@@ -1,0 +1,34 @@
+#:import window kivy.core.window
+
+
+<BaseSnackbar>
+    size_hint_y: None
+    height: "58dp"
+    spacing: "10dp"
+    padding: "10dp", "10dp", "10dp", "10dp"
+    md_bg_color: "323232" if not root.bg_color else root.bg_color
+    radius: root.radius
+    elevation: 11 if root.padding else 0
+
+    canvas:
+        Color:
+            rgba: self.md_bg_color
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: self.radius
+
+<Snackbar>
+
+    MDLabel:
+        id: text_bar
+        size_hint_y: None
+        height: self.texture_size[1]
+        text: root.text
+        font_size: root.font_size
+        theme_text_color: "Custom"
+        text_color: "ffffff"
+        shorten: True
+        shorten_from: "right"
+        markup: True
+        pos_hint: {"center_y": .5}

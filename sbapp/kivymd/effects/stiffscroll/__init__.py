@@ -1,0 +1,1 @@
+from .stiffscroll import StiffScrollEffect

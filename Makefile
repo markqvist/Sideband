@@ -1,35 +1,21 @@
-all: prepare debug
+devapk:
+    make -C sbapp devapk
 
-prepare: activate
-
-clean:
-	buildozer android clean
-	
-activate:
-	(. venv/bin/activate)
-	(mv setup.py setup.disabled)
-
-debug:
-	buildozer android debug
-
-release:
-	buildozer android release
-
-postbuild:
-	(mv setup.disabled setup.py)
-
-apk: prepare release postbuild
-
-devapk: prepare debug postbuild
+apk:
+    make -C sbapp apk
 
 install:
-	adb install bin/sideband-0.1.6-arm64-v8a-debug.apk
-
-install-release:
-	adb install bin/sideband-0.1.6-arm64-v8a-release.apk
+    make -C sbapp install
 
 console:
-	(adb logcat | grep python)
+    make -C sbapp conole
 
-getrns:
-	(rm ./RNS -r;cp -rv ../Reticulum/RNS ./;rm ./RNS/Utilities/RNS;rm ./RNS/__pycache__ -r)
+clean:
+    @echo Cleaning...
+    -rm -r ./build
+    -rm -r ./dist
+
+build_wheel:
+    python3 setup.py sdist bdist_wheel
+
+release: build_wheel apk
