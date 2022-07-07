@@ -2,25 +2,29 @@
 
 Sideband is an LXMF client for Android, Linux and macOS. It allows you to communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, or anything else Reticulum supports.
 
-Sideband is completely free, anonymous and infrastructure-less. Sideband uses the completely peer-to-peer and distributed messaging system [LXMF](https://github.com/markqvist/lxmf "LXMF"). There is no service providers, no "end-user license agreements", no data theft and no surveillance. You own the system.
+![Screenshot](https://github.com/markqvist/Sideband/raw/master/docs/screenshots/screenshot_1.png)
 
-Sideband currently includes basic functionality for secure and independent communication, and many useful features are planned for implementation. To get a feel for the idea behind Sideband, you can download it and try it out now. Please help make all the functionality a reality by supporting the development with donations.
+Sideband is completely free, permission-less, anonymous and infrastructure-less. Sideband uses the peer-to-peer and distributed messaging system [LXMF](https://github.com/markqvist/lxmf "LXMF"). There is no sign-up, no service providers, no "end-user license agreements", no data theft and no surveillance. You own the system.
 
-Sideband is currently provided as an early alpha-quality preview release. No user support is provided other than the published articles, tutorials and documentation resources. You are welcome to try it out and use it in any way you please. Please report any bugs or unexpected behaviours. Please expect this program to implode the known universe.
+This also means that Sideband operates differently than what you might be used to. It does not need a connection to a server on the Internet to function, and you do not have an account anywhere. Please read the Guide section included in the program, to get an understanding of how Sideband differs from other messaging systems.
+
+The program currently includes basic functionality for secure and independent communication, and many useful features are planned for implementation. Sideband is currently released as a beta version. Please help make all the functionality a reality by supporting the development with donations.
 
 If you want to help develop this program, get in touch.
 
 For downloadable APK files for your device, [go here](https://unsigned.io/sideband).
 
-### Run on Linux:
+## How do I get started?
 
-~~~bash
-# Install RNS Dependencies if Needed
-pip3 install rns lxmf
+You can download a pre-compiled APK for your device on the [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
 
-# Clone, Install Dependencies, and Run
-git clone https://github.com/markqvist/Sideband.git
-pip3 install plyer kivymd
-cd Sideband
-python3 main.py
-~~~
+On Linux and macOS, you can install Sideband with ``pip``.
+
+```bash
+# Install Sideband and dependencies
+pip install sbapp
+
+# Run it
+Sideband
+
+```
