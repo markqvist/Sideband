@@ -14,7 +14,7 @@ If you want to help develop this program, get in touch.
 
 ## How do I get started?
 
-You can download a pre-compiled APK for your device on the [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
+You can download a pre-compiled APK for your Android device on the [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
 
 On Linux and macOS, you can install Sideband with ``pip``.
 
