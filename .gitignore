@@ -12,6 +12,8 @@ sbapp/build
 sbapp/dist
 sbapp/docs/build
 sbapp/sideband*.egg-info
+sbapp/sbapp*.egg-info
+
 
 .buildozer
 requirements.txt
@@ -27,3 +29,4 @@ build
 dist
 docs/build
 sideband*.egg-info
+sbapp*.egg-info

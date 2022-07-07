@@ -3,11 +3,15 @@ all: prepare debug
 prepare: activate cleanrns getrns
 
 clean:
-	buildozer android clean
 	-(rm ./__pycache__ -r)
 	-(rm ./app_storage -r)
 	-(rm ./bin -r)
+
+cleanlibs:
+	buildozer android clean
 	
+cleanall: clean cleanlibs
+
 activate:
 	(. venv/bin/activate)
 
@@ -17,9 +21,7 @@ debug:
 release:
 	buildozer android release
 
-postbuild:
-	cleanrns
-	@echo Done
+postbuild: cleanrns
 
 apk: prepare release postbuild
 
