@@ -25,6 +25,6 @@ On Linux and macOS, you can install Sideband with ``pip``.
 pip install sbapp
 
 # Run it
-Sideband
+sideband
 
 ```
