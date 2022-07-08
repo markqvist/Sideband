@@ -1,10 +1,40 @@
+import os
+import re
 import setuptools
-
-__version__ = "0.1.6"
-__variant__ = "beta"
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
+def get_version() -> str:
+    version_file = os.path.join(
+        os.path.dirname(__file__), "sbapp", "main.py"
+    )
+
+    version_file_data = open(version_file, "rt", encoding="utf-8").read()
+    version_regex = r"(?<=^__version__ = ['\"])[^'\"]+(?=['\"]$)"
+    try:
+        version = re.findall(version_regex, version_file_data, re.M)[0]
+        return version
+    except IndexError:
+        raise ValueError(f"Unable to find version string in {version_file}.")
+
+def get_variant() -> str:
+    version_file = os.path.join(
+        os.path.dirname(__file__), "sbapp", "main.py"
+    )
+
+    version_file_data = open(version_file, "rt", encoding="utf-8").read()
+    version_regex = r"(?<=^__variant__ = ['\"])[^'\"]+(?=['\"]$)"
+    try:
+        version = re.findall(version_regex, version_file_data, re.M)[0]
+        return version
+    except IndexError:
+        raise ValueError(f"Unable to find version string in {version_file}.")
+
+__version__ = get_version()
+__variant__ = get_variant()
+
+print("Packaging Sideband "+__version__+" "+__variant__)
 
 setuptools.setup(
     name="sbapp",
@@ -26,6 +56,6 @@ setuptools.setup(
             'sideband=sbapp:main.run',
         ]
     },
-    install_requires=['rns>=0.3.9', 'lxmf>=0.1.7', 'kivy==2.1.0', 'plyer'],
+    install_requires=['rns>=0.3.10', 'lxmf>=0.1.7', 'kivy==2.1.0', 'plyer'],
     python_requires='>=3.6',
 )

@@ -34,7 +34,7 @@ from kivy.metrics import dp
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
 
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 __variant__ = "beta"
 
 if RNS.vendor.platformutils.get_platform() == "android":
