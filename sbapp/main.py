@@ -3,8 +3,7 @@ import LXMF
 import time
 
 from kivy.logger import Logger, LOG_LEVELS
-# TODO: Reset
-# Logger.setLevel(LOG_LEVELS["error"])
+Logger.setLevel(LOG_LEVELS["error"])
 
 from kivymd.app import MDApp
 from kivy.core.window import Window
@@ -34,7 +33,7 @@ from kivy.metrics import dp
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
 
-__version__ = "0.1.7"
+__version__ = "0.1.8"
 __variant__ = "beta"
 
 if RNS.vendor.platformutils.get_platform() == "android":

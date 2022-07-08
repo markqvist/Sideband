@@ -70,11 +70,11 @@ class SidebandCore():
         self.owner_app = owner_app
         self.reticulum = None
 
-        self.app_dir       = plyer.storagepath.get_application_dir()
+        self.app_dir       = plyer.storagepath.get_home_dir()+"/.sideband"
         
         self.rns_configdir = None
         if RNS.vendor.platformutils.get_platform() == "android":
-            self.app_dir = self.app_dir+"/io.unsigned.sideband/files/"
+            self.app_dir = plyer.storagepath.get_application_dir()+"/io.unsigned.sideband/files/"
             self.rns_configdir = self.app_dir+"/app_storage/reticulum"
 
         if not os.path.isdir(self.app_dir+"/app_storage"):
