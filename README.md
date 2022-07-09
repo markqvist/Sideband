@@ -10,6 +10,8 @@ This also means that Sideband operates differently than what you might be used t
 
 The program currently includes basic functionality for secure and independent communication, and many useful features are planned for implementation. Sideband is currently released as a beta version. Please help make all the functionality a reality by supporting the development with donations.
 
+If you'd rather want to use a terminal-based LXMF client, you may want to take a look at [Nomad Network](https://github.com/markqvist/nomadnet)
+
 If you want to help develop this program, get in touch.
 
 ## How do I get started?
