@@ -29,5 +29,6 @@ release: build_wheel apk
 
 upload:
 	@echo Ready to publish release, hit enter to continue
+	@read VOID
 	@echo Uploading to PyPi...
 	twine upload dist/sbapp-*
