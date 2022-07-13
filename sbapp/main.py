@@ -1,9 +1,15 @@
 import RNS
 import LXMF
 import time
+import sys
+import os
 
 from kivy.logger import Logger, LOG_LEVELS
 Logger.setLevel(LOG_LEVELS["error"])
+
+if RNS.vendor.platformutils.get_platform() != "android":
+    local = os.path.dirname(__file__)
+    sys.path.append(local)
 
 from kivymd.app import MDApp
 from kivy.core.window import Window
