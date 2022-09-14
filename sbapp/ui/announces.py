@@ -39,6 +39,7 @@ class Announces():
     def update(self):
         self.clear_list()
         self.announces = self.app.sideband.list_announces()
+
         self.update_widget()
 
         self.app.flag_new_announces = False
@@ -96,7 +97,6 @@ class Announces():
                 else:
                     disp_name = "Unknown Announce"
                     iconl = IconLeftWidget(icon="progress-question")
-
 
                 item = OneLineAvatarIconListItem(text=time_string+": "+disp_name, on_release=gen_info(time_string, context_dest, a_data, dest_type))
                 item.add_widget(iconl)
