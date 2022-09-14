@@ -5,6 +5,7 @@ import sys
 import os
 
 from kivy.logger import Logger, LOG_LEVELS
+# Logger.setLevel(LOG_LEVELS["debug"])
 Logger.setLevel(LOG_LEVELS["error"])
 
 if RNS.vendor.platformutils.get_platform() != "android":
@@ -39,7 +40,7 @@ from kivy.metrics import dp
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
 
-__version__ = "0.1.8"
+__version__ = "0.1.9"
 __variant__ = "beta"
 
 if RNS.vendor.platformutils.get_platform() == "android":
@@ -52,6 +53,7 @@ class SidebandApp(MDApp):
         self.title = "Sideband"
 
         self.sideband = SidebandCore(self)
+
         self.conversations_view = None
 
         self.flag_new_conversations = False
@@ -64,15 +66,18 @@ class SidebandApp(MDApp):
         Window.softinput_mode = "below_target"
         self.icon = self.sideband.asset_dir+"/images/icon.png"
 
+    def start_core(self, dt):
+        self.sideband.start()
+        self.open_conversations()
+        Clock.schedule_interval(self.jobs, 1)
+
     #################################################
     # General helpers                               #
     #################################################
 
     def build(self):
         FONT_PATH = self.sideband.asset_dir+"/fonts"
-        # self.theme_cls.primary_palette = "Green"
         self.theme_cls.theme_style = "Dark"
-        # self.theme_cls.theme_style = "Light"
         screen = Builder.load_string(root_layout)
 
         return screen
@@ -132,9 +137,8 @@ class SidebandApp(MDApp):
 
         self.root.ids.screen_manager.app = self
         self.root.ids.app_version_info.text = "Sideband v"+__version__+" "+__variant__
-        self.open_conversations()
 
-        Clock.schedule_interval(self.jobs, 1)
+        Clock.schedule_once(self.start_core, 3)
     
     # Part of the focus hack fix
     def android_focus_fix(self, sender, val):

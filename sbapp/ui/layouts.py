@@ -1,8 +1,53 @@
 root_layout = """
+#: import NoTransition kivy.uix.screenmanager.NoTransition
+#: import SlideTransition kivy.uix.screenmanager.SlideTransition
+
 MDNavigationLayout:
 
     ScreenManager:
         id: screen_manager
+        # transition: SlideTransition()
+        transition: NoTransition()
+
+        MDScreen:
+            name: "starting_screen"
+                 
+            AnchorLayout:
+                anchor_x: "center"
+                anchor_y: "center"
+                padding: dp(64)
+
+
+                BoxLayout:
+                    spacing: dp(36)
+                    orientation: 'vertical'
+                    size_hint_y: None
+
+                    MDLabel:
+                        id: connecting_info
+                        halign: "center"
+                        text: "Please Wait"
+                        font_size: "32dp"
+                        size_hint_y: None
+                        text_size: self.width, None
+                        height: self.texture_size[1]
+                        # size: self.texture_size
+
+                    MDIconButton:
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        icon: "transit-connection-variant"
+                        user_font_size: "72dp"
+
+                    MDLabel:
+                        id: connecting_info
+                        halign: "center"
+                        text: "Substantiating Reticulum"
+                        font_size: "32dp"
+                        size_hint_y: None
+                        text_size: self.width, None
+                        height: self.texture_size[1]
+                        # size: self.texture_size
+
 
         MDScreen:
             name: "conversations_screen"

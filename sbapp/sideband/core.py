@@ -120,9 +120,7 @@ class SidebandCore():
 
         RNS.Transport.register_announce_handler(self)
         RNS.Transport.register_announce_handler(self.propagation_detector)
-
-        self.start()
-
+        
 
     def __init_config(self):
         RNS.log("Creating new Sideband configuration...")
