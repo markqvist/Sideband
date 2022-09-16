@@ -58,7 +58,7 @@ class SidebandCore():
     CONV_GROUP     = 0x02
     CONV_BROADCAST = 0x03
 
-    MAX_ANNOUNCES  = 64
+    MAX_ANNOUNCES  = 48
 
     aspect_filter = "lxmf.delivery"
     def received_announce(self, destination_hash, announced_identity, app_data):
@@ -80,8 +80,7 @@ class SidebandCore():
         if not os.path.isdir(self.app_dir+"/app_storage"):
             os.makedirs(self.app_dir+"/app_storage")
 
-        self.asset_dir     = self.app_dir+"/assets"
-        self.kv_dir        = self.app_dir+"/views/kv"
+        self.asset_dir     = self.app_dir+"/app/assets"
         self.config_path   = self.app_dir+"/app_storage/sideband_config"
         self.identity_path = self.app_dir+"/app_storage/primary_identity"
         self.db_path       = self.app_dir+"/app_storage/sideband.db"

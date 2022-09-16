@@ -3,10 +3,12 @@ import LXMF
 import time
 import sys
 import os
+import plyer
 
 from kivy.logger import Logger, LOG_LEVELS
-# Logger.setLevel(LOG_LEVELS["debug"])
-Logger.setLevel(LOG_LEVELS["error"])
+# TODO: Reset
+Logger.setLevel(LOG_LEVELS["debug"])
+# Logger.setLevel(LOG_LEVELS["error"])
 
 if RNS.vendor.platformutils.get_platform() != "android":
     local = os.path.dirname(__file__)
@@ -26,6 +28,8 @@ if RNS.vendor.platformutils.get_platform() == "android":
     from ui.announces import Announces
     from ui.messages import Messages, ts_format
     from ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
+
+    from android.permissions import request_permissions, check_permission
 
 else:
     from .sideband.core import SidebandCore
@@ -62,18 +66,46 @@ class SidebandApp(MDApp):
         self.lxmf_sync_dialog_open = False
         self.sync_dialog = None
 
-
         Window.softinput_mode = "below_target"
-        self.icon = self.sideband.asset_dir+"/images/icon.png"
+        self.icon = self.sideband.asset_dir+"/icon.png"
+        self.notification_icon = self.sideband.asset_dir+"/notification_icon.png"
 
     def start_core(self, dt):
         self.sideband.start()
         self.open_conversations()
         Clock.schedule_interval(self.jobs, 1)
 
+        def dismiss_splash(dt):
+            from android import loadingscreen
+            loadingscreen.hide_loading_screen()
+
+        if RNS.vendor.platformutils.get_platform() == "android":
+            Clock.schedule_once(dismiss_splash, 0)
+
+
     #################################################
     # General helpers                               #
     #################################################
+
+    def notify(self, title, content):
+        notifications_enabled = True
+
+        if notifications_enabled:
+            if RNS.vendor.platformutils.get_platform() == "android":
+                notifications_permitted = False
+                if check_permission("android.permission.POST_NOTIFICATIONS"):
+                    notifications_permitted = True
+                else:
+                    RNS.log("Requesting notification permission")
+                    request_permissions(["android.permission.POST_NOTIFICATIONS"])
+            else:
+                notifications_permitted = True
+
+            if notifications_permitted:
+                if RNS.vendor.platformutils.get_platform() == "android":
+                    plyer.notification.notify(title, content, notification_icon=self.notification_icon)
+                else:
+                    plyer.notification.notify(title, content)
 
     def build(self):
         FONT_PATH = self.sideband.asset_dir+"/fonts"
