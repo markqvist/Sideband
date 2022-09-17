@@ -161,6 +161,11 @@ class SidebandCore():
         if not os.path.isfile(self.db_path):
             self.__db_init()
 
+    def should_persist_data(self):
+        if self.reticulum != None:
+            self.reticulum._should_persist_data()
+
+        self.save_configuration()
 
     def __load_config(self):
         RNS.log("Loading Sideband identity...")
@@ -896,10 +901,17 @@ class SidebandCore():
         return True
 
     def lxm_ingest(self, message, originator = False):
+        should_notify = False
+        is_trusted = False
+
         if originator:
             context_dest = message.destination_hash
         else:
             context_dest = message.source_hash
+            is_trusted = self.is_trusted(context_dest)
+
+            if is_trusted:
+                should_notify = True
 
         if self._db_message(message.hash):
             RNS.log("Message exists, setting state to: "+str(message.state), RNS.LOG_DEBUG)
@@ -916,6 +928,10 @@ class SidebandCore():
             if self.owner_app.root.ids.messages_scrollview.active_conversation != context_dest:
                 self.unread_conversation(context_dest)
                 self.owner_app.flag_unread_conversations = True
+            else:
+                RNS.log("CHECKING FG STATE")
+                if self.owner_app.is_in_foreground():
+                    should_notify = False
         else:
             self.unread_conversation(context_dest)
             self.owner_app.flag_unread_conversations = True
@@ -924,6 +940,15 @@ class SidebandCore():
             self.owner_app.conversation_update(context_dest)
         except Exception as e:
             RNS.log("Error in conversation update callback: "+str(e))
+
+        if should_notify:
+            nlen = 128
+            text = message.content.decode("utf-8")
+            notification_content = text[:nlen]
+            if len(text) > nlen:
+                text += "..."
+
+            self.owner_app.notify(title="Message from "+self.peer_display_name(context_dest), content=notification_content)
 
 
     def start(self):

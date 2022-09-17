@@ -6,8 +6,8 @@ MDNavigationLayout:
 
     ScreenManager:
         id: screen_manager
-        # transition: SlideTransition()
-        transition: NoTransition()
+        transition: SlideTransition()
+        # transition: NoTransition()
 
         MDScreen:
             name: "starting_screen"

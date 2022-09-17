@@ -52,9 +52,15 @@ if RNS.vendor.platformutils.get_platform() == "android":
     from android.runnable import run_on_ui_thread
 
 class SidebandApp(MDApp):
+    STARTING = 0x00
+    ACTIVE   = 0x01
+    PAUSED   = 0x02
+    STOPPING = 0x03
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.title = "Sideband"
+        self.app_state = SidebandApp.STARTING
 
         self.sideband = SidebandCore(self)
 
@@ -82,6 +88,7 @@ class SidebandApp(MDApp):
         if RNS.vendor.platformutils.get_platform() == "android":
             Clock.schedule_once(dismiss_splash, 0)
 
+        self.app_state = SidebandApp.ACTIVE
 
     def start_android_service(self):
         service = autoclass('io.unsigned.sideband.ServiceSidebandservice')
@@ -93,6 +100,23 @@ class SidebandApp(MDApp):
     #################################################
     # General helpers                               #
     #################################################
+
+    def on_pause(self):
+        self.app_state = SidebandApp.PAUSED
+        self.sideband.should_persist_data()
+        return True
+
+    def on_resume(self):
+        self.app_state = SidebandApp.ACTIVE
+
+    def on_stop(self):
+        self.app_state = SidebandApp.STOPPING
+
+    def is_in_foreground(self):
+        if self.app_state == SidebandApp.ACTIVE:
+            return True
+        else:
+            return False
 
     def notify(self, title, content):
         notifications_enabled = True
