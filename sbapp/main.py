@@ -7,9 +7,8 @@ import plyer
 import base64
 
 from kivy.logger import Logger, LOG_LEVELS
-# TODO: Reset
-Logger.setLevel(LOG_LEVELS["debug"])
-# Logger.setLevel(LOG_LEVELS["error"])
+# Logger.setLevel(LOG_LEVELS["debug"])
+Logger.setLevel(LOG_LEVELS["error"])
 
 if RNS.vendor.platformutils.get_platform() != "android":
     local = os.path.dirname(__file__)
@@ -969,7 +968,7 @@ class SidebandApp(MDApp):
             webbrowser.open("https://unsigned.io/sideband")
 
         guide_text = """
-[b]Introduction[/b]\nWelcome to [b]Sideband[/b], an LXMF client for Android, Linux and macOS. With Sideband, you can communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, or anything else Reticulum supports.
+[b]Introduction[/b]\nWelcome to [i]Sideband[/i], an LXMF client for Android, Linux and macOS. With Sideband, you can communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, or anything else Reticulum supports.
 
 This short guide will give you a basic introduction to the concepts that underpin Sideband and LXMF (the protocol that Sideband uses to communicate). If you are not already familiar with LXMF and Reticulum, it is probably a good idea to read this guide, since Sideband is very different from other messaging apps.
 
