@@ -32,9 +32,13 @@ debug:
 	buildozer android debug
 
 prebake:
+ifneq (,$(wildcard .buildozer/android/platform/build-arm64-v8a/dists/sideband/src/main/res/xml/device_filter.xml))
+	@echo Device filter XML exists, skipping prebake
+else
 	-(buildozer android release)
 	@(echo Prebake finished, applying patches and rebuilding...)
 	-(sleep 2)
+endif
 
 release:
 	buildozer android release
