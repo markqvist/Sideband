@@ -4,6 +4,7 @@ import time
 import sys
 import os
 import plyer
+import base64
 
 from kivy.logger import Logger, LOG_LEVELS
 # TODO: Reset
@@ -16,6 +17,7 @@ if RNS.vendor.platformutils.get_platform() != "android":
 
 from kivymd.app import MDApp
 from kivy.core.window import Window
+from kivy.core.clipboard import Clipboard
 from kivy.base import EventLoop
 from kivy.clock import Clock
 from kivy.lang.builder import Builder
@@ -29,6 +31,9 @@ if RNS.vendor.platformutils.get_platform() == "android":
     from ui.messages import Messages, ts_format
     from ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
 
+    from jnius import cast
+    from jnius import autoclass
+    from android import mActivity
     from android.permissions import request_permissions, check_permission
 
 else:
@@ -88,6 +93,9 @@ class SidebandApp(MDApp):
         if RNS.vendor.platformutils.get_platform() == "android":
             Clock.schedule_once(dismiss_splash, 0)
 
+            if self.sideband.first_run:
+                self.guide_action()
+
         self.app_state = SidebandApp.ACTIVE
 
     def start_android_service(self):
@@ -100,6 +108,18 @@ class SidebandApp(MDApp):
     #################################################
     # General helpers                               #
     #################################################
+
+    def share_text(self, text):
+        if RNS.vendor.platformutils.get_platform() == "android":
+            Intent = autoclass('android.content.Intent')
+            JString = autoclass('java.lang.String')
+
+            shareIntent = Intent()
+            shareIntent.setAction(Intent.ACTION_SEND)
+            shareIntent.setType("text/plain")
+            shareIntent.putExtra(Intent.EXTRA_TEXT, JString(text))
+
+            mActivity.startActivity(shareIntent)
 
     def on_pause(self):
         self.app_state = SidebandApp.PAUSED
@@ -605,7 +625,12 @@ class SidebandApp(MDApp):
         self.root.ids.screen_manager.current = "information_screen"
         self.root.ids.nav_drawer.set_state("closed")
 
-    ### Prepare Settings screen
+    def close_information_action(self, sender=None):
+        self.open_conversations(direction="right")
+
+
+    ### Settings screen
+    ######################################
     def settings_action(self, sender=None):
         self.root.ids.screen_manager.transition.direction = "left"
 
@@ -823,26 +848,166 @@ class SidebandApp(MDApp):
 
         self.root.ids.screen_manager.current = "announces_screen"
 
+    def close_announces_action(self, sender=None):
+        self.open_conversations(direction="right")
+
     def announce_filter_action(self, sender=None):
         pass
 
 
-    #################################################
-    # Unimplemented Screens                         #
-    #################################################
-
+    ### Keys screen
+    ######################################
     def keys_action(self, sender=None):
+        # def link_exec(sender=None, event=None):
+        #     import webbrowser
+        #     webbrowser.open("https://unsigned.io/sideband")
+        # self.root.ids.keys_info.bind(on_ref_press=link_exec)
+
+        info = "Your primary encryption keys are stored in a Reticulum Identity within the Sideband app. If you want to backup this Identity for later use on this or another device, you can export it as a plain text blob.\n\n[b]Warning![/b] Anyone that gets access to this file will be able to control your LXMF address, impersonate you, and read your messages. In is [b]extremely important[/b] that you keep the Identity data secure if you export it.\n\nBefore displaying or exporting your Identity data, make sure that no machine or person in your vicinity is able to see, copy or record your device screen or similar."
+
+        if not RNS.vendor.platformutils.get_platform() == "android":
+            self.widget_hide(self.root.ids.keys_share)
+
+        self.root.ids.keys_info.text = info
+        self.root.ids.screen_manager.transition.direction = "left"
+        self.root.ids.screen_manager.current = "keys_screen"
+        self.root.ids.nav_drawer.set_state("closed")
+
+    def close_keys_action(self, sender=None):
+        self.open_conversations(direction="right")
+
+    def identity_display_action(self, sender=None):
+        yes_button = MDFlatButton(
+            text="OK",
+        )
+
+        dialog = MDDialog(
+            text="Your Identity key, in base32 format is as follows:\n\n[b]"+str(base64.b32encode(self.sideband.identity.get_private_key()).decode("utf-8"))+"[/b]",
+            buttons=[ yes_button ],
+        )
+        def dl_yes(s):
+            dialog.dismiss()
+        
+        yes_button.bind(on_release=dl_yes)
+        dialog.open()
+
+    def identity_copy_action(self, sender=None):
+        c_yes_button = MDFlatButton(text="Yes, copy my key")
+        c_no_button = MDFlatButton(text="No, go back")
+        c_dialog = MDDialog(text="[b]Caution![/b]\n\nYour Identity key will be copied to the system clipboard. Take extreme care that no untrusted app steals your key by reading the clipboard data. Clear the system clipboard immediately after pasting your key where you need it.\n\nAre you sure that you wish to proceed?", buttons=[ c_no_button, c_yes_button ])
+        def c_dl_no(s):
+            c_dialog.dismiss()
+        def c_dl_yes(s):
+            c_dialog.dismiss()
+            yes_button = MDFlatButton(text="OK")
+            dialog = MDDialog(text="Your Identity key was copied to the system clipboard", buttons=[ yes_button ])
+            def dl_yes(s):
+                dialog.dismiss()
+            yes_button.bind(on_release=dl_yes)
+
+            Clipboard.copy(str(base64.b32encode(self.sideband.identity.get_private_key()).decode("utf-8")))
+            dialog.open()
+        
+        c_yes_button.bind(on_release=c_dl_yes)
+        c_no_button.bind(on_release=c_dl_no)
+
+        c_dialog.open()
+
+    def identity_share_action(self, sender=None):
+        if RNS.vendor.platformutils.get_platform() == "android":
+            self.share_text(str(base64.b32encode(self.sideband.identity.get_private_key()).decode("utf-8")))
+
+    def identity_restore_action(self, sender=None):
+        c_yes_button = MDFlatButton(text="Yes, import the key")
+        c_no_button = MDFlatButton(text="No, go back")
+        c_dialog = MDDialog(text="[b]Caution![/b]\n\nYou are about to import a new Identity key into Sideband. The currently active key will be irreversibly destroyed, and you will loose your LXMF address if you have not already backed up your current Identity key.\n\nAre you sure that you wish to import the key?", buttons=[ c_no_button, c_yes_button ])
+        def c_dl_no(s):
+            c_dialog.dismiss()
+        def c_dl_yes(s):
+            c_dialog.dismiss()
+            b32_text = self.root.ids.key_restore_text.text
+        
+            try:
+                key_bytes = base64.b32decode(b32_text)
+                new_id = RNS.Identity.from_bytes(key_bytes)
+
+                if new_id != None:
+                    new_id.to_file(self.sideband.identity_path)
+
+                yes_button = MDFlatButton(text="OK")
+                dialog = MDDialog(text="[b]The provided Identity key data was imported[/b]\n\nThe app will now exit. Please restart Sideband to use the new Identity.", buttons=[ yes_button ])
+                def dl_yes(s):
+                    dialog.dismiss()
+                    self.quit_action(sender=self)
+                yes_button.bind(on_release=dl_yes)
+                dialog.open()
+
+            except Exception as e:
+                yes_button = MDFlatButton(text="OK")
+                dialog = MDDialog(text="[b]The provided Identity key data was not valid[/b]\n\nThe error reported by Reticulum was:\n\n[i]"+str(e)+"[/i]\n\nNo Identity was imported into Sideband.", buttons=[ yes_button ])
+                def dl_yes(s):
+                    dialog.dismiss()
+                yes_button.bind(on_release=dl_yes)
+                dialog.open()
+            
+        
+        c_yes_button.bind(on_release=c_dl_yes)
+        c_no_button.bind(on_release=c_dl_no)
+
+        c_dialog.open()
+
+
+    ### Guide screen
+    ######################################
+    def close_guide_action(self, sender=None):
+        self.open_conversations(direction="right")
+    
+    def guide_action(self, sender=None):
         def link_exec(sender=None, event=None):
             RNS.log("Click")
             import webbrowser
             webbrowser.open("https://unsigned.io/sideband")
 
-        info = "The [b]Encryption Keys[/b] import and export feature is not yet implemented in Sideband. In this section of the program, you will be able to export, import and back up your RNS identities, and to link Sideband with your Nomad Network identity, for fetching messages from it on the go.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project."
-        self.root.ids.keys_info.text = info
-        self.root.ids.keys_info.bind(on_ref_press=link_exec)
+        guide_text = """
+[b]Introduction[/b]\nWelcome to [b]Sideband[/b], an LXMF client for Android, Linux and macOS. With Sideband, you can communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, or anything else Reticulum supports.
+
+This short guide will give you a basic introduction to the concepts that underpin Sideband and LXMF (the protocol that Sideband uses to communicate). If you are not already familiar with LXMF and Reticulum, it is probably a good idea to read this guide, since Sideband is very different from other messaging apps.
+
+[b]Communication Without Subjection[/b]\nSideband is completely free, permission-less, anonymous and infrastructure-less. Sideband uses the peer-to-peer and distributed messaging system LXMF. There is no sign-up, no service providers, no "end-user license agreements", no data theft and no surveillance. You own the system.
+
+This also means that Sideband operates differently than what you might be used to. It does not need a connection to a server on the Internet to function, and you do not have an account anywhere.
+
+[b]Operating Principles[/b]\nWhen Sideband is started on your device for the first time, it randomly generates a set of cryptographic keys. These keys are then used to create an LXMF address for your use. Any other endpoint in [i]any[/i] Reticulum network will be able to send data to this address, as long as there is [i]some sort of physical connection[/i] between your device and the remote endpoint. You can also move around to other Reticulum networks with this address, even ones that were never connected to the network the address was created on, or that didn't exist when the address was created. The address is yours to keep and control for as long (or short) a time you need it, and you can always delete it and create a new one.
+
+[b]Becoming Reachable[/b]\nTo establish reachability for any Reticulum address on a network, an [i]announce[/i] must be sent. Sideband does not do this automatically by default, but can be configured to do so every time the program starts. To send an announce manually, press the [i]Announce[/i] button in the [i]Conversations[/i] section of the program. When you send an announce, you make your LXMF address reachable for real-time messaging to the entire network you are connected to. Even in very large networks, you can expect global reachability for your address to be established in under a minute.
+
+If you don't move to other places in the network, and keep connected through the same hubs or gateways, it is generally not necessary to send an announce more often than once every week. If you change your entry point to the network, you may want to send an announce, or you may just want to stay quiet.
+
+[b]Relax & Disconnect[/b]\nIf you are not connected to the network, it is still possible for other people to message you, as long as one or more [i]Propagation Nodes[/i] exist on the network. These nodes pick up and hold encrypted in-transit messages for offline users. Messages are always encrypted before leaving the originators device, and nobody else than the intended recipient can decrypt messages in transit.
+
+The Propagation Nodes also distribute copies of messages between each other, such that even the failure of almost every node in the network will still allow users to sync their waiting messages. If all Propagation Nodes disappear or are destroyed, users can still communicate directly. Reticulum and LXMF will degrade gracefully all the way down to single users communicating directly via long-range data radios. Anyone can start up new propagation nodes and integrate them into existing networks without permission or coordination. Even a small and cheap device like a Rasperry Pi can handle messages for millions of users. LXMF networks are designed to be quite resilient, as long as there are people using them.
+
+[b]Packets Find A Way[/b]\nConnections in Reticulum networks can be wired or wireless, span many intermediary hops, run over fast links or ultra-low bandwidth radio, tunnel over the Invisible Internet (I2P), private networks, satellite connections, serial lines or anything else that Reticulum can carry data over. In most cases it will not be possible to know what path data takes in a Reticulum network, and no transmitted data carries any identifying characteristics, apart from a destination address. There is no source addresses in Reticulum. As long as you do not reveal any connecting details between your person and your LXMF address, you can remain anonymous. Sending messages to others does not reveal [i]your[/i] address to anyone else than the intended recipient.
+
+[b]Be Yourself, Be Unknown, Stay Free[/b]\nEven with the above characteristics in mind, you [b]must remember[/b] that LXMF and Reticulum is not a technology that can guarantee anonymising connections that are already de-anonymised! If you use Sideband to connect to TCP Reticulum hubs over the clear Internet, from a network that can be tied to your personal identity, an adversary may learn that you are generating LXMF traffic. If you want to avoid this, it is recommended to use I2P to connect to Reticulum hubs on the Internet. Or only connecting from within pure Reticulum networks, that take one or more hops to reach connections that span the Internet. This is a complex topic, with many more nuances than can not be covered here. You are encouraged to ask on the various Reticulum discussion forums if you are in doubt.
+
+If you use Reticulum and LXMF on hardware that does not carry any identifiers tied to you, it is possible to establish a completely free and anonymous communication system with Reticulum and LXMF clients.
+
+[b]Sow Seeds Of Freedom[/b]\nIt took me more than six years to design and built the entire ecosystem of software and hardware that makes this possible. If this project is valuable to you, please go to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project with a donation. Every donation directly makes the entire Reticulum project possible.
+
+Thank you very much for using Free Communications Systems.
+"""
+        info = guide_text
+        self.root.ids.guide_info.text = info
+        self.root.ids.guide_info.bind(on_ref_press=link_exec)
         self.root.ids.screen_manager.transition.direction = "left"
-        self.root.ids.screen_manager.current = "keys_screen"
+        self.root.ids.screen_manager.current = "guide_screen"
         self.root.ids.nav_drawer.set_state("closed")
+
+
+    #################################################
+    # Unimplemented Screens                         #
+    #################################################
 
     def map_action(self, sender=None):
         def link_exec(sender=None, event=None):
@@ -870,47 +1035,7 @@ class SidebandApp(MDApp):
         self.root.ids.screen_manager.current = "broadcasts_screen"
         self.root.ids.nav_drawer.set_state("closed")
 
-    def guide_action(self, sender=None):
-        def link_exec(sender=None, event=None):
-            RNS.log("Click")
-            import webbrowser
-            webbrowser.open("https://unsigned.io/sideband")
-
-        guide_text = """
-Welcome to [b]Sideband[/b], an LXMF client for Android, Linux and macOS. With Sideband, you can communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, or anything else Reticulum supports.
-
-This short guide will give you a basic introduction to the concepts that underpin Sideband and LXMF (the protocol that Sideband uses to communicate). If you are not already familiar with LXMF and Reticulum, it is probably a good idea to read this guide, since Sideband is very different from other messaging apps.
-
-Sideband is completely free, permission-less, anonymous and infrastructure-less. Sideband uses the peer-to-peer and distributed messaging system LXMF. There is no sign-up, no service providers, no "end-user license agreements", no data theft and no surveillance. You own the system.
-
-This also means that Sideband operates differently than what you might be used to. It does not need a connection to a server on the Internet to function, and you do not have an account anywhere.
-
-When Sideband is started on your device for the first time, it randomly generates a set of cryptographic keys. These keys are then used to create an LXMF address for your use. Any other endpoint in [i]any[/i] Reticulum network will be able to send data to this address, as long as there is [i]some sort of physical connection[/i] between your device and the remote endpoint. You can also move around to other Reticulum networks with this address, even ones that were never connected to the network the address was created on, or that didn't exist when the address was created. The address is yours to keep and control for as long (or short) a time you need it, and you can always delete it and create a new one.
-
-To establish reachability for any Reticulum address on a network, an [i]announce[/i] must be sent. Sideband does not do this automatically by default, but can be configured to do so every time the program starts. To send an announce manually, press the [i]Announce[/i] button in the [i]Conversations[/i] section of the program. When you send an announce, you make your LXMF address reachable for real-time messaging to the entire network you are connected to. Even in very large networks, you can expect global reachability for your address to be established in under a minute.
-
-If you don't move to other places in the network, and keep connected through the same hubs or gateways, it is generally not necessary to send an announce more often than once every week. If you change your entry point to the network, you may want to send an announce, or you may just want to stay quiet.
-
-If you are not connected to the network, it is still possible for other people to message you, as long as one or more [i]Propagation Nodes[/i] exist on the network. These nodes pick up and hold encrypted in-transit messages for offline users. Messages are always encrypted before leaving the originators device, and nobody else than the intended recipient can decrypt messages in transit.
-
-The Propagation Nodes also distribute copies of messages between each other, such that even the failure of almost every node in the network will still allow users to sync their waiting messages. If all Propagation Nodes disappear or are destroyed, users can still communicate directly. Reticulum and LXMF will degrade gracefully all the way down to single users communicating directly via long-range data radios. Anyone can start up new propagation nodes and integrate them into existing networks without permission or coordination. Even a small and cheap device like a Rasperry Pi can handle messages for millions of users. LXMF networks are designed to be quite resilient, as long as there are people using them.
-
-Connections in Reticulum networks can be wired or wireless, span many intermediary hops, run over fast links or ultra-low bandwidth radio, tunnel over the Invisible Internet (I2P), private networks, satellite connections, serial lines or anything else that Reticulum can carry data over. In most cases it will not be possible to know what path data takes in a Reticulum network, and no transmitted data carries any identifying characteristics, apart from a destination address. There is no source addresses in Reticulum. As long as you do not reveal any connecting details between your person and your LXMF address, you can remain anonymous. Sending messages to others does not reveal [i]your[/i] address to anyone else than the intended recipient.
-
-That being said, you [b]must remember[/b] that LXMF and Reticulum is not a technology that can guarantee anonymising connections that are already de-anonymised! If you use Sideband to connect to TCP Reticulum hubs over the clear Internet, from a network that can be tied to your personal identity, an adversary may learn that you are generating LXMF traffic. If you want to avoid this, it is recommended to use I2P to connect to Reticulum hubs on the Internet. Or only connecting from within pure Reticulum networks, that take one or more hops to reach connections that span the Internet. This is a complex topic, with many more nuances than can not be covered here. You are encouraged to ask on the various Reticulum discussion forums if you are in doubt.
-
-If you use Reticulum and LXMF on hardware that does not carry any identifiers tied to you, it is possible to establish a completely free and anonymous communication system with Reticulum and LXMF clients.
-
-It took me more than six years to design and built the entire ecosystem of software and hardware that makes this possible. If this project is valuable to you, please go to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project with a donation. Every donation directly makes the entire Reticulum project possible.
-
-Thank you very much for using Free Communications Systems.
-"""
-        info = guide_text
-        self.root.ids.guide_info.text = info
-        self.root.ids.guide_info.bind(on_ref_press=link_exec)
-        self.root.ids.screen_manager.transition.direction = "left"
-        self.root.ids.screen_manager.current = "guide_screen"
-        self.root.ids.nav_drawer.set_state("closed")
+    
 
 def run():
     SidebandApp().run()

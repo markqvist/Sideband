@@ -86,11 +86,14 @@ class SidebandCore():
         self.db_path       = self.app_dir+"/app_storage/sideband.db"
         self.lxmf_storage  = self.app_dir+"/app_storage/"
 
+        self.first_run     = True
+
         try:
             if not os.path.isfile(self.config_path):
                 self.__init_config()
             else:
                 self.__load_config()
+                self.first_run = False
                 
         except Exception as e:
             RNS.log("Error while configuring Sideband: "+str(e), RNS.LOG_ERROR)

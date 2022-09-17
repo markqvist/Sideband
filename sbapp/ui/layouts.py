@@ -380,16 +380,20 @@ MDNavigationLayout:
                     pos_hint: {"top": 1}
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
+                    right_action_items:
+                        [
+                        ['close', lambda x: root.ids.screen_manager.app.close_guide_action(self)],
+                        ]
 
                 ScrollView:
                     id:guide_scrollview
 
                     MDBoxLayout:
                         orientation: "vertical"
-                        spacing: "24dp"
                         size_hint_y: None
                         height: self.minimum_height
-                        padding: dp(64)
+                        padding: [dp(35), dp(16), dp(35), dp(16)]
+
 
                         MDLabel:
                             id: guide_info
@@ -412,16 +416,19 @@ MDNavigationLayout:
                     pos_hint: {"top": 1}
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
+                    right_action_items:
+                        [
+                        ['close', lambda x: root.ids.screen_manager.app.close_information_action(self)],
+                        ]
 
                 ScrollView:
                     id:information_scrollview
 
                     MDBoxLayout:
                         orientation: "vertical"
-                        spacing: "24dp"
                         size_hint_y: None
                         height: self.minimum_height
-                        padding: dp(64)
+                        padding: [dp(35), dp(32), dp(35), dp(16)]
 
                         MDLabel:
                             id: information_info
@@ -476,6 +483,10 @@ MDNavigationLayout:
                     pos_hint: {"top": 1}
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
+                    right_action_items:
+                        [
+                        ['close', lambda x: root.ids.screen_manager.app.close_keys_action(self)],
+                        ]
 
                 ScrollView:
                     id:keys_scrollview
@@ -494,6 +505,52 @@ MDNavigationLayout:
                             size_hint_y: None
                             text_size: self.width, None
                             height: self.texture_size[1]
+
+                        MDRectangleFlatIconButton:
+                            id: keys_display
+                            icon: "eye"
+                            text: "Display Identity Key"
+                            # padding: [dp(16), dp(16), dp(16), dp(16)]
+                            size_hint: [1.0, None]
+                            on_release: root.ids.screen_manager.app.identity_display_action(self)
+
+                        MDRectangleFlatIconButton:
+                            id: keys_copy
+                            icon: "file-key"
+                            text: "Copy Key To Clipboard"
+                            # padding: [dp(16), dp(16), dp(16), dp(16)]
+                            size_hint: [1.0, None]
+                            on_release: root.ids.screen_manager.app.identity_copy_action(self)
+
+                        MDRectangleFlatIconButton:
+                            id: keys_share
+                            icon: "upload-lock"
+                            text: "Send Key To Other App"
+                            # padding: [dp(16), dp(16), dp(16), dp(16)]
+                            size_hint: [1.0, None]
+                            on_release: root.ids.screen_manager.app.identity_share_action(self)
+
+                        MDBoxLayout:
+                            orientation: "vertical"
+                            # spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [dp(12), dp(12), dp(12), dp(0)]
+
+                            MDTextField:
+                                id: key_restore_text
+                                hint_text: "Enter base32 key for import"
+                                mode: "rectangle"
+                                # size_hint: [1.0, None]
+                                pos_hint: {"center_x": .5}
+
+                        MDRectangleFlatIconButton:
+                            id: keys_restore
+                            icon: "download-lock"
+                            text: "Restore Identity From Key"
+                            # padding: [dp(16), dp(16), dp(16), dp(16)]
+                            size_hint: [1.0, None]
+                            on_release: root.ids.screen_manager.app.identity_restore_action(self)
         
 
         MDScreen:
