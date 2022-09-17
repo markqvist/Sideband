@@ -932,7 +932,6 @@ class SidebandCore():
                 self.unread_conversation(context_dest)
                 self.owner_app.flag_unread_conversations = True
             else:
-                RNS.log("CHECKING FG STATE")
                 if self.owner_app.is_in_foreground():
                     should_notify = False
         else:
