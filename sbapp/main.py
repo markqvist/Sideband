@@ -253,10 +253,15 @@ class SidebandApp(MDApp):
             w.height, w.size_hint_y, w.opacity, w.disabled = 0, None, 0, True
 
     def quit_action(self, sender):
-        RNS.exit()
-        RNS.log("RNS shutdown complete")
-        MDApp.get_running_app().stop()
-        Window.close()
+        self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.should_persist_data()
+
+        def final_exit(dt):
+            RNS.exit()
+            MDApp.get_running_app().stop()
+            Window.close()
+
+        Clock.schedule_once(final_exit, 0.5)
 
     def announce_now_action(self, sender=None):
         self.sideband.lxmf_announce()
