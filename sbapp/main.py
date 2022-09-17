@@ -83,6 +83,13 @@ class SidebandApp(MDApp):
             Clock.schedule_once(dismiss_splash, 0)
 
 
+    def start_android_service(self):
+        service = autoclass('io.unsigned.sideband.ServiceSidebandservice')
+        mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+        argument = ""
+        service.start(mActivity, argument)
+
+
     #################################################
     # General helpers                               #
     #################################################
@@ -859,7 +866,7 @@ If you are not connected to the network, it is still possible for other people t
 
 The Propagation Nodes also distribute copies of messages between each other, such that even the failure of almost every node in the network will still allow users to sync their waiting messages. If all Propagation Nodes disappear or are destroyed, users can still communicate directly. Reticulum and LXMF will degrade gracefully all the way down to single users communicating directly via long-range data radios. Anyone can start up new propagation nodes and integrate them into existing networks without permission or coordination. Even a small and cheap device like a Rasperry Pi can handle messages for millions of users. LXMF networks are designed to be quite resilient, as long as there are people using them.
 
-Connections in Reticulum networks can be wired or wireless, span many intermediary hops, run over fast links or ultra-low bandwidth radio, tunnel over the Invisible Internet (I2P), private networks, satellite connections, serial lines or anything else that Reticulum can carry data over. In most cases it will not be possible to know what path data takes in a Reticulum network, and no transmitted data carries any identifying characteristics, apart from a destination address. There is no source addresses in Reticulum. As long as you do not establish a link between you personal identity and your LXMF address through some other method, you can remain anonymous. Sending messages to others does not reveal [i]your[/i] address.
+Connections in Reticulum networks can be wired or wireless, span many intermediary hops, run over fast links or ultra-low bandwidth radio, tunnel over the Invisible Internet (I2P), private networks, satellite connections, serial lines or anything else that Reticulum can carry data over. In most cases it will not be possible to know what path data takes in a Reticulum network, and no transmitted data carries any identifying characteristics, apart from a destination address. There is no source addresses in Reticulum. As long as you do not reveal any connecting details between your person and your LXMF address, you can remain anonymous. Sending messages to others does not reveal [i]your[/i] address to anyone else than the intended recipient.
 
 That being said, you [b]must remember[/b] that LXMF and Reticulum is not a technology that can guarantee anonymising connections that are already de-anonymised! If you use Sideband to connect to TCP Reticulum hubs over the clear Internet, from a network that can be tied to your personal identity, an adversary may learn that you are generating LXMF traffic. If you want to avoid this, it is recommended to use I2P to connect to Reticulum hubs on the Internet. Or only connecting from within pure Reticulum networks, that take one or more hops to reach connections that span the Internet. This is a complex topic, with many more nuances than can not be covered here. You are encouraged to ask on the various Reticulum discussion forums if you are in doubt.
 

@@ -15,17 +15,35 @@ cleanall: clean cleanlibs
 activate:
 	(. venv/bin/activate)
 
+pacthfiles: patchsdl injectxml
+
+patchsdl:
+	cp patches/HIDDeviceUSB.java .buildozer/android/platform/build-arm64-v8a/build/bootstrap_builds/sdl2/jni/SDL/android-project/app/src/main/java/org/libsdl/app/HIDDeviceUSB.java
+	cp patches/HIDDeviceUSB.java .buildozer/android/platform/build-arm64-v8a/dists/sideband/src/main/java/org/libsdl/app/HIDDeviceUSB.java
+	cp patches/HIDDeviceUSB.java .buildozer/android/platform/build-arm64-v8a/dists/sideband/jni/SDL/android-project/app/src/main/java/org/libsdl/app/HIDDeviceUSB.java
+
+injectxml:
+	mkdir -p .buildozer/android/platform/build-arm64-v8a/dists/sideband/src/main/res/xml
+	mkdir -p .buildozer/android/platform/build-arm64-v8a/dists/sideband/templates
+	cp patches/device_filter.xml .buildozer/android/platform/build-arm64-v8a/dists/sideband/src/main/res/xml/
+	cp patches/AndroidManifest.tmpl.xml .buildozer/android/platform/build-arm64-v8a/dists/sideband/templates/
+
 debug:
 	buildozer android debug
+
+prebake:
+	-(buildozer android release)
+	@(echo Prebake finished, applying patches and rebuilding...)
+	-(sleep 2)
 
 release:
 	buildozer android release
 
 postbuild: cleanrns
 
-apk: prepare release postbuild
+apk: prepare prebake pacthfiles release postbuild
 
-devapk: prepare debug postbuild
+devapk: prepare prebake pacthfiles debug postbuild
 
 version:
 	@(echo $$(python ./gv.py))
