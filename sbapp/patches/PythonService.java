@@ -150,13 +150,6 @@ public class PythonService extends Service implements Runnable {
             // builder.setSmallIcon(context.getApplicationInfo().icon);
             builder.setSmallIcon(service_icon);
             notification = builder.build();
-
-            // Log.v("python service", "Testing WM locks...");
-            // WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-            // MulticastLock ml = wm.createMulticastLock("sometag");
-            // Log.v("python service", "WM locks done");
-
-
         }
         startForeground(getServiceId(), notification);
     }
