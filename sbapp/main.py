@@ -96,6 +96,7 @@ class SidebandApp(MDApp):
                 self.guide_action()
 
         self.app_state = SidebandApp.ACTIVE
+        self.start_android_service()
 
     def start_android_service(self):
         service = autoclass('io.unsigned.sideband.ServiceSidebandservice')

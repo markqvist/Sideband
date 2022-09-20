@@ -705,7 +705,8 @@ class SidebandCore():
             self.lxmf_destination.announce()
 
     def __start_jobs_immediate(self):
-        self.reticulum = RNS.Reticulum(configdir=self.rns_configdir)
+        # TODO: Reset loglevel
+        self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=7)
         RNS.log("Reticulum started, activating LXMF...")
 
         if RNS.vendor.platformutils.get_platform() == "android":

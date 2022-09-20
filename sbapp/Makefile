@@ -22,6 +22,10 @@ patchsdl:
 	cp patches/HIDDeviceUSB.java .buildozer/android/platform/build-arm64-v8a/dists/sideband/src/main/java/org/libsdl/app/HIDDeviceUSB.java
 	cp patches/HIDDeviceUSB.java .buildozer/android/platform/build-arm64-v8a/dists/sideband/jni/SDL/android-project/app/src/main/java/org/libsdl/app/HIDDeviceUSB.java
 
+	cp patches/PythonService.java .buildozer/android/platform/python-for-android/pythonforandroid/bootstraps/common/build/src/main/java/org/kivy/android/PythonService.java
+	cp patches/PythonService.java .buildozer/android/platform/build-arm64-v8a/build/bootstrap_builds/sdl2/src/main/java/org/kivy/android/PythonService.java
+	cp patches/PythonService.java .buildozer/android/platform/build-arm64-v8a/dists/sideband/src/main/java/org/kivy/android/PythonService.java
+
 injectxml:
 	mkdir -p .buildozer/android/platform/build-arm64-v8a/dists/sideband/src/main/res/xml
 	mkdir -p .buildozer/android/platform/build-arm64-v8a/dists/sideband/templates
