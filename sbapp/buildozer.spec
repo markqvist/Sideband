@@ -31,7 +31,7 @@ android.minapi = 27
 android.ndk = 19b
 android.skip_update = False
 android.accept_sdk_license = True
-android.arch = arm64-v8a
+android.archs = arm64-v8a
 #android.logcat_filters = *:S python:D
 
 services = sidebandservice:services/sidebandservice.py:foreground
