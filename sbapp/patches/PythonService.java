@@ -145,6 +145,7 @@ public class PythonService extends Service implements Runnable {
             builder.setContentText("Reticulum Running");
             builder.setContentIntent(pIntent);
 
+            // TODO: Generalise this
             Bitmap icon_bitmap = BitmapFactory.decodeFile("/data/user/0/io.unsigned.sideband/files/app/assets/notification_icon.png");
             Icon service_icon = Icon.createWithBitmap(icon_bitmap);
             // builder.setSmallIcon(context.getApplicationInfo().icon);

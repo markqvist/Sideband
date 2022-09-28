@@ -707,7 +707,6 @@ class SidebandCore():
     def __start_jobs_immediate(self):
         # TODO: Reset loglevel
         self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=7)
-        RNS.log("Reticulum started, activating LXMF...")
 
         if RNS.vendor.platformutils.get_platform() == "android":
             if not self.reticulum.is_connected_to_shared_instance:
@@ -818,7 +817,7 @@ class SidebandCore():
                         RNS.log("Error while adding I2P Interface. The contained exception was: "+str(e))
                         self.interface_i2p = None
 
-
+        RNS.log("Reticulum started, activating LXMF...")
         self.message_router = LXMF.LXMRouter(identity = self.identity, storagepath = self.lxmf_storage, autopeer = True)
         self.message_router.register_delivery_callback(self.lxmf_delivery)
 

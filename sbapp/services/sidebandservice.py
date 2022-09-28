@@ -6,6 +6,20 @@ from jnius import autoclass, cast
 
 Context = autoclass('android.content.Context')
 
+class RnsService():
+    def __init__(self):
+        pass
+
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
+
+    def restart(self):
+        self.stop()
+        self.start()
+
 class sidebandservice():
 
     def __init__(self):
