@@ -5,10 +5,12 @@ import sys
 import os
 import plyer
 import base64
+import threading
 
 from kivy.logger import Logger, LOG_LEVELS
-# Logger.setLevel(LOG_LEVELS["debug"])
-Logger.setLevel(LOG_LEVELS["error"])
+# TODO: Reset
+Logger.setLevel(LOG_LEVELS["debug"])
+# Logger.setLevel(LOG_LEVELS["error"])
 
 if RNS.vendor.platformutils.get_platform() != "android":
     local = os.path.dirname(__file__)
@@ -61,12 +63,22 @@ class SidebandApp(MDApp):
     PAUSED   = 0x02
     STOPPING = 0x03
 
+    PKGNAME  = "io.unsigned.sideband"
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.title = "Sideband"
         self.app_state = SidebandApp.STARTING
+        self.android_service = None
 
-        self.sideband = SidebandCore(self)
+        self.app_dir = plyer.storagepath.get_application_dir()
+        # TODO: Remove
+        RNS.log("Application directory is: "+str(self.app_dir))
+
+        if RNS.vendor.platformutils.get_platform() == "android":
+            self.sideband = SidebandCore(self, is_client=True, android_app_dir=self.app_dir)
+        else:
+            self.sideband = SidebandCore(self, is_client=False)
 
         self.conversations_view = None
 
@@ -81,7 +93,8 @@ class SidebandApp(MDApp):
         self.notification_icon = self.sideband.asset_dir+"/notification_icon.png"
 
     def start_core(self, dt):
-        self.sideband.start()
+        self.start_service()
+        
         self.open_conversations()
         Clock.schedule_interval(self.jobs, 1)
 
@@ -97,14 +110,27 @@ class SidebandApp(MDApp):
 
         self.app_state = SidebandApp.ACTIVE
         
+    def start_service(self):
+        RNS.log("Launching platform service for RNS and LXMF")
         if RNS.vendor.platformutils.get_platform() == "android":
-            self.start_android_service()
+            # TODO: Check if service is running and start as necessary
+            self.android_service = autoclass('io.unsigned.sideband.ServiceSidebandservice')
+            mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+            argument = self.app_dir
+            self.android_service.start(mActivity, argument)
 
-    def start_android_service(self):
-        service = autoclass('io.unsigned.sideband.ServiceSidebandservice')
-        mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
-        argument = ""
-        service.start(mActivity, argument)
+            # TODO: Remove and add real service started check here
+            RNS.log("Service instance: "+str(self.android_service))
+            RNS.log("Waiting for service start")
+            time.sleep(7)
+
+            # Start local core instance
+            # TODO: Remove log
+            RNS.log("Starting local core")
+            self.sideband.start()
+
+        else:
+            self.sideband.start()
 
 
     #################################################

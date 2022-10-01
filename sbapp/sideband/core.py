@@ -66,15 +66,29 @@ class SidebandCore():
         # stream logger
         self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter)
 
-    def __init__(self, owner_app):
+    def __init__(self, owner_app, is_service=False, is_client=False, android_app_dir=None):
+        self.is_service = is_service
+        self.is_client = is_client
+
+        if not self.is_service and not self.is_client:
+            self.is_standalone = True
+        else:
+            self.is_standalone = False
+
+        if self.is_client:
+            from .serviceproxy import ServiceProxy
+            self.serviceproxy = ServiceProxy(self)
+        else:
+            self.serviceproxy = None
+
         self.owner_app = owner_app
         self.reticulum = None
 
-        self.app_dir       = plyer.storagepath.get_home_dir()+"/.sideband"
+        self.app_dir       = plyer.storagepath.get_home_dir()+"/.config/sideband"
         
         self.rns_configdir = None
         if RNS.vendor.platformutils.get_platform() == "android":
-            self.app_dir = plyer.storagepath.get_application_dir()+"/io.unsigned.sideband/files/"
+            self.app_dir = android_app_dir+"/io.unsigned.sideband/files/"
             self.rns_configdir = self.app_dir+"/app_storage/reticulum"
 
         if not os.path.isdir(self.app_dir+"/app_storage"):
@@ -410,7 +424,6 @@ class SidebandCore():
 
             return convs
 
-
     def _db_announces(self):
         db = sqlite3.connect(self.db_path)
         dbc = db.cursor()
@@ -438,7 +451,6 @@ class SidebandCore():
 
             return announces
 
-
     def _db_conversation(self, context_dest):
         db = sqlite3.connect(self.db_path)
         dbc = db.cursor()
@@ -463,7 +475,6 @@ class SidebandCore():
             conv["name"] = c[6].decode("utf-8")
             conv["data"] = msgpack.unpackb(c[7])
             return conv
-
 
     def _db_clear_conversation(self, context_dest):
         RNS.log("Clearing conversation with "+RNS.prettyhexrep(context_dest))
@@ -624,7 +635,6 @@ class SidebandCore():
 
             return messages
 
-
     def _db_save_lxm(self, lxm, context_dest):    
         state = lxm.state
 
@@ -702,6 +712,7 @@ class SidebandCore():
 
     def __start_jobs_deferred(self):
         if self.config["start_announce"]:
+            # TODO: (Service) Handle this in service
             self.lxmf_destination.announce()
 
     def __start_jobs_immediate(self):
@@ -817,14 +828,19 @@ class SidebandCore():
                         RNS.log("Error while adding I2P Interface. The contained exception was: "+str(e))
                         self.interface_i2p = None
 
-        RNS.log("Reticulum started, activating LXMF...")
-        self.message_router = LXMF.LXMRouter(identity = self.identity, storagepath = self.lxmf_storage, autopeer = True)
-        self.message_router.register_delivery_callback(self.lxmf_delivery)
+        if self.is_service or self.is_standalone:
+            RNS.log("Reticulum started, activating LXMF...")
+            self.message_router = LXMF.LXMRouter(identity = self.identity, storagepath = self.lxmf_storage, autopeer = True)
+            self.message_router.register_delivery_callback(self.lxmf_delivery)
 
-        self.lxmf_destination = self.message_router.register_delivery_identity(self.identity, display_name=self.config["display_name"])
-        self.lxmf_destination.set_default_app_data(self.get_display_name_bytes)
+            self.lxmf_destination = self.message_router.register_delivery_identity(self.identity, display_name=self.config["display_name"])
+            self.lxmf_destination.set_default_app_data(self.get_display_name_bytes)
 
-        self.rns_dir = RNS.Reticulum.configdir
+            self.rns_dir = RNS.Reticulum.configdir
+
+        else:
+            self.message_router = self.serviceproxy
+            self.lxmf_destination = self.serviceproxy
 
         if self.config["lxmf_propagation_node"] != None and self.config["lxmf_propagation_node"] != "":
             self.set_active_propagation_node(self.config["lxmf_propagation_node"])
