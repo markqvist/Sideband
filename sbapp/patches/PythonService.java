@@ -130,20 +130,22 @@ public class PythonService extends Service implements Runnable {
         } else {
             // for android 8+ we need to create our own channel
             // https://stackoverflow.com/questions/47531742/startforeground-fail-after-upgrade-to-android-8-1
-            String NOTIFICATION_CHANNEL_ID = "org.kivy.p4a";    //TODO: make this configurable
-            String channelName = "Background Service";                //TODO: make this configurable
+            String NOTIFICATION_CHANNEL_ID = "io.unsigned.sideband.reticulum";
+            String channelName = "Background Service";
             NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, 
                 NotificationManager.IMPORTANCE_NONE);
             
             chan.setLightColor(Color.BLUE);
-            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            chan.setLockscreenVisibility(Notification.VISIBILITY_SECRET);
+            chan.setShowBadge(false);
             NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             manager.createNotificationChannel(chan);
 
             Notification.Builder builder = new Notification.Builder(context, NOTIFICATION_CHANNEL_ID);
-            builder.setContentTitle("Sideband");
-            builder.setContentText("Reticulum Running");
+            builder.setContentTitle("Sideband Active");
+            // builder.setContentText("Reticulum Active");
             builder.setContentIntent(pIntent);
+            // builder.setOngoing(true);
 
             // TODO: Generalise this
             Bitmap icon_bitmap = BitmapFactory.decodeFile("/data/user/0/io.unsigned.sideband/files/app/assets/notification_icon.png");

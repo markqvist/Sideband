@@ -46,7 +46,7 @@ class Notification:
     '''
 
     def notify(self, title='', message='', app_name='', app_icon='', notification_icon=None,
-               timeout=10, ticker='', toast=False, hints={}):
+               timeout=10, ticker='', toast=False, hints={}, context_override=None):
         '''
         Send a notification.
 
@@ -84,7 +84,7 @@ class Notification:
         self._notify(
             title=title, message=message,
             app_icon=app_icon, app_name=app_name, notification_icon=notification_icon,
-            timeout=timeout, ticker=ticker, toast=toast, hints=hints
+            timeout=timeout, ticker=ticker, toast=toast, hints=hints, context_override=context_override
         )
 
     # private

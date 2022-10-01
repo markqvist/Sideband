@@ -72,8 +72,6 @@ class SidebandApp(MDApp):
         self.android_service = None
 
         self.app_dir = plyer.storagepath.get_application_dir()
-        # TODO: Remove
-        RNS.log("Application directory is: "+str(self.app_dir))
 
         if RNS.vendor.platformutils.get_platform() == "android":
             self.sideband = SidebandCore(self, is_client=True, android_app_dir=self.app_dir)
@@ -82,20 +80,16 @@ class SidebandApp(MDApp):
 
         self.conversations_view = None
 
-        self.flag_new_conversations = False
-        self.flag_unread_conversations = False
-        self.flag_new_announces = False
-        self.lxmf_sync_dialog_open = False
         self.sync_dialog = None
 
         Window.softinput_mode = "below_target"
         self.icon = self.sideband.asset_dir+"/icon.png"
         self.notification_icon = self.sideband.asset_dir+"/notification_icon.png"
+        self.check_permissions()
 
     def start_core(self, dt):
         self.start_service()
         
-        self.open_conversations()
         Clock.schedule_interval(self.jobs, 1)
 
         def dismiss_splash(dt):
@@ -105,8 +99,15 @@ class SidebandApp(MDApp):
         if RNS.vendor.platformutils.get_platform() == "android":
             Clock.schedule_once(dismiss_splash, 0)
 
-            if self.sideband.first_run:
-                self.guide_action()
+        self.sideband.setstate("app.loaded", True)
+        self.sideband.setstate("app.running", True)
+        self.sideband.setstate("app.foreground", True)
+
+        if self.sideband.first_run:
+            self.guide_action()
+            self.request_notifications_permission()
+        else:
+            self.open_conversations()
 
         self.app_state = SidebandApp.ACTIVE
         
@@ -125,8 +126,6 @@ class SidebandApp(MDApp):
             time.sleep(7)
 
             # Start local core instance
-            # TODO: Remove log
-            RNS.log("Starting local core")
             self.sideband.start()
 
         else:
@@ -150,14 +149,20 @@ class SidebandApp(MDApp):
             mActivity.startActivity(shareIntent)
 
     def on_pause(self):
+        self.sideband.setstate("app.running", True)
+        self.sideband.setstate("app.foreground", False)
         self.app_state = SidebandApp.PAUSED
         self.sideband.should_persist_data()
         return True
 
     def on_resume(self):
+        self.sideband.setstate("app.running", True)
+        self.sideband.setstate("app.foreground", True)
         self.app_state = SidebandApp.ACTIVE
 
     def on_stop(self):
+        self.sideband.setstate("app.running", False)
+        self.sideband.setstate("app.foreground", False)
         self.app_state = SidebandApp.STOPPING
 
     def is_in_foreground(self):
@@ -166,25 +171,27 @@ class SidebandApp(MDApp):
         else:
             return False
 
-    def notify(self, title, content):
-        notifications_enabled = True
-
-        if notifications_enabled:
-            if RNS.vendor.platformutils.get_platform() == "android":
-                notifications_permitted = False
-                if check_permission("android.permission.POST_NOTIFICATIONS"):
-                    notifications_permitted = True
-                else:
-                    RNS.log("Requesting notification permission")
-                    request_permissions(["android.permission.POST_NOTIFICATIONS"])
+    def check_permissions(self):
+        if RNS.vendor.platformutils.get_platform() == "android":
+            if check_permission("android.permission.POST_NOTIFICATIONS"):
+                RNS.log("Have notification permissions")
+                self.sideband.setpersistent("permissions.notifications", True)
             else:
-                notifications_permitted = True
+                RNS.log("Do not have notification permissions")
+                self.sideband.setpersistent("permissions.notifications", False)
+        else:
+            self.sideband.setpersistent("permissions.notifications", True)
 
-            if notifications_permitted:
-                if RNS.vendor.platformutils.get_platform() == "android":
-                    plyer.notification.notify(title, content, notification_icon=self.notification_icon)
-                else:
-                    plyer.notification.notify(title, content)
+    def request_permissions(self):
+        self.request_notifications_permission()
+
+    def request_notifications_permission(self):
+        if RNS.vendor.platformutils.get_platform() == "android":
+            if not check_permission("android.permission.POST_NOTIFICATIONS"):
+                RNS.log("Requesting notification permission")
+                request_permissions(["android.permission.POST_NOTIFICATIONS"])
+            
+        self.check_permissions()
 
     def build(self):
         FONT_PATH = self.sideband.asset_dir+"/fonts"
@@ -201,22 +208,22 @@ class SidebandApp(MDApp):
                 self.message_area_detect()
 
         elif self.root.ids.screen_manager.current == "conversations_screen":
-            if self.flag_new_conversations:
+            if self.sideband.getstate("app.flags.new_conversations"):
                 RNS.log("Updating because of new conversations flag")
                 if self.conversations_view != None:
                     self.conversations_view.update()
 
-            if self.flag_unread_conversations:
+            if self.sideband.getstate("app.flags.unread_conversations"):
                 RNS.log("Updating because of unread messages flag")
                 if self.conversations_view != None:
                     self.conversations_view.update()
 
-            if self.lxmf_sync_dialog_open and self.sync_dialog != None:
+            if self.sideband.getstate("app.flags.lxmf_sync_dialog_open") and self.sync_dialog != None:
                 self.sync_dialog.ids.sync_progress.value = self.sideband.get_sync_progress()*100
                 self.sync_dialog.ids.sync_status.text = self.sideband.get_sync_status()
 
         elif self.root.ids.screen_manager.current == "announces_screen":
-            if self.flag_new_announces:
+            if self.sideband.getstate("app.flags.new_announces"):
                 RNS.log("Updating because of new announces flag")
                 if self.announces_view != None:
                     self.announces_view.update()
@@ -304,6 +311,9 @@ class SidebandApp(MDApp):
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.should_persist_data()
 
+        self.sideband.setstate("app.running", False)
+        self.sideband.setstate("app.foreground", False)
+
         def final_exit(dt):
             RNS.exit()
             MDApp.get_running_app().stop()
@@ -327,13 +337,6 @@ class SidebandApp(MDApp):
         
         yes_button.bind(on_release=dl_yes)
         dialog.open()
-
-    def conversation_update(self, context_dest):
-        pass
-        # if self.root.ids.messages_scrollview.active_conversation == context_dest:
-        #     self.messages_view.update_widget()
-        # else:
-        #     RNS.log("Not updating since context_dest does not match active")
 
 
     #################################################
@@ -372,13 +375,15 @@ class SidebandApp(MDApp):
         self.root.ids.messages_scrollview.scroll_y = 0
         self.root.ids.messages_toolbar.title = self.sideband.peer_display_name(context_dest)
         self.root.ids.messages_scrollview.active_conversation = context_dest
+        self.sideband.setstate("app.active_conversation", context_dest)
 
         self.root.ids.nokeys_text.text = ""
         self.message_area_detect()
         self.update_message_widgets()
 
         self.root.ids.screen_manager.current = "messages_screen"
-        
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+    
         self.sideband.read_conversation(context_dest)
 
     def close_messages_action(self, sender=None):
@@ -480,6 +485,7 @@ class SidebandApp(MDApp):
 
         self.root.ids.screen_manager.current = "conversations_screen"
         self.root.ids.messages_scrollview.active_conversation = None
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
     def connectivity_status(self, sender):
         hs = dp(22)
@@ -567,18 +573,12 @@ class SidebandApp(MDApp):
             )
             dialog.d_content = dialog_content
             def dl_close(s):                
-                self.lxmf_sync_dialog_open = False
+                self.sideband.setstate("app.flags.lxmf_sync_dialog_open", False)
                 dialog.dismiss()
                 self.sideband.cancel_lxmf_sync()
 
-            # def dl_stop(s):         
-            #     self.lxmf_sync_dialog_open = False
-            #     dialog.dismiss()
-            #     self.sideband.cancel_lxmf_sync()
-
             close_button.bind(on_release=dl_close)
-            # stop_button.bind(on_release=dl_stop)
-            self.lxmf_sync_dialog_open = True
+            self.sideband.setstate("app.flags.lxmf_sync_dialog_open", True)
             self.sync_dialog = dialog_content
             dialog.open()
             dialog_content.ids.sync_progress.value = self.sideband.get_sync_progress()*100
@@ -652,6 +652,7 @@ class SidebandApp(MDApp):
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "information_screen"
         self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
     def close_information_action(self, sender=None):
         self.open_conversations(direction="right")
@@ -743,6 +744,7 @@ class SidebandApp(MDApp):
 
         self.root.ids.screen_manager.current = "settings_screen"
         self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
     def close_settings_action(self, sender=None):
         self.open_conversations(direction="right")
@@ -852,6 +854,7 @@ class SidebandApp(MDApp):
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "connectivity_screen"
         self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
 
     def close_connectivity_action(self, sender=None):
@@ -875,6 +878,7 @@ class SidebandApp(MDApp):
         self.root.ids.announces_scrollview.add_widget(self.announces_view.get_widget())
 
         self.root.ids.screen_manager.current = "announces_screen"
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
     def close_announces_action(self, sender=None):
         self.open_conversations(direction="right")
@@ -900,6 +904,7 @@ class SidebandApp(MDApp):
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "keys_screen"
         self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
     def close_keys_action(self, sender=None):
         self.open_conversations(direction="right")
@@ -1031,6 +1036,7 @@ Thank you very much for using Free Communications Systems.
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "guide_screen"
         self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
 
     #################################################
@@ -1049,6 +1055,7 @@ Thank you very much for using Free Communications Systems.
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "map_screen"
         self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
     def broadcasts_action(self, sender=None):
         def link_exec(sender=None, event=None):
@@ -1062,6 +1069,7 @@ Thank you very much for using Free Communications Systems.
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "broadcasts_screen"
         self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
     
 

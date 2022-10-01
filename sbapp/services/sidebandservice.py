@@ -9,7 +9,18 @@ Logger.setLevel(LOG_LEVELS["debug"])
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass, cast
+    from android import python_act
     Context = autoclass('android.content.Context')
+    Intent = autoclass('android.content.Intent')
+    BitmapFactory = autoclass('android.graphics.BitmapFactory')
+    Icon = autoclass("android.graphics.drawable.Icon")
+    PendingIntent = autoclass('android.app.PendingIntent')
+    AndroidString = autoclass('java.lang.String')
+    NotificationManager = autoclass('android.app.NotificationManager')
+    Context = autoclass('android.content.Context')
+    NotificationBuilder = autoclass('android.app.Notification$Builder')
+    NotificationChannel = autoclass('android.app.NotificationChannel')
+    
     from sideband.core import SidebandCore
 
 else:
@@ -20,6 +31,64 @@ class AppProxy():
         pass
 
 class SidebandService():
+    def android_notification(self, title="", content="", ticker="", group=None, context_id=None):
+        package_name = "io.unsigned.sideband"
+
+        if not self.notification_service:
+            self.notification_service = cast(NotificationManager, self.app_context.getSystemService(
+                Context.NOTIFICATION_SERVICE
+            ))
+
+        channel_id = package_name
+        group_id = ""
+        if group != None:
+            channel_id += "."+str(group)
+            group_id += str(group)
+        if context_id != None:
+            channel_id += "."+str(context_id)
+            group_id += "."+str(context_id)
+
+        if not title or title == "":
+            channel_name = "Sideband"
+        else:
+            channel_name = title
+
+        self.notification_channel = NotificationChannel(channel_id, channel_name, NotificationManager.IMPORTANCE_DEFAULT)
+        self.notification_channel.enableVibration(True)
+        self.notification_channel.setShowBadge(True)
+        self.notification_service.createNotificationChannel(self.notification_channel)
+
+        notification = NotificationBuilder(self.app_context, channel_id)
+        notification.setContentTitle(title)
+        notification.setContentText(AndroidString(content))
+        
+        # if group != None:
+        #     notification.setGroup(group_id)
+
+        if not self.notification_small_icon:
+            path = self.sideband.notification_icon
+            bitmap = BitmapFactory.decodeFile(path)
+            self.notification_small_icon = Icon.createWithBitmap(bitmap)
+
+        notification.setSmallIcon(self.notification_small_icon)
+
+        # large_icon_path = self.sideband.icon
+        # bitmap_icon = BitmapFactory.decodeFile(large_icon_path)
+        # notification.setLargeIcon(bitmap_icon)
+
+        if not self.notification_intent:
+            notification_intent = Intent(self.app_context, python_act)
+            notification_intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            notification_intent.setAction(Intent.ACTION_MAIN)
+            notification_intent.addCategory(Intent.CATEGORY_LAUNCHER)
+
+        self.notification_intent = PendingIntent.getActivity(self.app_context, 0, notification_intent, 0)
+
+        notification.setContentIntent(self.notification_intent)
+        notification.setAutoCancel(True)
+
+        built_notification = notification.build()
+        self.notification_service.notify(0, built_notification)
 
     def __init__(self):
         self.argument = environ.get('PYTHON_SERVICE_ARGUMENT', '')
@@ -34,15 +103,20 @@ class SidebandService():
         self.app_context = None
         self.wifi_manager = None
 
+        self.notification_service = None
+        self.notification_channel = None
+        self.notification_intent = None
+        self.notification_small_icon = None
+
         if RNS.vendor.platformutils.get_platform() == "android":
             self.android_service = autoclass('org.kivy.android.PythonService').mService
             self.app_context = self.android_service.getApplication().getApplicationContext()
             self.wifi_manager = self.app_context.getSystemService(Context.WIFI_SERVICE)
-            # The returned instance is an android.net.wifi.WifiManager
+            # The returned instance /\ is an android.net.wifi.WifiManager
         
-        # TODO: Remove?
-        RNS.log("Sideband background service created, starting core...", RNS.LOG_DEBUG)
         self.sideband = SidebandCore(self.app_proxy, is_service=True, android_app_dir=self.app_dir)
+        self.sideband.service_context = self.android_service
+        self.sideband.owner_service = self
         self.sideband.start()
     
     def start(self):
@@ -77,7 +151,3 @@ class SidebandService():
 
 sbs = SidebandService()
 sbs.start()
-
-# TODO: Remove
-print("SBS: Service thread done")
-RNS.log("Service thread done")

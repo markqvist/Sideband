@@ -39,10 +39,8 @@ class Announces():
     def update(self):
         self.clear_list()
         self.announces = self.app.sideband.list_announces()
-
         self.update_widget()
-
-        self.app.flag_new_announces = False
+        self.app.sideband.setstate("app.flags.new_announces", False)
 
     def update_widget(self):
         if self.list == None:

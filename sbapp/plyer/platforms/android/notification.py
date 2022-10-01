@@ -180,6 +180,7 @@ class AndroidNotification(Notification):
         )
         icon = kwargs.get('app_icon')
         notification_icon = kwargs.get('notification_icon')
+        context_override = kwargs.get('context_override')
 
         # decide whether toast only or proper notification
         if kwargs.get('toast'):

@@ -45,14 +45,14 @@ class Conversations():
         self.added_item_dests = []
 
     def update(self):
-        if self.app.flag_unread_conversations:
+        if self.app.sideband.getstate("app.flags.unread_conversations"):
             self.clear_list()
         
         self.context_dests = self.app.sideband.list_conversations()
         self.update_widget()
 
-        self.app.flag_new_conversations = False
-        self.app.flag_unread_conversations = False
+        self.app.sideband.setstate("app.flags.unread_conversations", False)
+        self.app.sideband.setstate("app.flags.new_conversations", False)
 
     def update_widget(self):
         if self.list == None:

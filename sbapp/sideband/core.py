@@ -8,6 +8,9 @@ import sqlite3
 
 import RNS.vendor.umsgpack as msgpack
 
+if RNS.vendor.platformutils.get_platform() == "android":
+    from jnius import autoclass, cast
+
 class PropagationNodeDetector():
     EMITTED_DELTA_GRACE = 300
     EMITTED_DELTA_IGNORE = 10
@@ -60,6 +63,8 @@ class SidebandCore():
 
     MAX_ANNOUNCES  = 48
 
+    JOB_INTERVAL   = 1
+
     aspect_filter = "lxmf.delivery"
     def received_announce(self, destination_hash, announced_identity, app_data):
         # Add the announce to the directory announce
@@ -75,12 +80,6 @@ class SidebandCore():
         else:
             self.is_standalone = False
 
-        if self.is_client:
-            from .serviceproxy import ServiceProxy
-            self.serviceproxy = ServiceProxy(self)
-        else:
-            self.serviceproxy = None
-
         self.owner_app = owner_app
         self.reticulum = None
 
@@ -90,16 +89,23 @@ class SidebandCore():
         if RNS.vendor.platformutils.get_platform() == "android":
             self.app_dir = android_app_dir+"/io.unsigned.sideband/files/"
             self.rns_configdir = self.app_dir+"/app_storage/reticulum"
+            self.asset_dir     = self.app_dir+"/app/assets"
+        else:
+            self.asset_dir     = plyer.storagepath.get_application_dir()+"/sbapp/assets"
+
+        self.icon              = self.asset_dir+"/icon.png"
+        self.icon_48        = self.asset_dir+"/icon_48.png"
+        self.icon_32        = self.asset_dir+"/icon_32.png"
+        self.notification_icon = self.asset_dir+"/notification_icon.png"
 
         if not os.path.isdir(self.app_dir+"/app_storage"):
             os.makedirs(self.app_dir+"/app_storage")
 
-        self.asset_dir     = self.app_dir+"/app/assets"
         self.config_path   = self.app_dir+"/app_storage/sideband_config"
         self.identity_path = self.app_dir+"/app_storage/primary_identity"
         self.db_path       = self.app_dir+"/app_storage/sideband.db"
         self.lxmf_storage  = self.app_dir+"/app_storage/"
-
+        
         self.first_run     = True
 
         try:
@@ -195,6 +201,9 @@ class SidebandCore():
 
         if not os.path.isfile(self.db_path):
             self.__db_init()
+        else:
+            self._db_initstate()
+            self._db_initpersistent()
 
 
     def __save_config(self):
@@ -222,11 +231,32 @@ class SidebandCore():
                 RNS.log("Error while setting LXMF propagation node: "+str(e), RNS.LOG_ERROR)
 
 
+    def notify(self, title, content, group=None, context_id=None):
+        notifications_enabled = True
+
+        if notifications_enabled:
+            if RNS.vendor.platformutils.get_platform() == "android":
+                if self.getpersistent("permissions.notifications"):
+                    notifications_permitted = True
+                else:
+                    notifications_permitted = False
+            else:
+                notifications_permitted = True
+
+            if notifications_permitted:
+                if RNS.vendor.platformutils.get_platform() == "android":
+                    if self.is_service:
+                        self.owner_service.android_notification(title, content, group=group, context_id=context_id)
+                    else:
+                        plyer.notification.notify(title, content, notification_icon=self.notification_icon, context_override=None)
+                else:
+                    plyer.notification.notify(title, content, app_icon=self.icon_32)
+
     def log_announce(self, dest, app_data, dest_type):
         try:
             RNS.log("Received "+str(dest_type)+" announce for "+RNS.prettyhexrep(dest)+" with data: "+app_data.decode("utf-8"))
             self._db_save_announce(dest, app_data, dest_type)
-            self.owner_app.flag_new_announces = True
+            self.setstate("app.flags.new_announces", True)
 
         except Exception as e:
             RNS.log("Exception while decoding LXMF destination announce data:"+str(e))
@@ -345,6 +375,27 @@ class SidebandCore():
         else:
             return []
 
+    def gui_foreground(self):
+        return self._db_getstate("app.foreground")
+
+    def gui_display(self):
+        return self._db_getstate("app.displaying")
+
+    def gui_conversation(self):
+        return self._db_getstate("app.active_conversation")
+
+    def setstate(self, prop, val):
+        self._db_setstate(prop, val)
+
+    def getstate(self, prop):
+        return self._db_getstate(prop)
+
+    def setpersistent(self, prop, val):
+        self._db_setpersistent(prop, val)
+
+    def getpersistent(self, prop):
+        return self._db_getpersistent(prop)
+
     def __event_conversations_changed(self):
         pass
 
@@ -363,6 +414,100 @@ class SidebandCore():
 
         dbc.execute("DROP TABLE IF EXISTS announce")
         dbc.execute("CREATE TABLE announce (id PRIMARY KEY, received INTEGER, source BLOB, data BLOB, dest_type BLOB)")
+
+        dbc.execute("DROP TABLE IF EXISTS state")
+        dbc.execute("CREATE TABLE state (property BLOB PRIMARY KEY, value BLOB)")
+
+        dbc.execute("DROP TABLE IF EXISTS persistent")
+        dbc.execute("CREATE TABLE persistent (property BLOB PRIMARY KEY, value BLOB)")
+
+        db.commit()
+        db.close()
+
+    def _db_initstate(self):
+        db = sqlite3.connect(self.db_path)
+        dbc = db.cursor()
+
+        dbc.execute("DROP TABLE IF EXISTS state")
+        dbc.execute("CREATE TABLE state (property BLOB PRIMARY KEY, value BLOB)")
+        self._db_setstate("database_ready", True)
+
+    def _db_getstate(self, prop):
+        db = sqlite3.connect(self.db_path)
+        dbc = db.cursor()
+        
+        query = "select * from state where property=:uprop"
+        dbc.execute(query, {"uprop": prop.encode("utf-8")})
+        result = dbc.fetchall()
+        db.close()
+
+        if len(result) < 1:
+            return None
+        else:
+            try:
+                entry = result[0]
+                val = msgpack.unpackb(entry[1])
+                return val
+            except Exception as e:
+                RNS.log("Could not unpack state value from database for property \""+str(prop)+"\". The contained exception was: "+str(e), RNS.LOG_ERROR)
+                return None
+
+    def _db_setstate(self, prop, val):
+        db = sqlite3.connect(self.db_path)
+        dbc = db.cursor()
+        uprop = prop.encode("utf-8")
+        bval = msgpack.packb(val)
+
+        if self._db_getstate(prop) == None:
+            query = "INSERT INTO state (property, value) values (?, ?)"
+            data = (uprop, bval)
+            dbc.execute(query, data)
+        else:
+            query = "UPDATE state set value=:bval where property=:uprop;"
+            dbc.execute(query, {"bval": bval, "uprop": uprop})
+
+        db.commit()
+        db.close()
+
+    def _db_initpersistent(self):
+        db = sqlite3.connect(self.db_path)
+        dbc = db.cursor()
+
+        dbc.execute("CREATE TABLE IF NOT EXISTS persistent (property BLOB PRIMARY KEY, value BLOB)")
+
+    def _db_getpersistent(self, prop):
+        db = sqlite3.connect(self.db_path)
+        dbc = db.cursor()
+        
+        query = "select * from persistent where property=:uprop"
+        dbc.execute(query, {"uprop": prop.encode("utf-8")})
+        result = dbc.fetchall()
+        db.close()
+
+        if len(result) < 1:
+            return None
+        else:
+            try:
+                entry = result[0]
+                val = msgpack.unpackb(entry[1])
+                return val
+            except Exception as e:
+                RNS.log("Could not unpack persistent value from database for property \""+str(prop)+"\". The contained exception was: "+str(e), RNS.LOG_ERROR)
+                return None
+
+    def _db_setpersistent(self, prop, val):
+        db = sqlite3.connect(self.db_path)
+        dbc = db.cursor()
+        uprop = prop.encode("utf-8")
+        bval = msgpack.packb(val)
+
+        if self._db_getpersistent(prop) == None:
+            query = "INSERT INTO persistent (property, value) values (?, ?)"
+            data = (uprop, bval)
+            dbc.execute(query, data)
+        else:
+            query = "UPDATE persistent set value=:bval where property=:uprop;"
+            dbc.execute(query, {"bval": bval, "uprop": uprop})
 
         db.commit()
         db.close()
@@ -687,7 +832,11 @@ class SidebandCore():
         db.close()
 
     def lxmf_announce(self):
-        self.lxmf_destination.announce()
+        if self.is_standalone or self.is_service:
+            self.lxmf_destination.announce()
+            self.setstate("wants.announce", False)
+        else:
+            self.setstate("wants.announce", True)
 
     def is_known(self, dest_hash):
         try:
@@ -710,11 +859,21 @@ class SidebandCore():
             RNS.log("Error while querying for key: "+str(e), RNS.LOG_ERROR)
             return False
 
+    def _service_jobs(self):
+        if self.is_service:
+            while True:
+                time.sleep(SidebandCore.JOB_INTERVAL)
+                if self.getstate("wants.announce"):
+                    self.lxmf_announce()
+
     def __start_jobs_deferred(self):
         if self.config["start_announce"]:
-            # TODO: (Service) Handle this in service
-            self.lxmf_destination.announce()
+            self.lxmf_announce()
 
+        if self.is_service:
+            self.service_thread = threading.Thread(target=self._service_jobs, daemon=True)
+            self.service_thread.start()
+        
     def __start_jobs_immediate(self):
         # TODO: Reset loglevel
         self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=7)
@@ -828,19 +987,14 @@ class SidebandCore():
                         RNS.log("Error while adding I2P Interface. The contained exception was: "+str(e))
                         self.interface_i2p = None
 
-        if self.is_service or self.is_standalone:
-            RNS.log("Reticulum started, activating LXMF...")
-            self.message_router = LXMF.LXMRouter(identity = self.identity, storagepath = self.lxmf_storage, autopeer = True)
-            self.message_router.register_delivery_callback(self.lxmf_delivery)
+        RNS.log("Reticulum started, activating LXMF...")
+        self.message_router = LXMF.LXMRouter(identity = self.identity, storagepath = self.lxmf_storage, autopeer = True)
+        self.message_router.register_delivery_callback(self.lxmf_delivery)
 
-            self.lxmf_destination = self.message_router.register_delivery_identity(self.identity, display_name=self.config["display_name"])
-            self.lxmf_destination.set_default_app_data(self.get_display_name_bytes)
+        self.lxmf_destination = self.message_router.register_delivery_identity(self.identity, display_name=self.config["display_name"])
+        self.lxmf_destination.set_default_app_data(self.get_display_name_bytes)
 
-            self.rns_dir = RNS.Reticulum.configdir
-
-        else:
-            self.message_router = self.serviceproxy
-            self.lxmf_destination = self.serviceproxy
+        self.rns_dir = RNS.Reticulum.configdir
 
         if self.config["lxmf_propagation_node"] != None and self.config["lxmf_propagation_node"] != "":
             self.set_active_propagation_node(self.config["lxmf_propagation_node"])
@@ -941,23 +1095,21 @@ class SidebandCore():
 
         if self._db_conversation(context_dest) == None:
             self._db_create_conversation(context_dest)
-            self.owner_app.flag_new_conversations = True
+            self.setstate("app.flags.new_conversations", True)
 
-        if self.owner_app.root.ids.screen_manager.current == "messages_screen":
-            if self.owner_app.root.ids.messages_scrollview.active_conversation != context_dest:
+        if self.gui_display() == "messages_screen":
+            if self.gui_conversation() != context_dest:
                 self.unread_conversation(context_dest)
-                self.owner_app.flag_unread_conversations = True
+                self.setstate("app.flags.unread_conversations", True)
             else:
-                if self.owner_app.is_in_foreground():
+                if self.gui_foreground():
                     should_notify = False
         else:
             self.unread_conversation(context_dest)
-            self.owner_app.flag_unread_conversations = True
+            self.setstate("app.flags.unread_conversations", True)
 
-        try:
-            self.owner_app.conversation_update(context_dest)
-        except Exception as e:
-            RNS.log("Error in conversation update callback: "+str(e))
+        if self.is_client:
+            should_notify = False
 
         if should_notify:
             nlen = 128
@@ -966,7 +1118,7 @@ class SidebandCore():
             if len(text) > nlen:
                 text += "..."
 
-            self.owner_app.notify(title="Message from "+self.peer_display_name(context_dest), content=notification_content)
+            self.notify(title=self.peer_display_name(context_dest), content=notification_content, group="LXM", context_id=RNS.hexrep(context_dest, delimit=False))
 
 
     def start(self):
@@ -976,6 +1128,8 @@ class SidebandCore():
         thread = threading.Thread(target=self.__start_jobs_deferred)
         thread.setDaemon(True)
         thread.start()
+
+        self._db_setstate("core.started", True)
         RNS.log("Sideband Core "+str(self)+" started")
 
     def request_lxmf_sync(self, limit = None):
