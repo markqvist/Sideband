@@ -145,6 +145,7 @@ class SidebandService():
 
     def run(self):
         while self.should_run:
+            self.sideband.setstate("service.heartbeat", time.time())
             time.sleep(1)
 
         self.release_locks()

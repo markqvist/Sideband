@@ -375,6 +375,19 @@ class SidebandCore():
         else:
             return []
 
+    def service_available(self):
+        service_heartbeat = self.getstate("service.heartbeat")
+        if not service_heartbeat:
+            return False
+        else:
+            try:
+                if time.time() - service_heartbeat > 2.5:
+                    return False
+                else:
+                    return True
+            except:
+                return False
+
     def gui_foreground(self):
         return self._db_getstate("app.foreground")
 

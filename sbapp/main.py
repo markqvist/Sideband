@@ -105,25 +105,27 @@ class SidebandApp(MDApp):
 
         if self.sideband.first_run:
             self.guide_action()
-            self.request_notifications_permission()
+            self.request_permissions()
         else:
             self.open_conversations()
 
         self.app_state = SidebandApp.ACTIVE
         
     def start_service(self):
-        RNS.log("Launching platform service for RNS and LXMF")
+        RNS.log("Launching platform-specific service for RNS and LXMF")
         if RNS.vendor.platformutils.get_platform() == "android":
-            # TODO: Check if service is running and start as necessary
             self.android_service = autoclass('io.unsigned.sideband.ServiceSidebandservice')
             mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
             argument = self.app_dir
             self.android_service.start(mActivity, argument)
 
-            # TODO: Remove and add real service started check here
-            RNS.log("Service instance: "+str(self.android_service))
-            RNS.log("Waiting for service start")
-            time.sleep(7)
+            # Wait a little extra for user to react to permissions prompt
+            if self.sideband.first_run:
+                time.sleep(6)
+
+            # Wait for service to become available
+            while not self.sideband.service_available():
+                time.sleep(0.20)
 
             # Start local core instance
             self.sideband.start()
