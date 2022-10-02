@@ -191,10 +191,10 @@ class SidebandCore():
         self.save_configuration()
 
     def __load_config(self):
-        RNS.log("Loading Sideband identity...")
+        RNS.log("Loading Sideband identity...", RNS.LOG_DEBUG)
         self.identity = RNS.Identity.from_file(self.identity_path)
 
-        RNS.log("Loading Sideband configuration... "+str(self.config_path))
+        RNS.log("Loading Sideband configuration... "+str(self.config_path), RNS.LOG_DEBUG)
         config_file = open(self.config_path, "rb")
         self.config = msgpack.unpackb(config_file.read())
         config_file.close()
@@ -206,15 +206,27 @@ class SidebandCore():
             self._db_initpersistent()
 
 
+    def __reload_config(self):
+        RNS.log("Reloading Sideband configuration... "+str(self.config_path), RNS.LOG_DEBUG)
+        config_file = open(self.config_path, "rb")
+        self.config = msgpack.unpackb(config_file.read())
+        config_file.close()
+
+        self.update_active_lxmf_propagation_node()
+
     def __save_config(self):
-        RNS.log("Saving Sideband configuration...")
+        RNS.log("Saving Sideband configuration...", RNS.LOG_DEBUG)
         config_file = open(self.config_path, "wb")
         config_file.write(msgpack.packb(self.config))
         config_file.close()
 
-    
+        if self.is_client:
+            self.setstate("wants.settings_reload", True)
+
+    def reload_configuration(self):
+        self.__reload_config()
+
     def save_configuration(self):
-        RNS.log("Saving configuration")
         self.__save_config()
 
     def set_active_propagation_node(self, dest):
@@ -1009,6 +1021,9 @@ class SidebandCore():
 
         self.rns_dir = RNS.Reticulum.configdir
 
+        self.update_active_lxmf_propagation_node()
+
+    def update_active_lxmf_propagation_node(self):
         if self.config["lxmf_propagation_node"] != None and self.config["lxmf_propagation_node"] != "":
             self.set_active_propagation_node(self.config["lxmf_propagation_node"])
         else:

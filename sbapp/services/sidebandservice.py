@@ -162,6 +162,10 @@ class SidebandService():
                 if self.notification_service != None:
                     self.notification_service.cancelAll()
 
+            if self.sideband.getstate("wants.settings_reload"):
+                self.sideband.setstate("wants.settings_reload", False)
+                self.sideband.reload_configuration()
+
             time.sleep(sleep_time)
 
         self.release_locks()

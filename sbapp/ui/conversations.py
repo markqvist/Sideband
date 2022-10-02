@@ -74,10 +74,11 @@ class Conversations():
                     else:
                         trust_icon = "account-question"
 
-                iconl = IconLeftWidget(icon=trust_icon)
+                iconl = IconLeftWidget(icon=trust_icon, on_release=self.app.conversation_action)
                 item = OneLineAvatarIconListItem(text=self.app.sideband.peer_display_name(context_dest), on_release=self.app.conversation_action)
                 item.add_widget(iconl)
                 item.sb_uid = context_dest
+                iconl.sb_uid = context_dest
 
                 def gen_edit(dest, item):
                     def x():

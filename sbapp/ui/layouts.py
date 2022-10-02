@@ -677,7 +677,7 @@ MDNavigationLayout:
                             height: dp(48)
                             
                             MDLabel:
-                                text: "Deliver via LXMF Propagation Node by default"
+                                text: "Send via Propagation Node by default"
                                 font_style: "H6"
 
                             MDSwitch:
