@@ -132,7 +132,7 @@ class Messages():
                         heading_str = titlestr+"[b]Sent[/b] "+txstr+" [b]State[/b] Unknown"
 
                 else:
-                    msg_color = mdc("Green", intensity_msgs)
+                    msg_color = mdc(color_received, intensity_msgs)
                     heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]Received[/b] "+rxstr
 
                 item = ListLXMessageCard(

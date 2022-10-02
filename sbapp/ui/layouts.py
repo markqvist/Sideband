@@ -130,6 +130,9 @@ MDNavigationLayout:
                     MDRectangleFlatIconButton:
                         icon: "transfer-up"
                         text: "Send"
+                        padding: [dp(10), dp(13), dp(10), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
                         on_release: root.ids.screen_manager.app.message_send_action(self)
                         
 
@@ -626,6 +629,9 @@ MDNavigationLayout:
                             id: keys_display
                             icon: "eye"
                             text: "Display Identity Key"
+                            padding: [dp(0), dp(14), dp(0), dp(14)]
+                            icon_size: dp(24)
+                            font_size: dp(16)
                             size_hint: [1.0, None]
                             on_release: root.ids.screen_manager.app.identity_display_action(self)
 
@@ -633,6 +639,9 @@ MDNavigationLayout:
                             id: keys_copy
                             icon: "file-key"
                             text: "Copy Key To Clipboard"
+                            padding: [dp(0), dp(14), dp(0), dp(14)]
+                            icon_size: dp(24)
+                            font_size: dp(16)
                             size_hint: [1.0, None]
                             on_release: root.ids.screen_manager.app.identity_copy_action(self)
 
@@ -640,6 +649,9 @@ MDNavigationLayout:
                             id: keys_share
                             icon: "upload-lock"
                             text: "Send Key To Other App"
+                            padding: [dp(0), dp(14), dp(0), dp(14)]
+                            icon_size: dp(24)
+                            font_size: dp(16)
                             size_hint: [1.0, None]
                             on_release: root.ids.screen_manager.app.identity_share_action(self)
 
@@ -661,6 +673,9 @@ MDNavigationLayout:
                             id: keys_restore
                             icon: "download-lock"
                             text: "Restore Identity From Key"
+                            padding: [dp(0), dp(14), dp(0), dp(14)]
+                            icon_size: dp(24)
+                            font_size: dp(16)
                             size_hint: [1.0, None]
                             on_release: root.ids.screen_manager.app.identity_restore_action(self)
         
