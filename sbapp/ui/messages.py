@@ -6,7 +6,7 @@ from kivy.metrics import dp
 from kivy.core.clipboard import Clipboard
 from kivymd.uix.card import MDCard
 from kivymd.uix.menu import MDDropdownMenu
-from kivymd.uix.behaviors import RoundedRectangularElevationBehavior
+from kivymd.uix.behaviors import CommonElevationBehavior
 from kivy.properties import StringProperty, BooleanProperty
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -21,7 +21,7 @@ else:
     from .helpers import ts_format, mdc
     from .helpers import color_received, color_delivered, color_propagated, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
 
-class ListLXMessageCard(MDCard, RoundedRectangularElevationBehavior):
+class ListLXMessageCard(MDCard, CommonElevationBehavior):
     text = StringProperty()
     heading = StringProperty()
 
@@ -51,7 +51,7 @@ class Messages():
     def update(self):
         self.messages = self.app.sideband.list_messages(self.context_dest, self.latest_message_timestamp)
         if self.list == None:
-            layout = GridLayout(cols=1, spacing=16, padding=16, size_hint_y=None)
+            layout = GridLayout(cols=1, spacing=dp(16), padding=dp(16), size_hint_y=None)
             layout.bind(minimum_height=layout.setter('height'))
             self.list = layout
 

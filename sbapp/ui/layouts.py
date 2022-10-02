@@ -3,7 +3,6 @@ root_layout = """
 #: import SlideTransition kivy.uix.screenmanager.SlideTransition
 
 MDNavigationLayout:
-
     ScreenManager:
         id: screen_manager
         transition: SlideTransition()
@@ -16,7 +15,6 @@ MDNavigationLayout:
                 anchor_x: "center"
                 anchor_y: "center"
                 padding: dp(64)
-
 
                 BoxLayout:
                     spacing: dp(36)
@@ -31,12 +29,11 @@ MDNavigationLayout:
                         size_hint_y: None
                         text_size: self.width, None
                         height: self.texture_size[1]
-                        # size: self.texture_size
 
                     MDIconButton:
                         pos_hint: {"center_x": .5, "center_y": .5}
                         icon: "transit-connection-variant"
-                        user_font_size: "72dp"
+                        icon_size: "72dp"
 
                     MDLabel:
                         id: connecting_info
@@ -46,7 +43,6 @@ MDNavigationLayout:
                         size_hint_y: None
                         text_size: self.width, None
                         height: self.texture_size[1]
-                        # size: self.texture_size
 
 
         MDScreen:
@@ -57,8 +53,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Conversations"
-                    elevation: 10
-                    pos_hint: {"top": 1}
+                    elevation: 2
                     left_action_items:
                         [
                         ['menu', lambda x: nav_drawer.set_state("open")],
@@ -84,8 +79,7 @@ MDNavigationLayout:
                 MDTopAppBar:
                     id: messages_toolbar
                     title: "Messages"
-                    elevation: 10
-                    pos_hint: {"top": 1}
+                    elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -100,9 +94,9 @@ MDNavigationLayout:
                     do_scroll_y: True
 
                 BoxLayout:
-                    orientation: "vertical"
                     id: no_keys_part
-                    padding: [dp(28), dp(16), dp(16), dp(16)]
+                    orientation: "vertical"
+                    padding: [dp(16), dp(0), dp(16), dp(16)]
                     spacing: dp(24)
                     size_hint_y: None
                     height: self.minimum_height + dp(64)
@@ -114,14 +108,12 @@ MDNavigationLayout:
                     MDRectangleFlatIconButton:
                         icon: "key-wireless"
                         text: "Query Network For Keys"
-                        # padding: [dp(16), dp(16), dp(16), dp(16)]
                         on_release: root.ids.screen_manager.app.key_query_action(self)
                     
 
                 BoxLayout:
                     id: message_input_part
-                    # orientation: "vertical"
-                    padding: [dp(28), dp(16), dp(16), dp(16)]
+                    padding: [dp(16), dp(0), dp(16), dp(16)]
                     spacing: dp(24)
                     size_hint_y: None
                     height: self.minimum_height
@@ -136,7 +128,6 @@ MDNavigationLayout:
                     MDRectangleFlatIconButton:
                         icon: "transfer-up"
                         text: "Send"
-                        # padding: [dp(16), dp(16), dp(16), dp(16)]
                         on_release: root.ids.screen_manager.app.message_send_action(self)
                         
 
@@ -148,8 +139,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Local Broadcasts"
-                    elevation: 10
-                    pos_hint: {"top": 1}
+                    elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
 
@@ -161,7 +151,7 @@ MDNavigationLayout:
                         spacing: "24dp"
                         size_hint_y: None
                         height: self.minimum_height
-                        padding: dp(64)
+                        padding: [dp(35), dp(35), dp(35), dp(35)]
 
                         MDLabel:
                             id: broadcasts_info
@@ -180,8 +170,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Connectivity"
-                    elevation: 10
-                    pos_hint: {"top": 1}
+                    elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -367,7 +356,6 @@ MDNavigationLayout:
                             disabled: True
 
         
-
         MDScreen:
             name: "guide_screen"
             
@@ -376,8 +364,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Guide"
-                    elevation: 10
-                    pos_hint: {"top": 1}
+                    elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -412,8 +399,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "App & Version Information"
-                    elevation: 10
-                    pos_hint: {"top": 1}
+                    elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -447,8 +433,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Local Area Map"
-                    elevation: 10
-                    pos_hint: {"top": 1}
+                    elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
 
@@ -460,7 +445,8 @@ MDNavigationLayout:
                         spacing: "24dp"
                         size_hint_y: None
                         height: self.minimum_height
-                        padding: dp(64)
+                        padding: [dp(35), dp(35), dp(35), dp(35)]
+
 
                         MDLabel:
                             id: map_info
@@ -479,8 +465,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Encryption Keys"
-                    elevation: 10
-                    pos_hint: {"top": 1}
+                    elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -496,7 +481,8 @@ MDNavigationLayout:
                         spacing: "24dp"
                         size_hint_y: None
                         height: self.minimum_height
-                        padding: dp(64)
+                        padding: [dp(35), dp(35), dp(35), dp(35)]
+
 
                         MDLabel:
                             id: keys_info
@@ -510,7 +496,6 @@ MDNavigationLayout:
                             id: keys_display
                             icon: "eye"
                             text: "Display Identity Key"
-                            # padding: [dp(16), dp(16), dp(16), dp(16)]
                             size_hint: [1.0, None]
                             on_release: root.ids.screen_manager.app.identity_display_action(self)
 
@@ -518,7 +503,6 @@ MDNavigationLayout:
                             id: keys_copy
                             icon: "file-key"
                             text: "Copy Key To Clipboard"
-                            # padding: [dp(16), dp(16), dp(16), dp(16)]
                             size_hint: [1.0, None]
                             on_release: root.ids.screen_manager.app.identity_copy_action(self)
 
@@ -526,7 +510,6 @@ MDNavigationLayout:
                             id: keys_share
                             icon: "upload-lock"
                             text: "Send Key To Other App"
-                            # padding: [dp(16), dp(16), dp(16), dp(16)]
                             size_hint: [1.0, None]
                             on_release: root.ids.screen_manager.app.identity_share_action(self)
 
@@ -535,7 +518,7 @@ MDNavigationLayout:
                             # spacing: "24dp"
                             size_hint_y: None
                             height: self.minimum_height
-                            padding: [dp(12), dp(12), dp(12), dp(0)]
+                            padding: [dp(0), dp(12), dp(0), dp(0)]
 
                             MDTextField:
                                 id: key_restore_text
@@ -548,7 +531,6 @@ MDNavigationLayout:
                             id: keys_restore
                             icon: "download-lock"
                             text: "Restore Identity From Key"
-                            # padding: [dp(16), dp(16), dp(16), dp(16)]
                             size_hint: [1.0, None]
                             on_release: root.ids.screen_manager.app.identity_restore_action(self)
         
@@ -561,8 +543,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Announce Stream"
-                    elevation: 10
-                    pos_hint: {"top": 1}
+                    elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -598,8 +579,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Settings"
-                    elevation: 10
-                    pos_hint: {"top": 1}
+                    elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -659,8 +639,8 @@ MDNavigationLayout:
 
                         MDBoxLayout:
                             orientation: "horizontal"
-                            # spacing: "24dp"
                             size_hint_y: None
+                            padding: [0,0,dp(24),0]
                             height: dp(48)
                             
                             MDLabel:
@@ -669,12 +649,13 @@ MDNavigationLayout:
 
                             MDSwitch:
                                 id: settings_start_announce
+                                pos_hint: {"center_y": 0.3}
                                 active: False
 
                         MDBoxLayout:
                             orientation: "horizontal"
-                            # spacing: "24dp"
                             size_hint_y: None
+                            padding: [0,0,dp(24),0]
                             height: dp(48)
                             
                             MDLabel:
@@ -683,12 +664,13 @@ MDNavigationLayout:
 
                             MDSwitch:
                                 id: settings_dark_ui
+                                pos_hint: {"center_y": 0.3}
                                 active: False
 
                         MDBoxLayout:
                             orientation: "horizontal"
-                            # spacing: "24dp"
                             size_hint_y: None
+                            padding: [0,0,dp(24),0]
                             height: dp(48)
                             
                             MDLabel:
@@ -697,13 +679,14 @@ MDNavigationLayout:
 
                             MDSwitch:
                                 id: settings_lxmf_delivery_by_default
+                                pos_hint: {"center_y": 0.3}
                                 disabled: False
                                 active: False
 
                         MDBoxLayout:
                             orientation: "horizontal"
-                            # spacing: "24dp"
                             size_hint_y: None
+                            padding: [0,0,dp(24),0]
                             height: dp(48)
                             
                             MDLabel:
@@ -712,13 +695,14 @@ MDNavigationLayout:
 
                             MDSwitch:
                                 id: settings_lxmf_sync_limit
+                                pos_hint: {"center_y": 0.3}
                                 disabled: False
                                 active: False
 
                         MDBoxLayout:
                             orientation: "horizontal"
-                            # spacing: "24dp"
                             size_hint_y: None
+                            padding: [0,0,dp(24),0]
                             height: dp(48)
                             
                             MDLabel:
@@ -727,13 +711,14 @@ MDNavigationLayout:
 
                             MDSwitch:
                                 id: settings_home_node_as_broadcast_repeater
+                                pos_hint: {"center_y": 0.3}
                                 active: False
                                 disabled: True
 
                         MDBoxLayout:
                             orientation: "horizontal"
-                            # spacing: "24dp"
                             size_hint_y: None
+                            padding: [0,0,dp(24),0]
                             height: dp(48)
                             
                             MDLabel:
@@ -742,12 +727,14 @@ MDNavigationLayout:
 
                             MDSwitch:
                                 id: settings_telemetry_to_home_node
+                                pos_hint: {"center_y": 0.3}
                                 disabled: True
                                 active: False
         
 
     MDNavigationDrawer:
         id: nav_drawer
+        radius: (0, dp(8), dp(8), 0)
 
         ContentNavigationDrawer:
             ScrollView:
@@ -852,7 +839,10 @@ MDNavigationLayout:
                                 on_release: root.ids.screen_manager.app.quit_action(self)
 
 <ListLXMessageCard>:
+    style: "elevated"
+    elevation: 2
     padding: dp(8)
+    radius: [dp(4), dp(4), dp(4), dp(4)]
     size_hint: 1.0, None
     height: content_text.height + heading_text.height + dp(32)
     pos_hint: {"center_x": .5, "center_y": .5}

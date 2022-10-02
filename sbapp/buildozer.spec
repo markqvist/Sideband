@@ -4,7 +4,7 @@ package.name = sideband
 package.domain = io.unsigned
 
 source.dir = .
-source.include_exts = py,png,jpg,jpeg,ttf,kv,pyi,typed,so,0,1,2,3,atlas
+source.include_exts = py,png,jpg,jpeg,ttf,kv,pyi,typed,so,0,1,2,3,atlas,frag
 source.include_patterns = assets/*
 source.exclude_patterns = app_storage/*,venv/*,Makefile,./Makefil*,requirements,precompiled/*,parked/*,./setup.py,Makef*,./Makefile,Makefile
 

@@ -139,6 +139,8 @@ class SidebandApp(MDApp):
     #################################################
 
     def update_ui_theme(self):
+        self.theme_cls.material_style = "M3"
+        self.theme_cls.widget_style = "android"
         if self.sideband.config["dark_ui"]:
             self.theme_cls.theme_style = "Dark"
         else:
