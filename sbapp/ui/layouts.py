@@ -859,11 +859,13 @@ MDNavigationLayout:
 
     MDRelativeLayout:
         size_hint: 1.0, None
-        # size: root.size
+        theme_text_color: "ContrastParentBackground"
 
         MDIconButton:
             id: msg_submenu
             icon: "dots-vertical"
+            theme_text_color: 'Custom'
+            text_color: rgba(255,255,255,230)
             pos:
                 root.width - (self.width + root.padding[0] + dp(4)), root.height - (self.height + root.padding[0] + dp(4))
 
@@ -872,6 +874,8 @@ MDNavigationLayout:
             markup: True
             text: root.heading
             adaptive_size: True
+            theme_text_color: 'Custom'
+            text_color: rgba(255,255,255,230)
             pos: 0, root.height - (self.height + root.padding[0] + dp(8))
 
         MDLabel:
@@ -880,6 +884,8 @@ MDNavigationLayout:
             # adaptive_size: True
             size_hint_y: None
             text_size: self.width, None
+            theme_text_color: 'Custom'
+            text_color: rgba(255,255,255,230)
             height: self.texture_size[1]
 
 <MsgSync>

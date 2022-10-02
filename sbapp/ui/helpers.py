@@ -17,7 +17,8 @@ color_delivered = "Indigo"
 color_propagated = "Blue"
 color_failed = "Red"
 color_unknown = "Gray"
-intensity_msgs = "600"
+intensity_msgs_dark = "600"
+intensity_msgs_light = "500"
 
 class ContentNavigationDrawer(Screen):
     pass

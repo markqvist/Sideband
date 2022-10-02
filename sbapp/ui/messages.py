@@ -16,10 +16,10 @@ from kivymd.uix.dialog import MDDialog
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from ui.helpers import ts_format, mdc
-    from ui.helpers import color_received, color_delivered, color_propagated, color_failed, color_unknown, intensity_msgs
+    from ui.helpers import color_received, color_delivered, color_propagated, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
 else:
     from .helpers import ts_format, mdc
-    from .helpers import color_received, color_delivered, color_propagated, color_failed, color_unknown, intensity_msgs
+    from .helpers import color_received, color_delivered, color_propagated, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
 
 class ListLXMessageCard(MDCard, RoundedRectangularElevationBehavior):
     text = StringProperty()
@@ -58,6 +58,11 @@ class Messages():
         if len(self.messages) > 0:
             self.update_widget()
 
+        if self.app.sideband.config["dark_ui"]:
+            intensity_msgs = intensity_msgs_dark
+        else:
+            intensity_msgs = intensity_msgs_light
+
         for w in self.widgets:
             m = w.m
             if m["state"] == LXMF.LXMessage.SENDING or m["state"] == LXMF.LXMessage.OUTBOUND:
@@ -91,6 +96,11 @@ class Messages():
 
 
     def update_widget(self):
+        if self.app.sideband.config["dark_ui"]:
+            intensity_msgs = intensity_msgs_dark
+        else:
+            intensity_msgs = intensity_msgs_light
+
         for m in self.messages:
             if not m["hash"] in self.added_item_hashes:
                 txstr = time.strftime(ts_format, time.localtime(m["sent"]))
