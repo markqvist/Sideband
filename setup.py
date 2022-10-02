@@ -46,7 +46,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://unsigned.io/sideband",
     packages=setuptools.find_packages(),
-    package_data={'': ['kivymd/fonts/*','kivymd/images/*']},
+    package_data={'': ['kivymd/fonts/*','kivymd/images/*','kivymd/data/glsl/elevation/*']},
     include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",

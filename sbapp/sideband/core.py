@@ -906,7 +906,7 @@ class SidebandCore():
             self.service_thread.start()
         
     def __start_jobs_immediate(self):
-        self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=2)
+        self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=3)
 
         if RNS.vendor.platformutils.get_platform() == "android":
             if not self.reticulum.is_connected_to_shared_instance:
