@@ -677,6 +677,20 @@ MDNavigationLayout:
                             height: dp(48)
                             
                             MDLabel:
+                                text: "Dark Mode UI"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: settings_dark_ui
+                                active: False
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            # spacing: "24dp"
+                            size_hint_y: None
+                            height: dp(48)
+                            
+                            MDLabel:
                                 text: "Send via Propagation Node by default"
                                 font_style: "H6"
 

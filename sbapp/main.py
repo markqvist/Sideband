@@ -70,7 +70,6 @@ class SidebandApp(MDApp):
         self.title = "Sideband"
         self.app_state = SidebandApp.STARTING
         self.android_service = None
-
         self.app_dir = plyer.storagepath.get_application_dir()
 
         if RNS.vendor.platformutils.get_platform() == "android":
@@ -78,8 +77,9 @@ class SidebandApp(MDApp):
         else:
             self.sideband = SidebandCore(self, is_client=False)
 
-        self.conversations_view = None
+        self.update_ui_theme()
 
+        self.conversations_view = None
         self.sync_dialog = None
 
         Window.softinput_mode = "below_target"
@@ -137,6 +137,12 @@ class SidebandApp(MDApp):
     #################################################
     # General helpers                               #
     #################################################
+
+    def update_ui_theme(self):
+        if self.sideband.config["dark_ui"]:
+            self.theme_cls.theme_style = "Dark"
+        else:
+            self.theme_cls.theme_style = "Light"
 
     def share_text(self, text):
         if RNS.vendor.platformutils.get_platform() == "android":
@@ -198,7 +204,6 @@ class SidebandApp(MDApp):
 
     def build(self):
         FONT_PATH = self.sideband.asset_dir+"/fonts"
-        self.theme_cls.theme_style = "Dark"
         screen = Builder.load_string(root_layout)
 
         return screen
@@ -708,6 +713,12 @@ class SidebandApp(MDApp):
             self.sideband.config["lxmf_propagation_node"] = new_addr
             self.sideband.set_active_propagation_node(self.sideband.config["lxmf_propagation_node"])
 
+        def save_dark_ui(sender=None, event=None):
+            RNS.log("Save UI mode")
+            self.sideband.config["dark_ui"] = self.root.ids.settings_dark_ui.active
+            self.sideband.save_configuration()
+            self.update_ui_theme()
+
         def save_start_announce(sender=None, event=None):
             RNS.log("Save announce")
             self.sideband.config["start_announce"] = self.root.ids.settings_start_announce.active
@@ -737,6 +748,9 @@ class SidebandApp(MDApp):
         self.root.ids.settings_propagation_node_address.text = prop_node_addr
         self.root.ids.settings_propagation_node_address.bind(on_text_validate=save_prop_addr)
         self.root.ids.settings_propagation_node_address.bind(focus=save_prop_addr)
+
+        self.root.ids.settings_dark_ui.active = self.sideband.config["dark_ui"]
+        self.root.ids.settings_dark_ui.bind(active=save_dark_ui)
 
         self.root.ids.settings_start_announce.active = self.sideband.config["start_announce"]
         self.root.ids.settings_start_announce.bind(active=save_start_announce)
@@ -1040,8 +1054,6 @@ If you use Reticulum and LXMF on hardware that does not carry any identifiers ti
 
 Thank you very much for using Free Communications Systems.
 """
-        guide_text = "[color=#ddd]"+guide_text+"[/color]"
-
         info = guide_text
         self.root.ids.guide_info.text = info
         self.root.ids.guide_info.bind(on_ref_press=link_exec)

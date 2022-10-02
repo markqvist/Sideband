@@ -155,6 +155,7 @@ class SidebandCore():
         self.config = {}
         # Settings
         self.config["display_name"] = "Anonymous Peer"
+        self.config["dark_ui"] = True
         self.config["start_announce"] = False
         self.config["propagation_by_default"] = False
         self.config["home_node_as_broadcast_repeater"] = False
@@ -199,6 +200,11 @@ class SidebandCore():
         self.config = msgpack.unpackb(config_file.read())
         config_file.close()
 
+        # Migration actions from earlier config formats
+        if not "dark_ui" in self.config:
+            self.config["dark_ui"] = True
+
+        # Make sure we have a database
         if not os.path.isfile(self.db_path):
             self.__db_init()
         else:
