@@ -906,8 +906,7 @@ class SidebandCore():
             self.service_thread.start()
         
     def __start_jobs_immediate(self):
-        # TODO: Reset loglevel
-        self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=7)
+        self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=2)
 
         if RNS.vendor.platformutils.get_platform() == "android":
             if not self.reticulum.is_connected_to_shared_instance:
@@ -1061,7 +1060,6 @@ class SidebandCore():
             dest = RNS.Destination(dest_identity, RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
             source = self.lxmf_destination
             
-            # TODO: Add setting
             if propagation:
                 desired_method = LXMF.LXMessage.PROPAGATED
             else:

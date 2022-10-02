@@ -8,9 +8,8 @@ import base64
 import threading
 
 from kivy.logger import Logger, LOG_LEVELS
-# TODO: Reset
-Logger.setLevel(LOG_LEVELS["debug"])
-# Logger.setLevel(LOG_LEVELS["error"])
+# Logger.setLevel(LOG_LEVELS["debug"])
+Logger.setLevel(LOG_LEVELS["error"])
 
 if RNS.vendor.platformutils.get_platform() != "android":
     local = os.path.dirname(__file__)
