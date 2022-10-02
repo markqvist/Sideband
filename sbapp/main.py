@@ -8,8 +8,8 @@ import base64
 import threading
 
 from kivy.logger import Logger, LOG_LEVELS
-# Logger.setLevel(LOG_LEVELS["debug"])
-Logger.setLevel(LOG_LEVELS["error"])
+Logger.setLevel(LOG_LEVELS["debug"])
+# Logger.setLevel(LOG_LEVELS["error"])
 
 if RNS.vendor.platformutils.get_platform() != "android":
     local = os.path.dirname(__file__)
@@ -35,6 +35,8 @@ if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass
     from android import mActivity
     from android.permissions import request_permissions, check_permission
+
+    from kivymd.utils.set_bars_colors import set_bars_colors
 
 else:
     from .sideband.core import SidebandCore
@@ -86,9 +88,9 @@ class SidebandApp(MDApp):
         Window.softinput_mode = "below_target"
         self.icon = self.sideband.asset_dir+"/icon.png"
         self.notification_icon = self.sideband.asset_dir+"/notification_icon.png"
-        self.check_permissions()
 
     def start_core(self, dt):
+        self.check_permissions()
         self.start_service()
         
         Clock.schedule_interval(self.jobs, 1)
@@ -109,6 +111,8 @@ class SidebandApp(MDApp):
             self.request_permissions()
         else:
             self.open_conversations()
+
+        self.set_bars_colors()
 
         self.app_state = SidebandApp.ACTIVE
         
@@ -148,6 +152,14 @@ class SidebandApp(MDApp):
             self.theme_cls.theme_style = "Dark"
         else:
             self.theme_cls.theme_style = "Light"
+
+    def set_bars_colors(self):
+        if RNS.vendor.platformutils.get_platform() == "android":
+            set_bars_colors(
+                self.theme_cls.primary_color,  # status bar color
+                [0,0,0,0],  # navigation bar color
+                "Light",                       # icons color of status bar
+            )
 
     def share_text(self, text):
         if RNS.vendor.platformutils.get_platform() == "android":
@@ -350,7 +362,7 @@ class SidebandApp(MDApp):
         dialog = MDDialog(
             text="An announce for your LXMF destination was sent on all available interfaces",
             buttons=[ yes_button ],
-            elevation=0,
+            # elevation=0,
         )
         def dl_yes(s):
             dialog.dismiss()

@@ -3,6 +3,8 @@ root_layout = """
 #: import SlideTransition kivy.uix.screenmanager.SlideTransition
 
 MDNavigationLayout:
+    md_bg_color: app.theme_cls.bg_darkest
+
     ScreenManager:
         id: screen_manager
         transition: SlideTransition()

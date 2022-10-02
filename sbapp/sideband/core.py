@@ -118,7 +118,6 @@ class SidebandCore():
         except Exception as e:
             RNS.log("Error while configuring Sideband: "+str(e), RNS.LOG_ERROR)
 
-
         # Initialise Reticulum configuration
         if RNS.vendor.platformutils.get_platform() == "android":
             try:
@@ -180,10 +179,13 @@ class SidebandCore():
         self.config["connect_i2p_ifac_netname"] = ""
         self.config["connect_i2p_ifac_passphrase"] = ""
 
-        self.__save_config()
-
         if not os.path.isfile(self.db_path):
             self.__db_init()
+        else:
+            self._db_initstate()
+            self._db_initpersistent()
+
+        self.__save_config()
 
     def should_persist_data(self):
         if self.reticulum != None:
@@ -434,6 +436,8 @@ class SidebandCore():
         pass
 
     def __db_init(self):
+        # TODO: Remove
+        print("------------------ DB INIT")
         db = sqlite3.connect(self.db_path)
         dbc = db.cursor()
 
@@ -454,6 +458,8 @@ class SidebandCore():
 
         db.commit()
         db.close()
+        # TODO: Remove
+        print("------------------ DB INIT DONE")
 
     def _db_initstate(self):
         db = sqlite3.connect(self.db_path)
@@ -906,7 +912,7 @@ class SidebandCore():
             self.service_thread.start()
         
     def __start_jobs_immediate(self):
-        self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=3)
+        self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=7)
 
         if RNS.vendor.platformutils.get_platform() == "android":
             if not self.reticulum.is_connected_to_shared_instance:
