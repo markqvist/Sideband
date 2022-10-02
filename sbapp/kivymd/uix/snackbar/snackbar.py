@@ -25,7 +25,7 @@ Usage
     #:import Snackbar kivymd.uix.snackbar.Snackbar
 
 
-    Screen:
+    MDScreen:
 
         MDRaisedButton:
             text: "Create simple snackbar"
@@ -149,7 +149,7 @@ Custom usage
 
 
     KV = '''
-    Screen:
+    MDScreen:
 
         MDFloatingActionButton:
             id: button
@@ -227,7 +227,7 @@ Custom Snackbar
             pos_hint: {'center_y': .5}
 
 
-    Screen:
+    MDScreen:
 
         MDRaisedButton:
             text: "SHOW"
@@ -284,7 +284,6 @@ from kivy.properties import (
 )
 
 from kivymd import uix_path
-from kivymd.uix.behaviors import FakeRectangularElevationBehavior
 from kivymd.uix.button import BaseButton
 from kivymd.uix.card import MDCard
 
@@ -294,7 +293,7 @@ with open(
     Builder.load_string(kv_file.read())
 
 
-class BaseSnackbar(MDCard, FakeRectangularElevationBehavior):
+class BaseSnackbar(MDCard):
     """
     :Events:
         :attr:`on_open`

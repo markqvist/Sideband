@@ -1,6 +1,6 @@
 """
-Components/MDSwiper
-===================
+Components/Swiper
+=================
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/mdswiper-preview.gif
     :align: center
@@ -38,7 +38,7 @@ Example
         MDTopAppBar:
             id: toolbar
             title: "MDSwiper"
-            elevation: 10
+            elevation: 4
             pos_hint: {"top": 1}
 
         MDSwiper:
@@ -142,7 +142,7 @@ Example
         MDTopAppBar:
             id: toolbar
             title: "MDSwiper"
-            elevation: 10
+            elevation: 4
             pos_hint: {"top": 1}
 
         MDSwiper:
@@ -203,7 +203,6 @@ from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.effects.dampedscroll import DampedScrollEffect
-from kivy.event import EventDispatcher
 from kivy.lang.builder import Builder
 from kivy.properties import (
     BooleanProperty,
@@ -212,11 +211,11 @@ from kivy.properties import (
     StringProperty,
 )
 from kivy.uix.anchorlayout import AnchorLayout
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.scrollview import ScrollView
 from kivy.utils import platform
 
 from kivymd import uix_path
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.scrollview import MDScrollView
 
 with open(
     os.path.join(uix_path, "swiper", "swiper.kv"), encoding="utf-8"
@@ -249,7 +248,7 @@ class _ItemsBox(AnchorLayout):
         ]
 
 
-class MDSwiperItem(BoxLayout):
+class MDSwiperItem(MDBoxLayout):
     """
     :class:`MDSwiperItem` is a :class:`BoxLayout` but it's size is adjusted
     automatically.
@@ -258,8 +257,8 @@ class MDSwiperItem(BoxLayout):
     _root = ObjectProperty()
     _selected = False
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         Clock.schedule_once(self._set_size)
         Window.bind(on_resize=self._set_size)
 
@@ -293,7 +292,7 @@ class MDSwiperItem(BoxLayout):
         anim.start(self)
 
 
-class MDSwiper(ScrollView, EventDispatcher):
+class MDSwiper(MDScrollView):
     items_spacing = NumericProperty("20dp")
     """
     The space between each :class:`MDSwiperItem`.
@@ -373,8 +372,8 @@ class MDSwiper(ScrollView, EventDispatcher):
         "on_swipe_right",
     )
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.register_event_type("on_swipe")
         self.register_event_type("on_pre_swipe")
         self.register_event_type("on_overswipe_right")

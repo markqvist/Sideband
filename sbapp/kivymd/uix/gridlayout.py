@@ -86,7 +86,11 @@ Equivalent
 from kivy.uix.gridlayout import GridLayout
 
 from kivymd.uix import MDAdaptiveWidget
+from kivymd.uix.behaviors import DeclarativeBehavior
 
 
-class MDGridLayout(GridLayout, MDAdaptiveWidget):
-    pass
+class MDGridLayout(DeclarativeBehavior, GridLayout, MDAdaptiveWidget):
+    """
+    Grid layout class. For more information, see in the
+    :class:`~kivy.uix.gridlayout.GridLayout` class documentation.
+    """

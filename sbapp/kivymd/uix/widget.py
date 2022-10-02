@@ -8,7 +8,7 @@ with some widget properties. For example:
 Widget
 ------
 
-.. code-block::
+.. code-block:: kv
 
     Widget:
         size_hint: .5, None
@@ -25,7 +25,7 @@ Widget
 MDWidget
 --------
 
-.. code-block::
+.. code-block:: kv
 
     MDWidget:
         size_hint: .5, None
@@ -34,10 +34,15 @@ MDWidget
         md_bg_color: app.theme_cls.primary_color
 """
 
+__all__ = ("MDWidget",)
+
+from kivy.uix.widget import Widget
+
 from kivymd.uix import MDAdaptiveWidget
+from kivymd.uix.behaviors import DeclarativeBehavior
 
 
-class MDWidget(MDAdaptiveWidget):
+class MDWidget(DeclarativeBehavior, MDAdaptiveWidget, Widget):
     """
     See :class:`~kivy.uix.Widget` class documentation for more information.
 

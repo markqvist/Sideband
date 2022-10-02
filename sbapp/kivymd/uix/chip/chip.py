@@ -132,7 +132,7 @@ Use with elevation
         icon_right: "close-circle-outline"
         line_color: app.theme_cls.disabled_hint_text_color
         md_bg_color: 1, 0, 0, .5
-        elevation: 12
+        elevation: 4
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/chip-with-elevation.png
     :align: center
@@ -304,7 +304,6 @@ __all__ = ("MDChip",)
 
 import os
 
-from kivy import Logger
 from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.metrics import dp
@@ -314,14 +313,13 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivymd import uix_path
 from kivymd.theming import ThemableBehavior
 from kivymd.uix.behaviors import (
-    FakeRectangularElevationBehavior,
+    CommonElevationBehavior,
     RectangularRippleBehavior,
+    ScaleBehavior,
     TouchBehavior,
 )
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDIcon
-from kivymd.uix.stacklayout import MDStackLayout
-from kivymd.uix.templates import ScaleWidget
 
 with open(
     os.path.join(uix_path, "chip", "chip.kv"), encoding="utf-8"
@@ -330,12 +328,12 @@ with open(
 
 
 class MDChip(
+    MDBoxLayout,
     ThemableBehavior,
     RectangularRippleBehavior,
-    FakeRectangularElevationBehavior,
-    TouchBehavior,
     ButtonBehavior,
-    MDBoxLayout,
+    CommonElevationBehavior,
+    TouchBehavior,
 ):
     text = StringProperty()
     """
@@ -343,17 +341,6 @@ class MDChip(
 
     :attr:`text` is an :class:`~kivy.properties.StringProperty`
     and defaults to `''`.
-    """
-
-    icon = StringProperty("checkbox-blank-circle", deprecated=True)
-    """
-    Chip icon.
-
-    .. deprecated:: 1.0.0
-        Use :attr:`icon_right` and :attr:`icon_left` instead.
-
-    :attr:`icon` is an :class:`~kivy.properties.StringProperty`
-    and defaults to `'checkbox-blank-circle'`.
     """
 
     icon_left = StringProperty()
@@ -376,32 +363,11 @@ class MDChip(
     and defaults to `''`.
     """
 
-    color = ColorProperty(None, deprecated=True)
-    """
-    Chip color in ``rgba`` format.
-
-    .. deprecated:: 1.0.0
-
-    :attr:`color` is an :class:`~kivy.properties.ColorProperty`
-    and defaults to `None`.
-    """
-
     text_color = ColorProperty(None)
     """
     Chip's text color in ``rgba`` format.
 
     :attr:`text_color` is an :class:`~kivy.properties.ColorProperty`
-    and defaults to `None`.
-    """
-
-    icon_color = ColorProperty(None, deprecated=True)
-    """
-    Chip's icon color in ``rgba`` format.
-
-    .. deprecated:: 1.0.0
-        Use :attr:`icon_right_color` and :attr:`icon_left_color` instead.
-
-    :attr:`icon_color` is an :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
     """
 
@@ -432,26 +398,6 @@ class MDChip(
     .. versionadded:: 1.0.0
 
     :attr:`icon_check_color` is an :class:`~kivy.properties.ColorProperty`
-    and defaults to `None`.
-    """
-
-    check = BooleanProperty(False, deprecated=True)
-    """
-    If `True`, a checkmark is added to the left when touch to the chip.
-
-    .. deprecated:: 1.0.0
-
-    :attr:`check` is an :class:`~kivy.properties.BooleanProperty`
-    and defaults to `False`.
-    """
-
-    selected_chip_color = ColorProperty(None, deprecated=True)
-    """
-    The color of the chip that is currently selected in ``rgba`` format.
-
-    .. deprecated:: 1.0.0
-
-    :attr:`selected_chip_color` is an :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
     """
 
@@ -508,16 +454,7 @@ class MDChip(
             self.active = False
 
 
-class MDChooseChip(MDStackLayout):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Logger.warning(
-            "MDChooseChip: "
-            "class is deprecated and will be removed in a future version"
-        )
-
-
-class MDScalableCheckIcon(MDIcon, ScaleWidget):
+class MDScalableCheckIcon(MDIcon, ScaleBehavior):
     pos_hint = {"center_y": 0.5}
 
 

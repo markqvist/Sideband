@@ -65,12 +65,13 @@ Implementation
     :align: center
 """
 
-__all__ = ("MDSmartTile", "SmartTileWithLabel", "SmartTileWithStar")
+__all__ = [
+    "MDSmartTile",
+]
 
 import os
 
 from kivy.lang import Builder
-from kivy.logger import Logger
 from kivy.properties import (
     BooleanProperty,
     ColorProperty,
@@ -102,7 +103,7 @@ class SmartTileOverlayBox(MDBoxLayout):
     """Implements a container for custom widgets to be added to the tile."""
 
 
-class MDSmartTile(ThemableBehavior, MDRelativeLayout):
+class MDSmartTile(MDRelativeLayout, ThemableBehavior):
     """
     A tile for more complex needs.
 
@@ -248,8 +249,8 @@ class MDSmartTile(ThemableBehavior, MDRelativeLayout):
     and defaults to `False`.
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.register_event_type("on_release")
         self.register_event_type("on_press")
 
@@ -270,33 +271,3 @@ class MDSmartTile(ThemableBehavior, MDRelativeLayout):
                 widget.shorten = True
                 widget.shorten_from = "right"
             self.ids.box.add_widget(widget)
-
-
-class SmartTileWithLabel(MDSmartTile):
-    """
-    .. deprecated:: 1.0.0
-        Use :class:`~MDSmartTile` class instead.
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Logger.warning(
-            "KivyMD: "
-            "The `SmartTileWithLabel` class has been deprecated. "
-            "Use the `MDSmartTile` class instead`"
-        )
-
-
-class SmartTileWithStar(MDSmartTile):
-    """
-    .. deprecated:: 1.0.0
-        Use :class:`~MDSmartTile` class instead.
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Logger.warning(
-            "KivyMD: "
-            "The `SmartTileWithStar` class has been deprecated. "
-            "Use the `MDSmartTile` class instead`"
-        )

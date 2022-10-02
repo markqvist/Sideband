@@ -38,8 +38,8 @@ Example
 
     from kivy.lang.builder import Builder
 
+    from kivymd.app import MDApp
     from kivymd.uix.card import MDCard
-    from kivymd.uix.behaviors import RoundedRectangularElevationBehavior
 
     KV = '''
     <CardItem>
@@ -47,7 +47,6 @@ Example
         height: "86dp"
         padding: "4dp"
         radius: 12
-        elevation: 4
 
         FitImage:
             source: "avatar.jpg"
@@ -95,8 +94,10 @@ Example
     '''
 
 
-    class CardItem(MDCard, RoundedRectangularElevationBehavior):
-        pass
+    class CardItem(MDCard):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.elevation = 3
 
 
     class Example(MDApp):
@@ -167,7 +168,7 @@ class MDSliverAppbarHeader(MDBoxLayout):
     pass
 
 
-class MDSliverAppbar(ThemableBehavior, MDBoxLayout):
+class MDSliverAppbar(MDBoxLayout, ThemableBehavior):
     """
     MDSliverAppbar class.
     See module documentation for more information.
@@ -192,7 +193,6 @@ class MDSliverAppbar(ThemableBehavior, MDBoxLayout):
 
         from kivymd.uix.card import MDCard
         from kivymd.uix.toolbar import MDTopAppBar
-        from kivymd.uix.behaviors import RoundedRectangularElevationBehavior
 
         KV = '''
         #:import SliverToolbar __main__.SliverToolbar
@@ -203,7 +203,6 @@ class MDSliverAppbar(ThemableBehavior, MDBoxLayout):
             height: "86dp"
             padding: "4dp"
             radius: 12
-            elevation: 4
 
             FitImage:
                 source: "avatar.jpg"
@@ -252,13 +251,16 @@ class MDSliverAppbar(ThemableBehavior, MDBoxLayout):
         '''
 
 
-        class CardItem(MDCard, RoundedRectangularElevationBehavior):
-            pass
+        class CardItem(MDCard):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.elevation = 3
 
 
         class SliverToolbar(MDTopAppBar):
             def __init__(self, **kwargs):
                 super().__init__(**kwargs)
+                self.shadow_color = (0, 0, 0, 0)
                 self.type_height = "medium"
                 self.headline_text = "Headline medium"
                 self.left_action_items = [["arrow-left", lambda x: x]]
@@ -383,8 +385,8 @@ class MDSliverAppbar(ThemableBehavior, MDBoxLayout):
     _scroll_was_moving = BooleanProperty(False)
     _last_scroll_y_pos = 0.0
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.register_event_type("on_scroll_content")
 
     def on_scroll_content(
@@ -412,21 +414,27 @@ class MDSliverAppbar(ThemableBehavior, MDBoxLayout):
     ) -> None:
         """Called when a value is set to the :attr:`toolbar_cls` parameter."""
 
-        # If an MDTopAppBar object is already in use, delete it
-        # before adding a new MDTopAppBar object.
-        for widget in self.ids.float_box.children:
-            if issubclass(widget.__class__, MDTopAppBar):
-                self.ids.float_box.remove_widget(widget)
+        def on_toolbar_cls(*args):
+            # If an MDTopAppBar object is already in use, delete it
+            # before adding a new MDTopAppBar object.
+            for widget in self.ids.float_box.children:
+                if issubclass(widget.__class__, MDTopAppBar):
+                    self.ids.float_box.remove_widget(widget)
 
-        # Adding a custom MDTopAppBar object.
-        if issubclass(instance_toolbar_cls.__class__, MDTopAppBar):
-            instance_toolbar_cls.pos_hint = {"top": 1}
-            self.ids.float_box.add_widget(instance_toolbar_cls)
-        else:
-            raise MDSliverAppbarException(
-                "The `toolbar_cls` parameter must be an object of the "
-                "`kivymd.uix.toolbar.MDTopAppBar class`"
-            )
+            # Adding a custom MDTopAppBar object.
+            if issubclass(instance_toolbar_cls.__class__, MDTopAppBar):
+                instance_toolbar_cls.pos_hint = {"top": 1}
+                instance_toolbar_cls.elevation = 0
+                self.ids.float_box.add_widget(instance_toolbar_cls)
+            else:
+                raise MDSliverAppbarException(
+                    "The `toolbar_cls` parameter must be an object of the "
+                    "`kivymd.uix.toolbar.MDTopAppBar class`"
+                )
+
+        # Schedule using for declarative style.
+        # Otherwise get AttributeError exception.
+        Clock.schedule_once(on_toolbar_cls)
 
     def on_vbar(self) -> None:
         if not self.background_color:

@@ -8,7 +8,7 @@ with some widget properties. For example:
 BoxLayout
 ---------
 
-.. code-block::
+.. code-block:: kv
 
     BoxLayout:
         size_hint_y: None
@@ -24,7 +24,7 @@ BoxLayout
 MDBoxLayout
 -----------
 
-.. code-block::
+.. code-block:: kv
 
     MDBoxLayout:
         adaptive_height: True
@@ -88,7 +88,13 @@ __all__ = ("MDBoxLayout",)
 from kivy.uix.boxlayout import BoxLayout
 
 from kivymd.uix import MDAdaptiveWidget
+from kivymd.uix.behaviors import DeclarativeBehavior
 
 
-class MDBoxLayout(BoxLayout, MDAdaptiveWidget):
-    pass
+class MDBoxLayout(DeclarativeBehavior, BoxLayout, MDAdaptiveWidget):
+    """
+    Box layout class.
+
+    For more information, see in the
+    :class:`~kivy.uix.boxlayout.BoxLayout` class documentation.
+    """

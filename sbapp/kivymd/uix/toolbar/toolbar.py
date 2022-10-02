@@ -121,8 +121,8 @@ Shadow elevation control
 .. code-block:: kv
 
     MDTopAppBar:
-        title: "Elevation 10"
-        elevation: 10
+        title: "Elevation 4"
+        elevation: 4
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/toolbar-7.png
     :align: center
@@ -327,7 +327,7 @@ Material design 3 style
     :align: center
 """
 
-__all__ = ("MDTopAppBar", "MDBottomAppBar", "MDToolbar")
+__all__ = ("MDTopAppBar", "MDBottomAppBar", "ActionTopAppBarButton")
 
 import os
 from math import cos, radians, sin
@@ -337,10 +337,8 @@ from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.lang import Builder
-from kivy.logger import Logger
 from kivy.metrics import dp
 from kivy.properties import (
-    AliasProperty,
     BooleanProperty,
     ColorProperty,
     ListProperty,
@@ -356,14 +354,15 @@ from kivymd import uix_path
 from kivymd.color_definitions import text_colors
 from kivymd.theming import ThemableBehavior
 from kivymd.uix.behaviors import (
-    FakeRectangularElevationBehavior,
+    CommonElevationBehavior,
+    DeclarativeBehavior,
+    ScaleBehavior,
     SpecificBackgroundColorBehavior,
 )
 from kivymd.uix.button import MDFloatingActionButton, MDIconButton
 from kivymd.uix.controllers import WindowController
 from kivymd.uix.list import OneLineIconListItem
 from kivymd.uix.menu import MDDropdownMenu
-from kivymd.uix.templates import ScaleWidget
 from kivymd.uix.tooltip import MDTooltip
 from kivymd.utils.set_bars_colors import set_bars_colors
 
@@ -373,7 +372,7 @@ with open(
     Builder.load_string(kv_file.read())
 
 
-class ActionBottomAppBarButton(MDFloatingActionButton, ScaleWidget):
+class ActionBottomAppBarButton(MDFloatingActionButton, ScaleBehavior):
     """
     Implements a floating action button (FAB) for a toolbar with type 'bottom'.
     """
@@ -408,11 +407,11 @@ class OverFlowMenuItem(OneLineIconListItem):
 
 class NotchedBox(
     ThemableBehavior,
-    FakeRectangularElevationBehavior,
+    CommonElevationBehavior,
     SpecificBackgroundColorBehavior,
     BoxLayout,
 ):
-    elevation = NumericProperty(6)
+    elevation = NumericProperty(4)
     notch_radius = NumericProperty()
     notch_center_x = NumericProperty("100dp")
 
@@ -555,7 +554,7 @@ class NotchedBox(
         return points
 
 
-class MDTopAppBar(NotchedBox, WindowController):
+class MDTopAppBar(DeclarativeBehavior, NotchedBox, WindowController):
     """
     :Events:
         `on_action_button`
@@ -945,18 +944,6 @@ class MDTopAppBar(NotchedBox, WindowController):
     and defaults to `'small'`.
     """
 
-    round = NumericProperty("10dp", deprecated=True)
-    """
-    Rounding the corners at the notch for a button.
-    Only for :class:`~MDBottomAppBar` class.
-
-    .. deprecated:: 1.0.0
-        Don't use this attribute.
-
-    :attr:`round` is an :class:`~kivy.properties.NumericProperty`
-    and defaults to `'10dp'`.
-    """
-
     # List of action buttons (ActionTopAppBarButton instance) that have been
     # .added to the overflow
     _hidden_items = []
@@ -972,8 +959,10 @@ class MDTopAppBar(NotchedBox, WindowController):
             self.icon_color = self.theme_cls.primary_color
 
         self.bind(specific_text_color=self.update_action_bar_text_colors)
-        self.theme_cls.bind(material_style=self.update_bar_height)
-        self.theme_cls.bind(primary_palette=self.update_md_bg_color)
+        self.theme_cls.bind(
+            material_style=self.update_bar_height,
+            primary_palette=self.update_md_bg_color,
+        )
 
         Clock.schedule_once(
             lambda x: self.on_left_action_items(0, self.left_action_items)
@@ -1114,6 +1103,7 @@ class MDTopAppBar(NotchedBox, WindowController):
                 + self.theme_cls.standard_increment / 2
                 + self._shift
             )
+            self.shadow_offset = [0, 30]
             self.on_mode(None, self.mode)
 
     def on_type_height(self, instance_toolbar, height_type_value: str) -> None:
@@ -1309,7 +1299,8 @@ class MDTopAppBar(NotchedBox, WindowController):
         if material_style_value == "M2":
             self.anchor_title = "left"
         elif material_style_value == "M3" and self.type != "bottom":
-            self.anchor_title = "center"
+            if not self.anchor_title:
+                self.anchor_title = "center"
         elif material_style_value == "M3" and self.type == "bottom":
             self.anchor_title = "left"
         return self.anchor_title
@@ -1375,7 +1366,7 @@ class MDTopAppBar(NotchedBox, WindowController):
             ][self.theme_cls.primary_hue]
 
 
-class MDBottomAppBar(FloatLayout):
+class MDBottomAppBar(DeclarativeBehavior, FloatLayout):
     md_bg_color = ColorProperty([0, 0, 0, 0])
     """
     Color toolbar.
@@ -1384,27 +1375,11 @@ class MDBottomAppBar(FloatLayout):
     and defaults to `[0, 0, 0, 0]`.
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.size_hint_y = None
 
     def add_widget(self, widget, index=0, canvas=None):
         if isinstance(widget, MDTopAppBar):
             super().add_widget(widget)
             return super().add_widget(widget.action_button)
-
-
-class MDToolbar(MDTopAppBar):
-    """
-    .. deprecated:: 1.0.0
-
-        Use :class:`~MDTopAppBar` class instead.
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Logger.warning(
-            "KivyMD: "
-            "The `MDToolbar` class has been deprecated. Use the `MDTopAppBar` "
-            "class instead."
-        )

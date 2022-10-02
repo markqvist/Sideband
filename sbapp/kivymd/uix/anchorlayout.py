@@ -10,7 +10,7 @@ with some widget properties. For example:
 AnchorLayout
 ------------
 
-.. code-block::
+.. code-block:: kv
 
     AnchorLayout:
         canvas:
@@ -20,65 +20,13 @@ AnchorLayout
                 pos: self.pos
                 size: self.size
 
-AnchorLayout
-------------
-
-.. code-block::
-
-    MDBoxLayout:
-        md_bg_color: app.theme_cls.primary_color
-
-Available options are:
-----------------------
-
-- adaptive_height_
-- adaptive_width_
-- adaptive_size_
-
-.. adaptive_height:
-adaptive_height
----------------
-
-.. code-block:: kv
-
-    adaptive_height: True
-
-Equivalent
-
-.. code-block:: kv
-
-    size_hint_y: None
-    height: self.minimum_height
-
-.. adaptive_width:
-adaptive_width
+MDAnchorLayout
 --------------
 
 .. code-block:: kv
 
-    adaptive_width: True
-
-Equivalent
-
-.. code-block:: kv
-
-    size_hint_x: None
-    height: self.minimum_width
-
-.. adaptive_size:
-adaptive_size
--------------
-
-.. code-block:: kv
-
-    adaptive_size: True
-
-Equivalent
-
-.. code-block:: kv
-
-    size_hint: None, None
-    size: self.minimum_size
+    MDAnchorLayout:
+        md_bg_color: app.theme_cls.primary_color
 """
 
 __all__ = ("MDAnchorLayout",)
@@ -86,7 +34,11 @@ __all__ = ("MDAnchorLayout",)
 from kivy.uix.anchorlayout import AnchorLayout
 
 from kivymd.uix import MDAdaptiveWidget
+from kivymd.uix.behaviors import DeclarativeBehavior
 
 
-class MDAnchorLayout(AnchorLayout, MDAdaptiveWidget):
-    pass
+class MDAnchorLayout(DeclarativeBehavior, AnchorLayout, MDAdaptiveWidget):
+    """
+    Anchor layout class. For more information, see in the
+    :class:`~kivy.uix.anchorlayout.AnchorLayout` class documentation.
+    """
