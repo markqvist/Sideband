@@ -160,6 +160,7 @@ class SidebandApp(MDApp):
     def on_resume(self):
         self.sideband.setstate("app.running", True)
         self.sideband.setstate("app.foreground", True)
+        self.sideband.setstate("wants.clear_notifications", True)
         self.app_state = SidebandApp.ACTIVE
 
     def on_stop(self):
@@ -494,6 +495,7 @@ class SidebandApp(MDApp):
         self.root.ids.screen_manager.current = "conversations_screen"
         self.root.ids.messages_scrollview.active_conversation = None
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+        self.sideband.setstate("wants.clear_notifications", True)
 
     def connectivity_status(self, sender):
         hs = dp(22)

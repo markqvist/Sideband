@@ -1096,15 +1096,15 @@ class SidebandCore():
             context_dest = message.source_hash
             is_trusted = self.is_trusted(context_dest)
 
-            if is_trusted:
-                should_notify = True
-
         if self._db_message(message.hash):
             RNS.log("Message exists, setting state to: "+str(message.state), RNS.LOG_DEBUG)
             self._db_message_set_state(message.hash, message.state)
         else:
             RNS.log("Message does not exist, saving", RNS.LOG_DEBUG)
             self._db_save_lxm(message, context_dest)
+
+            if is_trusted:
+                should_notify = True
 
         if self._db_conversation(context_dest) == None:
             self._db_create_conversation(context_dest)
@@ -1120,6 +1120,9 @@ class SidebandCore():
         else:
             self.unread_conversation(context_dest)
             self.setstate("app.flags.unread_conversations", True)
+
+            if self.gui_display() == "conversations_screen" and self.gui_foreground():
+                should_notify = False
 
         if self.is_client:
             should_notify = False

@@ -157,6 +157,11 @@ class SidebandService():
                 self.should_run = False
                 sleep_time = 0
 
+            if self.sideband.getstate("wants.clear_notifications"):
+                self.sideband.setstate("wants.clear_notifications", False)
+                if self.notification_service != None:
+                    self.notification_service.cancelAll()
+
             time.sleep(sleep_time)
 
         self.release_locks()
