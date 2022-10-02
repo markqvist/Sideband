@@ -154,6 +154,7 @@ class Messages():
                         dialog = MDDialog(
                             text="Delete message?",
                             buttons=[ yes_button, no_button ],
+                            elevation=0,
                         )
                         def dl_yes(s):
                             dialog.dismiss()
@@ -196,6 +197,8 @@ class Messages():
                     items=dm_items,
                     position="center",
                     width_mult=4,
+                    elevation=1,
+                    radius=dp(3),
                 )
 
                 def callback_factory(ref):

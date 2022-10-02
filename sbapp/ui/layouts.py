@@ -53,6 +53,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Conversations"
+                    anchor_title: "left"
                     elevation: 2
                     left_action_items:
                         [
@@ -78,6 +79,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     id: messages_toolbar
+                    anchor_title: "left"
                     title: "Messages"
                     elevation: 2
                     left_action_items:
@@ -139,6 +141,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Local Broadcasts"
+                    anchor_title: "left"
                     elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
@@ -170,6 +173,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Connectivity"
+                    anchor_title: "left"
                     elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
@@ -486,6 +490,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Guide"
+                    anchor_title: "left"
                     elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
@@ -521,6 +526,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "App & Version Information"
+                    anchor_title: "left"
                     elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
@@ -555,6 +561,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Local Area Map"
+                    anchor_title: "left"
                     elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
@@ -587,6 +594,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Encryption Keys"
+                    anchor_title: "left"
                     elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
@@ -665,6 +673,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Announce Stream"
+                    anchor_title: "left"
                     elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
@@ -701,6 +710,7 @@ MDNavigationLayout:
 
                 MDTopAppBar:
                     title: "Settings"
+                    anchor_title: "left"
                     elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
@@ -766,11 +776,11 @@ MDNavigationLayout:
                             height: dp(48)
                             
                             MDLabel:
-                                text: "Announce At App Startup"
+                                text: "Dark Mode UI"
                                 font_style: "H6"
 
                             MDSwitch:
-                                id: settings_start_announce
+                                id: settings_dark_ui
                                 pos_hint: {"center_y": 0.3}
                                 active: False
 
@@ -781,11 +791,11 @@ MDNavigationLayout:
                             height: dp(48)
                             
                             MDLabel:
-                                text: "Dark Mode UI"
+                                text: "Announce At App Startup"
                                 font_style: "H6"
 
                             MDSwitch:
-                                id: settings_dark_ui
+                                id: settings_start_announce
                                 pos_hint: {"center_y": 0.3}
                                 active: False
 
@@ -1065,6 +1075,7 @@ MDNavigationLayout:
     MDBoxLayout:
         orientation: "horizontal"
         size_hint_y: None
+        padding: [0,0,dp(24),0]
         height: dp(48)
         MDLabel:
             id: "trusted_switch_label"
@@ -1073,5 +1084,6 @@ MDNavigationLayout:
 
         MDSwitch:
             id: n_trusted
+            pos_hint: {"center_y": 0.3}
             active: False
 """

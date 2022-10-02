@@ -100,6 +100,7 @@ class Conversations():
                                 type="custom",
                                 content_cls=dialog_content,
                                 buttons=[ yes_button, no_button ],
+                                elevation=0,
                             )
                             dialog.d_content = dialog_content
                             def dl_yes(s):
@@ -145,6 +146,7 @@ class Conversations():
                         dialog = MDDialog(
                             text="Clear all messages in conversation?",
                             buttons=[ yes_button, no_button ],
+                            elevation=0,
                         )
                         def dl_yes(s):
                             dialog.dismiss()
@@ -169,6 +171,7 @@ class Conversations():
                         dialog = MDDialog(
                             text="Delete conversation?",
                             buttons=[ yes_button, no_button ],
+                            elevation=0,
                         )
                         def dl_yes(s):
                             dialog.dismiss()
@@ -211,6 +214,8 @@ class Conversations():
                     items=dm_items,
                     position="auto",
                     width_mult=4,
+                    elevation=1,
+                    radius=dp(3),
                 )
 
                 def callback_factory(ref):

@@ -53,6 +53,8 @@ from kivymd.uix.dialog import MDDialog
 __version__ = "0.1.9"
 __variant__ = "beta"
 
+dark_theme_text_color = "ddd"
+
 if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass
     from android.runnable import run_on_ui_thread
@@ -141,6 +143,8 @@ class SidebandApp(MDApp):
     def update_ui_theme(self):
         self.theme_cls.material_style = "M3"
         self.theme_cls.widget_style = "android"
+        self.theme_cls.primary_palette = "BlueGray"
+        self.theme_cls.accent_palette = "Orange"
         if self.sideband.config["dark_ui"]:
             self.theme_cls.theme_style = "Dark"
         else:
@@ -347,6 +351,7 @@ class SidebandApp(MDApp):
         dialog = MDDialog(
             text="An announce for your LXMF destination was sent on all available interfaces",
             buttons=[ yes_button ],
+            elevation=0,
         )
         def dl_yes(s):
             dialog.dismiss()
@@ -418,6 +423,7 @@ class SidebandApp(MDApp):
                             on_release=self.messages_view.close_send_error_dialog
                         )
                     ],
+                    elevation=0,
                 )
                 self.messages_view.send_error_dialog.open()
 
@@ -438,6 +444,7 @@ class SidebandApp(MDApp):
                                 on_release=self.messages_view.close_send_error_dialog
                             )
                         ],
+                        elevation=0,
                     )
                     self.messages_view.send_error_dialog.open()
 
@@ -523,6 +530,7 @@ class SidebandApp(MDApp):
         dialog = MDDialog(
             text=connectivity_status,
             buttons=[ yes_button ],
+            elevation=0,
         )
         def dl_yes(s):
             dialog.dismiss()
@@ -539,6 +547,7 @@ class SidebandApp(MDApp):
             dialog = MDDialog(
                 text="No active LXMF propagation nodes were found. Cannot fetch messages. Wait for a Propagation Node to announce on the network, or manually specify one in the settings.",
                 buttons=[ yes_button ],
+                elevation=0,
             )
             def dl_yes(s):
                 dialog.dismiss()
@@ -561,6 +570,7 @@ class SidebandApp(MDApp):
                 type="custom",
                 content_cls=dialog_content,
                 buttons=[ close_button ],
+                elevation=0,
             )
             dialog.d_content = dialog_content
             def dl_close(s):                
@@ -591,6 +601,7 @@ class SidebandApp(MDApp):
                 type="custom",
                 content_cls=dialog_content,
                 buttons=[ yes_button, no_button ],
+                elevation=0,
             )
             dialog.d_content = dialog_content
             def dl_yes(s):
@@ -967,6 +978,7 @@ class SidebandApp(MDApp):
         dialog = MDDialog(
             text="Your Identity key, in base32 format is as follows:\n\n[b]"+str(base64.b32encode(self.sideband.identity.get_private_key()).decode("utf-8"))+"[/b]",
             buttons=[ yes_button ],
+            elevation=0,
         )
         def dl_yes(s):
             dialog.dismiss()
@@ -977,13 +989,13 @@ class SidebandApp(MDApp):
     def identity_copy_action(self, sender=None):
         c_yes_button = MDFlatButton(text="Yes, copy my key")
         c_no_button = MDFlatButton(text="No, go back")
-        c_dialog = MDDialog(text="[b]Caution![/b]\n\nYour Identity key will be copied to the system clipboard. Take extreme care that no untrusted app steals your key by reading the clipboard data. Clear the system clipboard immediately after pasting your key where you need it.\n\nAre you sure that you wish to proceed?", buttons=[ c_no_button, c_yes_button ])
+        c_dialog = MDDialog(text="[b]Caution![/b]\n\nYour Identity key will be copied to the system clipboard. Take extreme care that no untrusted app steals your key by reading the clipboard data. Clear the system clipboard immediately after pasting your key where you need it.\n\nAre you sure that you wish to proceed?", buttons=[ c_no_button, c_yes_button ],elevation=0)
         def c_dl_no(s):
             c_dialog.dismiss()
         def c_dl_yes(s):
             c_dialog.dismiss()
             yes_button = MDFlatButton(text="OK")
-            dialog = MDDialog(text="Your Identity key was copied to the system clipboard", buttons=[ yes_button ])
+            dialog = MDDialog(text="Your Identity key was copied to the system clipboard", buttons=[ yes_button ],elevation=0)
             def dl_yes(s):
                 dialog.dismiss()
             yes_button.bind(on_release=dl_yes)
@@ -1003,7 +1015,7 @@ class SidebandApp(MDApp):
     def identity_restore_action(self, sender=None):
         c_yes_button = MDFlatButton(text="Yes, import the key")
         c_no_button = MDFlatButton(text="No, go back")
-        c_dialog = MDDialog(text="[b]Caution![/b]\n\nYou are about to import a new Identity key into Sideband. The currently active key will be irreversibly destroyed, and you will loose your LXMF address if you have not already backed up your current Identity key.\n\nAre you sure that you wish to import the key?", buttons=[ c_no_button, c_yes_button ])
+        c_dialog = MDDialog(text="[b]Caution![/b]\n\nYou are about to import a new Identity key into Sideband. The currently active key will be irreversibly destroyed, and you will loose your LXMF address if you have not already backed up your current Identity key.\n\nAre you sure that you wish to import the key?", buttons=[ c_no_button, c_yes_button ],elevation=0)
         def c_dl_no(s):
             c_dialog.dismiss()
         def c_dl_yes(s):
@@ -1018,7 +1030,7 @@ class SidebandApp(MDApp):
                     new_id.to_file(self.sideband.identity_path)
 
                 yes_button = MDFlatButton(text="OK")
-                dialog = MDDialog(text="[b]The provided Identity key data was imported[/b]\n\nThe app will now exit. Please restart Sideband to use the new Identity.", buttons=[ yes_button ])
+                dialog = MDDialog(text="[b]The provided Identity key data was imported[/b]\n\nThe app will now exit. Please restart Sideband to use the new Identity.", buttons=[ yes_button ],elevation=0)
                 def dl_yes(s):
                     dialog.dismiss()
                     self.quit_action(sender=self)
@@ -1027,7 +1039,7 @@ class SidebandApp(MDApp):
 
             except Exception as e:
                 yes_button = MDFlatButton(text="OK")
-                dialog = MDDialog(text="[b]The provided Identity key data was not valid[/b]\n\nThe error reported by Reticulum was:\n\n[i]"+str(e)+"[/i]\n\nNo Identity was imported into Sideband.", buttons=[ yes_button ])
+                dialog = MDDialog(text="[b]The provided Identity key data was not valid[/b]\n\nThe error reported by Reticulum was:\n\n[i]"+str(e)+"[/i]\n\nNo Identity was imported into Sideband.", buttons=[ yes_button ],elevation=0)
                 def dl_yes(s):
                     dialog.dismiss()
                 yes_button.bind(on_release=dl_yes)
@@ -1081,6 +1093,8 @@ If you use Reticulum and LXMF on hardware that does not carry any identifiers ti
 Thank you very much for using Free Communications Systems.
 """
         info = guide_text
+        if self.theme_cls.theme_style == "Dark":
+            info = "[color=#"+dark_theme_text_color+"]"+info+"[/color]"
         self.root.ids.guide_info.text = info
         self.root.ids.guide_info.bind(on_ref_press=link_exec)
         self.root.ids.screen_manager.transition.direction = "left"
@@ -1100,6 +1114,8 @@ Thank you very much for using Free Communications Systems.
             webbrowser.open("https://unsigned.io/sideband")
 
         info = "The [b]Local Area[/b] feature is not yet implemented in Sideband.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project."
+        if self.theme_cls.theme_style == "Dark":
+            info = "[color=#"+dark_theme_text_color+"]"+info+"[/color]"
         self.root.ids.map_info.text = info
         self.root.ids.map_info.bind(on_ref_press=link_exec)
         self.root.ids.screen_manager.transition.direction = "left"
@@ -1114,6 +1130,8 @@ Thank you very much for using Free Communications Systems.
             webbrowser.open("https://unsigned.io/sideband")
 
         info = "The [b]Local Broadcasts[/b] feature will allow you to send and listen for local broadcast transmissions on connected radio, LoRa and WiFi interfaces.\n\n[b]Local Broadcasts[/b] makes it easy to establish public information exchange with anyone in direct radio range, or even with large areas far away using the [i]Remote Broadcast Repeater[/i] feature.\n\nThese features are not yet implemented in Sideband.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project."
+        if self.theme_cls.theme_style == "Dark":
+            info = "[color=#"+dark_theme_text_color+"]"+info+"[/color]"
         self.root.ids.broadcasts_info.text = info
         self.root.ids.broadcasts_info.bind(on_ref_press=link_exec)
         self.root.ids.screen_manager.transition.direction = "left"
