@@ -197,7 +197,7 @@ MDNavigationLayout:
                         spacing: "24dp"
                         size_hint_y: None
                         height: self.minimum_height
-                        padding: dp(16)
+                        padding: [dp(28), dp(16), dp(28), dp(16)]
 
                         MDLabel:
                             text: ""
@@ -615,7 +615,8 @@ MDNavigationLayout:
                         spacing: "24dp"
                         size_hint_y: None
                         height: self.minimum_height
-                        padding: dp(16)
+                        padding: [dp(28), dp(16), dp(28), dp(16)]
+                        
 
                         MDLabel:
                             text: ""
