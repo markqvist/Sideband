@@ -506,36 +506,10 @@ class SidebandApp(MDApp):
 
     def connectivity_status(self, sender):
         hs = dp(22)
+
         connectivity_status = ""
         if RNS.vendor.platformutils.get_platform() == "android":
-            if self.sideband.reticulum.is_connected_to_shared_instance:
-                connectivity_status = "[size=22dp][b]Connectivity Status[/b][/size]\n\nSideband is connected via a shared Reticulum instance running on this system. Use the rnstatus utility to obtain full connectivity info."
-
-            else:
-                ws = "Disabled"
-                ts = "Disabled"
-                i2s = "Disabled"
-
-                if self.sideband.interface_local != None:
-                    np = len(self.sideband.interface_local.peers)
-                    if np == 1:
-                        ws = "1 reachable peer"
-                    else:
-                        ws = str(np)+" reachable peers"
-
-                if self.sideband.interface_tcp != None:
-                    if self.sideband.interface_tcp.online:
-                        ts = "Connected to "+str(self.sideband.interface_tcp.target_ip)+":"+str(self.sideband.interface_tcp.target_port)
-                    else:
-                        ts = "Interface Down"
-
-                if self.sideband.interface_i2p != None:
-                    if self.sideband.interface_i2p.online:
-                        i2s = "Connected"
-                    else:
-                        i2s = "Connecting to I2P"
-
-                connectivity_status = "[size=22dp][b]Connectivity Status[/b][/size]\n\n[b]Local[/b]\n{ws}\n\n[b]TCP[/b]\n{ts}\n\n[b]I2P[/b]\n{i2s}".format(ws=ws, ts=ts, i2s=i2s)
+            connectivity_status = self.sideband.getstate("service.connectivity_status")
 
         else:
             if self.sideband.reticulum.is_connected_to_shared_instance:
@@ -801,6 +775,24 @@ class SidebandApp(MDApp):
             self.widget_hide(self.root.ids.connectivity_rnode_cid)
             self.widget_hide(self.root.ids.rnode_support_info)
 
+        def con_collapse_local(collapse=True):
+            self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
+            
+        def con_collapse_tcp(collapse=True):
+            self.widget_hide(self.root.ids.connectivity_tcp_fields, collapse)
+            
+        def con_collapse_i2p(collapse=True):
+            self.widget_hide(self.root.ids.connectivity_i2p_fields, collapse)
+            
+        def con_collapse_bluetooth(collapse=True):
+            self.widget_hide(self.root.ids.connectivity_bluetooth_fields, collapse)
+            
+        def con_collapse_rnode(collapse=True):
+            self.widget_hide(self.root.ids.connectivity_rnode_fields, collapse)
+            
+        def con_collapse_modem(collapse=True):
+            self.widget_hide(self.root.ids.connectivity_modem_fields, collapse)
+            
         def save_connectivity(sender=None, event=None):
             RNS.log("Save connectivity")
             self.sideband.config["connect_local"] = self.root.ids.connectivity_use_local.active
@@ -816,10 +808,18 @@ class SidebandApp(MDApp):
             self.sideband.config["connect_i2p_b32"] = self.root.ids.connectivity_i2p_b32.text
             self.sideband.config["connect_i2p_ifac_netname"] = self.root.ids.connectivity_i2p_ifac_netname.text
             self.sideband.config["connect_i2p_ifac_passphrase"] = self.root.ids.connectivity_i2p_ifac_passphrase.text
+
+            con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
+            con_collapse_tcp(collapse=not self.root.ids.connectivity_use_tcp.active)
+            con_collapse_i2p(collapse=not self.root.ids.connectivity_use_i2p.active)
+            con_collapse_rnode(collapse=not self.root.ids.connectivity_use_rnode.active)
+            con_collapse_bluetooth(collapse=not self.root.ids.connectivity_use_bluetooth.active)
+            con_collapse_modem(collapse=not self.root.ids.connectivity_use_modem.active)
+
             self.sideband.save_configuration()
 
         if RNS.vendor.platformutils.get_platform() == "android":
-            if self.sideband.reticulum.is_connected_to_shared_instance:
+            if not self.sideband.getpersistent("service.is_controlling_connectivity"):
                 info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
                 info += "To configure connectivity, edit the relevant configuration file for the instance."
                 self.root.ids.connectivity_info.text = info
@@ -828,24 +828,36 @@ class SidebandApp(MDApp):
             else:
                 info =  "By default, Sideband will try to discover and connect to any available Reticulum networks via active WiFi and/or Ethernet interfaces. If any Reticulum Transport Instances are found, Sideband will use these to connect to wider Reticulum networks. You can disable this behaviour if you don't want it.\n\n"
                 info += "You can also connect to a network via a remote or local Reticulum instance using TCP or I2P. [b]Please Note![/b] Connecting via I2P requires that you already have I2P running on your device, and that the SAM API is enabled.\n\n"
-                info += "For changes to connectivity to take effect, you must shut down and restart Sideband."
+                info += "For changes to connectivity to take effect, you must shut down and restart Sideband.\n"
                 self.root.ids.connectivity_info.text = info
 
                 self.root.ids.connectivity_use_local.active = self.sideband.config["connect_local"]
+                con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
                 self.root.ids.connectivity_local_groupid.text = self.sideband.config["connect_local_groupid"]
                 self.root.ids.connectivity_local_ifac_netname.text = self.sideband.config["connect_local_ifac_netname"]
                 self.root.ids.connectivity_local_ifac_passphrase.text = self.sideband.config["connect_local_ifac_passphrase"]
 
                 self.root.ids.connectivity_use_tcp.active = self.sideband.config["connect_tcp"]
+                con_collapse_tcp(collapse=not self.root.ids.connectivity_use_tcp.active)
                 self.root.ids.connectivity_tcp_host.text = self.sideband.config["connect_tcp_host"]
                 self.root.ids.connectivity_tcp_port.text = self.sideband.config["connect_tcp_port"]
                 self.root.ids.connectivity_tcp_ifac_netname.text = self.sideband.config["connect_tcp_ifac_netname"]
                 self.root.ids.connectivity_tcp_ifac_passphrase.text = self.sideband.config["connect_tcp_ifac_passphrase"]
 
                 self.root.ids.connectivity_use_i2p.active = self.sideband.config["connect_i2p"]
+                con_collapse_i2p(collapse=not self.root.ids.connectivity_use_i2p.active)
                 self.root.ids.connectivity_i2p_b32.text = self.sideband.config["connect_i2p_b32"]
                 self.root.ids.connectivity_i2p_ifac_netname.text = self.sideband.config["connect_i2p_ifac_netname"]
                 self.root.ids.connectivity_i2p_ifac_passphrase.text = self.sideband.config["connect_i2p_ifac_passphrase"]
+
+                self.root.ids.connectivity_use_rnode.active = False
+                con_collapse_rnode(collapse=not self.root.ids.connectivity_use_rnode.active)
+
+                self.root.ids.connectivity_use_bluetooth.active = False
+                con_collapse_bluetooth(collapse=not self.root.ids.connectivity_use_bluetooth.active)
+
+                self.root.ids.connectivity_use_modem.active = False
+                con_collapse_modem(collapse=not self.root.ids.connectivity_use_modem.active)
 
                 self.root.ids.connectivity_use_local.bind(active=save_connectivity)
                 self.root.ids.connectivity_local_groupid.bind(on_text_validate=save_connectivity)
@@ -860,6 +872,9 @@ class SidebandApp(MDApp):
                 self.root.ids.connectivity_i2p_b32.bind(on_text_validate=save_connectivity)
                 self.root.ids.connectivity_i2p_ifac_netname.bind(on_text_validate=save_connectivity)
                 self.root.ids.connectivity_i2p_ifac_passphrase.bind(on_text_validate=save_connectivity)
+                self.root.ids.connectivity_use_rnode.bind(active=save_connectivity)
+                self.root.ids.connectivity_use_bluetooth.bind(active=save_connectivity)
+
 
         else:
             info = ""

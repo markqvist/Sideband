@@ -113,6 +113,7 @@ class SidebandService():
         self.sideband.service_context = self.android_service
         self.sideband.owner_service = self
         self.sideband.start()
+        self.update_connectivity_type()
     
     def start(self):
         self.should_run = True
@@ -148,10 +149,48 @@ class SidebandService():
                 RNS.log("Releasing wake lock")
                 self.wake_lock.release()
 
+    def update_connectivity_type(self):
+        if self.sideband.reticulum.is_connected_to_shared_instance:
+            is_controlling = False
+        else:
+            is_controlling = True
+
+        self.sideband.setpersistent("service.is_controlling_connectivity", is_controlling)
+    
+    def get_connectivity_status(self):
+        if self.sideband.reticulum.is_connected_to_shared_instance:
+            return "[size=22dp][b]Connectivity Status[/b][/size]\n\nSideband is connected via a shared Reticulum instance running on this system. Use the rnstatus utility to obtain full connectivity info."
+        else:
+            ws = "Disabled"
+            ts = "Disabled"
+            i2s = "Disabled"
+
+            if self.sideband.interface_local != None:
+                np = len(self.sideband.interface_local.peers)
+                if np == 1:
+                    ws = "1 reachable peer"
+                else:
+                    ws = str(np)+" reachable peers"
+
+            if self.sideband.interface_tcp != None:
+                if self.sideband.interface_tcp.online:
+                    ts = "Connected to "+str(self.sideband.interface_tcp.target_ip)+":"+str(self.sideband.interface_tcp.target_port)
+                else:
+                    ts = "Interface Down"
+
+            if self.sideband.interface_i2p != None:
+                if self.sideband.interface_i2p.online:
+                    i2s = "Connected"
+                else:
+                    i2s = "Connecting to I2P"
+
+            return "[size=22dp][b]Connectivity Status[/b][/size]\n\n[b]Local[/b]\n{ws}\n\n[b]TCP[/b]\n{ts}\n\n[b]I2P[/b]\n{i2s}".format(ws=ws, ts=ts, i2s=i2s)
+
     def run(self):
         while self.should_run:
             sleep_time = 1
             self.sideband.setstate("service.heartbeat", time.time())
+            self.sideband.setstate("service.connectivity_status", self.get_connectivity_status())
 
             if self.sideband.getstate("wants.service_stop"):
                 self.should_run = False

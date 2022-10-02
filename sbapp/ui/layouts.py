@@ -183,17 +183,13 @@ MDNavigationLayout:
 
                     MDBoxLayout:
                         orientation: "vertical"
-                        spacing: "24dp"
+                        spacing: "8dp"
                         size_hint_y: None
                         height: self.minimum_height
-                        padding: [dp(28), dp(16), dp(28), dp(16)]
+                        padding: [dp(28), dp(48), dp(28), dp(16)]
 
                         MDLabel:
-                            text: ""
-                            font_style: "H6"
-
-                        MDLabel:
-                            text: "Configuring Connectivity"
+                            text: "Configuring Connectivity\\n"
                             font_style: "H6"
 
                         MDLabel:
@@ -205,11 +201,27 @@ MDNavigationLayout:
                             height: self.texture_size[1]
 
 
+                        # MDBoxLayout:
+                        #     orientation: "horizontal"
+                        #     size_hint_y: None
+                        #     padding: [0,0,dp(24),0]
+                        #     height: dp(48)
+                            
+                        #     MDLabel:
+                        #         text: "Send via Propagation Node by default"
+                        #         font_style: "H6"
+
+                        #     MDSwitch:
+                        #         id: settings_lxmf_delivery_by_default
+                        #         pos_hint: {"center_y": 0.3}
+                        #         disabled: False
+                        #         active: False
+
                         MDBoxLayout:
                             orientation: "horizontal"
-                            # spacing: "24dp"
+                            padding: [0,0,dp(24),0]
                             size_hint_y: None
-                            height: dp(48)
+                            height: dp(24)
                             
                             MDLabel:
                                 id: connectivity_local_label
@@ -218,38 +230,41 @@ MDNavigationLayout:
 
                             MDSwitch:
                                 id: connectivity_use_local
+                                pos_hint: {"center_y": 0.3}
                                 active: False
 
-                        MDLabel:
-                            text: ""
-                            font_size: dp(16)
+                        MDBoxLayout:
+                            id: connectivity_local_fields
+                            orientation: "vertical"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [0, 0, 0, dp(32)]
 
-                        MDTextField:
-                            id: connectivity_local_groupid
-                            hint_text: "Optional WiFi/Ethernet Group ID"
-                            text: ""
-                            max_text_length: 128
-                            font_size: dp(24)
+                            MDTextField:
+                                id: connectivity_local_groupid
+                                hint_text: "Optional WiFi/Ethernet Group ID"
+                                text: ""
+                                max_text_length: 128
+                                font_size: dp(24)
 
-                        MDTextField:
-                            id: connectivity_local_ifac_netname
-                            hint_text: "Optional IFAC network name"
-                            text: ""
-                            font_size: dp(24)
+                            MDTextField:
+                                id: connectivity_local_ifac_netname
+                                hint_text: "Optional IFAC network name"
+                                text: ""
+                                font_size: dp(24)
 
-                        MDTextField:
-                            id: connectivity_local_ifac_passphrase
-                            hint_text: "Optional IFAC passphrase"
-                            text: ""
-                            font_size: dp(24)
-
+                            MDTextField:
+                                id: connectivity_local_ifac_passphrase
+                                hint_text: "Optional IFAC passphrase"
+                                text: ""
+                                font_size: dp(24)
 
 
                         MDBoxLayout:
                             orientation: "horizontal"
-                            # spacing: "24dp"
+                            padding: [0,0,dp(24),0]
                             size_hint_y: None
-                            height: dp(48)
+                            height: dp(24)
                             
                             MDLabel:
                                 id: connectivity_tcp_label
@@ -258,40 +273,47 @@ MDNavigationLayout:
 
                             MDSwitch:
                                 id: connectivity_use_tcp
+                                pos_hint: {"center_y": 0.3}
                                 active: False
 
 
-                        MDTextField:
-                            id: connectivity_tcp_host
-                            hint_text: "TCP Host"
-                            text: ""
-                            font_size: dp(24)
+                        MDBoxLayout:
+                            id: connectivity_tcp_fields
+                            orientation: "vertical"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [0, 0, 0, dp(32)]
 
-                        MDTextField:
-                            id: connectivity_tcp_port
-                            hint_text: "TCP Port"
-                            text: ""
-                            font_size: dp(24)
+                            MDTextField:
+                                id: connectivity_tcp_host
+                                hint_text: "TCP Host"
+                                text: ""
+                                font_size: dp(24)
 
-                        MDTextField:
-                            id: connectivity_tcp_ifac_netname
-                            hint_text: "Optional IFAC network name"
-                            text: ""
-                            font_size: dp(24)
+                            MDTextField:
+                                id: connectivity_tcp_port
+                                hint_text: "TCP Port"
+                                text: ""
+                                font_size: dp(24)
 
-                        MDTextField:
-                            id: connectivity_tcp_ifac_passphrase
-                            hint_text: "Optional IFAC passphrase"
-                            text: ""
-                            font_size: dp(24)
+                            MDTextField:
+                                id: connectivity_tcp_ifac_netname
+                                hint_text: "Optional IFAC network name"
+                                text: ""
+                                font_size: dp(24)
 
+                            MDTextField:
+                                id: connectivity_tcp_ifac_passphrase
+                                hint_text: "Optional IFAC passphrase"
+                                text: ""
+                                font_size: dp(24)
 
 
                         MDBoxLayout:
                             orientation: "horizontal"
-                            # spacing: "24dp"
+                            padding: [0,0,dp(24),0]
                             size_hint_y: None
-                            height: dp(48)
+                            height: dp(24)
                             
                             MDLabel:
                                 id: connectivity_i2p_label
@@ -300,34 +322,41 @@ MDNavigationLayout:
 
                             MDSwitch:
                                 id: connectivity_use_i2p
+                                pos_hint: {"center_y": 0.3}
                                 active: False
 
 
-                        MDTextField:
-                            id: connectivity_i2p_b32
-                            hint_text: "I2P B32"
-                            text: ""
-                            font_size: dp(24)
+                        MDBoxLayout:
+                            id: connectivity_i2p_fields
+                            orientation: "vertical"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [0, 0, 0, dp(32)]
 
-                        MDTextField:
-                            id: connectivity_i2p_ifac_netname
-                            hint_text: "Optional IFAC network name"
-                            text: ""
-                            font_size: dp(24)
+                            MDTextField:
+                                id: connectivity_i2p_b32
+                                hint_text: "I2P B32"
+                                text: ""
+                                font_size: dp(24)
 
-                        MDTextField:
-                            id: connectivity_i2p_ifac_passphrase
-                            hint_text: "Optional IFAC passphrase"
-                            text: ""
-                            font_size: dp(24)
+                            MDTextField:
+                                id: connectivity_i2p_ifac_netname
+                                hint_text: "Optional IFAC network name"
+                                text: ""
+                                font_size: dp(24)
 
+                            MDTextField:
+                                id: connectivity_i2p_ifac_passphrase
+                                hint_text: "Optional IFAC passphrase"
+                                text: ""
+                                font_size: dp(24)
 
 
                         MDBoxLayout:
                             orientation: "horizontal"
-                            # spacing: "24dp"
+                            padding: [0,0,dp(24),0]
                             size_hint_y: None
-                            height: dp(48)
+                            height: dp(24)
                             
                             MDLabel:
                                 id: connectivity_rnode_label
@@ -338,22 +367,115 @@ MDNavigationLayout:
                             MDSwitch:
                                 id: connectivity_use_rnode
                                 active: False
+                                pos_hint: {"center_y": 0.3}
                                 disabled: True
 
-                        MDLabel:
-                            id: rnode_support_info
-                            markup: True
-                            text: "[i]RNode support is in development[/i]"
+                        MDBoxLayout:
+                            id: connectivity_rnode_fields
+                            orientation: "vertical"
                             size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
+                            height: self.minimum_height
+                            padding: [0, 0, 0, dp(32)]
 
-                        MDTextField:
-                            id: connectivity_rnode_cid
-                            hint_text: "RNode Pairing ID"
-                            text: ""
-                            font_size: dp(24)
-                            disabled: True
+                            # MDLabel:
+                            #     id: rnode_support_info
+                            #     markup: True
+                            #     text: "[i]RNode support is in development[/i]"
+                            #     size_hint_y: None
+                            #     text_size: self.width, None
+                            #     height: self.texture_size[1]
+
+                            MDTextField:
+                                id: connectivity_rnode_cid
+                                hint_text: "RNode Pairing ID"
+                                text: ""
+                                font_size: dp(24)
+                                # disabled: True
+
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            padding: [0,0,dp(24),0]
+                            size_hint_y: None
+                            height: dp(24)
+                            
+                            MDLabel:
+                                id: connectivity_bluetooth_label
+                                text: "Connect via Bluetooth"
+                                font_style: "H6"
+                                disabled: True
+
+                            MDSwitch:
+                                id: connectivity_use_bluetooth
+                                active: False
+                                pos_hint: {"center_y": 0.3}
+                                disabled: True
+
+                        MDBoxLayout:
+                            id: connectivity_bluetooth_fields
+                            orientation: "vertical"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [0, 0, 0, dp(32)]
+
+                            MDTextField:
+                                id: connectivity_bluetooth_cid
+                                hint_text: "Bluetooth Pairing ID"
+                                text: ""
+                                font_size: dp(24)
+                                # disabled: True
+
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            padding: [0,0,dp(24),0]
+                            size_hint_y: None
+                            height: dp(24)
+                            
+                            MDLabel:
+                                id: connectivity_modem_label
+                                text: "Connect via Radio Modem"
+                                font_style: "H6"
+                                disabled: True
+
+                            MDSwitch:
+                                id: connectivity_use_modem
+                                active: False
+                                pos_hint: {"center_y": 0.3}
+                                disabled: True
+
+                        MDBoxLayout:
+                            id: connectivity_modem_fields
+                            orientation: "vertical"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [0, 0, 0, dp(32)]
+
+                            MDTextField:
+                                id: connectivity_modem_cid
+                                hint_text: "Modem Pairing ID"
+                                text: ""
+                                font_size: dp(24)
+                                # disabled: True
+
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            padding: [0,0,dp(24),0]
+                            size_hint_y: None
+                            height: dp(24)
+                            
+                            MDLabel:
+                                id: connectivity_transport_label
+                                text: "Enable Reticulum Transport"
+                                font_style: "H6"
+                                disabled: True
+
+                            MDSwitch:
+                                id: connectivity_enable_transport
+                                active: False
+                                pos_hint: {"center_y": 0.3}
+                                disabled: True
 
         
         MDScreen:
