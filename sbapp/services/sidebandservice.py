@@ -26,10 +26,6 @@ if RNS.vendor.platformutils.get_platform() == "android":
 else:
     from sbapp.sideband.core import SidebandCore
 
-class AppProxy():
-    def __init__(self):
-        pass
-
 class SidebandService():
     def android_notification(self, title="", content="", ticker="", group=None, context_id=None):
         package_name = "io.unsigned.sideband"
@@ -81,8 +77,7 @@ class SidebandService():
             notification_intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
             notification_intent.setAction(Intent.ACTION_MAIN)
             notification_intent.addCategory(Intent.CATEGORY_LAUNCHER)
-
-        self.notification_intent = PendingIntent.getActivity(self.app_context, 0, notification_intent, 0)
+            self.notification_intent = PendingIntent.getActivity(self.app_context, 0, notification_intent, 0)
 
         notification.setContentIntent(self.notification_intent)
         notification.setAutoCancel(True)
@@ -97,11 +92,10 @@ class SidebandService():
         self.wake_lock = None
         self.should_run = False
 
-        self.app_proxy = AppProxy()
-
         self.android_service = None
         self.app_context = None
         self.wifi_manager = None
+        self.power_manager = None
 
         self.notification_service = None
         self.notification_channel = None
@@ -112,9 +106,10 @@ class SidebandService():
             self.android_service = autoclass('org.kivy.android.PythonService').mService
             self.app_context = self.android_service.getApplication().getApplicationContext()
             self.wifi_manager = self.app_context.getSystemService(Context.WIFI_SERVICE)
+            self.power_manager = self.app_context.getSystemService(Context.POWER_SERVICE)
             # The returned instance /\ is an android.net.wifi.WifiManager
         
-        self.sideband = SidebandCore(self.app_proxy, is_service=True, android_app_dir=self.app_dir)
+        self.sideband = SidebandCore(self, is_service=True, android_app_dir=self.app_dir)
         self.sideband.service_context = self.android_service
         self.sideband.owner_service = self
         self.sideband.start()
@@ -136,19 +131,34 @@ class SidebandService():
                 RNS.log("Taking multicast lock")
                 self.multicast_lock.acquire()
                 RNS.log("Took lock")
-        
 
-    def release_locks():
+            if self.wake_lock == None:
+                self.wake_lock = self.power_manager.newWakeLock(self.power_manager.PARTIAL_WAKE_LOCK, "sideband_service")
+
+            if not self.wake_lock.isHeld():
+                RNS.log("Taking wake lock")
+                self.wake_lock.acquire()
+                RNS.log("Took lock")
+
+    def release_locks(self):
         if RNS.vendor.platformutils.get_platform() == "android":
             if not self.multicast_lock == None and self.multicast_lock.isHeld():
                 self.multicast_lock.release()
 
+            if not self.wake_lock == None and self.wake_lock.isHeld():
+                self.wake_lock.release()
+
     def run(self):
         while self.should_run:
+            sleep_time = 1
             self.sideband.setstate("service.heartbeat", time.time())
-            time.sleep(1)
+
+            if self.sideband.getstate("wants.service_stop"):
+                self.should_run = False
+                sleep_time = 0
+
+            time.sleep(sleep_time)
 
         self.release_locks()
 
-sbs = SidebandService()
-sbs.start()
+SidebandService().start()

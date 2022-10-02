@@ -177,7 +177,7 @@ public class PythonService extends Service implements Runnable {
         super.onTaskRemoved(rootIntent);
         //sticky servcie runtime/restart is managed by the OS. leave it running when app is closed
         if (startType() != START_STICKY) {
-            stopSelf();
+            //stopSelf();
         }
     }
 

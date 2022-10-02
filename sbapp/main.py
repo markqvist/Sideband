@@ -317,6 +317,12 @@ class SidebandApp(MDApp):
         self.sideband.setstate("app.foreground", False)
 
         def final_exit(dt):
+            RNS.log("Stopping service...")
+            self.sideband.setstate("wants.service_stop", True)
+            while self.sideband.service_available():
+                time.sleep(0.2)
+            RNS.log("Service stopped")
+            
             RNS.exit()
             MDApp.get_running_app().stop()
             Window.close()
