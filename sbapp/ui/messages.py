@@ -154,7 +154,7 @@ class Messages():
                         dialog = MDDialog(
                             text="Delete message?",
                             buttons=[ yes_button, no_button ],
-                            elevation=0,
+                            # elevation=0,
                         )
                         def dl_yes(s):
                             dialog.dismiss()

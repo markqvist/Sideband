@@ -434,7 +434,7 @@ class SidebandApp(MDApp):
                             on_release=self.messages_view.close_send_error_dialog
                         )
                     ],
-                    elevation=0,
+                    # elevation=0,
                 )
                 self.messages_view.send_error_dialog.open()
 
@@ -455,7 +455,7 @@ class SidebandApp(MDApp):
                                 on_release=self.messages_view.close_send_error_dialog
                             )
                         ],
-                        elevation=0,
+                        # elevation=0,
                     )
                     self.messages_view.send_error_dialog.open()
 
@@ -541,7 +541,7 @@ class SidebandApp(MDApp):
         dialog = MDDialog(
             text=connectivity_status,
             buttons=[ yes_button ],
-            elevation=0,
+            # elevation=0,
         )
         def dl_yes(s):
             dialog.dismiss()
@@ -558,7 +558,7 @@ class SidebandApp(MDApp):
             dialog = MDDialog(
                 text="No active LXMF propagation nodes were found. Cannot fetch messages. Wait for a Propagation Node to announce on the network, or manually specify one in the settings.",
                 buttons=[ yes_button ],
-                elevation=0,
+                # elevation=0,
             )
             def dl_yes(s):
                 dialog.dismiss()
@@ -581,7 +581,7 @@ class SidebandApp(MDApp):
                 type="custom",
                 content_cls=dialog_content,
                 buttons=[ close_button ],
-                elevation=0,
+                # elevation=0,
             )
             dialog.d_content = dialog_content
             def dl_close(s):                
@@ -612,7 +612,7 @@ class SidebandApp(MDApp):
                 type="custom",
                 content_cls=dialog_content,
                 buttons=[ yes_button, no_button ],
-                elevation=0,
+                # elevation=0,
             )
             dialog.d_content = dialog_content
             def dl_yes(s):
@@ -989,7 +989,7 @@ class SidebandApp(MDApp):
         dialog = MDDialog(
             text="Your Identity key, in base32 format is as follows:\n\n[b]"+str(base64.b32encode(self.sideband.identity.get_private_key()).decode("utf-8"))+"[/b]",
             buttons=[ yes_button ],
-            elevation=0,
+            # elevation=0,
         )
         def dl_yes(s):
             dialog.dismiss()

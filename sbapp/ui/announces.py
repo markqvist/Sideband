@@ -73,7 +73,7 @@ class Announces():
                         dialog = MDDialog(
                             text=ad_text,
                             buttons=[ yes_button ],
-                            elevation=0,
+                            # elevation=0,
                         )
                         def dl_yes(s):
                             dialog.dismiss()
@@ -112,7 +112,7 @@ class Announces():
                         dialog = MDDialog(
                             text="Delete announce?",
                             buttons=[ yes_button, no_button ],
-                            elevation=0,
+                            # elevation=0,
                         )
                         def dl_yes(s):
                             dialog.dismiss()
