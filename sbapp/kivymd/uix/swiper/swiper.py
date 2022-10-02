@@ -38,7 +38,7 @@ Example
         MDTopAppBar:
             id: toolbar
             title: "MDSwiper"
-            elevation: 4
+            elevation: 10
             pos_hint: {"top": 1}
 
         MDSwiper:
@@ -142,7 +142,7 @@ Example
         MDTopAppBar:
             id: toolbar
             title: "MDSwiper"
-            elevation: 4
+            elevation: 10
             pos_hint: {"top": 1}
 
         MDSwiper:
@@ -203,6 +203,7 @@ from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.effects.dampedscroll import DampedScrollEffect
+from kivy.event import EventDispatcher
 from kivy.lang.builder import Builder
 from kivy.properties import (
     BooleanProperty,
@@ -211,6 +212,7 @@ from kivy.properties import (
     StringProperty,
 )
 from kivy.uix.anchorlayout import AnchorLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivy.utils import platform
 
 from kivymd import uix_path
@@ -292,7 +294,7 @@ class MDSwiperItem(MDBoxLayout):
         anim.start(self)
 
 
-class MDSwiper(MDScrollView):
+class MDSwiper(MDScrollView, EventDispatcher):
     items_spacing = NumericProperty("20dp")
     """
     The space between each :class:`MDSwiperItem`.

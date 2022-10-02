@@ -57,7 +57,6 @@ based on the above classes.
 - OneLineAvatarListItem_
 - TwoLineAvatarListItem_
 - ThreeLineAvatarListItem_
-
 - OneLineIconListItem_
 - TwoLineIconListItem_
 - ThreeLineIconListItem_
@@ -69,71 +68,35 @@ based on the above classes.
 - TwoLineAvatarIconListItem_
 - ThreeLineAvatarIconListItem_
 
-- OneLineRightIconListItem_
-- TwoLineRightIconListItem_
-- ThreeLineRightIconListItem_
-
 Usage
 -----
 
-.. tabs::
+.. code-block:: python
 
-    .. tab:: Declarative KV style
+    from kivy.lang import Builder
 
-        .. code-block:: python
+    from kivymd.app import MDApp
+    from kivymd.uix.list import OneLineListItem
 
-            from kivy.lang import Builder
+    KV = '''
+    ScrollView:
 
-            from kivymd.app import MDApp
-            from kivymd.uix.list import OneLineListItem
-
-            KV = '''
-            MDScrollView:
-
-                MDList:
-                    id: container
-            '''
+        MDList:
+            id: container
+    '''
 
 
-            class Example(MDApp):
-                def build(self):
-                    self.theme_cls.theme_style = "Dark"
-                    return Builder.load_string(KV)
+    class Test(MDApp):
+        def build(self):
+            return Builder.load_string(KV)
 
-                def on_start(self):
-                    for i in range(20):
-                        self.root.ids.container.add_widget(
-                            OneLineListItem(text=f"Single-line item {i}")
-                        )
+        def on_start(self):
+            for i in range(20):
+                self.root.ids.container.add_widget(
+                    OneLineListItem(text=f"Single-line item {i}")
+                )
 
-            Example().run()
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            from kivymd.app import MDApp
-            from kivymd.uix.list import OneLineListItem
-
-
-            class Example(MDApp):
-                def build(self):
-                    self.theme_cls.theme_style = "Dark"
-                    return (
-                        MDScrollView(
-                            MDList(
-                                id="container"
-                            )
-                        )
-                    )
-
-                def on_start(self):
-                    for i in range(20):
-                        self.root.ids.container.add_widget(
-                            OneLineListItem(text=f"Single-line item {i}")
-                        )
-
-            Example().run()
+    Test().run()
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/lists.gif
     :align: center
@@ -141,76 +104,37 @@ Usage
 Events of List
 --------------
 
-.. tabs::
+.. code-block:: python
 
-    .. tab:: Declarative KV style
+    from kivy.lang import Builder
 
-        .. code-block:: python
+    from kivymd.app import MDApp
 
-            from kivy.lang import Builder
+    KV = '''
+    ScrollView:
 
-            from kivymd.app import MDApp
+        MDList:
 
-            KV = '''
-            MDScrollView:
+            OneLineAvatarIconListItem:
+                on_release: print("Click!")
 
-                MDList:
+                IconLeftWidget:
+                    icon: "github"
 
-                    OneLineAvatarIconListItem:
-                        on_release: print("Click!")
+            OneLineAvatarIconListItem:
+                on_release: print("Click 2!")
 
-                        IconLeftWidget:
-                            icon: "github"
-
-                    OneLineAvatarIconListItem:
-                        on_release: print("Click 2!")
-
-                        IconLeftWidget:
-                            icon: "gitlab"
-            '''
+                IconLeftWidget:
+                    icon: "gitlab"
+    '''
 
 
-            class Example(MDApp):
-                def build(self):
-                    self.theme_cls.theme_style = "Dark"
-                    return Builder.load_string(KV)
+    class MainApp(MDApp):
+        def build(self):
+            return Builder.load_string(KV)
 
 
-            Example().run()
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            from kivymd.app import MDApp
-            from kivymd.uix.scrollview import MDScrollView
-            from kivymd.uix.list import MDList, OneLineAvatarIconListItem, IconLeftWidget
-
-
-            class Example(MDApp):
-                def build(self):
-                    self.theme_cls.theme_style = "Dark"
-                    return (
-                        MDScrollView(
-                            MDList(
-                                OneLineAvatarIconListItem(
-                                    IconLeftWidget(
-                                        icon="github"
-                                    ),
-                                    on_release=lambda x: print("Click!")
-                                ),
-                                OneLineAvatarIconListItem(
-                                    IconLeftWidget(
-                                        icon="gitlab"
-                                    ),
-                                    on_release=lambda x: print("Click 2!")
-                                ),
-                            )
-                        )
-                    )
-
-
-            Example().run()
+    MainApp().run()
 
 .. OneLineListItem:
 OneLineListItem
@@ -255,220 +179,62 @@ ThreeLineListItem
 OneLineAvatarListItem
 ---------------------
 
-.. tabs::
+.. code-block:: kv
 
-    .. tab:: Declarative KV style
+    OneLineAvatarListItem:
+        text: "Single-line item with avatar"
 
-        .. code-block:: kv
+        ImageLeftWidget:
+            source: "data/logo/kivy-icon-256.png"
 
-            OneLineAvatarListItem:
-                text: "Single-line item with avatar"
-
-                ImageLeftWidget:
-                    source: "kivymd/images/logo/kivymd-icon-256.png"
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            OneLineAvatarListItem(
-                ImageLeftWidget(
-                    source="kivymd/images/logo/kivymd-icon-256.png"
-                ),
-                text="Single-line item with avatar",
-            )
-
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/OneLineAvatarListItem.png
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/lists-map.png
     :align: center
 
 .. TwoLineAvatarListItem:
 TwoLineAvatarListItem
 ---------------------
 
-.. tabs::
+.. code-block:: kv
 
-    .. tab:: Declarative KV style
+    TwoLineAvatarListItem:
+        text: "Two-line item with avatar"
+        secondary_text: "Secondary text here"
 
-        .. code-block:: kv
-
-            TwoLineAvatarListItem:
-                text: "Two-line item with avatar"
-                secondary_text: "Secondary text here"
-
-                ImageLeftWidget:
-                    source: "kivymd/images/logo/kivymd-icon-256.png"
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            OneLineAvatarListItem(
-                ImageLeftWidget(
-                    source="kivymd/images/logo/kivymd-icon-256.png"
-                ),
-                text="Single-line item with avatar",
-                secondary_text: "Secondary text here",
-            )
+        ImageLeftWidget:
+            source: "data/logo/kivy-icon-256.png"
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/TwoLineAvatarListItem.png
     :align: center
+
 
 .. ThreeLineAvatarListItem:
 ThreeLineAvatarListItem
 -----------------------
 
-.. tabs::
+.. code-block:: kv
 
-    .. tab:: Declarative KV style
+    ThreeLineAvatarListItem:
+        text: "Three-line item with avatar"
+        secondary_text: "Secondary text here"
+        tertiary_text: "fit more text than usual"
 
-        .. code-block:: kv
-
-            ThreeLineAvatarListItem:
-                text: "Three-line item with avatar"
-                secondary_text: "Secondary text here"
-                tertiary_text: "fit more text than usual"
-
-                ImageLeftWidget:
-                    source: "kivymd/images/logo/kivymd-icon-256.png"
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            OneLineAvatarListItem(
-                ImageLeftWidget(
-                    source="kivymd/images/logo/kivymd-icon-256.png"
-                ),
-                text="Single-line item with avatar",
-                secondary_text: "Secondary text here",
-                tertiary_text: "fit more text than usual"
-            )
+        ImageLeftWidget:
+            source: "data/logo/kivy-icon-256.png"
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/ThreeLineAvatarListItem.png
-    :align: center
-
-.. OneLineRightIconListItem:
-OneLineRightIconListItem
-------------------------
-
-.. tabs::
-
-    .. tab:: Declarative KV style
-
-        .. code-block:: kv
-
-            OneLineRightIconListItem:
-                text: "Single-line item with avatar"
-
-                ImageRightWidget:
-                    source: "kivymd/images/logo/kivymd-icon-256.png"
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            OneLineRightIconListItem(
-                ImageRightWidget(
-                    source="kivymd/images/logo/kivymd-icon-256.png"
-                ),
-                text="Single-line item with avatar",
-            )
-
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/OneLineRightIconListItem.png
-    :align: center
-
-.. TwoLineRightIconListItem:
-TwoLineRightIconListItem
-------------------------
-
-.. tabs::
-
-    .. tab:: Declarative KV style
-
-        .. code-block:: kv
-
-            TwoLineRightIconListItem:
-                text: "Single-line item with avatar"
-                secondary_text: "Secondary text here"
-
-                ImageRightWidget:
-                    source: "kivymd/images/logo/kivymd-icon-256.png"
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            TwoLineRightIconListItem(
-                ImageRightWidget(
-                    source="kivymd/images/logo/kivymd-icon-256.png"
-                ),
-                text="Single-line item with avatar",
-                secondary_text: "Secondary text here",
-            )
-
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/TwoLineRightIconListItem.png
-    :align: center
-
-.. ThreeLineRightIconListItem:
-ThreeLineRightIconListItem
---------------------------
-
-.. tabs::
-
-    .. tab:: Declarative KV style
-
-        .. code-block:: kv
-
-            ThreeLineRightIconListItem:
-                text: "Single-line item with avatar"
-                secondary_text: "Secondary text here"
-                tertiary_text: "fit more text than usual"
-
-                ImageRightWidget:
-                    source: "kivymd/images/logo/kivymd-icon-256.png"
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            ThreeLineRightIconListItem(
-                ImageRightWidget(
-                    source="kivymd/images/logo/kivymd-icon-256.png"
-                ),
-                text="Single-line item with avatar",
-                secondary_text: "Secondary text here",
-                tertiary_text: "fit more text than usual",
-            )
-
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/ThreeLineRightIconListItem.png
     :align: center
 
 .. OneLineIconListItem:
 OneLineIconListItem
 -------------------
 
-.. tabs::
+.. code-block:: kv
 
-    .. tab:: Declarative KV style
+    OneLineIconListItem:
+        text: "Single-line item with avatar"
 
-        .. code-block:: kv
-
-            OneLineIconListItem:
-                text: "Single-line item with avatar"
-
-                IconLeftWidget:
-                    icon: "language-python"
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            OneLineIconListItem(
-                IconLeftWidget(
-                    icon="language-python"
-                ),
-                text="Single-line item with avatar"
-            )
+        IconLeftWidget:
+            icon: "language-python"
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/OneLineIconListItem.png
     :align: center
@@ -477,30 +243,14 @@ OneLineIconListItem
 TwoLineIconListItem
 -------------------
 
-.. tabs::
+.. code-block:: kv
 
-    .. tab:: Declarative KV style
+    TwoLineIconListItem:
+        text: "Two-line item with avatar"
+        secondary_text: "Secondary text here"
 
-        .. code-block:: kv
-
-            TwoLineIconListItem:
-                text: "Two-line item with avatar"
-                secondary_text: "Secondary text here"
-
-                IconLeftWidget:
-                    icon: "language-python"
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            TwoLineIconListItem(
-                IconLeftWidget(
-                    icon="language-python"
-                ),
-                text="Single-line item with avatar",
-                secondary_text: "Secondary text here"
-            )
+        IconLeftWidget:
+            icon: "language-python"
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/TwoLineIconListItem.png
     :align: center
@@ -509,32 +259,15 @@ TwoLineIconListItem
 ThreeLineIconListItem
 ---------------------
 
-.. tabs::
+.. code-block:: kv
 
-    .. tab:: Declarative KV style
+    ThreeLineIconListItem:
+        text: "Three-line item with avatar"
+        secondary_text: "Secondary text here"
+        tertiary_text: "fit more text than usual"
 
-        .. code-block:: kv
-
-            ThreeLineIconListItem:
-                text: "Three-line item with avatar"
-                secondary_text: "Secondary text here"
-                tertiary_text: "fit more text than usual"
-
-                IconLeftWidget:
-                    icon: "language-python"
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            ThreeLineIconListItem(
-                IconLeftWidget(
-                    icon="language-python"
-                ),
-                text="Single-line item with avatar",
-                secondary_text: "Secondary text here",
-                tertiary_text: "fit more text than usual",
-            )
+        IconLeftWidget:
+            icon: "language-python"
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/ThreeLineIconListItem.png
     :align: center
@@ -543,34 +276,16 @@ ThreeLineIconListItem
 OneLineAvatarIconListItem
 -------------------------
 
-.. tabs::
+.. code-block:: kv
 
-    .. tab:: Declarative KV style
+    OneLineAvatarIconListItem:
+        text: "One-line item with avatar"
 
-        .. code-block:: kv
+        IconLeftWidget:
+            icon: "plus"
 
-            OneLineAvatarIconListItem:
-                text: "One-line item with avatar"
-
-                IconLeftWidget:
-                    icon: "plus"
-
-                IconRightWidget:
-                    icon: "minus"
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            OneLineAvatarIconListItem(
-                IconLeftWidget(
-                    icon="plus"
-                ),
-                IconRightWidget(
-                    icon="minus"
-                ),
-                text="Single-line item with avatar",
-            )
+        IconRightWidget:
+            icon: "minus"
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/OneLineAvatarIconListItem.png
     :align: center
@@ -579,36 +294,17 @@ OneLineAvatarIconListItem
 TwoLineAvatarIconListItem
 -------------------------
 
-.. tabs::
+.. code-block:: kv
 
-    .. tab:: Declarative KV style
+    TwoLineAvatarIconListItem:
+        text: "Two-line item with avatar"
+        secondary_text: "Secondary text here"
 
-        .. code-block:: kv
+        IconLeftWidget:
+            icon: "plus"
 
-            TwoLineAvatarIconListItem:
-                text: "Two-line item with avatar"
-                secondary_text: "Secondary text here"
-
-                IconLeftWidget:
-                    icon: "plus"
-
-                IconRightWidget:
-                    icon: "minus"
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            TwoLineAvatarIconListItem(
-                IconLeftWidget(
-                    icon="plus"
-                ),
-                IconRightWidget(
-                    icon="minus"
-                ),
-                text="Single-line item with avatar",
-                secondary_text: "Secondary text here",
-            )
+        IconRightWidget:
+            icon: "minus"
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/TwoLineAvatarIconListItem.png
     :align: center
@@ -617,38 +313,18 @@ TwoLineAvatarIconListItem
 ThreeLineAvatarIconListItem
 ---------------------------
 
-.. tabs::
+.. code-block:: kv
 
-    .. tab:: Declarative KV style
+    ThreeLineAvatarIconListItem:
+        text: "Three-line item with avatar"
+        secondary_text: "Secondary text here"
+        tertiary_text: "fit more text than usual"
 
-        .. code-block:: kv
+        IconLeftWidget:
+            icon: "plus"
 
-            ThreeLineAvatarIconListItem:
-                text: "Three-line item with avatar"
-                secondary_text: "Secondary text here"
-                tertiary_text: "fit more text than usual"
-
-                IconLeftWidget:
-                    icon: "plus"
-
-                IconRightWidget:
-                    icon: "minus"
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            ThreeLineAvatarIconListItem(
-                IconLeftWidget(
-                    icon="plus"
-                ),
-                IconRightWidget(
-                    icon="minus"
-                ),
-                text="Single-line item with avatar",
-                secondary_text: "Secondary text here",
-                tertiary_text: "fit more text than usual",
-            )
+        IconRightWidget:
+            icon: "minus"
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/ThreeLineAvatarIconListItem.png
     :align: center
@@ -656,196 +332,101 @@ ThreeLineAvatarIconListItem
 Custom list item
 ----------------
 
-.. tabs::
+.. code-block:: python
 
-    .. tab:: Declarative KV style
+    from kivy.lang import Builder
+    from kivy.properties import StringProperty
 
-        .. code-block:: python
-
-            from kivy.lang import Builder
-            from kivy.properties import StringProperty
-
-            from kivymd.app import MDApp
-            from kivymd.uix.list import IRightBodyTouch, OneLineAvatarIconListItem
-            from kivymd.uix.selectioncontrol import MDCheckbox
-            from kivymd.icon_definitions import md_icons
+    from kivymd.app import MDApp
+    from kivymd.uix.list import IRightBodyTouch, OneLineAvatarIconListItem
+    from kivymd.uix.selectioncontrol import MDCheckbox
+    from kivymd.icon_definitions import md_icons
 
 
-            KV = '''
-            <ListItemWithCheckbox>:
+    KV = '''
+    <ListItemWithCheckbox>:
 
-                IconLeftWidget:
-                    icon: root.icon
+        IconLeftWidget:
+            icon: root.icon
 
-                RightCheckbox:
-
-
-            MDScrollView:
-
-                MDList:
-                    id: scroll
-            '''
+        RightCheckbox:
 
 
-            class ListItemWithCheckbox(OneLineAvatarIconListItem):
-                '''Custom list item.'''
+    MDBoxLayout:
 
-                icon = StringProperty("android")
+        ScrollView:
 
-
-            class RightCheckbox(IRightBodyTouch, MDCheckbox):
-                '''Custom right container.'''
-
-
-            class Example(MDApp):
-                def build(self):
-                    self.theme_cls.theme_style = "Dark"
-                    return Builder.load_string(KV)
-
-                def on_start(self):
-                    icons = list(md_icons.keys())
-                    for i in range(30):
-                        self.root.ids.scroll.add_widget(
-                            ListItemWithCheckbox(text=f"Item {i}", icon=icons[i])
-                        )
+            MDList:
+                id: scroll
+    '''
 
 
-            Example().run()
+    class ListItemWithCheckbox(OneLineAvatarIconListItem):
+        '''Custom list item.'''
 
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            from kivymd.app import MDApp
-            from kivymd.uix.list import IRightBodyTouch, OneLineAvatarIconListItem
-            from kivymd.uix.selectioncontrol import MDCheckbox
-            from kivymd.uix.scrollview import MDScrollView
-            from kivymd.uix.list import MDList
-            from kivymd.icon_definitions import md_icons
+        icon = StringProperty("android")
 
 
-            class RightCheckbox(IRightBodyTouch, MDCheckbox):
-                '''Custom right container.'''
+    class RightCheckbox(IRightBodyTouch, MDCheckbox):
+        '''Custom right container.'''
 
 
-            class Example(MDApp):
-                def build(self):
-                    self.theme_cls.theme_style = "Dark"
-                    return (
-                        MDScrollView(
-                            MDList(
-                                id="scroll"
-                            )
-                        )
-                    )
+    class MainApp(MDApp):
+        def build(self):
+            return Builder.load_string(KV)
 
-                def on_start(self):
-                    icons = list(md_icons.keys())
-                    for i in range(30):
-                        self.root.ids.scroll.add_widget(
-                            OneLineAvatarIconListItem(
-                                IconLeftWidget(
-                                    icon=icons[i]
-                                ),
-                                RightCheckbox(),
-                                text=f"Item {i}",
-                            )
-                        )
+        def on_start(self):
+            icons = list(md_icons.keys())
+            for i in range(30):
+                self.root.ids.scroll.add_widget(
+                    ListItemWithCheckbox(text=f"Item {i}", icon=icons[i])
+                )
 
 
-            Example().run()
+    MainApp().run()
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/custom-list-item.png
     :align: center
 
-.. tabs::
+.. code-block:: python
 
-    .. tab:: Declarative KV style
+    from kivy.lang import Builder
 
-        .. code-block:: python
+    from kivymd.app import MDApp
+    from kivymd.uix.boxlayout import MDBoxLayout
+    from kivymd.uix.list import IRightBodyTouch
 
-            from kivy.lang import Builder
+    KV = '''
+    OneLineAvatarIconListItem:
+        text: "One-line item with avatar"
+        on_size:
+            self.ids._right_container.width = container.width
+            self.ids._right_container.x = container.width
 
-            from kivymd.app import MDApp
-            from kivymd.uix.boxlayout import MDBoxLayout
-            from kivymd.uix.list import IRightBodyTouch
+        IconLeftWidget:
+            icon: "cog"
 
-            KV = '''
-            OneLineAvatarIconListItem:
-                text: "One-line item with avatar"
-                on_size:
-                    self.ids._right_container.width = container.width
-                    self.ids._right_container.x = container.width
+        YourContainer:
+            id: container
 
-                IconLeftWidget:
-                    icon: "cog"
+            MDIconButton:
+                icon: "minus"
 
-                YourContainer:
-                    id: container
-
-                    MDIconButton:
-                        icon: "minus"
-
-                    MDIconButton:
-                        icon: "plus"
-            '''
+            MDIconButton:
+                icon: "plus"
+    '''
 
 
-            class YourContainer(IRightBodyTouch, MDBoxLayout):
-                adaptive_width = True
+    class YourContainer(IRightBodyTouch, MDBoxLayout):
+        adaptive_width = True
 
 
-            class Example(MDApp):
-                def build(self):
-                    self.theme_cls.theme_style = "Dark"
-                    return Builder.load_string(KV)
+    class MainApp(MDApp):
+        def build(self):
+            return Builder.load_string(KV)
 
 
-            Example().run()
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            from kivymd.app import MDApp
-            from kivymd.uix.boxlayout import MDBoxLayout
-            from kivymd.uix.list import IRightBodyTouch
-            from kivymd.uix.button import MDIconButton
-            from kivymd.uix.list import OneLineAvatarIconListItem, IconLeftWidget
-
-
-            class YourContainer(IRightBodyTouch, MDBoxLayout):
-                adaptive_width = True
-
-
-            class Example(MDApp):
-                def build(self):
-                    self.theme_cls.theme_style = "Dark"
-                    return (
-                        OneLineAvatarIconListItem(
-                            IconLeftWidget(
-                                icon="cog"
-                            ),
-                            YourContainer(
-                                MDIconButton(
-                                    icon="minus"
-                                ),
-                                MDIconButton(
-                                    icon="plus"
-                                ),
-                                id="container"
-                            ),
-                            text="One-line item with avatar"
-                        )
-                    )
-
-                def on_start(self):
-                    container = self.root.ids.container
-                    self.root.ids._right_container.width = container.width
-                    container.x = container.width
-
-
-            Example().run()
+    MainApp().run()
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/custom-list-right-container.png
     :align: center
@@ -856,56 +437,26 @@ Behavior
 When using the `AvatarListItem` and `IconListItem` classes, when an icon is clicked,
 the event of this icon is triggered:
 
-.. tabs::
+.. code-block:: kv
 
-    .. tab:: Declarative KV style
+    OneLineIconListItem:
+        text: "Single-line item with icon"
 
-        .. code-block:: kv
-
-            OneLineIconListItem:
-                text: "Single-line item with icon"
-
-                IconLeftWidget:
-                    icon: "language-python"
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            OneLineIconListItem(
-                IconLeftWidget(
-                    icon="language-python"
-                ),
-                text="Single-line item with avatar",
-            )
+        IconLeftWidget:
+            icon: "language-python"
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/list-icon-trigger.gif
     :align: center
 
 You can disable the icon event using the `WithoutTouch` classes:
 
-.. tabs::
+.. code-block:: kv
 
-    .. tab:: Declarative KV style
+    OneLineIconListItem:
+        text: "Single-line item with icon"
 
-        .. code-block:: kv
-
-            OneLineIconListItem:
-                text: "Single-line item with icon"
-
-                IconLeftWidgetWithoutTouch:
-                    icon: "language-python"
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            OneLineIconListItem(
-                IconLeftWidgetWithoutTouch(
-                    icon="language-python"
-                ),
-                text="Single-line item with avatar",
-            )
+        IconLeftWidgetWithoutTouch:
+            icon: "language-python"
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/list-icon-without-trigger.gif
     :align: center
@@ -988,9 +539,13 @@ class MDList(MDGridLayout):
 
     _list_vertical_padding = NumericProperty("8dp")
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.adaptive_height = True
+    def add_widget(self, widget, index=0, canvas=None):
+        super().add_widget(widget, index, canvas)
+        self.height += widget.height
+
+    def remove_widget(self, widget):
+        super().remove_widget(widget)
+        self.height -= widget.height
 
 
 class BaseListItem(
@@ -1014,8 +569,8 @@ class BaseListItem(
 
     text_color = ColorProperty(None)
     """
-    Text color in (r, g, b, a) or string format used
-    if :attr:`~theme_text_color` is set to `'Custom'`.
+    Text color in ``rgba`` format used if :attr:`~theme_text_color` is set
+    to `'Custom'`.
 
     :attr:`text_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -1023,9 +578,7 @@ class BaseListItem(
 
     font_style = StringProperty("Subtitle1")
     """
-    Text font style.
-    See `font-definitions <https://kivymd.readthedocs.io/en/latest/themes/font-definitions/>`_
-    for more information.
+    Text font style. See ``kivymd.font_definitions.py``.
 
     :attr:`font_style` is a :class:`~kivy.properties.StringProperty`
     and defaults to `'Subtitle1'`.
@@ -1033,7 +586,7 @@ class BaseListItem(
 
     theme_text_color = StringProperty("Primary", allownone=True)
     """
-    The name of the color scheme for for the primary text.
+    Theme text color in ``rgba`` format for primary text.
 
     :attr:`theme_text_color` is a :class:`~kivy.properties.StringProperty`
     and defaults to `'Primary'`.
@@ -1057,7 +610,7 @@ class BaseListItem(
 
     secondary_text_color = ColorProperty(None)
     """
-    Text color in (r, g, b, a) or string format used for secondary text
+    Text color in ``rgba`` format used for secondary text
     if :attr:`~secondary_theme_text_color` is set to `'Custom'`.
 
     :attr:`secondary_text_color` is a :class:`~kivy.properties.ColorProperty`
@@ -1066,7 +619,7 @@ class BaseListItem(
 
     tertiary_text_color = ColorProperty(None)
     """
-    Text color in (r, g, b, a) or string format used for tertiary text
+    Text color in ``rgba`` format used for tertiary text
     if :attr:`~tertiary_theme_text_color` is set to 'Custom'.
 
     :attr:`tertiary_text_color` is a :class:`~kivy.properties.ColorProperty`
@@ -1075,7 +628,7 @@ class BaseListItem(
 
     secondary_theme_text_color = StringProperty("Secondary", allownone=True)
     """
-    The name of the color scheme for for the secondary text.
+    Theme text color for secondary text.
 
     :attr:`secondary_theme_text_color` is a :class:`~kivy.properties.StringProperty`
     and defaults to `'Secondary'`.
@@ -1083,7 +636,7 @@ class BaseListItem(
 
     tertiary_theme_text_color = StringProperty("Secondary", allownone=True)
     """
-    The name of the color scheme for for the tertiary text.
+    Theme text color for tertiary text.
 
     :attr:`tertiary_theme_text_color` is a :class:`~kivy.properties.StringProperty`
     and defaults to `'Secondary'`.
@@ -1091,9 +644,7 @@ class BaseListItem(
 
     secondary_font_style = StringProperty("Body1")
     """
-    Font style for secondary line.
-    See `font-definitions <https://kivymd.readthedocs.io/en/latest/themes/font-definitions/>`_
-    for more information.
+    Font style for secondary line. See ``kivymd.font_definitions.py``.
 
     :attr:`secondary_font_style` is a :class:`~kivy.properties.StringProperty`
     and defaults to `'Body1'`.
@@ -1101,9 +652,7 @@ class BaseListItem(
 
     tertiary_font_style = StringProperty("Body1")
     """
-    Font style for tertiary line.
-    See `font-definitions <https://kivymd.readthedocs.io/en/latest/themes/font-definitions/>`_
-    for more information.
+    Font style for tertiary line. See ``kivymd.font_definitions.py``.
 
     :attr:`tertiary_font_style` is a :class:`~kivy.properties.StringProperty`
     and defaults to `'Body1'`.
@@ -1122,7 +671,7 @@ class BaseListItem(
 
     divider_color = ColorProperty(None)
     """
-    Divider color in (r, g, b, a) or string format.
+    Divider color.
 
     .. versionadded:: 1.0.0
 
@@ -1132,7 +681,7 @@ class BaseListItem(
 
     bg_color = ColorProperty(None)
     """
-    Background color for list item in (r, g, b, a) or string format.
+    Background color for menu item.
 
     :attr:`bg_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.

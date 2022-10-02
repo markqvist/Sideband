@@ -10,77 +10,58 @@ Components/SegmentedControl
 Usage
 =====
 
-.. tabs::
+.. code-block:: python
 
-    .. tab:: Declarative KV style
+    from kivy.lang import Builder
 
-        .. code-block:: python
-
-            from kivy.lang import Builder
-
-            from kivymd.app import MDApp
+    from kivymd.app import MDApp
 
 
-            KV = '''
-            MDScreen:
+    KV = '''
+    MDScreen:
 
-                MDSegmentedControl:
-                    pos_hint: {"center_x": .5, "center_y": .5}
+        MDSegmentedControl:
+            pos_hint: {"center_x": .5, "center_y": .5}
 
-                    MDSegmentedControlItem:
-                        text: "Male"
+            MDSegmentedControlItem:
+                text: "Male"
 
-                    MDSegmentedControlItem:
-                        text: "Female"
+            MDSegmentedControlItem:
+                text: "Female"
 
-                    MDSegmentedControlItem:
-                        text: "All"
-            '''
-
-
-            class Example(MDApp):
-                def build(self):
-                    self.theme_cls.theme_style = "Dark"
-                    self.theme_cls.primary_palette = "Orange"
-                    return Builder.load_string(KV)
+            MDSegmentedControlItem:
+                text: "All"
+    '''
 
 
-            Example().run()
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            from kivymd.app import MDApp
-            from kivymd.uix.screen import MDScreen
-            from kivymd.uix.segmentedcontrol import (
-                MDSegmentedControl, MDSegmentedControlItem
-            )
+    class Test(MDApp):
+        def build(self):
+            return Builder.load_string(KV)
 
 
-            class Example(MDApp):
-                def build(self):
-                    self.theme_cls.theme_style = "Dark"
-                    self.theme_cls.primary_palette = "Orange"
-                    return (
-                        MDScreen(
-                            MDSegmentedControl(
-                                MDSegmentedControlItem(
-                                    text="Male"
-                                ),
-                                MDSegmentedControlItem(
-                                    text="Female"
-                                ),
-                                MDSegmentedControlItem(
-                                    text="All"
-                                ),
-                                pos_hint={"center_x": 0.5, "center_y": 0.5}
-                            )
-                        )
-                    )
+    Test().run()
+
+Or only in python code:
+
+.. code-block:: python
+
+    from kivymd.app import MDApp
+    from kivymd.uix.screen import MDScreen
+    from kivymd.uix.segmentedcontrol import MDSegmentedControl, MDSegmentedControlItem
 
 
-            Example().run()
+    class Test(MDApp):
+        def build(self):
+            screen = MDScreen()
+            segment_control = MDSegmentedControl(pos_hint={"center_x": .5, "center_y": .5})
+            segment_control.add_widget(MDSegmentedControlItem(text="Male"))
+            segment_control.add_widget(MDSegmentedControlItem(text="Female"))
+            segment_control.add_widget(MDSegmentedControlItem(text="All"))
+            screen.add_widget(segment_control)
+            return screen
+
+
+    Test().run()
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-segmented-control-usage.gif
     :align: center
@@ -136,22 +117,12 @@ with open(
 
 
 class MDSegmentedControlItem(MDLabel):
-    """
-    Implements a label to place on the :class:`~SegmentPanel` panel.
-
-    See :class:`~kivymd.uix.label.MDLabel` class documentation for more
-    information.
-    """
+    """Implements a label to place on the :class:`~SegmentPanel` panel."""
 
 
 # TODO: Add an attribute for the color of the active segment label.
 class MDSegmentedControl(MDRelativeLayout, ThemableBehavior):
     """
-    Implements a segmented control panel.
-
-    Relative layout class. For more information, see in the
-    :class:`~kivy.uix.relativelayout.RelativeLayout` class documentation.
-
     :Events:
         `on_active`
             Called when the segment is activated.
@@ -164,7 +135,7 @@ class MDSegmentedControl(MDRelativeLayout, ThemableBehavior):
     .. code-block:: kv
 
         MDSegmentedControl:
-            md_bg_color: "brown"
+            md_bg_color: "#451938"
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-segmented-control-md-bg-color.png
         :align: center
@@ -180,8 +151,8 @@ class MDSegmentedControl(MDRelativeLayout, ThemableBehavior):
     .. code-block:: kv
 
         MDSegmentedControl:
-            md_bg_color: "brown"
-            segment_color: "red"
+            md_bg_color: "#451938"
+            segment_color: "#e4514f"
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-segmented-control-segment-color.png
         :align: center
@@ -189,8 +160,8 @@ class MDSegmentedControl(MDRelativeLayout, ThemableBehavior):
     .. code-block:: kv
 
         MDSegmentedControl:
-            md_bg_color: "brown"
-            segment_color: "red"
+            md_bg_color: "#451938"
+            segment_color: "#e4514f"
 
             MDSegmentedControlItem:
                 text: "[color=fff]Male[/color]"
@@ -225,9 +196,9 @@ class MDSegmentedControl(MDRelativeLayout, ThemableBehavior):
     .. code-block:: kv
 
         MDSegmentedControl:
-            md_bg_color: "brown"
-            segment_color: "red"
-            separator_color: "white"
+            md_bg_color: "#451938"
+            segment_color: "#e4514f"
+            separator_color: 1, 1, 1, 1
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-segmented-control-separator-color.png
         :align: center
@@ -284,6 +255,9 @@ class MDSegmentedControl(MDRelativeLayout, ThemableBehavior):
 
         Clock.schedule_once(self.set_default_colors)
         Clock.schedule_once(self._remove_last_separator)
+        # FIXME: Sometimes this interval is not enough to get the width
+        #  of the segment label textures.
+        Clock.schedule_once(self._set_width_segment_switch, 2.2)
 
     def set_default_colors(self, *args) -> None:
         """
@@ -339,10 +313,6 @@ class MDSegmentedControl(MDRelativeLayout, ThemableBehavior):
             self.ids.segment_panel.add_widget(widget)
             separator = MDSeparator(orientation="vertical")
             self.ids.segment_panel.add_widget(separator)
-            if not self.ids.segment_panel._started:
-                self.ids.segment_panel._started = True
-            else:
-                self.ids.segment_panel.children_number += 1
             Clock.schedule_once(
                 lambda x: self.update_separator_color(separator)
             )
@@ -355,6 +325,15 @@ class MDSegmentedControl(MDRelativeLayout, ThemableBehavior):
             self.animation_segment_switch(widget)
             self.current_active_segment = widget
             self.dispatch("on_active", widget)
+
+    def _set_width_segment_switch(self, *args):
+        """
+        Sets the width of the switch. I think this is not done quite correctly.
+        """
+
+        self.ids.segment_switch.width = self.ids.segment_panel.children[
+            0
+        ].width + dp(12)
 
     def _remove_last_separator(self, *args):
         self.ids.segment_panel.remove_widget(self.ids.segment_panel.children[0])
@@ -371,7 +350,3 @@ class SegmentPanel(MDBoxLayout):
     Implements a panel for placing items - :class:`~MDSegmentedControlItem`
     for the :class:`~MDSegmentedControl` class.
     """
-
-    children_number = NumericProperty(1)
-
-    _started = BooleanProperty(defaultvalue=False)

@@ -14,102 +14,59 @@ example:
         pass
 
 
-.. tabs::
+.. code-block:: python
 
-    .. tab:: Declarative KV style
+    from kivy.lang import Builder
 
-        .. code-block:: python
+    from kivymd.app import MDApp
+    from kivymd.uix.behaviors.toggle_behavior import MDToggleButton
+    from kivymd.uix.button import MDRectangleFlatButton
 
-            from kivy.lang import Builder
+    KV = '''
+    Screen:
 
-            from kivymd.app import MDApp
-            from kivymd.uix.behaviors.toggle_behavior import MDToggleButton
-            from kivymd.uix.button import MDFlatButton
+        MDBoxLayout:
+            adaptive_size: True
+            pos_hint: {"center_x": .5, "center_y": .5}
 
-            KV = '''
-            MDScreen:
+            MyToggleButton:
+                text: "Show ads"
+                group: "x"
 
-                MDBoxLayout:
-                    adaptive_size: True
-                    spacing: "12dp"
-                    pos_hint: {"center_x": .5, "center_y": .5}
+            MyToggleButton:
+                text: "Do not show ads"
+                group: "x"
 
-                    MyToggleButton:
-                        text: "Show ads"
-                        group: "x"
-
-                    MyToggleButton:
-                        text: "Do not show ads"
-                        group: "x"
-
-                    MyToggleButton:
-                        text: "Does not matter"
-                        group: "x"
-            '''
+            MyToggleButton:
+                text: "Does not matter"
+                group: "x"
+    '''
 
 
-            class MyToggleButton(MDFlatButton, MDToggleButton):
-                def __init__(self, *args, **kwargs):
-                    super().__init__(*args, **kwargs)
-                    self.background_down = self.theme_cls.primary_color
+    class MyToggleButton(MDRectangleFlatButton, MDToggleButton):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            self.background_down = self.theme_cls.primary_light
 
 
-            class Test(MDApp):
-                def build(self):
-                    self.theme_cls.theme_style = "Dark"
-                    self.theme_cls.primary_palette = "Orange"
-                    return Builder.load_string(KV)
+    class Test(MDApp):
+        def build(self):
+            return Builder.load_string(KV)
 
 
-            Test().run()
-
-    .. tab:: Declarative python style
-
-        .. code-block:: python
-
-            from kivymd.app import MDApp
-            from kivymd.uix.behaviors.toggle_behavior import MDToggleButton
-            from kivymd.uix.boxlayout import MDBoxLayout
-            from kivymd.uix.button import MDFlatButton
-            from kivymd.uix.screen import MDScreen
-
-
-            class MyToggleButton(MDFlatButton, MDToggleButton):
-                def __init__(self, *args, **kwargs):
-                    super().__init__(*args, **kwargs)
-                    self.background_down = self.theme_cls.primary_color
-
-
-            class Test(MDApp):
-                def build(self):
-                    self.theme_cls.theme_style = "Dark"
-                    self.theme_cls.primary_palette = "Orange"
-                    return (
-                        MDScreen(
-                            MDBoxLayout(
-                                MyToggleButton(
-                                    text="Show ads",
-                                    group="x",
-                                ),
-                                MyToggleButton(
-                                    text="Do not show ads",
-                                    group="x",
-                                ),
-                                MyToggleButton(
-                                    text="Does not matter",
-                                    group="x",
-                                ),
-                                adaptive_size=True,
-                                spacing="12dp",
-                                pos_hint={"center_x": .5, "center_y": .5},
-                            ),
-                        )
-                    )
-
-
-            Test().run()
+    Test().run()
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/toggle-button-1.gif
+    :align: center
+
+.. code-block:: python
+
+    class MyToggleButton(MDFillRoundFlatButton, MDToggleButton):
+        def __init__(self, **kwargs):
+        self.background_down = MDApp.get_running_app().theme_cls.primary_dark
+        super().__init__(**kwargs)
+
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/toggle-button-2.gif
     :align: center
 
 You can inherit the ``MyToggleButton`` class only from the following classes
@@ -131,7 +88,6 @@ from kivy.properties import BooleanProperty, ColorProperty
 from kivy.uix.behaviors import ToggleButtonBehavior
 
 from kivymd.uix.button import (
-    ButtonContentsIconText,
     MDFillRoundFlatButton,
     MDFillRoundFlatIconButton,
     MDFlatButton,
@@ -193,8 +149,7 @@ class MDToggleButton(ToggleButtonBehavior):
         # Do the object inherited from the "supported" buttons?
         if not issubclass(self.__class__, classinfo):
             raise ValueError(
-                f"Class {self.__class__} must be inherited from one of the "
-                f"classes in the list {classinfo}"
+                f"Class {self.__class__} must be inherited from one of the classes in the list {classinfo}"
             )
         if (
             not self.background_normal
@@ -210,12 +165,10 @@ class MDToggleButton(ToggleButtonBehavior):
             ):
                 self.__is_filled = True
                 self.background_normal = self.theme_cls.primary_color
-            # If not background_normal must be the same as the inherited one.
+            # If not the background_normal must be the same as the inherited one:
             else:
-                self.background_normal = (
-                    self.md_bg_color[:] if self.md_bg_color else (0, 0, 0, 0)
-                )
-        # If no background_down is setter.
+                self.background_normal = self.md_bg_color[:]
+        # If no background_down is setted:
         if (
             not self.background_down
         ):  # This means that if the value == [] or None will return True.
@@ -247,6 +200,3 @@ class MDToggleButton(ToggleButtonBehavior):
             ):  # If the background is transparent, the font color must be the
                 # primary color.
                 self.text_color = self.font_color_normal
-
-        if issubclass(self.__class__, ButtonContentsIconText):
-            self.icon_color = self.text_color

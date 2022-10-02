@@ -132,7 +132,7 @@ Use with elevation
         icon_right: "close-circle-outline"
         line_color: app.theme_cls.disabled_hint_text_color
         md_bg_color: 1, 0, 0, .5
-        elevation: 4
+        elevation: 12
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/chip-with-elevation.png
     :align: center
@@ -304,6 +304,7 @@ __all__ = ("MDChip",)
 
 import os
 
+from kivy import Logger
 from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.metrics import dp
@@ -313,13 +314,14 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivymd import uix_path
 from kivymd.theming import ThemableBehavior
 from kivymd.uix.behaviors import (
-    CommonElevationBehavior,
+    FakeRectangularElevationBehavior,
     RectangularRippleBehavior,
-    ScaleBehavior,
     TouchBehavior,
 )
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDIcon
+from kivymd.uix.stacklayout import MDStackLayout
+from kivymd.uix.templates import ScaleWidget
 
 with open(
     os.path.join(uix_path, "chip", "chip.kv"), encoding="utf-8"
@@ -328,12 +330,12 @@ with open(
 
 
 class MDChip(
-    MDBoxLayout,
     ThemableBehavior,
     RectangularRippleBehavior,
-    ButtonBehavior,
-    CommonElevationBehavior,
+    FakeRectangularElevationBehavior,
     TouchBehavior,
+    ButtonBehavior,
+    MDBoxLayout,
 ):
     text = StringProperty()
     """
@@ -454,7 +456,7 @@ class MDChip(
             self.active = False
 
 
-class MDScalableCheckIcon(MDIcon, ScaleBehavior):
+class MDScalableCheckIcon(MDIcon, ScaleWidget):
     pos_hint = {"center_y": 0.5}
 
 

@@ -82,7 +82,7 @@ class MDSlider(ThemableBehavior, Slider):
     and defaults to `True`.
     """
 
-    hint_bg_color = ColorProperty(None)
+    hint_bg_color = ColorProperty([0, 0, 0, 0])
     """
     Hint rectangle color in (r.g.b.a) format.
 

@@ -222,18 +222,14 @@ __all__ = ("MDLabel", "MDIcon")
 import os
 from typing import Union
 
-from kivy.animation import Animation
 from kivy.clock import Clock
-from kivy.graphics import Color, Rectangle
 from kivy.lang import Builder
 from kivy.metrics import sp
 from kivy.properties import (
     AliasProperty,
     BooleanProperty,
     ColorProperty,
-    ListProperty,
     NumericProperty,
-    ObjectProperty,
     OptionProperty,
     StringProperty,
 )
@@ -326,7 +322,6 @@ class MDLabel(DeclarativeBehavior, ThemableBehavior, Label, MDAdaptiveWidget):
 
     parent_background = ColorProperty(None)
     can_capitalize = BooleanProperty(True)
-    canvas_bg = ObjectProperty()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -354,7 +349,6 @@ class MDLabel(DeclarativeBehavior, ThemableBehavior, Label, MDAdaptiveWidget):
             font_info = self.theme_cls.font_styles[self.font_style]
             self.font_name = font_info[0]
             self.font_size = sp(font_info[1])
-
             if font_info[2] and self.can_capitalize:
                 self._capitalizing = True
             else:
@@ -380,68 +374,29 @@ class MDLabel(DeclarativeBehavior, ThemableBehavior, Label, MDAdaptiveWidget):
             # generic None value it's not yet been set
             self._text_color_str = ""
             if theme_text_color == "Custom" and self.text_color:
-                color = self.text_color
+                self.color = self.text_color
             elif (
                 theme_text_color == "ContrastParentBackground"
                 and self.parent_background
             ):
-                color = get_contrast_text_color(self.parent_background)
+                self.color = get_contrast_text_color(self.parent_background)
             else:
-                color = [0, 0, 0, 1]
+                self.color = [0, 0, 0, 1]
 
-            if self.theme_cls.theme_style_switch_animation:
-                Animation(
-                    color=color,
-                    d=self.theme_cls.theme_style_switch_animation_duration,
-                    t="linear",
-                ).start(self)
-            else:
-                self.color = color
-
-    def on_text_color(self, instance_label, color: Union[list, str]) -> None:
+    def on_text_color(self, instance_label, color: list) -> None:
         if self.theme_text_color == "Custom":
-            if self.theme_cls.theme_style_switch_animation:
-                Animation(
-                    color=self.text_color,
-                    d=self.theme_cls.theme_style_switch_animation_duration,
-                    t="linear",
-                ).start(self)
-            else:
-                self.color = self.text_color
+            self.color = self.text_color
 
     def on_opposite_colors(self, *args) -> None:
         self.on_theme_text_color(self, self.theme_text_color)
 
-    def on_md_bg_color(self, instance_label, color: Union[list, str]) -> None:
-        self.canvas.remove_group("Background_instruction")
-        with self.canvas.before:
-            Color(rgba=color)
-            self.canvas_bg = Rectangle(pos=self.pos, size=self.size)
-            self.bind(pos=self.update_canvas_bg_pos)
-
-    def on_size(self, instance_label, size: list) -> None:
-        if self.canvas_bg:
-            self.canvas_bg.size = size
-
-    def update_canvas_bg_pos(self, instance_label, pos: list) -> None:
-        if self.canvas_bg:
-            self.canvas_bg.pos = pos
-
     def _do_update_theme_color(self, *args):
         if self._text_color_str:
+            self.color = getattr(self.theme_cls, self._text_color_str)
             if not self.disabled:
-                color = getattr(self.theme_cls, self._text_color_str)
+                self.color = getattr(self.theme_cls, self._text_color_str)
             else:
-                color = getattr(self.theme_cls, "disabled_hint_text_color")
-
-            if self.theme_cls.theme_style_switch_animation:
-                Animation(
-                    color=color,
-                    d=self.theme_cls.theme_style_switch_animation_duration,
-                    t="linear",
-                ).start(self)
-            else:
-                self.color = color
+                self.color = getattr(self.theme_cls, "disabled_hint_text_color")
 
 
 class MDIcon(MDFloatLayout, MDLabel):
@@ -501,16 +456,11 @@ class MDIcon(MDFloatLayout, MDLabel):
     and defaults to `None`.
     """
 
-    _size = ListProperty((0, 0))
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        Clock.schedule_once(self.adjust_size)
-
-    def adjust_size(self, *args) -> None:
+    def __init__(self, **kwargs):
         from kivymd.uix.selectioncontrol import MDCheckbox
 
+        super().__init__(**kwargs)
         if not isinstance(self, MDCheckbox):
             self.size_hint = (None, None)
-            self._size = self.texture_size[1], self.texture_size[1]
+            self.size = self.texture_size
             self.adaptive_size = True

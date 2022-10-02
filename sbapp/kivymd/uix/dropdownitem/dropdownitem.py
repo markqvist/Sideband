@@ -15,13 +15,13 @@ Usage
     from kivymd.app import MDApp
 
     KV = '''
-    MDScreen
+    Screen
 
         MDDropDownItem:
             id: drop_item
             pos_hint: {'center_x': .5, 'center_y': .5}
             text: 'Item'
-            on_release: print("Press item")
+            on_release: self.set_item("New Item")
     '''
 
 
@@ -48,12 +48,12 @@ import os
 from kivy.lang import Builder
 from kivy.properties import NumericProperty, StringProperty
 from kivy.uix.behaviors import ButtonBehavior
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
 
 from kivymd import uix_path
 from kivymd.theming import ThemableBehavior
-from kivymd.uix.behaviors import DeclarativeBehavior
+from kivymd.uix.behaviors import FakeRectangularElevationBehavior
+from kivymd.uix.boxlayout import MDBoxLayout
 
 with open(
     os.path.join(uix_path, "dropdownitem", "dropdownitem.kv"), encoding="utf-8"
@@ -61,12 +61,15 @@ with open(
     Builder.load_string(kv_file.read())
 
 
-class _Triangle(Widget):
+class _Triangle(ThemableBehavior, Widget):
     pass
 
 
 class MDDropDownItem(
-    DeclarativeBehavior, ThemableBehavior, ButtonBehavior, BoxLayout
+    ThemableBehavior,
+    FakeRectangularElevationBehavior,
+    ButtonBehavior,
+    MDBoxLayout,
 ):
     text = StringProperty()
     """

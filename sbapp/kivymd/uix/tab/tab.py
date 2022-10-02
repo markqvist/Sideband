@@ -944,6 +944,7 @@ from kivy.properties import (
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.behaviors import ToggleButtonBehavior
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.widget import Widget
 from kivy.utils import boundary
 
 from kivymd import uix_path
@@ -952,11 +953,11 @@ from kivymd.icon_definitions import md_icons
 from kivymd.theming import ThemableBehavior, ThemeManager
 from kivymd.uix.behaviors import (
     DeclarativeBehavior,
+    FakeRectangularElevationBehavior,
     RectangularRippleBehavior,
     SpecificBackgroundColorBehavior,
 )
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.card import MDCard
 from kivymd.uix.carousel import MDCarousel
 from kivymd.uix.label import MDLabel
 
@@ -1023,7 +1024,7 @@ class MDTabsLabel(ToggleButtonBehavior, RectangularRippleBehavior, MDLabel):
         Clock.schedule_once(self.tab_bar._label_request_indicator_update, 0)
 
 
-class MDTabsBase:
+class MDTabsBase(Widget):
     """
     This class allow you to create a tab.
     You must create a new class that inherits from MDTabsBase.
@@ -1129,9 +1130,9 @@ class MDTabsBase:
     This property will affect the Tab's Title Label widget.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         self.tab_label = MDTabsLabel(tab=self)
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
         self.bind(
             icon=self._update_text,
             title=self._update_text,
@@ -1272,7 +1273,9 @@ class MDTabsScrollView(ScrollView):
             _update(self.effect_y, scroll_y)
 
 
-class MDTabsBar(MDCard):
+class MDTabsBar(
+    ThemableBehavior, FakeRectangularElevationBehavior, MDBoxLayout
+):
     """
     This class is just a boxlayout that contains the scroll view for tabs.
     It is also responsible for resizing the tab shortcut when necessary.
@@ -1548,43 +1551,13 @@ class MDTabs(
     and defaults to `None`.
     """
 
-    shadow_softness = NumericProperty(12)
-    """
-    See :attr:`kivymd.uix.behaviors.CommonElevationBehavior.shadow_softness`
-    attribute.
-
-    .. versionadded:: 1.1.0
-
-    :attr:`shadow_softness` is an :class:`~kivy.properties.NumericProperty`
-    and defaults to `12`.
-    """
-
-    shadow_color = ColorProperty([0, 0, 0, 0.6])
-    """
-    See :attr:`kivymd.uix.behaviors.CommonElevationBehavior.shadow_color`
-    attribute.
-
-    .. versionadded:: 1.1.0
-
-    :attr:`shadow_color` is an :class:`~kivy.properties.ColorProperty`
-    and defaults to `[0, 0, 0, 0.6]`.
-    """
-
-    shadow_offset = ListProperty((0, 0))
-    """
-    See :attr:`kivymd.uix.behaviors.CommonElevationBehavior.shadow_offset`
-    attribute.
-
-    .. versionadded:: 1.1.0
-
-    :attr:`shadow_offset` is an :class:`~kivy.properties.ListProperty`
-    and defaults to `[0, 0]`.
-    """
-
     elevation = NumericProperty(0)
     """
-    See :attr:`kivymd.uix.behaviors.CommonElevationBehavior.elevation`
-    attribute.
+    Tab value elevation.
+
+    .. seealso::
+
+        `Behaviors/Elevation <https://kivymd.readthedocs.io/en/latest/behaviors/elevation/index.html>`_
 
     :attr:`elevation` is an :class:`~kivy.properties.NumericProperty`
     and defaults to `0`.

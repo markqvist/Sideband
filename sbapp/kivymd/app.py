@@ -45,7 +45,7 @@ import os
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.logger import Logger
-from kivy.properties import ObjectProperty, StringProperty
+from kivy.properties import ObjectProperty
 
 from kivymd.theming import ThemeManager
 
@@ -69,16 +69,6 @@ class MDApp(App, FpsMonitoring):
     """
     Application class, see :class:`~kivy.app.App` class documentation for more
     information.
-    """
-
-    icon = StringProperty("kivymd/images/logo/kivymd-icon-512.png")
-    """
-    See :attr:`~kivy.app.App.icon` attribute for more information.
-
-    .. versionadded:: 1.1.0
-
-    :attr:`icon` is an :class:`~kivy.properties.StringProperty`
-    adn default to `kivymd/images/logo/kivymd-icon-512.png`.
     """
 
     theme_cls = ObjectProperty()

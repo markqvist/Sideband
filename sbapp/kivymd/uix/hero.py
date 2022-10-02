@@ -63,7 +63,7 @@ Base example
                 x: 24
 
                 FitImage:
-                    source: "kivymd/images/logo/kivymd-icon-512.png"
+                    source: "https://github.com/kivymd/internal/raw/main/logo/kivymd_logo_blue.png"
                     size_hint: None, None
                     size: hero_from.size
 
@@ -72,7 +72,7 @@ Base example
                 pos_hint: {"center_x": .5}
                 y: "36dp"
                 on_release:
-                    root.current_heroes = ["hero"]
+                    root.current_hero = "hero"
                     root.current = "screen B"
 
         MDScreen:
@@ -82,7 +82,6 @@ Base example
 
             MDHeroTo:
                 id: hero_to
-                tag: "hero"
                 size_hint: None, None
                 size: "220dp", "220dp"
                 pos_hint: {"center_x": .5, "center_y": .5}
@@ -92,7 +91,7 @@ Base example
                 pos_hint: {"center_x": .5}
                 y: "36dp"
                 on_release:
-                    root.current_heroes = ["hero"]
+                    root.current_hero = "hero"
                     root.current = "screen A"
     '''
 
@@ -114,7 +113,6 @@ Note that the child of the :class:`~MDHeroFrom` widget must have the size of the
 
     MDHeroFrom:
         id: hero_from
-        tag: "hero"
 
         FitImage:
             size_hint: None, None
@@ -129,7 +127,7 @@ container in which the hero is located:
     MDRaisedButton:
         text: "Move Hero To Screen B"
         on_release:
-            root.current_heroes = ["hero"]
+            root.current_hero = "hero"
             root.current = "screen 2"
 
 If you need to switch to a screen that does not contain heroes, set the
@@ -140,7 +138,7 @@ If you need to switch to a screen that does not contain heroes, set the
     MDRaisedButton:
         text: "Go To Another Screen"
         on_release:
-            root.current_heroes = []
+            root.current_hero = ""
             root.current = "another screen"
 
 Example
@@ -168,7 +166,7 @@ Example
                 x: 24
 
                 FitImage:
-                    source: "kivymd/images/logo/kivymd-icon-512.png"
+                    source: "https://github.com/kivymd/internal/raw/main/logo/kivymd_logo_blue.png"
                     size_hint: None, None
                     size: hero_from.size
 
@@ -177,7 +175,7 @@ Example
                 pos_hint: {"center_x": .5}
                 y: "36dp"
                 on_release:
-                    root.current_heroes = ["hero"]
+                    root.current_hero = "hero"
                     root.current = "screen B"
 
         MDScreen:
@@ -187,7 +185,6 @@ Example
 
             MDHeroTo:
                 id: hero_to
-                tag: "hero"
                 size_hint: None, None
                 size: "220dp", "220dp"
                 pos_hint: {"center_x": .5, "center_y": .5}
@@ -197,7 +194,7 @@ Example
                 pos_hint: {"center_x": .5}
                 y: "52dp"
                 on_release:
-                    root.current_heroes = []
+                    root.current_hero = ""
                     root.current = "screen C"
 
             MDRaisedButton:
@@ -205,7 +202,7 @@ Example
                 pos_hint: {"center_x": .5}
                 y: "8dp"
                 on_release:
-                    root.current_heroes = ["hero"]
+                    root.current_hero = "hero"
                     root.current = "screen A"
 
         MDScreen:
@@ -286,7 +283,7 @@ background color of the hero during the flight between the screens:
                 pos_hint: {"center_x": .5}
                 y: "36dp"
                 on_release:
-                    root.current_heroes = ["hero"]
+                    root.current_hero = "hero"
                     root.current = "screen B"
 
         MDScreen:
@@ -296,7 +293,6 @@ background color of the hero during the flight between the screens:
 
             MDHeroTo:
                 id: hero_to
-                tag: "hero"
                 size_hint: None, None
                 size: "220dp", "220dp"
                 pos_hint: {"center_x": .5, "center_y": .5}
@@ -306,7 +302,7 @@ background color of the hero during the flight between the screens:
                 pos_hint: {"center_x": .5}
                 y: "36dp"
                 on_release:
-                    root.current_heroes = ["hero"]
+                    root.current_hero = "hero"
                     root.current = "screen A"
     '''
 
@@ -374,7 +370,7 @@ Usage with ScrollView
             radius: 24
             box_radius: 0, 0, 24, 24
             box_color: 0, 0, 0, .5
-            source: "kivymd/images/logo/kivymd-icon-512.png"
+            source: "image.jpg"
             size_hint: None, None
             size: root.size
             mipmap: True
@@ -403,7 +399,7 @@ Usage with ScrollView
 
         MDScreen:
             name: "screen B"
-            heroes_to: [hero_to]
+            hero_to: hero_to
 
             MDHeroTo:
                 id: hero_to
@@ -416,7 +412,7 @@ Usage with ScrollView
                 pos_hint: {"center_x": .5}
                 y: "36dp"
                 on_release:
-                    root.current_heroes = [hero_to.tag]
+                    root.current_hero = "hero"
                     root.current = "screen A"
     '''
 
@@ -445,8 +441,7 @@ Usage with ScrollView
 
         def on_release(self):
             def switch_screen(*args):
-                self.manager.current_heroes = [self.tag]
-                self.manager.ids.hero_to.tag = self.tag
+                self.manager.current_hero = self.tag
                 self.manager.current = "screen B"
 
             Clock.schedule_once(switch_screen, 0.2)
@@ -470,93 +465,6 @@ Usage with ScrollView
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/hero-usage-with-scrollview.gif
     :align: center
-
-Using multiple heroes at the same time
---------------------------------------
-
-.. code-block:: python
-
-    from kivy.lang import Builder
-
-    from kivymd.app import MDApp
-
-    KV = '''
-    MDScreenManager:
-
-        MDScreen:
-            name: "screen A"
-            md_bg_color: "lightblue"
-
-            MDHeroFrom:
-                id: hero_kivymd
-                tag: "kivymd"
-                size_hint: None, None
-                size: "200dp", "200dp"
-                pos_hint: {"top": .98}
-                x: 24
-
-                FitImage:
-                    source: "kivymd/images/logo/kivymd-icon-512.png"
-                    size_hint: None, None
-                    size: hero_kivymd.size
-
-            MDHeroFrom:
-                id: hero_kivy
-                tag: "kivy"
-                size_hint: None, None
-                size: "200dp", "200dp"
-                pos_hint: {"top": .98}
-                x: 324
-
-                FitImage:
-                    source: "data/logo/kivy-icon-512.png"
-                    size_hint: None, None
-                    size: hero_kivy.size
-
-            MDRaisedButton:
-                text: "Move Hero To Screen B"
-                pos_hint: {"center_x": .5}
-                y: "36dp"
-                on_release:
-                    root.current_heroes = ["kivymd", "kivy"]
-                    root.current = "screen B"
-
-        MDScreen:
-            name: "screen B"
-            heroes_to: hero_to_kivymd, hero_to_kivy
-            md_bg_color: "cadetblue"
-
-            MDHeroTo:
-                id: hero_to_kivy
-                tag: "kivy"
-                size_hint: None, None
-                pos_hint: {"center_x": .5, "center_y": .5}
-
-            MDHeroTo:
-                id: hero_to_kivymd
-                tag: "kivymd"
-                size_hint: None, None
-                pos_hint: {"right": 1, "top": 1}
-
-            MDRaisedButton:
-                text: "Move Hero To Screen A"
-                pos_hint: {"center_x": .5}
-                y: "36dp"
-                on_release:
-                    root.current_heroes = ["kivy", "kivymd"]
-                    root.current = "screen A"
-    '''
-
-
-    class Test(MDApp):
-        def build(self):
-            return Builder.load_string(KV)
-
-
-    Test().run()
-
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/hero-multiple-heroes.gif
-    :align: center
 """
 
 from kivy.properties import StringProperty
@@ -567,9 +475,6 @@ from kivymd.uix.boxlayout import MDBoxLayout
 class MDHeroFrom(MDBoxLayout):
     """
     The container from which the hero begins his flight.
-
-    For more information, see in the
-    :class:`~kivymd.uix.boxlayout.MDBoxLayout` class documentation.
 
     :Events:
         `on_transform_in`
@@ -582,7 +487,7 @@ class MDHeroFrom(MDBoxLayout):
     """
     Tag ID for heroes.
 
-    :attr:`tag` is an :class:`~kivy.properties.StringProperty`
+    :attr:`shift_right` is an :class:`~kivy.properties.StringProperty`
     and defaults to `''`.
     """
 
@@ -599,17 +504,4 @@ class MDHeroFrom(MDBoxLayout):
 
 
 class MDHeroTo(MDBoxLayout):
-    """
-    The container in which the hero comes.
-
-    For more information, see in the
-    :class:`~kivymd.uix.boxlayout.MDBoxLayout` class documentation.
-    """
-
-    tag = StringProperty(allownone=True)
-    """
-    Tag ID for heroes.
-
-    :attr:`tag` is an :class:`~kivy.properties.StringProperty`
-    and defaults to `''`.
-    """
+    """The container in which the hero comes."""

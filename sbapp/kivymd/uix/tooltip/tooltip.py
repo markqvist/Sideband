@@ -314,7 +314,7 @@ class MDTooltip(ThemableBehavior, HoverBehavior, TouchBehavior):
             Clock.schedule_once(self.animation_tooltip_dismiss)
 
     def on_show(self) -> None:
-        """Default display event handler."""
+        """Default dismiss event handler."""
 
     def on_dismiss(self) -> None:
         """
