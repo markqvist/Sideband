@@ -6,7 +6,8 @@ from kivy.metrics import dp
 from kivy.core.clipboard import Clipboard
 from kivymd.uix.card import MDCard
 from kivymd.uix.menu import MDDropdownMenu
-from kivymd.uix.behaviors import CommonElevationBehavior
+from kivymd.uix.behaviors import RoundedRectangularElevationBehavior, FakeRectangularElevationBehavior
+# from kivymd.uix.behaviors import CommonElevationBehavior
 from kivy.properties import StringProperty, BooleanProperty
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -21,7 +22,8 @@ else:
     from .helpers import ts_format, mdc
     from .helpers import color_received, color_delivered, color_propagated, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
 
-class ListLXMessageCard(MDCard, CommonElevationBehavior):
+# class ListLXMessageCard(MDCard, CommonElevationBehavior):
+class ListLXMessageCard(MDCard, FakeRectangularElevationBehavior):
     text = StringProperty()
     heading = StringProperty()
 
@@ -98,8 +100,10 @@ class Messages():
     def update_widget(self):
         if self.app.sideband.config["dark_ui"]:
             intensity_msgs = intensity_msgs_dark
+            mt_color = [1.0, 1.0, 1.0, 0.8]
         else:
             intensity_msgs = intensity_msgs_light
+            mt_color = [1.0, 1.0, 1.0, 0.95]
 
         for m in self.messages:
             if not m["hash"] in self.added_item_hashes:
@@ -142,6 +146,12 @@ class Messages():
                 )
                 item.sb_uid = m["hash"]
                 item.m = m
+                item.ids.heading_text.theme_text_color = "Custom"
+                item.ids.heading_text.text_color = mt_color
+                item.ids.content_text.theme_text_color = "Custom"
+                item.ids.content_text.text_color = mt_color
+                item.ids.msg_submenu.theme_text_color = "Custom"
+                item.ids.msg_submenu.text_color = mt_color
 
                 def gen_del(mhash, item):
                     def x():

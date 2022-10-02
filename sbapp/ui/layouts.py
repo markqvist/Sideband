@@ -988,7 +988,7 @@ MDNavigationLayout:
                                 on_release: root.ids.screen_manager.app.quit_action(self)
 
 <ListLXMessageCard>:
-    style: "elevated"
+    style: "filled"
     elevation: 2
     padding: dp(8)
     radius: [dp(4), dp(4), dp(4), dp(4)]
@@ -1003,8 +1003,8 @@ MDNavigationLayout:
         MDIconButton:
             id: msg_submenu
             icon: "dots-vertical"
-            theme_text_color: 'Custom'
-            text_color: rgba(255,255,255,230)
+            # theme_text_color: 'Custom'
+            # text_color: rgba(255,255,255,216)
             pos:
                 root.width - (self.width + root.padding[0] + dp(4)), root.height - (self.height + root.padding[0] + dp(4))
 
@@ -1013,8 +1013,8 @@ MDNavigationLayout:
             markup: True
             text: root.heading
             adaptive_size: True
-            theme_text_color: 'Custom'
-            text_color: rgba(255,255,255,230)
+            # theme_text_color: 'Custom'
+            # text_color: rgba(255,255,255,100)
             pos: 0, root.height - (self.height + root.padding[0] + dp(8))
 
         MDLabel:
@@ -1023,8 +1023,8 @@ MDNavigationLayout:
             # adaptive_size: True
             size_hint_y: None
             text_size: self.width, None
-            theme_text_color: 'Custom'
-            text_color: rgba(255,255,255,230)
+            # theme_text_color: 'Custom'
+            # text_color: rgba(255,255,255,216)
             height: self.texture_size[1]
 
 <MsgSync>
