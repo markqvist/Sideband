@@ -773,7 +773,15 @@ class SidebandApp(MDApp):
             self.widget_hide(self.root.ids.connectivity_rnode_label)
             self.widget_hide(self.root.ids.connectivity_use_rnode)
             self.widget_hide(self.root.ids.connectivity_rnode_cid)
-            self.widget_hide(self.root.ids.rnode_support_info)
+            self.widget_hide(self.root.ids.connectivity_modem_label)
+            self.widget_hide(self.root.ids.connectivity_use_modem)
+            self.widget_hide(self.root.ids.connectivity_modem_fields)
+            self.widget_hide(self.root.ids.connectivity_bluetooth_label)
+            self.widget_hide(self.root.ids.connectivity_use_bluetooth)
+            self.widget_hide(self.root.ids.connectivity_bluetooth_fields)
+            self.widget_hide(self.root.ids.connectivity_transport_label)
+            self.widget_hide(self.root.ids.connectivity_enable_transport)
+            # self.widget_hide(self.root.ids.rnode_support_info)
 
         def con_collapse_local(collapse=True):
             self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
@@ -875,16 +883,17 @@ class SidebandApp(MDApp):
                 self.root.ids.connectivity_use_rnode.bind(active=save_connectivity)
                 self.root.ids.connectivity_use_bluetooth.bind(active=save_connectivity)
 
-
         else:
             info = ""
 
             if self.sideband.reticulum.is_connected_to_shared_instance:
                 info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
+                info += "To get connectivity status, use the rnstatus utility.\n\n"
                 info += "To configure connectivity, edit the configuration file located at:\n\n"
                 info += str(RNS.Reticulum.configpath)
             else:
                 info =  "Sideband is currently running a standalone or master Reticulum instance on this system.\n\n"
+                info += "To get connectivity status, use the rnstatus utility.\n\n"
                 info += "To configure connectivity, edit the configuration file located at:\n\n"
                 info += str(RNS.Reticulum.configpath)
 
