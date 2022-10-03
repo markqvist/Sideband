@@ -18,7 +18,7 @@ clean:
 	-rm -r ./dist
 
 cleanbuildozer:
-	make -C sbapp clean
+	make -C sbapp cleanall
 
 cleanall: clean cleanbuildozer
 
