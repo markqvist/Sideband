@@ -71,7 +71,7 @@ class SidebandCore():
         # stream logger
         self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter)
 
-    def __init__(self, owner_app, is_service=False, is_client=False, android_app_dir=None):
+    def __init__(self, owner_app, is_service=False, is_client=False, android_app_dir=None, verbose=False):
         self.is_service = is_service
         self.is_client = is_client
 
@@ -80,6 +80,7 @@ class SidebandCore():
         else:
             self.is_standalone = False
 
+        self.log_verbose = verbose
         self.owner_app = owner_app
         self.reticulum = None
 
@@ -908,7 +909,12 @@ class SidebandCore():
             self.service_thread.start()
         
     def __start_jobs_immediate(self):
-        self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=2)
+        if self.log_verbose:
+            selected_level = 7
+        else:
+            selected_level = 2
+
+        self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=selected_level)
 
         if RNS.vendor.platformutils.get_platform() == "android":
             if not self.reticulum.is_connected_to_shared_instance:

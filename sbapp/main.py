@@ -1,15 +1,29 @@
+__version__ = "0.1.9"
+__variant__ = "beta"
+
+import sys
+import argparse
+parser = argparse.ArgumentParser(description="Reticulum Network Stack Daemon")
+parser.add_argument("-v", "--verbose", action='store_true', default=False, help="increase logging verbosity")
+parser.add_argument("--version", action="version", version="sideband {version}".format(version=__version__))
+args = parser.parse_args()
+
+print(sys.argv)
+sys.argv = [sys.argv[0]]
+
 import RNS
 import LXMF
 import time
-import sys
 import os
 import plyer
 import base64
 import threading
 
 from kivy.logger import Logger, LOG_LEVELS
-# Logger.setLevel(LOG_LEVELS["debug"])
-Logger.setLevel(LOG_LEVELS["error"])
+if args.verbose:
+    Logger.setLevel(LOG_LEVELS["debug"])
+else:
+    Logger.setLevel(LOG_LEVELS["error"])
 
 if RNS.vendor.platformutils.get_platform() != "android":
     local = os.path.dirname(__file__)
@@ -51,9 +65,6 @@ from kivy.metrics import dp
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
 
-__version__ = "0.1.9"
-__variant__ = "beta"
-
 dark_theme_text_color = "ddd"
 
 if RNS.vendor.platformutils.get_platform() == "android":
@@ -78,7 +89,7 @@ class SidebandApp(MDApp):
         if RNS.vendor.platformutils.get_platform() == "android":
             self.sideband = SidebandCore(self, is_client=True, android_app_dir=self.app_dir)
         else:
-            self.sideband = SidebandCore(self, is_client=False)
+            self.sideband = SidebandCore(self, is_client=False, verbose=args.verbose)
 
         self.update_ui_theme()
 
