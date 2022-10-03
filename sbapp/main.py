@@ -108,7 +108,9 @@ class SidebandApp(MDApp):
 
         if self.sideband.first_run:
             self.guide_action()
-            self.request_permissions()
+            def fp(delta_time):
+                self.request_permissions()
+            Clock.schedule_once(fp, 3)
         else:
             self.open_conversations()
 
@@ -199,12 +201,20 @@ class SidebandApp(MDApp):
 
     def check_permissions(self):
         if RNS.vendor.platformutils.get_platform() == "android":
-            if check_permission("android.permission.POST_NOTIFICATIONS"):
-                RNS.log("Have notification permissions")
+            mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+            Context = autoclass('android.content.Context')
+            NotificationManager = autoclass('android.app.NotificationManager')
+            notification_service = cast(NotificationManager, mActivity.getSystemService(Context.NOTIFICATION_SERVICE))
+
+            if notification_service.areNotificationsEnabled():
                 self.sideband.setpersistent("permissions.notifications", True)
             else:
-                RNS.log("Do not have notification permissions")
-                self.sideband.setpersistent("permissions.notifications", False)
+                if check_permission("android.permission.POST_NOTIFICATIONS"):
+                    RNS.log("Have notification permissions", RNS.LOG_DEBUG)
+                    self.sideband.setpersistent("permissions.notifications", True)
+                else:
+                    RNS.log("Do not have notification permissions")
+                    self.sideband.setpersistent("permissions.notifications", False)
         else:
             self.sideband.setpersistent("permissions.notifications", True)
 
@@ -214,7 +224,7 @@ class SidebandApp(MDApp):
     def request_notifications_permission(self):
         if RNS.vendor.platformutils.get_platform() == "android":
             if not check_permission("android.permission.POST_NOTIFICATIONS"):
-                RNS.log("Requesting notification permission")
+                RNS.log("Requesting notification permission", RNS.LOG_DEBUG)
                 request_permissions(["android.permission.POST_NOTIFICATIONS"])
             
         self.check_permissions()

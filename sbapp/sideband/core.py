@@ -436,8 +436,6 @@ class SidebandCore():
         pass
 
     def __db_init(self):
-        # TODO: Remove
-        print("------------------ DB INIT")
         db = sqlite3.connect(self.db_path)
         dbc = db.cursor()
 
@@ -458,8 +456,6 @@ class SidebandCore():
 
         db.commit()
         db.close()
-        # TODO: Remove
-        print("------------------ DB INIT DONE")
 
     def _db_initstate(self):
         db = sqlite3.connect(self.db_path)
