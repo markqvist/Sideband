@@ -6,7 +6,7 @@ apk:
 	mkdir -p ./dist
 
 fetchapk:
-	cp "./sbapp/bin/sideband-*-release.apk" ./dist/
+	cp ./sbapp/bin/sideband-*-release.apk ./dist/
 
 install:
 	make -C sbapp install
@@ -31,7 +31,7 @@ preparewheel:
 build_wheel:
 	python3 setup.py sdist bdist_wheel
 
-release: build_wheel apk
+release: build_wheel apk fetchapk
 
 upload:
 	@echo Ready to publish release, hit enter to continue
