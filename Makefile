@@ -4,7 +4,9 @@ devapk:
 apk:
 	make -C sbapp apk
 	mkdir -p ./dist
-	cp sbapp/bin/sideband-*-release.apk ./dist/
+
+fetchapk:
+	cp "./sbapp/bin/sideband-*-release.apk" ./dist/
 
 install:
 	make -C sbapp install
