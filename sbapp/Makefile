@@ -47,7 +47,8 @@ endif
 release:
 	buildozer android release
 
-postbuild: cleanrns
+postbuild:
+	$(MAKE) cleanrns
 
 apk: prepare prebake pacthfiles release postbuild
 
@@ -60,7 +61,7 @@ install:
 	adb install bin/sideband-$$(python ./gv.py)-arm64-v8a-release.apk
 
 console:
-	(adb logcat | grep python)
+	(adb logcat | grep "python\|sidebandservice")
 
 getrns:
 	(cp -rv ../../Reticulum/RNS ./;rm ./RNS/Utilities/RNS;rm ./RNS/__pycache__ -r)

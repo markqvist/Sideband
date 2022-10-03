@@ -22,6 +22,10 @@ cleanbuildozer:
 
 cleanall: clean cleanbuildozer
 
+preparewheel:
+	pyclean .
+	$(MAKE) -C sbapp cleanrns
+
 build_wheel:
 	python3 setup.py sdist bdist_wheel
 
