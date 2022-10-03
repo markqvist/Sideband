@@ -95,8 +95,8 @@ class SidebandCore():
             self.asset_dir     = plyer.storagepath.get_application_dir()+"/sbapp/assets"
 
         self.icon              = self.asset_dir+"/icon.png"
-        self.icon_48        = self.asset_dir+"/icon_48.png"
-        self.icon_32        = self.asset_dir+"/icon_32.png"
+        self.icon_48           = self.asset_dir+"/icon_48.png"
+        self.icon_32           = self.asset_dir+"/icon_32.png"
         self.notification_icon = self.asset_dir+"/notification_icon.png"
 
         if not os.path.isdir(self.app_dir+"/app_storage"):

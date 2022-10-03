@@ -242,6 +242,7 @@ class SidebandApp(MDApp):
 
     def build(self):
         FONT_PATH = self.sideband.asset_dir+"/fonts"
+        self.icon = self.sideband.asset_dir+"/icon.png"
         screen = Builder.load_string(root_layout)
 
         return screen
