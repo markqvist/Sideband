@@ -1058,6 +1058,7 @@ MDNavigationLayout:
         orientation: "horizontal"
         # spacing: "24dp"
         size_hint_y: None
+        padding: [0,0,dp(24),0]
         height: dp(48)
         MDLabel:
             id: trusted_switch_label
