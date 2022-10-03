@@ -91,6 +91,9 @@ class SidebandCore():
             self.app_dir = android_app_dir+"/io.unsigned.sideband/files/"
             self.rns_configdir = self.app_dir+"/app_storage/reticulum"
             self.asset_dir     = self.app_dir+"/app/assets"
+        elif RNS.vendor.platformutils.get_platform() == "darwin":
+            core_path          = os.path.abspath(__file__)
+            self.asset_dir     = core_path.replace("/sideband/core.py", "/assets")
         else:
             self.asset_dir     = plyer.storagepath.get_application_dir()+"/sbapp/assets"
 
