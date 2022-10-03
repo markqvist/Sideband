@@ -3,8 +3,8 @@ import RNS
 from os import environ
 
 from kivy.logger import Logger, LOG_LEVELS
-Logger.setLevel(LOG_LEVELS["debug"])
-# Logger.setLevel(LOG_LEVELS["error"])
+# Logger.setLevel(LOG_LEVELS["debug"])
+Logger.setLevel(LOG_LEVELS["error"])
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass, cast
