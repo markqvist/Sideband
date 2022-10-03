@@ -1,6 +1,7 @@
 import os
 import re
 import setuptools
+from pathlib import Path
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -34,6 +35,28 @@ def get_variant() -> str:
 __version__ = get_version()
 __variant__ = get_variant()
 
+def glob_paths(pattern):
+    out_files = []
+    src_path = os.path.join(os.path.dirname(__file__), "kivymd")
+
+    for root, dirs, files in os.walk(src_path):
+        for file in files:
+            if file.endswith(pattern):
+                filepath = os.path.join(str(Path(*Path(root).parts[1:])), file)
+                out_files.append(filepath.split(f"kivymd{os.sep}")[1])
+
+    return out_files
+
+package_data = {
+"": [
+    "assets/*",
+    "kivymd/fonts/*",
+    "kivymd/images/*",
+    "kivymd/*",
+    *glob_paths(".kv")
+    ]
+}
+
 print("Packaging Sideband "+__version__+" "+__variant__)
 
 setuptools.setup(
@@ -46,7 +69,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://unsigned.io/sideband",
     packages=setuptools.find_packages(),
-    package_data={'': ['kivymd/fonts/*','kivymd/images/*','kivymd/data/glsl/elevation/*']},
+    package_data=package_data,
     include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
