@@ -82,5 +82,8 @@ setuptools.setup(
         ]
     },
     install_requires=['rns>=0.3.12', 'lxmf>=0.1.8', 'kivy==2.1.0', 'plyer', "pillow"],
+    extras_require={
+        "macos": ["pyobjus"],
+    },
     python_requires='>=3.6',
 )
