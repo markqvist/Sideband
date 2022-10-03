@@ -7,8 +7,6 @@ parser = argparse.ArgumentParser(description="Reticulum Network Stack Daemon")
 parser.add_argument("-v", "--verbose", action='store_true', default=False, help="increase logging verbosity")
 parser.add_argument("--version", action="version", version="sideband {version}".format(version=__version__))
 args = parser.parse_args()
-
-print(sys.argv)
 sys.argv = [sys.argv[0]]
 
 import RNS
