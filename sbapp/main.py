@@ -240,7 +240,11 @@ class SidebandApp(MDApp):
 
     def build(self):
         FONT_PATH = self.sideband.asset_dir+"/fonts"
-        self.icon = self.sideband.asset_dir+"/icon.png"
+        if RNS.vendor.platformutils.is_darwin():
+            self.icon = self.sideband.asset_dir+"/icon_macos_formed.png"
+        else:
+            self.icon = self.sideband.asset_dir+"/icon.png"
+
         screen = Builder.load_string(root_layout)
 
         return screen
@@ -1020,13 +1024,13 @@ class SidebandApp(MDApp):
     def identity_copy_action(self, sender=None):
         c_yes_button = MDFlatButton(text="Yes, copy my key")
         c_no_button = MDFlatButton(text="No, go back")
-        c_dialog = MDDialog(text="[b]Caution![/b]\n\nYour Identity key will be copied to the system clipboard. Take extreme care that no untrusted app steals your key by reading the clipboard data. Clear the system clipboard immediately after pasting your key where you need it.\n\nAre you sure that you wish to proceed?", buttons=[ c_no_button, c_yes_button ],elevation=0)
+        c_dialog = MDDialog(text="[b]Caution![/b]\n\nYour Identity key will be copied to the system clipboard. Take extreme care that no untrusted app steals your key by reading the clipboard data. Clear the system clipboard immediately after pasting your key where you need it.\n\nAre you sure that you wish to proceed?", buttons=[ c_no_button, c_yes_button ])
         def c_dl_no(s):
             c_dialog.dismiss()
         def c_dl_yes(s):
             c_dialog.dismiss()
             yes_button = MDFlatButton(text="OK")
-            dialog = MDDialog(text="Your Identity key was copied to the system clipboard", buttons=[ yes_button ],elevation=0)
+            dialog = MDDialog(text="Your Identity key was copied to the system clipboard", buttons=[ yes_button ])
             def dl_yes(s):
                 dialog.dismiss()
             yes_button.bind(on_release=dl_yes)
@@ -1046,7 +1050,7 @@ class SidebandApp(MDApp):
     def identity_restore_action(self, sender=None):
         c_yes_button = MDFlatButton(text="Yes, import the key")
         c_no_button = MDFlatButton(text="No, go back")
-        c_dialog = MDDialog(text="[b]Caution![/b]\n\nYou are about to import a new Identity key into Sideband. The currently active key will be irreversibly destroyed, and you will loose your LXMF address if you have not already backed up your current Identity key.\n\nAre you sure that you wish to import the key?", buttons=[ c_no_button, c_yes_button ],elevation=0)
+        c_dialog = MDDialog(text="[b]Caution![/b]\n\nYou are about to import a new Identity key into Sideband. The currently active key will be irreversibly destroyed, and you will loose your LXMF address if you have not already backed up your current Identity key.\n\nAre you sure that you wish to import the key?", buttons=[ c_no_button, c_yes_button ])
         def c_dl_no(s):
             c_dialog.dismiss()
         def c_dl_yes(s):
@@ -1061,7 +1065,7 @@ class SidebandApp(MDApp):
                     new_id.to_file(self.sideband.identity_path)
 
                 yes_button = MDFlatButton(text="OK")
-                dialog = MDDialog(text="[b]The provided Identity key data was imported[/b]\n\nThe app will now exit. Please restart Sideband to use the new Identity.", buttons=[ yes_button ],elevation=0)
+                dialog = MDDialog(text="[b]The provided Identity key data was imported[/b]\n\nThe app will now exit. Please restart Sideband to use the new Identity.", buttons=[ yes_button ])
                 def dl_yes(s):
                     dialog.dismiss()
                     self.quit_action(sender=self)
@@ -1070,7 +1074,7 @@ class SidebandApp(MDApp):
 
             except Exception as e:
                 yes_button = MDFlatButton(text="OK")
-                dialog = MDDialog(text="[b]The provided Identity key data was not valid[/b]\n\nThe error reported by Reticulum was:\n\n[i]"+str(e)+"[/i]\n\nNo Identity was imported into Sideband.", buttons=[ yes_button ],elevation=0)
+                dialog = MDDialog(text="[b]The provided Identity key data was not valid[/b]\n\nThe error reported by Reticulum was:\n\n[i]"+str(e)+"[/i]\n\nNo Identity was imported into Sideband.", buttons=[ yes_button ])
                 def dl_yes(s):
                     dialog.dismiss()
                 yes_button.bind(on_release=dl_yes)
