@@ -73,12 +73,11 @@ class SidebandApp(MDApp):
         self.title = "Sideband"
         self.app_state = SidebandApp.STARTING
         self.android_service = None
+        self.app_dir = plyer.storagepath.get_application_dir()
 
         if RNS.vendor.platformutils.get_platform() == "android":
-            self.app_dir = plyer.storagepath.get_application_dir()
             self.sideband = SidebandCore(self, is_client=True, android_app_dir=self.app_dir)
         else:
-            self.app_dir = None
             self.sideband = SidebandCore(self, is_client=False)
 
         self.update_ui_theme()
