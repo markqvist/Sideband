@@ -85,13 +85,15 @@ class SidebandCore():
         self.reticulum = None
 
         self.app_dir       = plyer.storagepath.get_home_dir()+"/.config/sideband"
+        if self.app_dir.startswith("file://"):
+            self.app_dir   = self.app_dir.replace("file://", "")
         
         self.rns_configdir = None
-        if RNS.vendor.platformutils.get_platform() == "android":
+        if RNS.vendor.platformutils.is_android():
             self.app_dir = android_app_dir+"/io.unsigned.sideband/files/"
             self.rns_configdir = self.app_dir+"/app_storage/reticulum"
             self.asset_dir     = self.app_dir+"/app/assets"
-        elif RNS.vendor.platformutils.get_platform() == "darwin":
+        elif RNS.vendor.platformutils.is_darwin():
             core_path          = os.path.abspath(__file__)
             self.asset_dir     = core_path.replace("/sideband/core.py", "/assets")
         else:
