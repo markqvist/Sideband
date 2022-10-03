@@ -161,7 +161,7 @@ class SidebandCore():
         self.config = {}
         # Settings
         self.config["display_name"] = "Anonymous Peer"
-        self.config["dark_ui"] = True
+        self.config["dark_ui"] = False
         self.config["start_announce"] = False
         self.config["propagation_by_default"] = False
         self.config["home_node_as_broadcast_repeater"] = False
