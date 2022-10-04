@@ -10,15 +10,17 @@ This also means that Sideband operates differently than what you might be used t
 
 The program currently includes basic functionality for secure and independent communication, and many useful features are planned for implementation. Sideband is currently released as a beta version. Please help make all the functionality a reality by supporting the development with donations.
 
-If you'd rather want to use a terminal-based LXMF client, you may want to take a look at [Nomad Network](https://github.com/markqvist/nomadnet)
+Sideband works well with the terminal-based LXMF client [Nomad Network](https://github.com/markqvist/nomadnet), which allows you to easily host Propagation Nodes for your LXMF network, and more.
 
 If you want to help develop this program, get in touch.
 
-## How do I get started?
+## Installation
 
-You can download a pre-compiled APK for your Android device on the [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
+For your Android devices, download an APK on the [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
 
-On Linux and macOS, you can install Sideband with ``pip``.
+A dmg file with a macOS app is also available on the  [latest release](https://github.com/markqvist/Sideband/releases/latest) page. You can also install via ``pip`` on macOS if you prefer.
+
+Aditionally, you can install Sideband with ``pip`` on Linux and macOS:
 
 ```bash
 # Install Sideband and dependencies
