@@ -2,7 +2,7 @@
 
 Sideband is an LXMF client for Android, Linux and macOS. It allows you to communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, or anything else Reticulum supports.
 
-![Screenshot](https://github.com/markqvist/Sideband/raw/main/docs/screenshots/screenshot_1.png)
+![Screenshot](https://github.com/markqvist/Sideband/raw/main/docs/screenshots/devices_small.webp)
 
 Sideband is completely free, end-to-end encrypted, permission-less, anonymous and infrastructure-less. Sideband uses the peer-to-peer and distributed messaging system [LXMF](https://github.com/markqvist/lxmf "LXMF"). There is no sign-up, no service providers, no "end-user license agreements", no data theft and no surveillance. You own the system.
 
