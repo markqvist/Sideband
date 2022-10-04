@@ -16,9 +16,9 @@ If you want to help develop this program, get in touch.
 
 ## Installation
 
-For your Android devices, download an APK on the [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
+For your Android devices, download an **APK** on the [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
 
-A dmg file with a macOS app is also available on the  [latest release](https://github.com/markqvist/Sideband/releases/latest) page. You can also install via ``pip`` on macOS if you prefer.
+A **DMG** file with a macOS app is also available on the  [latest release](https://github.com/markqvist/Sideband/releases/latest) page. You can also install via ``pip`` on macOS if you prefer.
 
 Aditionally, you can install Sideband with ``pip`` on Linux and macOS:
 
