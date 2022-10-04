@@ -23,8 +23,11 @@ A dmg file with a macOS app is also available on the  [latest release](https://g
 Aditionally, you can install Sideband with ``pip`` on Linux and macOS:
 
 ```bash
-# Install Sideband and dependencies
+# Install Sideband and dependencies on Linux
 pip install sbapp
+
+# Install Sideband and dependencies on macOS
+pip install sbapp[macos]
 
 # Run it
 sideband
@@ -50,4 +53,4 @@ You can help support the continued development of open, free and private communi
 
 <br/>
 
-*Device mockups generated with [deviceframes](https://deviceframes.com)*
+*Device screenshots generated with [deviceframes](https://deviceframes.com). Thanks!*
