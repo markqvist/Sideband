@@ -10,12 +10,11 @@ source.exclude_patterns = app_storage/*,venv/*,Makefile,./Makefil*,requirements,
 
 version.regex = __version__ = ['"](.*)['"]
 version.filename = %(source.dir)s/main.py
-android.numeric_version = 20221004
+android.numeric_version = 20221005
 
-requirements = python3==3.9.5,hostpython3==3.9.5,cryptography,cffi,pycparser,kivy==2.1.0,pygments,sdl2,sdl2_ttf==2.0.15,pillow,lxmf==0.1.8,netifaces,libbz2,pydenticon
+requirements = python3==3.9.5,hostpython3==3.9.5,cryptography,cffi,pycparser,kivy==2.1.0,pygments,sdl2,sdl2_ttf==2.0.15,pillow,lxmf==0.1.9,netifaces,libbz2,pydenticon
 p4a.local_recipes = ../Others/python-for-android/pythonforandroid/recipes
 requirements.source.kivymd = ../../Others/KivyMD-master
-# requirements.source.plyer = ../../Others/plyer
 
 icon.filename = %(source.dir)s/assets/icon.png
 presplash.filename = %(source.dir)s/assets/presplash_small.png
