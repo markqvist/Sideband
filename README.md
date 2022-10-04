@@ -47,3 +47,7 @@ You can help support the continued development of open, free and private communi
   3CPmacGm34qYvR6XWLVEJmi2aNe3PZqUuq
   ```
 - Ko-Fi: https://ko-fi.com/markqvist
+
+<br/>
+
+*Device mockups generated with [deviceframes](https://deviceframes.com)*
