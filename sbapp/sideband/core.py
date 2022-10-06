@@ -1161,8 +1161,9 @@ class SidebandCore():
             self.unread_conversation(context_dest)
             self.setstate("app.flags.unread_conversations", True)
 
-            if self.gui_display() == "conversations_screen" and self.gui_foreground():
-                should_notify = False
+            if RNS.vendor.platformutils.is_android():
+                if self.gui_display() == "conversations_screen" and self.gui_foreground():
+                    should_notify = False
 
         if self.is_client:
             should_notify = False
