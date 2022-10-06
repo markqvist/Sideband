@@ -622,18 +622,22 @@ class SidebandCore():
             return None
         else:
             announces = []
+            added_dests = []
             for entry in result:
                 try:
-                    announce = {
-                        "dest": entry[2],
-                        "data": entry[3].decode("utf-8"),
-                        "time": entry[1],
-                        "type": entry[4]
-                    }
-                    announces.append(announce)
+                    if not entry[2] in added_dests:
+                        announce = {
+                            "dest": entry[2],
+                            "data": entry[3].decode("utf-8"),
+                            "time": entry[1],
+                            "type": entry[4]
+                        }
+                        added_dests.append(entry[2])
+                        announces.append(announce)
                 except Exception as e:
                     RNS.log("Exception while fetching announce from DB: "+str(e), RNS.LOG_ERROR)
 
+            announces.reverse()
             return announces
 
     def _db_conversation(self, context_dest):
@@ -854,6 +858,9 @@ class SidebandCore():
     def _db_save_announce(self, destination_hash, app_data, dest_type="lxmf.delivery"):
         db = sqlite3.connect(self.db_path)
         dbc = db.cursor()
+
+        query = "delete from announce where (source=:source);"
+        dbc.execute(query, {"source": destination_hash})
 
         query = "INSERT INTO announce (received, source, data, dest_type) values (?, ?, ?, ?)"
         data = (

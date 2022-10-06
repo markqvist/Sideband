@@ -23,7 +23,12 @@ class Announces():
         self.context_dests = []
         self.added_item_dests = []
         self.list = None
-        self.update()
+        self.fetch_announces()
+        self.list = MDList()
+        # self.update()
+
+    def fetch_announces(self):
+        self.announces = self.app.sideband.list_announces()
 
     def reload(self):
         self.clear_list()
@@ -37,15 +42,31 @@ class Announces():
         self.added_item_dests = []
 
     def update(self):
-        self.clear_list()
-        self.announces = self.app.sideband.list_announces()
+        self.fetch_announces()
         self.update_widget()
         self.app.sideband.setstate("app.flags.new_announces", False)
 
     def update_widget(self):
         if self.list == None:
             self.list = MDList()
+
+        remove_widgets = []
+        for item in self.list.children:
+            if not item.sb_uid in (a["dest"] for a in self.announces):
+                remove_widgets.append(item)
             
+            else:
+                for announce in self.announces:
+                    if announce["dest"] == item.sb_uid:
+                        if announce["time"] > item.ts:
+                            remove_widgets.append(item)
+                            break
+
+        for item in remove_widgets:
+            if item.sb_uid in self.added_item_dests:
+                self.added_item_dests.remove(item.sb_uid)
+            self.list.remove_widget(item)
+
         for announce in self.announces:
             context_dest = announce["dest"]
             ts = announce["time"]
@@ -100,6 +121,7 @@ class Announces():
                 item = OneLineAvatarIconListItem(text=time_string+": "+disp_name, on_release=gen_info(time_string, context_dest, a_data, dest_type))
                 item.add_widget(iconl)
                 item.sb_uid = context_dest
+                item.ts = ts
 
                 def gen_del(dest, item):
                     def x():
@@ -191,7 +213,7 @@ class Announces():
                 item.add_widget(item.iconr)
                 
                 self.added_item_dests.append(context_dest)
-                self.list.add_widget(item)
+                self.list.add_widget(item, index=len(self.list.children))
 
     def get_widget(self):
         return self.list

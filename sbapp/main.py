@@ -149,6 +149,10 @@ class SidebandApp(MDApp):
         else:
             self.sideband.start()
 
+        # Pre-load announce stream widgets
+        self.init_announces_view()
+        self.announces_view.update()
+
 
     #################################################
     # General helpers                               #
@@ -245,6 +249,8 @@ class SidebandApp(MDApp):
         else:
             self.icon = self.sideband.asset_dir+"/icon.png"
 
+        self.announces_view = None
+
         screen = Builder.load_string(root_layout)
 
         return screen
@@ -304,6 +310,8 @@ class SidebandApp(MDApp):
 
         self.root.ids.screen_manager.app = self
         self.root.ids.app_version_info.text = "Sideband v"+__version__+" "+__variant__
+        self.root.ids.screen_manager.transition.duration = 0.25
+        self.root.ids.screen_manager.transition.bind(on_complete=self.screen_transition_complete)
 
         Clock.schedule_once(self.start_core, 3.5)
     
@@ -958,20 +966,23 @@ class SidebandApp(MDApp):
 
     ### Announce Stream screen
     ######################################
+    def init_announces_view(self, sender=None):
+        if not self.announces_view:
+            self.announces_view = Announces(self)
+            self.sideband.setstate("app.flags.new_announces", True)
+
+            for child in self.root.ids.announces_scrollview.children:
+                self.root.ids.announces_scrollview.remove_widget(child)
+
+            self.root.ids.announces_scrollview.add_widget(self.announces_view.get_widget())
+
     def announces_action(self, sender=None):
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.nav_drawer.set_state("closed")
-        self.announces_view = Announces(self)
-
-
-        # info = "The [b]Announce Stream[/b] feature is not yet implemented in Sideband.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project."
-        # self.root.ids.announces_info.text = info
-        # self.root.ids.announces_info.bind(on_ref_press=link_exec)
-
-        for child in self.root.ids.announces_scrollview.children:
-            self.root.ids.announces_scrollview.remove_widget(child)
-
-        self.root.ids.announces_scrollview.add_widget(self.announces_view.get_widget())
+        
+        if self.sideband.getstate("app.flags.new_announces"):
+            self.init_announces_view()
+            self.announces_view.update()
 
         self.root.ids.screen_manager.current = "announces_screen"
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
@@ -982,6 +993,9 @@ class SidebandApp(MDApp):
     def announce_filter_action(self, sender=None):
         pass
 
+    def screen_transition_complete(self, sender):
+        if self.root.ids.screen_manager.current == "announces_screen":
+            pass
 
     ### Keys screen
     ######################################
