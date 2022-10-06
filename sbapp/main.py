@@ -263,13 +263,7 @@ class SidebandApp(MDApp):
                 self.message_area_detect()
 
         elif self.root.ids.screen_manager.current == "conversations_screen":
-            if self.sideband.getstate("app.flags.new_conversations"):
-                RNS.log("Updating because of new conversations flag")
-                if self.conversations_view != None:
-                    self.conversations_view.update()
-
             if self.sideband.getstate("app.flags.unread_conversations"):
-                RNS.log("Updating because of unread messages flag")
                 if self.conversations_view != None:
                     self.conversations_view.update()
 
@@ -279,9 +273,12 @@ class SidebandApp(MDApp):
 
         elif self.root.ids.screen_manager.current == "announces_screen":
             if self.sideband.getstate("app.flags.new_announces"):
-                RNS.log("Updating because of new announces flag")
                 if self.announces_view != None:
                     self.announces_view.update()
+
+        if self.sideband.getstate("app.flags.new_conversations"):
+            if self.conversations_view != None:
+                self.conversations_view.update()
 
     def on_start(self):        
         self.last_exit_event = time.time()
@@ -414,6 +411,7 @@ class SidebandApp(MDApp):
             pass
         else:
             self.sideband.create_conversation(context_dest)
+            self.sideband.setstate("app.flags.new_conversations", True)
 
         self.open_conversation(context_dest)
 
@@ -449,6 +447,7 @@ class SidebandApp(MDApp):
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
     
         self.sideband.read_conversation(context_dest)
+        self.sideband.setstate("app.flags.unread_conversations", True)
 
     def close_messages_action(self, sender=None):
         self.open_conversations(direction="right")
@@ -542,12 +541,14 @@ class SidebandApp(MDApp):
     def open_conversations(self, direction="left"):
         self.root.ids.screen_manager.transition.direction = direction
         self.root.ids.nav_drawer.set_state("closed")
-        self.conversations_view = Conversations(self)
+        
+        if not self.conversations_view:
+            self.conversations_view = Conversations(self)
 
-        for child in self.root.ids.conversations_scrollview.children:
-            self.root.ids.conversations_scrollview.remove_widget(child)
+            for child in self.root.ids.conversations_scrollview.children:
+                self.root.ids.conversations_scrollview.remove_widget(child)
 
-        self.root.ids.conversations_scrollview.add_widget(self.conversations_view.get_widget())
+            self.root.ids.conversations_scrollview.add_widget(self.conversations_view.get_widget())
 
         self.root.ids.screen_manager.current = "conversations_screen"
         self.root.ids.messages_scrollview.active_conversation = None
@@ -653,7 +654,6 @@ class SidebandApp(MDApp):
                     n_address = dialog.d_content.ids["n_address_field"].text
                     n_name = dialog.d_content.ids["n_name_field"].text
                     n_trusted = dialog.d_content.ids["n_trusted"].active
-                    RNS.log("Create conversation "+str(n_address)+"/"+str(n_name)+"/"+str(n_trusted))
                     new_result = self.sideband.new_conversation(n_address, n_name, n_trusted)
 
                 except Exception as e:
@@ -687,7 +687,6 @@ class SidebandApp(MDApp):
     ######################################
     def information_action(self, sender=None):
         def link_exec(sender=None, event=None):
-            RNS.log("Click")
             import webbrowser
             webbrowser.open("https://unsigned.io/sideband")
 
@@ -744,23 +743,19 @@ class SidebandApp(MDApp):
             self.sideband.set_active_propagation_node(self.sideband.config["lxmf_propagation_node"])
 
         def save_dark_ui(sender=None, event=None):
-            RNS.log("Save UI mode")
             self.sideband.config["dark_ui"] = self.root.ids.settings_dark_ui.active
             self.sideband.save_configuration()
             self.update_ui_theme()
 
         def save_start_announce(sender=None, event=None):
-            RNS.log("Save announce")
             self.sideband.config["start_announce"] = self.root.ids.settings_start_announce.active
             self.sideband.save_configuration()
 
         def save_lxmf_delivery_by_default(sender=None, event=None):
-            RNS.log("Save propagation")
             self.sideband.config["propagation_by_default"] = self.root.ids.settings_lxmf_delivery_by_default.active
             self.sideband.save_configuration()
 
         def save_lxmf_sync_limit(sender=None, event=None):
-            RNS.log("Save propagation")
             self.sideband.config["lxmf_sync_limit"] = self.root.ids.settings_lxmf_sync_limit.active
             self.sideband.save_configuration()
 
@@ -856,7 +851,6 @@ class SidebandApp(MDApp):
             self.widget_hide(self.root.ids.connectivity_modem_fields, collapse)
             
         def save_connectivity(sender=None, event=None):
-            RNS.log("Save connectivity")
             self.sideband.config["connect_local"] = self.root.ids.connectivity_use_local.active
             self.sideband.config["connect_local_groupid"] = self.root.ids.connectivity_local_groupid.text
             self.sideband.config["connect_local_ifac_netname"] = self.root.ids.connectivity_local_ifac_netname.text
@@ -1108,7 +1102,6 @@ class SidebandApp(MDApp):
     
     def guide_action(self, sender=None):
         def link_exec(sender=None, event=None):
-            RNS.log("Click")
             import webbrowser
             webbrowser.open("https://unsigned.io/sideband")
 
@@ -1158,7 +1151,6 @@ Thank you very much for using Free Communications Systems.
 
     def map_action(self, sender=None):
         def link_exec(sender=None, event=None):
-            RNS.log("Click")
             import webbrowser
             webbrowser.open("https://unsigned.io/sideband")
 
@@ -1174,7 +1166,6 @@ Thank you very much for using Free Communications Systems.
 
     def broadcasts_action(self, sender=None):
         def link_exec(sender=None, event=None):
-            RNS.log("Click")
             import webbrowser
             webbrowser.open("https://unsigned.io/sideband")
 
