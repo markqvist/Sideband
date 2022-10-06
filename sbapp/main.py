@@ -280,8 +280,11 @@ class SidebandApp(MDApp):
             if self.conversations_view != None:
                 self.conversations_view.update()
 
-    def on_start(self):        
+    def on_start(self):
         self.last_exit_event = time.time()
+        self.root.ids.screen_manager.transition.duration = 0.25
+        self.root.ids.screen_manager.transition.bind(on_complete=self.screen_transition_complete)
+
         EventLoop.window.bind(on_keyboard=self.keyboard_event)
         EventLoop.window.bind(on_key_down=self.keydown_event)
         
@@ -307,10 +310,7 @@ class SidebandApp(MDApp):
 
         self.root.ids.screen_manager.app = self
         self.root.ids.app_version_info.text = "Sideband v"+__version__+" "+__variant__
-        self.root.ids.screen_manager.transition.duration = 0.25
-        self.root.ids.screen_manager.transition.bind(on_complete=self.screen_transition_complete)
-
-        Clock.schedule_once(self.start_core, 3.5)
+        Clock.schedule_once(self.start_core, 1.5)
     
     # Part of the focus hack fix
     def android_focus_fix(self, sender, val):
