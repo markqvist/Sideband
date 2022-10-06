@@ -310,7 +310,7 @@ class SidebandApp(MDApp):
 
         self.root.ids.screen_manager.app = self
         self.root.ids.app_version_info.text = "Sideband v"+__version__+" "+__variant__
-        Clock.schedule_once(self.start_core, 1.5)
+        Clock.schedule_once(self.start_core, 3.5)
     
     # Part of the focus hack fix
     def android_focus_fix(self, sender, val):
