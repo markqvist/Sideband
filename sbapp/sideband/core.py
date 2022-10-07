@@ -61,7 +61,7 @@ class SidebandCore():
     CONV_GROUP     = 0x02
     CONV_BROADCAST = 0x03
 
-    MAX_ANNOUNCES  = 48
+    MAX_ANNOUNCES  = 24
 
     JOB_INTERVAL   = 1
 
