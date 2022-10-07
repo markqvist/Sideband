@@ -16,7 +16,7 @@ If you want to help develop this program, get in touch.
 
 ## Installation
 
-For your Android devices, download an [APK on the latest release](https://github.com/markqvist/Sideband/releases/latest) page. If you prefer to install via F-Droid, you can add the [IzzyOnDroid Repository](https://android.izzysoft.de/repo/info) to your F-Droid client.
+For your Android devices, download an [APK on the latest release](https://github.com/markqvist/Sideband/releases/latest) page. If you prefer to install via F-Droid, you can add the [IzzyOnDroid Repository](https://android.izzysoft.de/repo/info) to your F-Droid client, which includes Sideband.
 
 A DMG file containing a macOS app bundle is also available on the  [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
 
