@@ -1,4 +1,5 @@
 import RNS
+import time
 
 from kivy.metrics import dp
 from kivy.uix.boxlayout import BoxLayout
@@ -55,6 +56,8 @@ class Conversations():
         self.app.sideband.setstate("app.flags.new_conversations", False)
 
     def update_widget(self):
+        us = time.time()
+        RNS.log("Updating conversation list widgets", RNS.LOG_DEBUG)
         if self.list == None:
             self.list = MDList()
             
@@ -229,6 +232,8 @@ class Conversations():
                 
                 self.added_item_dests.append(context_dest)
                 self.list.add_widget(item)
+
+        RNS.log("Updated conversation list widgets in "+RNS.prettytime(time.time()-us), RNS.LOG_DEBUG)
 
     def get_widget(self):
         return self.list

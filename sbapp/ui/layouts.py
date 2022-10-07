@@ -48,6 +48,43 @@ MDNavigationLayout:
 
 
         MDScreen:
+            name: "exit_screen"
+                 
+            AnchorLayout:
+                anchor_x: "center"
+                anchor_y: "center"
+                padding: dp(64)
+
+                BoxLayout:
+                    spacing: dp(36)
+                    orientation: 'vertical'
+                    size_hint_y: None
+
+                    MDLabel:
+                        id: connecting_info
+                        halign: "center"
+                        text: "Please Wait"
+                        font_size: "32dp"
+                        size_hint_y: None
+                        text_size: self.width, None
+                        height: self.texture_size[1]
+
+                    MDIconButton:
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        icon: "close-network-outline"
+                        icon_size: "72dp"
+
+                    MDLabel:
+                        id: connecting_info
+                        halign: "center"
+                        text: "Shutting down..."
+                        font_size: "32dp"
+                        size_hint_y: None
+                        text_size: self.width, None
+                        height: self.texture_size[1]
+
+
+        MDScreen:
             name: "conversations_screen"
             
             BoxLayout:

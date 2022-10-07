@@ -1,3 +1,4 @@
+__debug_build__ = False
 __version__ = "0.2.1"
 __variant__ = "beta"
 
@@ -18,7 +19,7 @@ import base64
 import threading
 
 from kivy.logger import Logger, LOG_LEVELS
-if args.verbose:
+if __debug_build__ or args.verbose:
     Logger.setLevel(LOG_LEVELS["debug"])
 else:
     Logger.setLevel(LOG_LEVELS["error"])
@@ -33,6 +34,10 @@ from kivy.core.clipboard import Clipboard
 from kivy.base import EventLoop
 from kivy.clock import Clock
 from kivy.lang.builder import Builder
+from kivy.effects.scroll import ScrollEffect
+from kivy.uix.screenmanager import ScreenManager
+from kivy.uix.screenmanager import FadeTransition, NoTransition
+from kivy.effects.dampedscroll import DampedScrollEffect
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from sideband.core import SidebandCore
@@ -85,9 +90,9 @@ class SidebandApp(MDApp):
         self.app_dir = plyer.storagepath.get_application_dir()
 
         if RNS.vendor.platformutils.get_platform() == "android":
-            self.sideband = SidebandCore(self, is_client=True, android_app_dir=self.app_dir)
+            self.sideband = SidebandCore(self, is_client=True, android_app_dir=self.app_dir, verbose=__debug_build__)
         else:
-            self.sideband = SidebandCore(self, is_client=False, verbose=args.verbose)
+            self.sideband = SidebandCore(self, is_client=False, verbose=(args.verbose or __debug_build__))
 
         self.update_ui_theme()
 
@@ -191,22 +196,41 @@ class SidebandApp(MDApp):
             mActivity.startActivity(shareIntent)
 
     def on_pause(self):
+        RNS.log("App pausing...", RNS.LOG_DEBUG)
         self.sideband.setstate("app.running", True)
         self.sideband.setstate("app.foreground", False)
         self.app_state = SidebandApp.PAUSED
         self.sideband.should_persist_data()
+        if self.conversations_view != None:
+            self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
+            self.conversations_view.update()
+            self.root.ids.conversations_scrollview.scroll = 1
+
+        RNS.log("App paused", RNS.LOG_DEBUG)
         return True
 
     def on_resume(self):
+        RNS.log("App resuming...", RNS.LOG_DEBUG)
         self.sideband.setstate("app.running", True)
         self.sideband.setstate("app.foreground", True)
         self.sideband.setstate("wants.clear_notifications", True)
         self.app_state = SidebandApp.ACTIVE
+        if self.conversations_view != None:
+            self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
+            self.conversations_view.update()
+            self.root.ids.conversations_scrollview.scroll = 1
+            
+        else:
+            RNS.log("Conversations view did not exist", RNS.LOG_DEBUG)
+
+        RNS.log("App resumed...", RNS.LOG_DEBUG)
 
     def on_stop(self):
+        RNS.log("App stopping...", RNS.LOG_DEBUG)
         self.sideband.setstate("app.running", False)
         self.sideband.setstate("app.foreground", False)
         self.app_state = SidebandApp.STOPPING
+        RNS.log("App stopped", RNS.LOG_DEBUG)
 
     def is_in_foreground(self):
         if self.app_state == SidebandApp.ACTIVE:
@@ -371,6 +395,10 @@ class SidebandApp(MDApp):
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.should_persist_data()
 
+        self.root.ids.screen_manager.transition = NoTransition()
+        self.root.ids.screen_manager.current = "exit_screen"
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
         self.sideband.setstate("app.running", False)
         self.sideband.setstate("app.foreground", False)
 
@@ -434,6 +462,8 @@ class SidebandApp(MDApp):
         self.root.ids.screen_manager.transition.direction = "left"
         self.messages_view = Messages(self, context_dest)
 
+        self.root.ids.messages_scrollview.effect_cls = ScrollEffect
+        self.root.ids.messages_scrollview.scroll_y = 1
         for child in self.root.ids.messages_scrollview.children:
             self.root.ids.messages_scrollview.remove_widget(child)
 
@@ -554,6 +584,7 @@ class SidebandApp(MDApp):
             for child in self.root.ids.conversations_scrollview.children:
                 self.root.ids.conversations_scrollview.remove_widget(child)
 
+            self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
             self.root.ids.conversations_scrollview.add_widget(self.conversations_view.get_widget())
 
         self.root.ids.screen_manager.current = "conversations_screen"
@@ -983,6 +1014,7 @@ class SidebandApp(MDApp):
             for child in self.root.ids.announces_scrollview.children:
                 self.root.ids.announces_scrollview.remove_widget(child)
 
+            self.root.ids.announces_scrollview.effect_cls = ScrollEffect
             self.root.ids.announces_scrollview.add_widget(self.announces_view.get_widget())
 
     def announces_action(self, sender=None):
@@ -1004,6 +1036,8 @@ class SidebandApp(MDApp):
 
     def screen_transition_complete(self, sender):
         if self.root.ids.screen_manager.current == "announces_screen":
+            pass
+        if self.root.ids.screen_manager.current == "conversations_screen":
             pass
 
     ### Keys screen
