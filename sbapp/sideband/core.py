@@ -947,8 +947,6 @@ class SidebandCore():
                 time.sleep(SidebandCore.PERIODIC_JOBS_INTERVAL)
                 if self.config["lxmf_periodic_sync"] == True:
                     if self.getpersistent("lxmf.lastsync") == None:
-                        # TODO: Remove
-                        RNS.log("Lastsync was none, setting now as initial", RNS.LOG_DEBUG)
                         self.setpersistent("lxmf.lastsync", time.time())
                     else:
                         now = time.time()
@@ -959,8 +957,6 @@ class SidebandCore():
                         RNS.log("Last sync was "+RNS.prettytime(now-lastsync)+" ago", RNS.LOG_DEBUG)
                         RNS.log("Next sync is "+("in "+RNS.prettytime(nextsync-now) if nextsync-now > 0 else "now"), RNS.LOG_DEBUG)
                         if now > nextsync:
-                            # TODO: Remove
-                            RNS.log("Syncing now...", RNS.LOG_DEBUG)
                             if self.request_lxmf_sync():
                                 RNS.log("Scheduled LXMF sync succeeded", RNS.LOG_DEBUG)
                                 self.setpersistent("lxmf.lastsync", time.time())
