@@ -1268,7 +1268,7 @@ MDNavigationLayout:
     MDBoxLayout:
         orientation: "horizontal"
         size_hint_y: None
-        padding: [0,0,dp(24),0]
+        padding: [0,0,dp(8),0]
         height: dp(48)
         MDLabel:
             id: "trusted_switch_label"

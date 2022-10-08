@@ -736,16 +736,16 @@ class SidebandApp(MDApp):
                 text="OK",
                 font_size=dp(20),
             )
-            no_button = MDFlatButton(
-                text="Cancel",
-                font_size=dp(20),
-            )
+
+            cancel_button = MDRectangleFlatButton(text="Cancel",font_size=sp(18))
+            create_button = MDRectangleFlatButton(text="Create",font_size=sp(18), theme_text_color="Custom", line_color=self.color_accept, text_color=self.color_accept)
+            
             dialog_content = NewConv()
             dialog = MDDialog(
                 title="New Conversation",
                 type="custom",
                 content_cls=dialog_content,
-                buttons=[ yes_button, no_button ],
+                buttons=[ create_button, cancel_button ],
                 # elevation=0,
             )
             dialog.d_content = dialog_content
@@ -763,7 +763,8 @@ class SidebandApp(MDApp):
                 if new_result:
                     dialog.d_content.ids["n_address_field"].error = False
                     dialog.dismiss()
-                    self.open_conversations()
+                    if self.conversations_view != None:
+                        self.conversations_view.update()
                 else:
                     dialog.d_content.ids["n_address_field"].error = True
                     # dialog.d_content.ids["n_error_field"].text = "Could not create conversation. Check your input."
@@ -774,8 +775,8 @@ class SidebandApp(MDApp):
             def dl_ds(s):
                 self.dialog_open = False
 
-            yes_button.bind(on_release=dl_yes)
-            no_button.bind(on_release=dl_no)
+            create_button.bind(on_release=dl_yes)
+            cancel_button.bind(on_release=dl_no)
 
             dialog.bind(on_dismiss=dl_ds)
             dialog.open()
