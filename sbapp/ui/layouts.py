@@ -1025,7 +1025,7 @@ MDNavigationLayout:
                                 on_release: root.ids.screen_manager.app.quit_action(self)
 
 <ListLXMessageCard>:
-    style: "filled"
+    style: "outlined"
     elevation: 2
     padding: dp(8)
     radius: [dp(4), dp(4), dp(4), dp(4)]

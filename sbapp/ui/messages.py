@@ -6,8 +6,8 @@ from kivy.metrics import dp
 from kivy.core.clipboard import Clipboard
 from kivymd.uix.card import MDCard
 from kivymd.uix.menu import MDDropdownMenu
-from kivymd.uix.behaviors import RoundedRectangularElevationBehavior, FakeRectangularElevationBehavior
-# from kivymd.uix.behaviors import CommonElevationBehavior
+# from kivymd.uix.behaviors import RoundedRectangularElevationBehavior, FakeRectangularElevationBehavior
+from kivymd.uix.behaviors import CommonElevationBehavior
 from kivy.properties import StringProperty, BooleanProperty
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -22,8 +22,8 @@ else:
     from .helpers import ts_format, mdc
     from .helpers import color_received, color_delivered, color_propagated, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
 
-# class ListLXMessageCard(MDCard, CommonElevationBehavior):
-class ListLXMessageCard(MDCard, FakeRectangularElevationBehavior):
+class ListLXMessageCard(MDCard):
+# class ListLXMessageCard(MDCard, FakeRectangularElevationBehavior):
     text = StringProperty()
     heading = StringProperty()
 
@@ -67,6 +67,11 @@ class Messages():
 
         for w in self.widgets:
             m = w.m
+            if self.app.sideband.config["dark_ui"]:
+                w.line_color = (1.0, 1.0, 1.0, 0.25)
+            else:
+                w.line_color = (1.0, 1.0, 1.0, 0.5)
+
             if m["state"] == LXMF.LXMessage.SENDING or m["state"] == LXMF.LXMessage.OUTBOUND:
                 msg = self.app.sideband.message(m["hash"])
                 if msg["state"] == LXMF.LXMessage.DELIVERED:

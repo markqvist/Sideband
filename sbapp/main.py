@@ -1,5 +1,6 @@
-__debug_build__ = False
-__version__ = "0.2.1"
+__debug_build__ = True
+__disable_shaders__ = True
+__version__ = "0.2.2"
 __variant__ = "beta"
 
 import sys
@@ -88,13 +89,14 @@ class SidebandApp(MDApp):
         self.app_state = SidebandApp.STARTING
         self.android_service = None
         self.app_dir = plyer.storagepath.get_application_dir()
+        self.shaders_disabled = __disable_shaders__
 
         if RNS.vendor.platformutils.get_platform() == "android":
             self.sideband = SidebandCore(self, is_client=True, android_app_dir=self.app_dir, verbose=__debug_build__)
         else:
             self.sideband = SidebandCore(self, is_client=False, verbose=(args.verbose or __debug_build__))
 
-        self.update_ui_theme()
+        self.set_ui_theme()
 
         self.conversations_view = None
         self.sync_dialog = None
@@ -165,15 +167,27 @@ class SidebandApp(MDApp):
     # General helpers                               #
     #################################################
 
-    def update_ui_theme(self):
+    def set_ui_theme(self):
         self.theme_cls.material_style = "M3"
         self.theme_cls.widget_style = "android"
         self.theme_cls.primary_palette = "BlueGray"
         self.theme_cls.accent_palette = "Orange"
+
         if self.sideband.config["dark_ui"]:
             self.theme_cls.theme_style = "Dark"
         else:
             self.theme_cls.theme_style = "Light"
+
+    def update_ui_theme(self):
+        if self.sideband.config["dark_ui"]:
+            self.theme_cls.theme_style = "Dark"
+        else:
+            self.theme_cls.theme_style = "Light"
+
+        st = time.time()
+        RNS.log("Recursing widgets...")
+        for wid in self.root.ids:
+            RNS.log("Found: "+str(wid)+str(self.root.ids[wid]))
 
     def set_bars_colors(self):
         if RNS.vendor.platformutils.get_platform() == "android":
@@ -463,14 +477,18 @@ class SidebandApp(MDApp):
         self.messages_view = Messages(self, context_dest)
 
         self.root.ids.messages_scrollview.effect_cls = ScrollEffect
-        self.root.ids.messages_scrollview.scroll_y = 1
         for child in self.root.ids.messages_scrollview.children:
             self.root.ids.messages_scrollview.remove_widget(child)
+            RNS.log("Removed "+str(child))
 
         list_widget = self.messages_view.get_widget()
 
+        # RNS.log(str(list_widget.children))
+        # RNS.log(str(list_widget.children[-1]))
+
         self.root.ids.messages_scrollview.add_widget(list_widget)
-        self.root.ids.messages_scrollview.scroll_y = 0
+        self.root.ids.messages_scrollview.scroll_y = 0.001
+
         self.root.ids.messages_toolbar.title = self.sideband.peer_display_name(context_dest)
         self.root.ids.messages_scrollview.active_conversation = context_dest
         self.sideband.setstate("app.active_conversation", context_dest)
@@ -510,6 +528,8 @@ class SidebandApp(MDApp):
                 context_dest = self.root.ids.messages_scrollview.active_conversation
                 if self.sideband.send_message(msg_content, context_dest, self.outbound_mode_propagation):
                     self.root.ids.message_text.text = ""
+                    
+                    self.root.ids.messages_scrollview.scroll_y = 0
                     self.jobs(0)
                 else:
                     self.messages_view.send_error_dialog = MDDialog(
