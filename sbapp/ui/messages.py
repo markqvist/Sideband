@@ -2,7 +2,7 @@ import time
 import RNS
 import LXMF
 
-from kivy.metrics import dp
+from kivy.metrics import dp,sp
 from kivy.core.clipboard import Clipboard
 from kivymd.uix.card import MDCard
 from kivymd.uix.menu import MDDropdownMenu
@@ -11,9 +11,11 @@ from kivymd.uix.behaviors import CommonElevationBehavior
 from kivy.properties import StringProperty, BooleanProperty
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.clock import Clock
 
-from kivymd.uix.button import MDFlatButton
+from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.dialog import MDDialog
+
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from ui.helpers import ts_format, mdc
@@ -160,21 +162,21 @@ class Messages():
 
                 def gen_del(mhash, item):
                     def x():
-                        yes_button = MDFlatButton(
-                            text="Yes",
-                        )
-                        no_button = MDFlatButton(
-                            text="No",
-                        )
+                        yes_button = MDRectangleFlatButton(text="Yes",font_size=sp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
+                        no_button = MDRectangleFlatButton(text="No",font_size=sp(18))
                         dialog = MDDialog(
-                            text="Delete message?",
+                            title="Delete message?",
                             buttons=[ yes_button, no_button ],
                             # elevation=0,
                         )
                         def dl_yes(s):
                             dialog.dismiss()
                             self.app.sideband.delete_message(mhash)
-                            self.reload()
+
+                            def cb(dt):
+                                self.reload()
+                            Clock.schedule_once(cb, 0.2)
+
                         def dl_no(s):
                             dialog.dismiss()
 

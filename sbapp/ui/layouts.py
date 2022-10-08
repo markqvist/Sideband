@@ -1132,21 +1132,29 @@ MDNavigationLayout:
 
 <ConvSettings>
     orientation: "vertical"
-    spacing: "24dp"
+    spacing: "16dp"
     size_hint_y: None
-    height: dp(148)
+    padding: [0, 0, 0, dp(8)]
+    height: self.minimum_height
+
+    MDTextField:
+        id: dest_field
+        hint_text: "Address"
+        text: root.context_dest
+        # disabled: True
+        font_size: dp(18)
 
     MDTextField:
         id: name_field
         hint_text: "Name"
         text: root.disp_name
-        font_size: dp(24)
+        font_size: dp(18)
 
     MDBoxLayout:
         orientation: "horizontal"
         # spacing: "24dp"
         size_hint_y: None
-        padding: [0,0,dp(24),0]
+        padding: [0,0,dp(8),0]
         height: dp(48)
         MDLabel:
             id: trusted_switch_label
@@ -1155,6 +1163,7 @@ MDNavigationLayout:
 
         MDSwitch:
             id: trusted_switch
+            pos_hint: {"center_y": 0.43}
             active: root.trusted
 
 <NewConv>

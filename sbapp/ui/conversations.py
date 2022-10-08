@@ -1,15 +1,16 @@
 import RNS
 import time
 
-from kivy.metrics import dp
+from kivy.metrics import dp,sp
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import StringProperty, BooleanProperty
 from kivymd.uix.list import MDList, IconLeftWidget, IconRightWidget, OneLineAvatarIconListItem
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.clock import Clock
 
-from kivymd.uix.button import MDFlatButton
+from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.dialog import MDDialog
 
 
@@ -23,6 +24,7 @@ class MsgSync(BoxLayout):
 
 class ConvSettings(BoxLayout):
     disp_name = StringProperty()
+    context_dest = StringProperty()
     trusted = BooleanProperty()
 
 
@@ -91,17 +93,12 @@ class Conversations():
                             disp_name = self.app.sideband.raw_display_name(dest)
                             is_trusted = self.app.sideband.is_trusted(dest)
 
-                            yes_button = MDFlatButton(
-                                text="Save",
-                                font_size=dp(20),
-                            )
-                            no_button = MDFlatButton(
-                                text="Cancel",
-                                font_size=dp(20),
-                            )
-                            dialog_content = ConvSettings(disp_name=disp_name, trusted=is_trusted)
+                            yes_button = MDRectangleFlatButton(text="Save",font_size=sp(18), theme_text_color="Custom", line_color=self.app.color_accept, text_color=self.app.color_accept)
+                            no_button = MDRectangleFlatButton(text="Cancel",font_size=sp(18))
+                            dialog_content = ConvSettings(disp_name=disp_name, context_dest=RNS.hexrep(dest, delimit=False), trusted=is_trusted)
                             dialog = MDDialog(
-                                title="Conversation with "+RNS.prettyhexrep(dest),
+                                title="Edit Conversation",
+                                text= "With "+RNS.prettyhexrep(dest),
                                 type="custom",
                                 content_cls=dialog_content,
                                 buttons=[ yes_button, no_button ],
@@ -126,7 +123,10 @@ class Conversations():
                                     RNS.log("Error while saving conversation settings: "+str(e), RNS.LOG_ERROR)
 
                                 dialog.dismiss()
-                                self.reload()
+
+                                def cb(dt):
+                                    self.reload()
+                                Clock.schedule_once(cb, 0.2)
 
                             def dl_no(s):
                                 dialog.dismiss()
@@ -143,14 +143,11 @@ class Conversations():
                 def gen_clear(dest, item):
                     def x():
                         dest = self.conversation_dropdown.context_dest
-                        yes_button = MDFlatButton(
-                            text="Yes",
-                        )
-                        no_button = MDFlatButton(
-                            text="No",
-                        )
+                        yes_button = MDRectangleFlatButton(text="Yes",font_size=sp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
+                        no_button = MDRectangleFlatButton(text="No",font_size=sp(18))
+
                         dialog = MDDialog(
-                            text="Clear all messages in conversation?",
+                            title="Clear all messages in conversation?",
                             buttons=[ yes_button, no_button ],
                             # elevation=0,
                         )
@@ -168,21 +165,19 @@ class Conversations():
 
                 def gen_del(dest, item):
                     def x():
-                        yes_button = MDFlatButton(
-                            text="Yes",
-                        )
-                        no_button = MDFlatButton(
-                            text="No",
-                        )
+                        yes_button = MDRectangleFlatButton(text="Yes",font_size=sp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
+                        no_button = MDRectangleFlatButton(text="No",font_size=sp(18))
                         dialog = MDDialog(
-                            text="Delete conversation?",
+                            title="Delete conversation?",
                             buttons=[ yes_button, no_button ],
                             # elevation=0,
                         )
                         def dl_yes(s):
                             dialog.dismiss()
                             self.app.sideband.delete_conversation(self.conversation_dropdown.context_dest)
-                            self.reload()
+                            def cb(dt):
+                                self.reload()
+                            Clock.schedule_once(cb, 0.2)
                         def dl_no(s):
                             dialog.dismiss()
 

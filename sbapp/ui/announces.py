@@ -10,7 +10,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
 
-from kivymd.uix.button import MDFlatButton, MDRectangleFlatButton
+from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.dialog import MDDialog
 
 if RNS.vendor.platformutils.get_platform() == "android":
@@ -84,9 +84,7 @@ class Announces():
 
                 def gen_info(ts, dest, name, dtype):
                     def x(sender):
-                        yes_button = MDFlatButton(
-                            text="OK",
-                        )
+                        yes_button = MDRectangleFlatButton(text="OK",font_size=sp(18))
                         
                         if dtype == "lxmf.delivery":
                             ad_text = "[size=22dp]LXMF Peer[/size]\n\nReceived: "+ts+"\nAnnounced Name: "+name+"\nAddress: "+RNS.prettyhexrep(dest)
@@ -209,6 +207,8 @@ class Announces():
                     width_mult=4,
                     elevation=1,
                     radius=dp(3),
+                    opening_transition="linear",
+                    opening_time=0.0,
                 )
 
                 def callback_factory(ref):
