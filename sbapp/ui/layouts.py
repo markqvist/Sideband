@@ -779,144 +779,191 @@ MDNavigationLayout:
 
                     MDBoxLayout:
                         orientation: "vertical"
-                        spacing: "24dp"
+                        spacing: 0
                         size_hint_y: None
                         height: self.minimum_height
-                        padding: [dp(28), dp(16), dp(28), dp(16)]
-                        
-
-                        MDLabel:
-                            text: ""
-                            font_style: "H6"
-
-                        MDLabel:
-                            text: "User Options"
-                            font_style: "H6"
-
-                        MDTextField:
-                            id: settings_display_name
-                            hint_text: "Display Name"
-                            text: ""
-                            max_text_length: 128
-                            font_size: dp(24)
-
-                        MDTextField:
-                            id: settings_lxmf_address
-                            hint_text: "Your LXMF Address"
-                            text: ""
-                            disabled: False
-                            max_text_length: 32
-                            font_size: dp(24)
-
-                        MDTextField:
-                            id: settings_propagation_node_address
-                            hint_text: "LXMF Propagation Node"
-                            disabled: False
-                            text: ""
-                            max_text_length: 32
-                            font_size: dp(24)
-
-                        MDTextField:
-                            id: settings_home_node_address
-                            hint_text: "Nomad Network Home Node"
-                            disabled: False
-                            text: ""
-                            max_text_length: 32
-                            font_size: dp(24)
+                        padding: [0, 0, 0, 0]
 
                         MDBoxLayout:
-                            orientation: "horizontal"
+                            orientation: "vertical"
+                            spacing: "16dp"
                             size_hint_y: None
-                            padding: [0,0,dp(24),0]
-                            height: dp(48)
+                            height: self.minimum_height
+                            padding: [dp(28), dp(16), dp(28), dp(16)]
                             
+
                             MDLabel:
-                                text: "Dark Mode UI"
+                                text: ""
                                 font_style: "H6"
 
-                            MDSwitch:
-                                id: settings_dark_ui
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),0]
-                            height: dp(48)
-                            
                             MDLabel:
-                                text: "Announce At App Startup"
+                                text: "User Options"
                                 font_style: "H6"
 
-                            MDSwitch:
-                                id: settings_start_announce
-                                pos_hint: {"center_y": 0.3}
-                                active: False
+                            MDTextField:
+                                id: settings_display_name
+                                hint_text: "Display Name"
+                                text: ""
+                                max_text_length: 128
+                                font_size: dp(24)
 
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),0]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Send via Propagation Node by default"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: settings_lxmf_delivery_by_default
-                                pos_hint: {"center_y": 0.3}
+                            MDTextField:
+                                id: settings_lxmf_address
+                                hint_text: "Your LXMF Address"
+                                text: ""
                                 disabled: False
-                                active: False
+                                max_text_length: 32
+                                font_size: dp(24)
 
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),0]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Limit each sync to 3 messages"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: settings_lxmf_sync_limit
-                                pos_hint: {"center_y": 0.3}
+                            MDTextField:
+                                id: settings_propagation_node_address
+                                hint_text: "LXMF Propagation Node"
                                 disabled: False
-                                active: False
+                                text: ""
+                                max_text_length: 32
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: settings_home_node_address
+                                hint_text: "Nomad Network Home Node"
+                                disabled: False
+                                text: ""
+                                max_text_length: 32
+                                font_size: dp(24)
+
 
                         MDBoxLayout:
-                            orientation: "horizontal"
+                            orientation: "vertical"
+                            # spacing: "24dp"
                             size_hint_y: None
-                            padding: [0,0,dp(24),0]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Use Home Node as Broadcast Repeater"
-                                font_style: "H6"
+                            height: self.minimum_height
+                            padding: [dp(28), dp(16), dp(28), dp(16)]
 
-                            MDSwitch:
-                                id: settings_home_node_as_broadcast_repeater
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-                                disabled: True
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                size_hint_y: None
+                                padding: [0,0,dp(24),dp(0)]
+                                height: dp(48)
+                                
+                                MDLabel:
+                                    text: "Dark Mode UI"
+                                    font_style: "H6"
 
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),0]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Send Telemetry to Home Node"
-                                font_style: "H6"
+                                MDSwitch:
+                                    id: settings_dark_ui
+                                    pos_hint: {"center_y": 0.3}
+                                    active: False
 
-                            MDSwitch:
-                                id: settings_telemetry_to_home_node
-                                pos_hint: {"center_y": 0.3}
-                                disabled: True
-                                active: False
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                size_hint_y: None
+                                padding: [0,0,dp(24),dp(0)]
+                                height: dp(48)
+                                
+                                MDLabel:
+                                    text: "Announce At App Startup"
+                                    font_style: "H6"
+
+                                MDSwitch:
+                                    id: settings_start_announce
+                                    pos_hint: {"center_y": 0.3}
+                                    active: False
+
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                size_hint_y: None
+                                padding: [0,0,dp(24),dp(0)]
+                                height: dp(48)
+                                
+                                MDLabel:
+                                    text: "Send via Propagation Node by default"
+                                    font_style: "H6"
+
+                                MDSwitch:
+                                    id: settings_lxmf_delivery_by_default
+                                    pos_hint: {"center_y": 0.3}
+                                    disabled: False
+                                    active: False
+
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                size_hint_y: None
+                                padding: [0,0,dp(24),dp(0)]
+                                height: dp(48)
+                                
+                                MDLabel:
+                                    text: "Limit each sync to 3 messages"
+                                    font_style: "H6"
+
+                                MDSwitch:
+                                    id: settings_lxmf_sync_limit
+                                    pos_hint: {"center_y": 0.3}
+                                    disabled: False
+                                    active: False
+
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                size_hint_y: None
+                                padding: [0,0,dp(24),dp(0)]
+                                height: dp(48)
+                                
+                                MDLabel:
+                                    id: settings_lxmf_sync_periodic
+                                    text: "Sync with Propagation Node periodically"
+                                    font_style: "H6"
+
+                                MDSwitch:
+                                    id: settings_lxmf_periodic_sync
+                                    pos_hint: {"center_y": 0.3}
+                                    disabled: False
+                                    active: False
+
+                            MDBoxLayout:
+                                id: lxmf_syncslider_container
+                                orientation: "vertical"
+                                size_hint_y: None
+                                padding: [0,0,dp(0),0]
+                                height: dp(68)
+
+                                MDSlider
+                                    min: 300
+                                    max: 172800
+                                    value: 43200
+                                    id: settings_lxmf_sync_interval
+                                    sensitivity: "all"
+                                    hint: False
+
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                size_hint_y: None
+                                padding: [0,0,dp(24),dp(0)]
+                                height: dp(48)
+                                
+                                MDLabel:
+                                    text: "Use Home Node as Broadcast Repeater"
+                                    font_style: "H6"
+
+                                MDSwitch:
+                                    id: settings_home_node_as_broadcast_repeater
+                                    pos_hint: {"center_y": 0.3}
+                                    active: False
+                                    disabled: True
+
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                size_hint_y: None
+                                padding: [0,0,dp(24),dp(0)]
+                                height: dp(48)
+                                
+                                MDLabel:
+                                    text: "Send Telemetry to Home Node"
+                                    font_style: "H6"
+
+                                MDSwitch:
+                                    id: settings_telemetry_to_home_node
+                                    pos_hint: {"center_y": 0.3}
+                                    disabled: True
+                                    active: False
         
 
     MDNavigationDrawer:

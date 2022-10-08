@@ -169,6 +169,8 @@ class SidebandCore():
         self.config["lxmf_propagation_node"] = None
         self.config["lxmf_sync_limit"] = None
         self.config["lxmf_sync_max"] = 3
+        self.config["lxmf_periodic_sync"] = False
+        self.config["lxmf_sync_interval"] = 43200
         self.config["last_lxmf_propagation_node"] = None
         self.config["nn_home_node"] = None
         # Connectivity
@@ -212,6 +214,10 @@ class SidebandCore():
         # Migration actions from earlier config formats
         if not "dark_ui" in self.config:
             self.config["dark_ui"] = True
+        if not "lxmf_periodic_sync" in self.config:
+            self.config["lxmf_periodic_sync"] = False
+        if not "lxmf_sync_interval" in self.config:
+            self.config["lxmf_sync_interval"] = 43200
 
         # Make sure we have a database
         if not os.path.isfile(self.db_path):

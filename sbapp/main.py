@@ -508,7 +508,7 @@ class SidebandApp(MDApp):
     def message_send_action(self, sender=None):
         if self.root.ids.message_text.text == "":
             return
-            
+
         def cb(dt):
             self.message_send_dispatch(sender)
         Clock.schedule_once(cb, 0.20)
@@ -837,6 +837,25 @@ class SidebandApp(MDApp):
                 self.sideband.config["lxmf_sync_limit"] = self.root.ids.settings_lxmf_sync_limit.active
                 self.sideband.save_configuration()
 
+            def save_lxmf_periodic_sync(sender=None, event=None, save=True):
+                if self.root.ids.settings_lxmf_periodic_sync.active:
+                    self.widget_hide(self.root.ids.lxmf_syncslider_container, False)
+                else:
+                    self.widget_hide(self.root.ids.lxmf_syncslider_container, True)
+
+                if save:
+                    self.sideband.config["lxmf_periodic_sync"] = self.root.ids.settings_lxmf_periodic_sync.active
+                    self.sideband.save_configuration()
+
+            def sync_interval_change(sender=None, event=None, save=True):
+                interval = (self.root.ids.settings_lxmf_sync_interval.value//300)*300
+                interval_text = RNS.prettytime(interval)
+                pre = self.root.ids.settings_lxmf_sync_periodic.text
+                self.root.ids.settings_lxmf_sync_periodic.text = "Auto sync every "+interval_text
+                if pre != self.root.ids.settings_lxmf_sync_periodic.text:
+                    if save:
+                        self.sideband.save_configuration()
+
             self.root.ids.settings_lxmf_address.text = RNS.hexrep(self.sideband.lxmf_destination.hash, delimit=False)
 
             self.root.ids.settings_display_name.text = self.sideband.config["display_name"]
@@ -860,6 +879,15 @@ class SidebandApp(MDApp):
 
             self.root.ids.settings_lxmf_delivery_by_default.active = self.sideband.config["propagation_by_default"]
             self.root.ids.settings_lxmf_delivery_by_default.bind(active=save_lxmf_delivery_by_default)
+
+            self.root.ids.settings_lxmf_periodic_sync.active = self.sideband.config["lxmf_periodic_sync"]
+            self.root.ids.settings_lxmf_periodic_sync.bind(active=save_lxmf_periodic_sync)
+            save_lxmf_periodic_sync(save=False)
+
+            self.root.ids.settings_lxmf_sync_interval.bind(value=sync_interval_change)
+            self.root.ids.settings_lxmf_sync_interval.value = self.sideband.config["lxmf_sync_interval"]
+            sync_interval_change(save=False)
+
 
             if self.sideband.config["lxmf_sync_limit"] == None or self.sideband.config["lxmf_sync_limit"] == False:
                 sync_limit = False
