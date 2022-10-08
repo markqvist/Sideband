@@ -9,6 +9,7 @@ from kivymd.uix.menu import MDDropdownMenu
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
+from kivy.core.clipboard import Clipboard
 
 from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.dialog import MDDialog
@@ -155,6 +156,12 @@ class Announces():
                         self.app.conversation_from_announce_action(dest)
                     return x
 
+                def gen_copy_addr(dest, item):
+                    def x():
+                        Clipboard.copy(RNS.hexrep(dest, delimit=False))
+                        item.dmenu.dismiss()
+                    return x
+
                 def gen_set_node(dest, item):
                     def x():
                         item.dmenu.dismiss()
@@ -172,6 +179,12 @@ class Announces():
                             "on_release": gen_conv(context_dest, item)
                         },
                         {
+                            "viewclass": "OneLineListItem",
+                            "text": "Copy address",
+                            "height": dp(40),
+                            "on_release": gen_copy_addr(context_dest, item)
+                        },
+                        {
                             "text": "Delete Announce",
                             "viewclass": "OneLineListItem",
                             "height": dp(40),
@@ -186,6 +199,12 @@ class Announces():
                             "text": "Use this Propagation Node",
                             "height": dp(40),
                             "on_release": gen_set_node(context_dest, item)
+                        },
+                        {
+                            "viewclass": "OneLineListItem",
+                            "text": "Copy address",
+                            "height": dp(40),
+                            "on_release": gen_copy_addr(context_dest, item)
                         },
                         {
                             "text": "Delete Announce",
