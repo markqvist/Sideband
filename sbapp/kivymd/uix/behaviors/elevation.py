@@ -379,6 +379,7 @@ from kivy.properties import (
 from kivy.uix.widget import Widget
 
 from kivymd import glsl_path
+from kivymd.app import MDApp
 
 
 # FIXME: Add shadow manipulation with canvas instructions such as
@@ -606,16 +607,26 @@ class CommonElevationBehavior(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        if hasattr(MDApp.get_running_app(), "shaders_disabled") and MDApp.get_running_app().shaders_disabled:
+            self.shaders_disabled = True
+        else:
+            self.shaders_disabled = False
+
         with self.canvas.before:
             self.context = RenderContext(use_parent_projection=True)
         with self.context:
-            self.rect = RoundedRectangle(pos=self.pos, size=self.size)
+            if self.shaders_disabled:
+                self.rect = None
+                del self.rect
+            else:
+                self.rect = RoundedRectangle(pos=self.pos, size=self.size)
 
         self.after_init()
 
     def after_init(self, *args):
         Clock.schedule_once(self.check_for_relative_behavior)
-        Clock.schedule_once(self.set_shader_string)
+        if not self.shaders_disabled:
+            Clock.schedule_once(self.set_shader_string)
         Clock.schedule_once(lambda x: self.on_elevation(self, self.elevation))
         self.on_pos()
 
