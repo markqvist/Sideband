@@ -480,7 +480,6 @@ class SidebandApp(MDApp):
         self.root.ids.messages_scrollview.effect_cls = ScrollEffect
         for child in self.root.ids.messages_scrollview.children:
             self.root.ids.messages_scrollview.remove_widget(child)
-            RNS.log("Removed "+str(child))
 
         list_widget = self.messages_view.get_widget()
 

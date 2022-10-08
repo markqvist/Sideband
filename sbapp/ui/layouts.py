@@ -925,6 +925,7 @@ MDNavigationLayout:
 
         ContentNavigationDrawer:
             ScrollView:
+                id: nav_scrollview
                 DrawerList:
                     id: md_list
                     

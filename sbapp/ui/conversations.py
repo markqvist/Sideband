@@ -32,6 +32,7 @@ class Conversations():
         self.context_dests = []
         self.added_item_dests = []
         self.list = None
+        self.conversation_dropdown = None
         self.update()
 
     def reload(self):
@@ -85,6 +86,7 @@ class Conversations():
 
                 def gen_edit(dest, item):
                     def x():
+                        dest = self.conversation_dropdown.context_dest
                         try:
                             disp_name = self.app.sideband.raw_display_name(dest)
                             is_trusted = self.app.sideband.is_trusted(dest)
@@ -140,6 +142,7 @@ class Conversations():
 
                 def gen_clear(dest, item):
                     def x():
+                        dest = self.conversation_dropdown.context_dest
                         yes_button = MDFlatButton(
                             text="Yes",
                         )
@@ -178,7 +181,7 @@ class Conversations():
                         )
                         def dl_yes(s):
                             dialog.dismiss()
-                            self.app.sideband.delete_conversation(dest)
+                            self.app.sideband.delete_conversation(self.conversation_dropdown.context_dest)
                             self.reload()
                         def dl_no(s):
                             dialog.dismiss()
@@ -189,44 +192,51 @@ class Conversations():
                         dialog.open()
                     return x
 
-                dm_items = [
-                    {
-                        "viewclass": "OneLineListItem",
-                        "text": "Edit",
-                        "height": dp(40),
-                        "on_release": gen_edit(context_dest, item)
-                    },
-                    {
-                        "text": "Clear Messages",
-                        "viewclass": "OneLineListItem",
-                        "height": dp(40),
-                        "on_release": gen_clear(context_dest, item)
-                    },
-                    {
-                        "text": "Delete Conversation",
-                        "viewclass": "OneLineListItem",
-                        "height": dp(40),
-                        "on_release": gen_del(context_dest, item)
-                    }
-                ]
+                if self.conversation_dropdown == None:
+                    dmi_h = 40
+                    dm_items = [
+                        {
+                            "viewclass": "OneLineListItem",
+                            "text": "Edit",
+                            "height": dp(dmi_h),
+                            "on_release": gen_edit(context_dest, item)
+                        },
+                        {
+                            "text": "Clear Messages",
+                            "viewclass": "OneLineListItem",
+                            "height": dp(dmi_h),
+                            "on_release": gen_clear(context_dest, item)
+                        },
+                        {
+                            "text": "Delete Conversation",
+                            "viewclass": "OneLineListItem",
+                            "height": dp(dmi_h),
+                            "on_release": gen_del(context_dest, item)
+                        }
+                    ]
+
+                    self.conversation_dropdown = MDDropdownMenu(
+                        caller=None,
+                        items=dm_items,
+                        position="auto",
+                        width_mult=4,
+                        elevation=1,
+                        radius=dp(3),
+                        opening_transition="linear",
+                        opening_time=0.0,
+                    )
 
                 item.iconr = IconRightWidget(icon="dots-vertical");
-                
-                item.dmenu = MDDropdownMenu(
-                    caller=item.iconr,
-                    items=dm_items,
-                    position="auto",
-                    width_mult=4,
-                    elevation=1,
-                    radius=dp(3),
-                )
+                item.dmenu = self.conversation_dropdown
 
-                def callback_factory(ref):
+                def callback_factory(ref, dest):
                     def x(sender):
+                        self.conversation_dropdown.context_dest = dest
+                        ref.dmenu.caller = ref.iconr
                         ref.dmenu.open()
                     return x
 
-                item.iconr.bind(on_release=callback_factory(item))
+                item.iconr.bind(on_release=callback_factory(item, context_dest))
 
                 item.add_widget(item.iconr)
                 
