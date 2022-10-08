@@ -881,21 +881,27 @@ class SidebandCore():
         db = sqlite3.connect(self.db_path)
         dbc = db.cursor()
 
+        query = "delete from announce where id is NULL or id not in (select id from announce order by received desc limit "+str(self.MAX_ANNOUNCES)+")"
+        dbc.execute(query)
+
         query = "delete from announce where (source=:source);"
         dbc.execute(query, {"source": destination_hash})
 
-        query = "INSERT INTO announce (received, source, data, dest_type) values (?, ?, ?, ?)"
+        now = time.time()
+        hash_material = str(time).encode("utf-8")+destination_hash+app_data+dest_type.encode("utf-8")
+        announce_hash = RNS.Identity.full_hash(hash_material)
+
+        query = "INSERT INTO announce (id, received, source, data, dest_type) values (?, ?, ?, ?, ?)"
         data = (
-            time.time(),
+            announce_hash,
+            now,
             destination_hash,
             app_data,
             dest_type,
         )
 
         dbc.execute(query, data)
-
-        query = "delete from announce where id not in (select id from announce order by received desc limit "+str(self.MAX_ANNOUNCES)+")"
-        dbc.execute(query)
+        db.commit()
 
         db.commit()
         db.close()

@@ -1,7 +1,7 @@
 import time
 import RNS
 
-from kivy.metrics import dp
+from kivy.metrics import dp,sp
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import StringProperty, BooleanProperty
 from kivymd.uix.list import MDList, IconLeftWidget, IconRightWidget, OneLineAvatarIconListItem
@@ -10,7 +10,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
 
-from kivymd.uix.button import MDFlatButton
+from kivymd.uix.button import MDFlatButton, MDRectangleFlatButton
 from kivymd.uix.dialog import MDDialog
 
 if RNS.vendor.platformutils.get_platform() == "android":
@@ -128,15 +128,12 @@ class Announces():
 
                 def gen_del(dest, item):
                     def x():
-                        yes_button = MDFlatButton(
-                            text="Yes",
-                        )
-                        no_button = MDFlatButton(
-                            text="No",
-                        )
+                        yes_button = MDRectangleFlatButton(text="Yes",font_size=sp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
+                        no_button = MDRectangleFlatButton(text="No",font_size=sp(18))
                         dialog = MDDialog(
-                            text="Delete announce?",
+                            title="Delete announce?",
                             buttons=[ yes_button, no_button ],
+                            padding=[0,0,dp(32),0]
                             # elevation=0,
                         )
                         def dl_yes(s):
