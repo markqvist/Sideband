@@ -373,6 +373,9 @@ class SidebandCore():
     def clear_conversation(self, context_dest):
         self._db_clear_conversation(context_dest)
 
+    def delete_announce(self, context_dest):
+        self._db_delete_announce(context_dest)
+
     def delete_conversation(self, context_dest):
         self._db_clear_conversation(context_dest)
         self._db_delete_conversation(context_dest)
@@ -666,7 +669,7 @@ class SidebandCore():
             return conv
 
     def _db_clear_conversation(self, context_dest):
-        RNS.log("Clearing conversation with "+RNS.prettyhexrep(context_dest))
+        RNS.log("Clearing conversation with "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
         db = sqlite3.connect(self.db_path)
         dbc = db.cursor()
 
@@ -677,7 +680,7 @@ class SidebandCore():
         db.close()
 
     def _db_delete_conversation(self, context_dest):
-        RNS.log("Deleting conversation with "+RNS.prettyhexrep(context_dest))
+        RNS.log("Deleting conversation with "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
         db = sqlite3.connect(self.db_path)
         dbc = db.cursor()
 
@@ -687,8 +690,19 @@ class SidebandCore():
 
         db.close()
 
+    def _db_delete_announce(self, context_dest):
+        RNS.log("Deleting announce with "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
+        db = sqlite3.connect(self.db_path)
+        dbc = db.cursor()
+
+        query = "delete from announce where (source=:ctx_dst);"
+        dbc.execute(query, {"ctx_dst": context_dest})
+        db.commit()
+
+        db.close()
+
     def _db_create_conversation(self, context_dest, name = None, trust = False):
-        RNS.log("Creating conversation for "+RNS.prettyhexrep(context_dest))
+        RNS.log("Creating conversation for "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
         db = sqlite3.connect(self.db_path)
         dbc = db.cursor()
 

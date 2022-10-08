@@ -8,6 +8,7 @@ from kivymd.uix.list import MDList, IconLeftWidget, IconRightWidget, OneLineAvat
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.clock import Clock
 
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
@@ -42,9 +43,11 @@ class Announces():
         self.added_item_dests = []
 
     def update(self):
+        us = time.time()
         self.fetch_announces()
         self.update_widget()
         self.app.sideband.setstate("app.flags.new_announces", False)
+        RNS.log("Updated announce stream widgets in "+RNS.prettytime(time.time()-us), RNS.LOG_DEBUG)
 
     def update_widget(self):
         if self.list == None:
@@ -138,8 +141,10 @@ class Announces():
                         )
                         def dl_yes(s):
                             dialog.dismiss()
-                            self.app.sideband.delete_announce(dest)
-                            self.reload()
+                            def cb(dt):
+                                self.app.sideband.delete_announce(dest)
+                                self.update()
+                            Clock.schedule_once(cb, 0.2)
                         def dl_no(s):
                             dialog.dismiss()
 
@@ -171,12 +176,12 @@ class Announces():
                             "height": dp(40),
                             "on_release": gen_conv(context_dest, item)
                         },
-                        # {
-                        #     "text": "Delete Announce",
-                        #     "viewclass": "OneLineListItem",
-                        #     "height": dp(40),
-                        #     "on_release": gen_del(context_dest, item)
-                        # }
+                        {
+                            "text": "Delete Announce",
+                            "viewclass": "OneLineListItem",
+                            "height": dp(40),
+                            "on_release": gen_del(context_dest, item)
+                        }
                     ]
 
                 elif dest_type == "lxmf.propagation":
@@ -187,6 +192,12 @@ class Announces():
                             "height": dp(40),
                             "on_release": gen_set_node(context_dest, item)
                         },
+                        {
+                            "text": "Delete Announce",
+                            "viewclass": "OneLineListItem",
+                            "height": dp(40),
+                            "on_release": gen_del(context_dest, item)
+                        }
                     ]
 
                 else:
@@ -201,8 +212,6 @@ class Announces():
                     width_mult=4,
                     elevation=1,
                     radius=dp(3),
-                    opening_transition="linear",
-                    opening_time=0.0,
                 )
 
                 def callback_factory(ref):
@@ -211,7 +220,6 @@ class Announces():
                     return x
 
                 item.iconr.bind(on_release=callback_factory(item))
-
                 item.add_widget(item.iconr)
                 
                 self.added_item_dests.append(context_dest)
