@@ -1,3 +1,4 @@
+# TODO: Reset
 __debug_build__ = True
 __disable_shaders__ = True
 __version__ = "0.2.2"
@@ -65,9 +66,10 @@ else:
     from .ui.messages import Messages, ts_format
     from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
 
-from kivy.metrics import dp
-from kivymd.uix.button import MDFlatButton
+from kivy.metrics import dp, sp
+from kivymd.uix.button import MDFlatButton, MDRectangleFlatButton
 from kivymd.uix.dialog import MDDialog
+from kivymd.color_definitions import colors
 
 dark_theme_text_color = "ddd"
 
@@ -178,11 +180,23 @@ class SidebandApp(MDApp):
         else:
             self.theme_cls.theme_style = "Light"
 
+        self.update_ui_colors()
+
+    def update_ui_colors(self):
+        if self.sideband.config["dark_ui"]:
+            self.color_reject = colors["DeepOrange"]["900"]
+            self.color_accept = colors["LightGreen"]["700"]
+        else:
+            self.color_reject = colors["DeepOrange"]["800"]
+            self.color_accept = colors["LightGreen"]["700"]
+
     def update_ui_theme(self):
         if self.sideband.config["dark_ui"]:
             self.theme_cls.theme_style = "Dark"
         else:
             self.theme_cls.theme_style = "Light"
+
+        self.update_ui_colors()
 
         st = time.time()
         RNS.log("Recursing widgets...")
@@ -310,6 +324,12 @@ class SidebandApp(MDApp):
             if self.sideband.getstate("app.flags.lxmf_sync_dialog_open") and self.sync_dialog != None:
                 self.sync_dialog.ids.sync_progress.value = self.sideband.get_sync_progress()*100
                 self.sync_dialog.ids.sync_status.text = self.sideband.get_sync_status()
+
+                state = self.sideband.message_router.propagation_transfer_state
+                if state > LXMF.LXMRouter.PR_IDLE and state < LXMF.LXMRouter.PR_COMPLETE:
+                    self.widget_hide(self.sync_dialog.stop_button, False)
+                else:
+                    self.widget_hide(self.sync_dialog.stop_button, True)
 
         elif self.root.ids.screen_manager.current == "announces_screen":
             if self.sideband.getstate("app.flags.new_announces"):
@@ -674,27 +694,40 @@ class SidebandApp(MDApp):
             else:
                 sl = None
 
+            self.sideband.setpersistent("lxmf.lastsync", time.time())
+            self.sideband.setpersistent("lxmf.syncretrying", False)
             self.sideband.request_lxmf_sync(limit=sl)
 
-            close_button = MDFlatButton(text="Close", font_size=dp(20))
-            # stop_button = MDFlatButton(text="Stop", font_size=dp(20))
+            # , font_size=dp(20)
+            close_button = MDRectangleFlatButton(text="Close",font_size=sp(18))
+            stop_button = MDRectangleFlatButton(text="Stop",font_size=sp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
             dialog_content = MsgSync()
             dialog = MDDialog(
                 title="LXMF Sync via "+RNS.prettyhexrep(self.sideband.message_router.get_outbound_propagation_node()),
                 type="custom",
                 content_cls=dialog_content,
-                buttons=[ close_button ],
+                buttons=[ stop_button, close_button ],
                 # elevation=0,
             )
             dialog.d_content = dialog_content
             def dl_close(s):                
                 self.sideband.setstate("app.flags.lxmf_sync_dialog_open", False)
                 dialog.dismiss()
+                # self.sideband.cancel_lxmf_sync()
+
+            def dl_stop(s):                
+                # self.sideband.setstate("app.flags.lxmf_sync_dialog_open", False)
+                # dialog.dismiss()
                 self.sideband.cancel_lxmf_sync()
+                def cb(dt):
+                    self.widget_hide(self.sync_dialog.stop_button, True)
+                Clock.schedule_once(cb, 0.25)
 
             close_button.bind(on_release=dl_close)
+            stop_button.bind(on_release=dl_stop)
             self.sideband.setstate("app.flags.lxmf_sync_dialog_open", True)
             self.sync_dialog = dialog_content
+            self.sync_dialog.stop_button = stop_button
             dialog.open()
             dialog_content.ids.sync_progress.value = self.sideband.get_sync_progress()*100
             dialog_content.ids.sync_status.text = self.sideband.get_sync_status()
@@ -854,6 +887,7 @@ class SidebandApp(MDApp):
                 self.root.ids.settings_lxmf_sync_periodic.text = "Auto sync every "+interval_text
                 if pre != self.root.ids.settings_lxmf_sync_periodic.text:
                     if save:
+                        self.sideband.config["lxmf_sync_interval"] = interval
                         self.sideband.save_configuration()
 
             self.root.ids.settings_lxmf_address.text = RNS.hexrep(self.sideband.lxmf_destination.hash, delimit=False)

@@ -71,13 +71,14 @@ MDNavigationLayout:
 
                     MDIconButton:
                         pos_hint: {"center_x": .5, "center_y": .5}
-                        icon: "close-network-outline"
+                        # icon: "close-network-outline"
+                        icon: "waves"
                         icon_size: "72dp"
 
                     MDLabel:
                         id: connecting_info
                         halign: "center"
-                        text: "Shutting down..."
+                        text: "Dissolving Reticulum"
                         font_size: "32dp"
                         size_hint_y: None
                         text_size: self.width, None
@@ -1117,16 +1118,17 @@ MDNavigationLayout:
     orientation: "vertical"
     spacing: "24dp"
     size_hint_y: None
+    padding: [0, 0, 0, dp(16)]
     height: self.minimum_height+dp(24)
+
+    MDProgressBar:
+        id: sync_progress
+        value: 0
 
     MDLabel:
         id: sync_status
         hint_text: "Name"
         text: "Initiating sync..."
-
-    MDProgressBar:
-        id: sync_progress
-        value: 0
 
 <ConvSettings>
     orientation: "vertical"

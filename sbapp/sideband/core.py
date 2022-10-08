@@ -63,7 +63,9 @@ class SidebandCore():
 
     MAX_ANNOUNCES  = 24
 
-    JOB_INTERVAL   = 1
+    SERVICE_JOB_INTERVAL   = 1
+    PERIODIC_JOBS_INTERVAL = 60
+    PERIODIC_SYNC_RETRY = 360
 
     aspect_filter = "lxmf.delivery"
     def received_announce(self, destination_hash, announced_identity, app_data):
@@ -929,9 +931,45 @@ class SidebandCore():
     def _service_jobs(self):
         if self.is_service:
             while True:
-                time.sleep(SidebandCore.JOB_INTERVAL)
+                time.sleep(SidebandCore.SERVICE_JOB_INTERVAL)
                 if self.getstate("wants.announce"):
                     self.lxmf_announce()
+
+    def _periodic_jobs(self):
+        if self.is_service or self.is_standalone:
+            while True:
+                time.sleep(SidebandCore.PERIODIC_JOBS_INTERVAL)
+                if self.config["lxmf_periodic_sync"] == True:
+                    if self.getpersistent("lxmf.lastsync") == None:
+                        # TODO: Remove
+                        RNS.log("Lastsync was none, setting now as initial", RNS.LOG_DEBUG)
+                        self.setpersistent("lxmf.lastsync", time.time())
+                    else:
+                        now = time.time()
+                        syncinterval = self.config["lxmf_sync_interval"]
+                        lastsync = self.getpersistent("lxmf.lastsync")
+                        nextsync = lastsync+syncinterval
+
+                        RNS.log("Last sync was "+RNS.prettytime(now-lastsync)+" ago", RNS.LOG_DEBUG)
+                        RNS.log("Next sync is "+("in "+RNS.prettytime(nextsync-now) if nextsync-now > 0 else "now"), RNS.LOG_DEBUG)
+                        if now > nextsync:
+                            # TODO: Remove
+                            RNS.log("Syncing now...", RNS.LOG_DEBUG)
+                            if self.request_lxmf_sync():
+                                RNS.log("Scheduled LXMF sync succeeded", RNS.LOG_DEBUG)
+                                self.setpersistent("lxmf.lastsync", time.time())
+                                self.setpersistent("lxmf.syncretrying", False)
+                            else:
+                                if not self.getpersistent("lxmf.syncretrying"):
+                                    RNS.log("Scheduled LXMF sync failed, retrying in "+RNS.prettytime(SidebandCore.PERIODIC_SYNC_RETRY), RNS.LOG_DEBUG)
+                                    self.setpersistent("lxmf.lastsync", lastsync+SidebandCore.PERIODIC_SYNC_RETRY)
+                                    self.setpersistent("lxmf.syncretrying", True)
+                                else:
+                                    RNS.log("Retry of scheduled LXMF sync failed too, waiting until next scheduled sync to try again", RNS.LOG_DEBUG)
+                                    self.setpersistent("lxmf.lastsync", time.time())
+                                    self.setpersistent("lxmf.syncretrying", False)
+
+
 
     def __start_jobs_deferred(self):
         if self.config["start_announce"]:
@@ -940,6 +978,10 @@ class SidebandCore():
         if self.is_service:
             self.service_thread = threading.Thread(target=self._service_jobs, daemon=True)
             self.service_thread.start()
+
+        if self.is_standalone or self.is_service:
+            self.periodic_thread = threading.Thread(target=self._periodic_jobs, daemon=True)
+            self.periodic_thread.start()
         
     def __start_jobs_immediate(self):
         if self.log_verbose:
