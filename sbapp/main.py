@@ -698,7 +698,6 @@ class SidebandApp(MDApp):
             self.sideband.setpersistent("lxmf.syncretrying", False)
             self.sideband.request_lxmf_sync(limit=sl)
 
-            # , font_size=dp(20)
             close_button = MDRectangleFlatButton(text="Close",font_size=sp(18))
             stop_button = MDRectangleFlatButton(text="Stop",font_size=sp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
             dialog_content = MsgSync()
