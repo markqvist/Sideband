@@ -350,6 +350,7 @@ class SidebandApp(MDApp):
 
         self.root.ids.screen_manager.app = self
         self.root.ids.app_version_info.text = "Sideband v"+__version__+" "+__variant__
+        self.root.ids.nav_scrollview.effect_cls = ScrollEffect
         Clock.schedule_once(self.start_core, 3.5)
     
     # Part of the focus hack fix
