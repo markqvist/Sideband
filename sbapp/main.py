@@ -483,9 +483,6 @@ class SidebandApp(MDApp):
 
         list_widget = self.messages_view.get_widget()
 
-        # RNS.log(str(list_widget.children))
-        # RNS.log(str(list_widget.children[-1]))
-
         self.root.ids.messages_scrollview.add_widget(list_widget)
         self.root.ids.messages_scrollview.scroll_y = 0.001
 
