@@ -33,30 +33,61 @@ Components/Button
 MDIconButton
 ------------
 
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-icon-button.gif
+.. tabs::
+
+    .. tab:: Declarative KV style
+
+        .. code-block:: python
+
+            from kivy.lang import Builder
+
+            from kivymd.app import MDApp
+
+            KV = '''
+            MDScreen:
+
+                MDIconButton:
+                    icon: "language-python"
+                    pos_hint: {"center_x": .5, "center_y": .5}
+            '''
+
+
+            class Example(MDApp):
+                def build(self):
+                    self.theme_cls.theme_style = "Dark"
+                    self.theme_cls.primary_palette = "Orange"
+                    return Builder.load_string(KV)
+
+
+            Example().run()
+
+    .. tab:: Declarative python style
+
+        .. code-block:: python
+
+            from kivymd.app import MDApp
+            from kivymd.uix.button import MDIconButton
+            from kivymd.uix.screen import MDScreen
+
+
+            class Example(MDApp):
+                def build(self):
+                    self.theme_cls.theme_style = "Dark"
+                    self.theme_cls.primary_palette = "Orange"
+                    return (
+                        MDScreen(
+                            MDIconButton(
+                                icon="language-python",
+                                pos_hint={"center_x": 0.5, "center_y": 0.5},
+                            )
+                        )
+                    )
+
+
+            Example().run()
+
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-icon-button.png
     :align: center
-
-.. code-block:: python
-
-    from kivy.lang import Builder
-
-    from kivymd.app import MDApp
-
-    KV = '''
-    MDScreen:
-
-        MDIconButton:
-            icon: "language-python"
-            pos_hint: {"center_x": .5, "center_y": .5}
-    '''
-
-
-    class Example(MDApp):
-        def build(self):
-            return Builder.load_string(KV)
-
-
-    Example().run()
 
 The :class:`~MDIconButton.icon` parameter must have the name of the icon
 from ``kivymd/icon_definitions.py`` file.
@@ -66,9 +97,9 @@ You can also use custom icons:
 .. code-block:: kv
 
     MDIconButton:
-        icon: "data/logo/kivy-icon-256.png"
+        icon: "kivymd/images/logo/kivymd-icon-256.png"
 
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-icon-custom-button.gif
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-icon-custom-button.png
     :align: center
 
 By default, :class:`~MDIconButton` button has a size ``(dp(48), dp (48))``.
@@ -80,7 +111,7 @@ Use :class:`~BaseButton.icon_size` attribute to resize the button:
         icon: "android"
         icon_size: "64sp"
 
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-icon-button-user-font-size.gif
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-icon-button-user-font-size.png
     :align: center
 
 By default, the color of :class:`~MDIconButton`
@@ -143,8 +174,10 @@ Material design style 3
     '''
 
 
-    class TestNavigationDrawer(MDApp):
+    class Example(MDApp):
         def build(self):
+            self.theme_cls.theme_style = "Dark"
+            self.theme_cls.primary_palette = "Orange"
             self.theme_cls.material_style = "M3"
             return Builder.load_string(KV)
 
@@ -166,26 +199,23 @@ Material design style 3
                 )
 
 
-    TestNavigationDrawer().run()
+    Example().run()
 
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-floating-action-button-m3.gif
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-floating-action-button-m3.png
     :align: center
 
 .. MDFlatButton:
 MDFlatButton
 ------------
 
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-flat-button.gif
-    :align: center
-
 To change the text color of: class:`~MDFlatButton` use the ``text_color`` parameter:
 
 .. code-block:: kv
 
     MDFlatButton:
-        text: "MDFLATBUTTON"
+        text: "MDFlatButton"
         theme_text_color: "Custom"
-        text_color: 0, 0, 1, 1
+        text_color: "orange"
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-flat-button-text-color.png
     :align: center
@@ -195,7 +225,7 @@ Or use markup:
 .. code-block:: kv
 
     MDFlatButton:
-        text: "[color=#00ffcc]MDFLATBUTTON[/color]"
+        text: "[color=#00ffcc]MDFlatButton[/color]"
 
 To specify the font size and font name, use the parameters as in the usual
 `Kivy` buttons:
@@ -203,7 +233,7 @@ To specify the font size and font name, use the parameters as in the usual
 .. code-block:: kv
 
     MDFlatButton:
-        text: "MDFLATBUTTON"
+        text: "MDFlatButton"
         font_size: "18sp"
         font_name: "path/to/font"
 
@@ -211,33 +241,29 @@ To specify the font size and font name, use the parameters as in the usual
 MDRaisedButton
 --------------
 
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-raised-button.gif
-    :align: center
-
 This button is similar to the :class:`~MDFlatButton` button except that you
 can set the background color for :class:`~MDRaisedButton`:
 
 .. code-block:: kv
 
     MDRaisedButton:
-        text: "MDRAISEDBUTTON"
-        md_bg_color: 1, 0, 1, 1
+        text: "MDRaisedButton"
+        md_bg_color: "red"
 
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-raised-button.png
+    :align: center
 
 .. MDRectangleFlatButton:
 MDRectangleFlatButton
 ---------------------
 
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-rectangle-flat-button.gif
-    :align: center
-
 .. code-block:: kv
 
     MDRectangleFlatButton:
-        text: "MDRECTANGLEFLATBUTTON"
+        text: "MDRectangleFlatButton"
         theme_text_color: "Custom"
-        text_color: 1, 0, 0, 1
-        line_color: 0, 0, 1, 1
+        text_color: "white"
+        line_color: "red"
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-rectangle-flat-button-md-bg-color.png
     :align: center
@@ -245,9 +271,6 @@ MDRectangleFlatButton
 .. MDRectangleFlatIconButton:
 MDRectangleFlatIconButton
 -------------------------
-
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-rectangle-flat-icon-button.png
-    :align: center
 
 Button parameters :class:`~MDRectangleFlatIconButton` are the same as
 button :class:`~MDRectangleFlatButton`, with the addition of the
@@ -257,12 +280,12 @@ button :class:`~MDRectangleFlatButton`, with the addition of the
 
     MDRectangleFlatIconButton:
         icon: "android"
-        text: "MDRECTANGLEFLATICONBUTTON"
+        text: "MDRectangleFlatIconButton"
         theme_text_color: "Custom"
-        text_color: 0, 0, 1, 1
-        line_color: 1, 0, 1, 1
+        text_color: "white"
+        line_color: "red"
         theme_icon_color: "Custom"
-        icon_color: 1, 0, 0, 1
+        icon_color: "orange"
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-rectangle-flat-icon-button-custom.png
     :align: center
@@ -279,16 +302,18 @@ Without border
 
     class Example(MDApp):
         def build(self):
-            screen = MDScreen()
-            screen.add_widget(
-                MDRectangleFlatIconButton(
-                    text="MDRectangleFlatIconButton",
-                    icon="language-python",
-                    line_color=(0, 0, 0, 0),
-                    pos_hint={"center_x": .5, "center_y": .5},
+            self.theme_cls.theme_style = "Dark"
+            self.theme_cls.primary_palette = "Orange"
+            return (
+                MDScreen(
+                    MDRectangleFlatIconButton(
+                        text="MDRectangleFlatIconButton",
+                        icon="language-python",
+                        line_color=(0, 0, 0, 0),
+                        pos_hint={"center_x": .5, "center_y": .5},
+                    )
                 )
             )
-            return screen
 
 
     Example().run()
@@ -301,6 +326,9 @@ Without border
         line_color: 0, 0, 0, 0
         pos_hint: {"center_x": .5, "center_y": .5}
 
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-rectangle-flat-icon-button-without-border.png
+    :align: center
+
 .. MDRoundFlatButton:
 MDRoundFlatButton
 -----------------
@@ -308,8 +336,8 @@ MDRoundFlatButton
 .. code-block:: kv
 
     MDRoundFlatButton:
-        text: "MDROUNDFLATBUTTON"
-        text_color: 0, 1, 0, 1
+        text: "MDRoundFlatButton"
+        text_color: "white"
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-round-flat-button-text-color.png
     :align: center
@@ -318,9 +346,6 @@ MDRoundFlatButton
 MDRoundFlatIconButton
 ---------------------
 
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-round-flat-icon-button.png
-    :align: center
-
 Button parameters :class:`~MDRoundFlatIconButton` are the same as
 button :class:`~MDRoundFlatButton`, with the addition of the
 ``theme_icon_color`` and ``icon_color`` parameters as for :class:`~MDIconButton`:
@@ -328,8 +353,12 @@ button :class:`~MDRoundFlatButton`, with the addition of the
 .. code-block:: kv
 
     MDRoundFlatIconButton:
+        text: "MDRoundFlatIconButton"
         icon: "android"
-        text: "MDROUNDFLATICONBUTTON"
+        text_color: "white"
+
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-round-flat-icon-button.png
+    :align: center
 
 .. MDFillRoundFlatButton:
 MDFillRoundFlatButton
@@ -359,14 +388,14 @@ button :class:`~MDRaisedButton`, with the addition of the
 MDTextButton
 ------------
 
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-text-button.png
-    :align: center
-
 .. code-block:: kv
 
     MDTextButton:
-        text: "MDTEXTBUTTON"
-        custom_color: 0, 1, 0, 1
+        text: "MDTextButton"
+        custom_color: "white"
+
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-text-button.png
+    :align: center
 
 .. MDFloatingActionButtonSpeedDial:
 MDFloatingActionButtonSpeedDial
@@ -398,6 +427,8 @@ MDFloatingActionButtonSpeedDial
         }
 
         def build(self):
+            self.theme_cls.theme_style = "Dark"
+            self.theme_cls.primary_palette = "Orange"
             return Builder.load_string(KV)
 
 
@@ -408,30 +439,65 @@ MDFloatingActionButtonSpeedDial
 
 Or without KV Language:
 
-.. code-block:: python
+.. tabs::
 
-    from kivymd.uix.screen import MDScreen
-    from kivymd.app import MDApp
-    from kivymd.uix.button import MDFloatingActionButtonSpeedDial
+    .. tab:: Imperative python style
 
+        .. code-block:: python
 
-    class Example(MDApp):
-        data = {
-            'Python': 'language-python',
-            'PHP': 'language-php',
-            'C++': 'language-cpp',
-        }
-
-        def build(self):
-            screen = MDScreen()
-            speed_dial = MDFloatingActionButtonSpeedDial()
-            speed_dial.data = self.data
-            speed_dial.root_button_anim = True
-            screen.add_widget(speed_dial)
-            return screen
+            from kivymd.uix.screen import MDScreen
+            from kivymd.app import MDApp
+            from kivymd.uix.button import MDFloatingActionButtonSpeedDial
 
 
-    Example().run()
+            class Example(MDApp):
+                data = {
+                    'Python': 'language-python',
+                    'PHP': 'language-php',
+                    'C++': 'language-cpp',
+                }
+
+                def build(self):
+                    self.theme_cls.theme_style = "Dark"
+                    self.theme_cls.primary_palette = "Orange"
+                    screen = MDScreen()
+                    speed_dial = MDFloatingActionButtonSpeedDial()
+                    speed_dial.data = self.data
+                    speed_dial.root_button_anim = True
+                    screen.add_widget(speed_dial)
+                    return screen
+
+
+            Example().run()
+
+    .. tab:: Declarative python style
+
+        .. code-block:: python
+
+            from kivymd.uix.screen import MDScreen
+            from kivymd.app import MDApp
+            from kivymd.uix.button import MDFloatingActionButtonSpeedDial
+
+
+            class Example(MDApp):
+                def build(self):
+                    self.theme_cls.theme_style = "Dark"
+                    self.theme_cls.primary_palette = "Orange"
+                    return (
+                        MDScreen(
+                            MDFloatingActionButtonSpeedDial(
+                                data={
+                                    'Python': 'language-python',
+                                    'PHP': 'language-php',
+                                    'C++': 'language-cpp',
+                                },
+                                root_button_anim=True,
+                            )
+                        )
+                    )
+
+
+            Example().run()
 
 You can use various types of animation of labels for buttons on the stack:
 
@@ -443,20 +509,132 @@ You can use various types of animation of labels for buttons on the stack:
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/MDFloatingActionButtonSpeedDial-hint.gif
     :align: center
 
-You can set your color values ​​for background, text of buttons etc:
+You can set your color values for background, text of buttons etc:
 
 .. code-block:: kv
 
     MDFloatingActionButtonSpeedDial:
-        bg_hint_color: app.theme_cls.primary_light
+        hint_animation: True
+        bg_hint_color: app.theme_cls.primary_dark
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/MDFloatingActionButtonSpeedDial-hint-color.png
     :align: center
 
-.. seealso::
+Binds to individual buttons
+---------------------------
 
-    `See full example <https://github.com/kivymd/KivyMD/wiki/Components-Button>`_
+.. tabs::
+
+    .. tab:: Declarative KV style
+
+        .. code-block:: python
+
+            from kivy.lang import Builder
+            from kivy.properties import DictProperty
+
+            from kivymd.app import MDApp
+
+            KV = '''
+            MDScreen:
+
+                MDFloatingActionButtonSpeedDial:
+                    id: speed_dial
+                    data: app.data
+                    root_button_anim: True
+                    hint_animation: True
+            '''
+
+
+            class Example(MDApp):
+                data = DictProperty()
+
+                def build(self):
+                    self.theme_cls.theme_style = "Dark"
+                    self.theme_cls.primary_palette = "Orange"
+                    self.data = {
+                        'Python': 'language-python',
+                        'JS': [
+                            'language-javascript',
+                            "on_press", lambda x: print("pressed JS"),
+                            "on_release", lambda x: print(
+                                "stack_buttons",
+                                self.root.ids.speed_dial.stack_buttons
+                            )
+                        ],
+                        'PHP': [
+                            'language-php',
+                            "on_press", lambda x: print("pressed PHP"),
+                            "on_release", self.callback
+                        ],
+                        'C++': [
+                            'language-cpp',
+                            "on_press", lambda x: print("pressed C++"),
+                            "on_release", lambda x: self.callback()
+                        ],
+                    }
+                    return Builder.load_string(KV)
+
+                def callback(self, *args):
+                    print(args)
+
+
+            Example().run()
+
+    .. tab:: Declarative python style
+
+        .. code-block:: python
+
+            from kivymd.app import MDApp
+            from kivymd.uix.button import MDFloatingActionButtonSpeedDial
+            from kivymd.uix.screen import MDScreen
+
+
+            class Example(MDApp):
+                def build(self):
+                    self.theme_cls.theme_style = "Dark"
+                    self.theme_cls.primary_palette = "Orange"
+                    return (
+                        MDScreen(
+                            MDFloatingActionButtonSpeedDial(
+                                id="speed_dial",
+                                hint_animation=True,
+                                root_button_anim=True,
+                            )
+                        )
+                    )
+
+                def on_start(self):
+                    data = {
+                        "Python": "language-python",
+                        "JS": [
+                            "language-javascript",
+                            "on_press", lambda x: print("pressed JS"),
+                            "on_release", lambda x: print(
+                                "stack_buttons",
+                                self.root.ids.speed_dial.stack_buttons
+                            )
+                        ],
+                        "PHP": [
+                            "language-php",
+                            "on_press", lambda x: print("pressed PHP"),
+                            "on_release", self.callback
+                        ],
+                        "C++": [
+                            "language-cpp",
+                            "on_press", lambda x: print("pressed C++"),
+                            "on_release", lambda x: self.callback()
+                        ],
+                    }
+                    self.root.ids.speed_dial.data = data
+
+                def callback(self, *args):
+                    print(args)
+
+
+            Example().run()
 """
+
+from __future__ import annotations
 
 __all__ = (
     "BaseButton",
@@ -495,8 +673,8 @@ from kivy.properties import (
 )
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.behaviors import ButtonBehavior
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
+from kivy.weakproxy import WeakProxy
 
 from kivymd import uix_path
 from kivymd.color_definitions import text_colors
@@ -505,9 +683,8 @@ from kivymd.theming import ThemableBehavior
 from kivymd.uix.behaviors import (
     CommonElevationBehavior,
     DeclarativeBehavior,
-    FakeRectangularElevationBehavior,
     RectangularRippleBehavior,
-    RoundedRectangularElevationBehavior,
+    RotateBehavior,
 )
 from kivymd.uix.label import MDLabel
 from kivymd.uix.tooltip import MDTooltip
@@ -527,6 +704,62 @@ theme_text_color_options = (
     "ContrastParentBackground",
 )
 
+# FIXME: If you set a new elevation value for the button
+#  (press the "Set elevation" button), then disable the button
+#  (press the "Disabled" button), and then enable the button
+#  (press the "Undisabled" button), then the previously set elevation value is
+#  reset to zero.
+#  In addition, if you set a new elevation value
+#  (press the "Set elevation" button) and click on the button for which we set
+#  the elevation value, then the new elevation value will receive the previous
+#  elevation value. This problem is only related to the buttons.
+#  For example, there is no such problem for the MDCard widget.
+
+"""
+from kivy.lang import Builder
+
+from kivymd.app import MDApp
+
+KV = '''
+MDScreen:
+
+    MDRaisedButton:
+        size_hint: .5, .5
+        id: button
+        pos_hint: {"center_x": .5, "center_y": .5}
+        elevation: 0
+
+    MDBoxLayout:
+        adaptive_size: True
+        pos_hint: {"center_x": .5}
+        spacing: 12
+        padding: 12
+
+        MDRaisedButton:
+            text: "Set elevation"
+            pos_hint: {"center_x": .5, "bottom": 1}
+            on_release: button.elevation = 4
+
+        MDRaisedButton:
+            text: "Disabled"
+            pos_hint: {"center_x": .5, "bottom": 1}
+            on_release: button.disabled = True
+
+        MDRaisedButton:
+            text: "Undisabled"
+            pos_hint: {"center_x": .5, "bottom": 1}
+            on_release: button.disabled = False
+'''
+
+
+class Test(MDApp):
+    def build(self):
+        return Builder.load_string(KV)
+
+
+Test().run()
+"""
+
 
 class BaseButton(
     DeclarativeBehavior,
@@ -535,7 +768,12 @@ class BaseButton(
     ButtonBehavior,
     AnchorLayout,
 ):
-    """Base class for all buttons."""
+    """
+    Base class for all buttons.
+
+    For more information, see in the
+    :class:`~kivy.uix.anchorlayout.AnchorLayout` class documentation.
+    """
 
     padding = VariableListProperty([dp(16), dp(8), dp(16), dp(8)])
     """
@@ -621,7 +859,7 @@ class BaseButton(
 
     text_color = ColorProperty(None)
     """
-    Button text color in (r, g, b, a) format.
+    Button text color in (r, g, b, a) or string format.
 
     :attr:`text_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -629,7 +867,7 @@ class BaseButton(
 
     icon_color = ColorProperty(None)
     """
-    Button icon color in (r, g, b, a) format.
+    Button icon color in (r, g, b, a) or string format.
 
     :attr:`icon_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -672,7 +910,7 @@ class BaseButton(
 
     line_color = ColorProperty(None)
     """
-    Line color for button border.
+    Line color in (r, g, b, a) or string format for button border.
 
     :attr:`line_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -680,7 +918,7 @@ class BaseButton(
 
     line_color_disabled = ColorProperty(None)
     """
-    Disabled line color for button border.
+    Disabled line color in (r, g, b, a) or string format for button border.
 
     .. versionadded:: 1.0.0
 
@@ -690,7 +928,7 @@ class BaseButton(
 
     md_bg_color = ColorProperty(None)
     """
-    Button background color.
+    Button background color in (r, g, b, a) or string format.
 
     :attr:`md_bg_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -698,7 +936,8 @@ class BaseButton(
 
     md_bg_color_disabled = ColorProperty(None)
     """
-    The background color of the button when the button is disabled.
+    The background color in (r, g, b, a) or string format of the button when
+    the button is disabled.
 
     :attr:`md_bg_color_disabled` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -706,8 +945,8 @@ class BaseButton(
 
     disabled_color = ColorProperty(None)
     """
-    The color of the text and icon when the button is disabled, in the
-     (r, g, b, a) format.
+    The color of the text and icon when the button is disabled,
+    in (r, g, b, a) or string format.
 
     .. versionadded:: 1.0.0
 
@@ -728,11 +967,11 @@ class BaseButton(
     # Note - _radius must be > 0 to avoid rendering issues.
     _radius = BoundedNumericProperty(dp(4), min=0.0999, errorvalue=0.1)
     # Properties used for rendering.
-    _disabled_color = ColorProperty(None)
-    _md_bg_color = ColorProperty(None)
-    _md_bg_color_disabled = ColorProperty(None)
-    _line_color = ColorProperty(None)
-    _line_color_disabled = ColorProperty(None)
+    _disabled_color = ColorProperty([0.0, 0.0, 0.0, 0.0])
+    _md_bg_color = ColorProperty([0.0, 0.0, 0.0, 0.0])
+    _md_bg_color_disabled = ColorProperty([0.0, 0.0, 0.0, 0.0])
+    _line_color = ColorProperty([0.0, 0.0, 0.0, 0.0])
+    _line_color_disabled = ColorProperty([0.0, 0.0, 0.0, 0.0])
     _theme_text_color = OptionProperty(None, options=theme_text_color_options)
     _theme_icon_color = OptionProperty(None, options=theme_text_color_options)
     _text_color = ColorProperty(None)
@@ -754,8 +993,8 @@ class BaseButton(
 
     _animation_fade_bg = ObjectProperty(None, allownone=True)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.theme_cls.bind(
             primary_palette=self.set_all_colors,
             theme_style=self.set_all_colors,
@@ -809,14 +1048,14 @@ class BaseButton(
         """Set all button colours (except text/icons)."""
 
         # Set main color
-        self._md_bg_color = (
+        _md_bg_color = (
             self.md_bg_color
             or self._default_md_bg_color
             or self.theme_cls.primary_color
         )
 
         # Set disabled color
-        self._md_bg_color_disabled = (
+        _md_bg_color_disabled = (
             self.md_bg_color_disabled
             or (
                 [sum(self.md_bg_color[0:3]) / 3.0] * 3
@@ -829,14 +1068,14 @@ class BaseButton(
         )
 
         # Set line color
-        self._line_color = (
+        _line_color = (
             self.line_color
             or self._default_line_color
             or self.theme_cls.primary_color
         )
 
         # Set disabled line color
-        self._line_color_disabled = (
+        _line_color_disabled = (
             self.line_color_disabled
             or (
                 [sum(self.line_color[0:3]) / 3.0] * 3
@@ -847,6 +1086,21 @@ class BaseButton(
             or self._default_line_color_disabled
             or self.theme_cls.disabled_primary_color
         )
+
+        if self.theme_cls.theme_style_switch_animation:
+            Animation(
+                _md_bg_color=_md_bg_color,
+                _md_bg_color_disabled=_md_bg_color_disabled,
+                _line_color=_line_color,
+                _line_color_disabled=_line_color_disabled,
+                d=self.theme_cls.theme_style_switch_animation_duration,
+                t="linear",
+            ).start(self)
+        else:
+            self._md_bg_color = _md_bg_color
+            self._md_bg_color_disabled = _md_bg_color_disabled
+        self._line_color = _line_color
+        self._line_color_disabled = _line_color_disabled
 
     def set_text_color(self, *args) -> None:
         """
@@ -872,7 +1126,9 @@ class BaseButton(
         """
 
         self._theme_icon_color = (
-            self.theme_icon_color or self._default_theme_icon_color
+            (self.theme_icon_color or self._default_theme_icon_color)
+            if not self.disabled
+            else "Custom"
         )
         if self._default_icon_color == "PrimaryHue":
             default_icon_color = text_colors[self.theme_cls.primary_palette][
@@ -931,6 +1187,10 @@ class BaseButton(
         return super().on_touch_up(touch)
 
     def on_disabled(self, instance_button, disabled_value: bool) -> None:
+        if hasattr(super(), "on_disabled"):
+            if self.disabled is True:
+                Animation.cancel_all(self, "elevation")
+            super().on_disabled(instance_button, disabled_value)
         Clock.schedule_once(self.set_disabled_color)
 
 
@@ -948,30 +1208,20 @@ class ButtonElevationBehaviour(CommonElevationBehavior):
 
     _elevation_raised = NumericProperty()
     _anim_raised = ObjectProperty(None, allownone=True)
-    _default_elevation = 2
+    _default_elevation = 3
 
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         if self.elevation == 0:
             self.elevation = self._default_elevation
-        super().__init__(**kwargs)
-        self.bind(_radius=self.setter("radius"))
-        self.on_elevation(self, self.elevation)
-
-    def on_elevation(self, instance_button, elevation_value: int) -> None:
-        super().on_elevation(instance_button, elevation_value)
-        self._elevation_raised = self.elevation + 6
+        if hasattr(self, "radius"):
+            self.bind(_radius=self.setter("radius"))
+        Clock.schedule_once(self.create_anim_raised)
         self.on_disabled(self, self.disabled)
 
-    def on__elevation_raised(
-        self, instance_button, elevation_value: int
-    ) -> None:
-        Animation.cancel_all(self, "_elevation")
-        self._anim_raised = Animation(_elevation=self._elevation_raised, d=0.15)
-
-    def on_disabled(self, instance_button, disabled_value: bool) -> None:
-        if self.disabled is True:
-            Animation.cancel_all(self, "_elevation")
-        super().on_disabled(instance_button, disabled_value)
+    def create_anim_raised(self, *args) -> None:
+        self._elevation_raised = self.elevation + 1.2
+        self._anim_raised = Animation(elevation=self.elevation + 1, d=0.15)
 
     def on_touch_down(self, touch):
         if not self.disabled:
@@ -994,8 +1244,8 @@ class ButtonElevationBehaviour(CommonElevationBehavior):
         return super().on_touch_up(touch)
 
     def stop_elevation_anim(self):
-        Animation.cancel_all(self, "_elevation")
-        self._elevation = self.elevation
+        Animation.cancel_all(self, "elevation")
+        self.elevation = self._elevation_raised - 1
 
 
 class ButtonContentsText:
@@ -1059,7 +1309,7 @@ class OldButtonIconMixin:
             self.theme_icon_color = "Custom"
 
 
-class MDFlatButton(ButtonContentsText, BaseButton):
+class MDFlatButton(BaseButton, ButtonContentsText):
     """
     A flat rectangular button with (by default) no border or background.
     Text is the default text color.
@@ -1080,12 +1330,7 @@ class MDFlatButton(ButtonContentsText, BaseButton):
     """
 
 
-class MDRaisedButton(
-    FakeRectangularElevationBehavior,
-    ButtonElevationBehaviour,
-    ButtonContentsText,
-    BaseButton,
-):
+class MDRaisedButton(BaseButton, ButtonElevationBehaviour, ButtonContentsText):
     """
     A flat button with (by default) a primary color fill and matching
     color text.
@@ -1098,8 +1343,14 @@ class MDRaisedButton(
     _default_theme_text_color = "Custom"
     _default_text_color = "PrimaryHue"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.shadow_softness = 8
+        self.shadow_offset = (0, 2)
+        self.shadow_radius = self._radius * 2
 
-class MDRectangleFlatButton(ButtonContentsText, BaseButton):
+
+class MDRectangleFlatButton(BaseButton, ButtonContentsText):
     """
     A flat button with (by default) a primary color border and primary
     color text.
@@ -1112,7 +1363,7 @@ class MDRectangleFlatButton(ButtonContentsText, BaseButton):
 
 
 class MDRectangleFlatIconButton(
-    OldButtonIconMixin, ButtonContentsIconText, BaseButton
+    BaseButton, OldButtonIconMixin, ButtonContentsIconText
 ):
     """
     A flat button with (by default) a primary color border, primary color text
@@ -1127,7 +1378,7 @@ class MDRectangleFlatIconButton(
     _default_icon_color = "Primary"
 
 
-class MDRoundFlatButton(ButtonContentsText, BaseButton):
+class MDRoundFlatButton(BaseButton, ButtonContentsText):
     """
     A flat button with (by default) fully rounded corners, a primary
     color border and primary color text.
@@ -1138,15 +1389,13 @@ class MDRoundFlatButton(ButtonContentsText, BaseButton):
     _default_theme_text_color = "Custom"
     _default_text_color = "Primary"
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.rounded_button = True
 
 
 class MDRoundFlatIconButton(
-    OldButtonIconMixin,
-    ButtonContentsIconText,
-    BaseButton,
+    BaseButton, OldButtonIconMixin, ButtonContentsIconText
 ):
     """
     A flat button with (by default) rounded corners, a primary color border,
@@ -1160,12 +1409,12 @@ class MDRoundFlatIconButton(
     _default_text_color = "Primary"
     _default_icon_color = "Primary"
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.rounded_button = True
 
 
-class MDFillRoundFlatButton(ButtonContentsText, BaseButton):
+class MDFillRoundFlatButton(BaseButton, ButtonContentsText):
     """
     A flat button with (by default) rounded corners, a primary color fill
     and primary color text.
@@ -1176,15 +1425,13 @@ class MDFillRoundFlatButton(ButtonContentsText, BaseButton):
     _default_theme_text_color = "Custom"
     _default_text_color = "PrimaryHue"
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.rounded_button = True
 
 
 class MDFillRoundFlatIconButton(
-    OldButtonIconMixin,
-    ButtonContentsIconText,
-    BaseButton,
+    BaseButton, OldButtonIconMixin, ButtonContentsIconText
 ):
     """
     A flat button with (by default) rounded corners, a primary color fill,
@@ -1198,12 +1445,12 @@ class MDFillRoundFlatIconButton(
     _default_text_color = "PrimaryHue"
     _default_icon_color = "PrimaryHue"
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.rounded_button = True
 
 
-class MDIconButton(OldButtonIconMixin, ButtonContentsIcon, BaseButton):
+class MDIconButton(BaseButton, OldButtonIconMixin, ButtonContentsIcon):
     """A simple rounded icon button."""
 
     icon = StringProperty("checkbox-blank-circle")
@@ -1217,8 +1464,8 @@ class MDIconButton(OldButtonIconMixin, ButtonContentsIcon, BaseButton):
     _min_width = NumericProperty(0)
     _default_icon_pad = max(dp(48) - sp(24), 0)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.rounded_button = True
         # FIXME: GraphicException: Invalid width value, must be > 0
         self.line_width = 0.001
@@ -1236,11 +1483,7 @@ class MDIconButton(OldButtonIconMixin, ButtonContentsIcon, BaseButton):
 
 
 class MDFloatingActionButton(
-    OldButtonIconMixin,
-    RoundedRectangularElevationBehavior,
-    ButtonElevationBehaviour,
-    ButtonContentsIcon,
-    BaseButton,
+    BaseButton, OldButtonIconMixin, ButtonElevationBehaviour, ButtonContentsIcon
 ):
     """
     Implementation
@@ -1268,12 +1511,11 @@ class MDFloatingActionButton(
     _default_theme_icon_color = "Custom"
     _default_icon_color = "PrimaryHue"
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         # FIXME: GraphicException: Invalid width value, must be > 0
         self.line_width = 0.001
-        self.theme_cls.bind(material_style=self.set_size)
-        self.theme_cls.bind(material_style=self.set__radius)
+        self.theme_cls.bind(material_style=self.set_size_and_radius)
         Clock.schedule_once(self.set_size)
         Clock.schedule_once(self.set__radius)
         Clock.schedule_once(self.set_font_size)
@@ -1287,15 +1529,25 @@ class MDFloatingActionButton(
 
     def set__radius(self, *args) -> None:
         if self.theme_cls.material_style == "M2":
+            self.shadow_radius = self.height / 2
             self.rounded_button = True
         else:
+            self.shadow_softness = 8
+            self.shadow_offset = (0, 2)
             self.rounded_button = False
+
             if self.type == "small":
                 self._radius = dp(12)
             elif self.type == "standard":
                 self._radius = dp(16)
             elif self.type == "large":
                 self._radius = dp(28)
+
+            self.shadow_radius = self._radius
+
+    def set_size_and_radius(self, *args) -> None:
+        self.set_size(args)
+        self.set__radius(args)
 
     def set_size(self, *args) -> None:
         if self.theme_cls.material_style == "M2":
@@ -1316,7 +1568,7 @@ class MDFloatingActionButton(
 class MDTextButton(ButtonBehavior, MDLabel):
     color = ColorProperty(None)
     """
-    Button color in (r, g, b, a) format.
+    Button color in (r, g, b, a) or string format.
 
     :attr:`color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -1324,7 +1576,7 @@ class MDTextButton(ButtonBehavior, MDLabel):
 
     color_disabled = ColorProperty(None)
     """
-    Button color disabled in (r, g, b, a) format.
+    Button color disabled in (r, g, b, a) or string format.
 
     :attr:`color_disabled` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -1357,14 +1609,6 @@ class MDTextButton(ButtonBehavior, MDLabel):
 # SpeedDial classes
 
 
-class BaseFloatingRootButton(MDFloatingActionButton):
-    _angle = NumericProperty(0)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.elevation = 5
-
-
 class BaseFloatingBottomButton(MDFloatingActionButton, MDTooltip):
     _canvas_width = NumericProperty(0)
     _padding_right = NumericProperty(0)
@@ -1375,40 +1619,47 @@ class BaseFloatingBottomButton(MDFloatingActionButton, MDTooltip):
         self.height = "46dp"
 
 
-# FIXME: Use :class:`~kivymd.uix.boxlayout.MDBoxLayout` instead
-#  :class:`~kivy.uix.boxlayout.BoxLayout`.
-class BaseFloatingLabel(
-    ThemableBehavior, FakeRectangularElevationBehavior, BoxLayout
-):
-    text = StringProperty()
-    text_color = ColorProperty(None)
-    bg_color = ColorProperty(None)
-
-
 class MDFloatingBottomButton(BaseFloatingBottomButton):
-    pass
+    _bg_color = ColorProperty(None)
 
 
-class MDFloatingRootButton(BaseFloatingRootButton):
-    pass
+class MDFloatingRootButton(RotateBehavior, MDFloatingActionButton):
+    rotate_value_angle = NumericProperty(0)
 
 
-class MDFloatingLabel(BaseFloatingLabel):
-    pass
+class MDFloatingLabel(MDLabel):
+    bg_color = ColorProperty([0, 0, 0, 0])
 
 
-class MDFloatingActionButtonSpeedDial(ThemableBehavior, FloatLayout):
+class MDFloatingActionButtonSpeedDial(
+    DeclarativeBehavior, ThemableBehavior, FloatLayout
+):
     """
+    For more information, see in the
+    :class:`~kivy.uix.floatlayout.FloatLayout` class documentation.
+
     :Events:
         :attr:`on_open`
             Called when a stack is opened.
         :attr:`on_close`
             Called when a stack is closed.
+        :attr:`on_press_stack_button`
+            Called at the on_press event for the stack button.
+        :attr:`on_release_stack_button`
+            Called at the on_press event for the stack button.
     """
 
     icon = StringProperty("plus")
     """
     Root button icon name.
+
+    .. code-block:: kv
+
+        MDFloatingActionButtonSpeedDial:
+            icon: "pencil"
+
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/MDFloatingActionButtonSpeedDial-icon.png
+        :align: center
 
     :attr:`icon` is a :class:`~kivy.properties.StringProperty`
     and defaults to `'plus'`.
@@ -1422,36 +1673,59 @@ class MDFloatingActionButtonSpeedDial(ThemableBehavior, FloatLayout):
     and defaults to `'right'`.
     """
 
-    callback = ObjectProperty(lambda x: None)
+    label_text_color = ColorProperty(None)
     """
-    Custom callback.
+    Color of floating text labels in (r, g, b, a) or string format.
 
     .. code-block:: kv
 
         MDFloatingActionButtonSpeedDial:
-            callback: app.callback
+            label_text_color: "orange"
 
-    .. code-block:: python
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/MDFloatingActionButtonSpeedDial-label-text-color.png
+        :align: center
 
-        def callback(self, instance):
-            print(instance.icon)
-
-
-    :attr:`callback` is a :class:`~kivy.properties.ObjectProperty`
+    :attr:`label_text_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
     """
 
-    label_text_color = ColorProperty([0, 0, 0, 1])
+    label_bg_color = ColorProperty([0, 0, 0, 0])
     """
-    Floating text color in (r, g, b, a) format.
+    Background color of floating text labels in (r, g, b, a) or string format.
 
-    :attr:`label_text_color` is a :class:`~kivy.properties.ColorProperty`
-    and defaults to `[0, 0, 0, 1]`.
+    .. code-block:: kv
+
+        MDFloatingActionButtonSpeedDial:
+            label_text_color: "black"
+            label_bg_color: "orange"
+
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/MDFloatingActionButtonSpeedDial-label-bg-color.png
+        :align: center
+
+    :attr:`label_bg_color` is a :class:`~kivy.properties.ColorProperty`
+    and defaults to `[0, 0, 0, 0]`.
+    """
+
+    label_radius = VariableListProperty([0], length=4)
+    """
+    The radius of the background of floating text labels.
+
+    .. code-block:: kv
+
+        MDFloatingActionButtonSpeedDial:
+            label_text_color: "black"
+            label_bg_color: "orange"
+
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/MDFloatingActionButtonSpeedDial-label-radius.png
+        :align: center
+
+    :attr:`label_radius` is a :class:`~kivy.properties.ColorProperty`
+    and defaults to `[0, 0, 0, 0]`.
     """
 
     data = DictProperty()
     """
-    Must be a dictionary
+    Must be a dictionary.
 
     .. code-block:: python
 
@@ -1462,23 +1736,46 @@ class MDFloatingActionButtonSpeedDial(ThemableBehavior, FloatLayout):
         }
     """
 
-    right_pad = BooleanProperty(True)
+    right_pad = BooleanProperty(False)
     """
-    If `True`, the button will increase on the right side by 2.5 pixels
-    if the :attr:`~hint_animation` parameter equal to `True`.
+    If `True`, the background for the floating text label will increase by the
+    number of pixels specified in the :attr:`~right_pad_value` parameter.
+
+    Works only if the :attr:`~hint_animation` parameter is set to `True`.
 
     .. rubric:: False
+
+    .. code-block:: kv
+
+        MDFloatingActionButtonSpeedDial:
+            hint_animation: True
+            right_pad: False
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/MDFloatingActionButtonSpeedDial-right-pad.gif
         :align: center
 
     .. rubric:: True
 
+    .. code-block:: kv
+
+        MDFloatingActionButtonSpeedDial:
+            hint_animation: True
+            right_pad: True
+            right_pad_value: "10dp"
+
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/MDFloatingActionButtonSpeedDial-right-pad-true.gif
         :align: center
 
     :attr:`right_pad` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to `False`.
+    """
+
+    right_pad_value = NumericProperty(0)
+    """
+    See :attr:`~right_pad` parameter for more information.
+
+    :attr:`right_pad_value` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to `0`.
     """
 
     root_button_anim = BooleanProperty(False)
@@ -1569,39 +1866,87 @@ class MDFloatingActionButtonSpeedDial(ThemableBehavior, FloatLayout):
 
     bg_color_root_button = ColorProperty(None)
     """
-    Root button color in (r, g, b, a) format.
+    Background color of root button in (r, g, b, a) or string format.
+
+    .. code-clock:: kv
+
+        MDFloatingActionButtonSpeedDial:
+            bg_color_root_button: "red"
+
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/MDFloatingActionButtonSpeedDial-bg-color-root-button.png
+        :align: center
 
     :attr:`bg_color_root_button` is a :class:`~kivy.properties.ColorProperty`
-    and defaults to `[]`.
+    and defaults to `None`.
     """
 
     bg_color_stack_button = ColorProperty(None)
     """
-    The color of the buttons in the stack (r, g, b, a) format.
+    Background color of the stack buttons in (r, g, b, a) or string format.
+
+    .. code-clock:: kv
+
+        MDFloatingActionButtonSpeedDial:
+            bg_color_root_button: "red"
+            bg_color_stack_button: "red"
+
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/MDFloatingActionButtonSpeedDial-bg-color-stack-button.png
+        :align: center
 
     :attr:`bg_color_stack_button` is a :class:`~kivy.properties.ColorProperty`
-    and defaults to `[]`.
+    and defaults to `None`.
     """
 
     color_icon_stack_button = ColorProperty(None)
     """
-    The color icon of the buttons in the stack (r, g, b, a) format.
+    The color icon of the stack buttons in (r, g, b, a) or string format.
+
+    .. code-clock:: kv
+
+        MDFloatingActionButtonSpeedDial:
+            bg_color_root_button: "red"
+            bg_color_stack_button: "red"
+            color_icon_stack_button: "white"
+
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/MDFloatingActionButtonSpeedDial-color-icon-stack-button.png
+        :align: center
 
     :attr:`color_icon_stack_button` is a :class:`~kivy.properties.ColorProperty`
-    and defaults to `[]`.
+    and defaults to `None`.
     """
 
     color_icon_root_button = ColorProperty(None)
     """
-    The color icon of the root button (r, g, b, a) format.
+    The color icon of the root button in (r, g, b, a) or string format.
+
+    .. code-clock:: kv
+
+        MDFloatingActionButtonSpeedDial:
+            bg_color_root_button: "red"
+            bg_color_stack_button: "red"
+            color_icon_stack_button: "white"
+            color_icon_root_button: self.color_icon_stack_button
+
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/MDFloatingActionButtonSpeedDial-color-icon-root-button.png
+        :align: center
 
     :attr:`color_icon_root_button` is a :class:`~kivy.properties.ColorProperty`
-    and defaults to `[]`.
+    and defaults to `None`.
     """
 
     bg_hint_color = ColorProperty(None)
     """
-    Background color for the text of the buttons in the stack (r, g, b, a) format.
+    Background color for the floating text of the buttons in (r, g, b, a)
+    or string format.
+
+    .. code-clock:: kv
+
+        MDFloatingActionButtonSpeedDial:
+            bg_hint_color: "red"
+            hint_animation: True
+
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/MDFloatingActionButtonSpeedDial-bg-hint-color.png
+        :align: center
 
     :attr:`bg_hint_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -1609,11 +1954,13 @@ class MDFloatingActionButtonSpeedDial(ThemableBehavior, FloatLayout):
 
     hint_animation = BooleanProperty(False)
     """
-    Whether to use button extension animation to display text labels.
+    Whether to use button extension animation to display floating text.
 
     :attr:`hint_animation` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to `False`.
     """
+
+    stack_buttons = DictProperty()
 
     _label_pos_y_set = False
     _anim_buttons_data = {}
@@ -1623,6 +1970,8 @@ class MDFloatingActionButtonSpeedDial(ThemableBehavior, FloatLayout):
         super().__init__(**kwargs)
         self.register_event_type("on_open")
         self.register_event_type("on_close")
+        self.register_event_type("on_press_stack_button")
+        self.register_event_type("on_release_stack_button")
         Window.bind(on_resize=self._update_pos_buttons)
 
     def on_open(self, *args):
@@ -1657,19 +2006,22 @@ class MDFloatingActionButtonSpeedDial(ThemableBehavior, FloatLayout):
         if self.state == "open":
             for widget in self.children:
                 if isinstance(widget, MDFloatingLabel) and self.hint_animation:
-                    widget._elevation = 0
                     Animation.cancel_all(widget)
                     for item in self.data.items():
                         if widget.text in item:
                             Animation(
                                 _canvas_width=widget.width + dp(24),
-                                _padding_right=dp(5) if self.right_pad else 0,
+                                _padding_right=self.right_pad_value
+                                if self.right_pad
+                                else 0,
                                 d=self.opening_time,
                                 t=self.opening_transition,
                             ).start(instance_button)
                             if (
                                 instance_button.icon
                                 == self.data[f"{widget.text}"]
+                                or instance_button.icon
+                                == self.data[f"{widget.text}"][0]
                             ):
                                 Animation(
                                     opacity=1,
@@ -1684,51 +2036,68 @@ class MDFloatingActionButtonSpeedDial(ThemableBehavior, FloatLayout):
     def on_data(self, instance_speed_dial, data: dict) -> None:
         """Creates a stack of buttons."""
 
-        # FIXME: Don't know how to fix AttributeError error:
-        # File "kivymd/uix/button.py", line 1597, in on_data
-        #     self.add_widget(bottom_button)
-        # File "kivy/uix/floatlayout.py", line 140, in add_widget
-        #     return super(FloatLayout, self).add_widget(widget, index, canvas)
-        # File "kivy/uix/layout.py", line 97, in add_widget
-        #     return super(Layout, self).add_widget(widget, index, canvas)
-        # File "kivy/uix/widget.py", line 629, in add_widget
-        #     canvas.add(widget.canvas)
-        # AttributeError: 'NoneType' object has no attribute 'add'
-        super().__init__()
+        def on_data(*args):
+            # Bottom buttons.
+            for name, parameters in data.items():
+                name_icon = (
+                    parameters if (type(parameters) is str) else parameters[0]
+                )
+
+                bottom_button = MDFloatingBottomButton(
+                    icon=name_icon,
+                    on_enter=self.on_enter,
+                    on_leave=self.on_leave,
+                    opacity=0,
+                )
+                bottom_button.bind(
+                    on_press=lambda x: self.dispatch("on_press_stack_button"),
+                    on_release=lambda x: self.dispatch(
+                        "on_release_stack_button"
+                    ),
+                )
+
+                if "on_press" in parameters:
+                    callback = parameters[parameters.index("on_press") + 1]
+                    bottom_button.bind(on_press=callback)
+
+                if "on_release" in parameters:
+                    callback = parameters[parameters.index("on_release") + 1]
+                    bottom_button.bind(on_release=callback)
+
+                self.set_pos_bottom_buttons(bottom_button)
+                self.add_widget(bottom_button)
+                self.stack_buttons[name] = WeakProxy(bottom_button)
+                # Labels.
+                floating_text = name
+                if floating_text:
+                    label = MDFloatingLabel(text=floating_text, opacity=0)
+                    label.bg_color = self.label_bg_color
+                    label.radius = self.label_radius
+                    label.text_color = (
+                        self.label_text_color
+                        if self.label_text_color
+                        else self.theme_cls.text_color
+                    )
+                    self.add_widget(label)
+            # Top root button.
+            root_button = MDFloatingRootButton(on_release=self.open_stack)
+            root_button.icon = self.icon
+            self.set_pos_root_button(root_button)
+            self.add_widget(root_button)
+
         self.clear_widgets()
+        self.stack_buttons = {}
         self._anim_buttons_data = {}
         self._anim_labels_data = {}
         self._label_pos_y_set = False
-
-        # Bottom buttons.
-        for name, name_icon in data.items():
-            bottom_button = MDFloatingBottomButton(
-                icon=name_icon,
-                on_enter=self.on_enter,
-                on_leave=self.on_leave,
-                opacity=0,
-            )
-            bottom_button.bind(
-                on_release=lambda x=bottom_button: self.callback(x)
-            )
-            self.set_pos_bottom_buttons(bottom_button)
-            self.add_widget(bottom_button)
-            # Labels.
-            floating_text = name
-            if floating_text:
-                label = MDFloatingLabel(text=floating_text, opacity=0)
-                label.text_color = self.label_text_color
-                self.add_widget(label)
-        # Top root button.
-        root_button = MDFloatingRootButton(on_release=self.open_stack)
-        root_button.icon = self.icon
-        self.set_pos_root_button(root_button)
-        self.add_widget(root_button)
+        Clock.schedule_once(on_data)
 
     def on_icon(self, instance_speed_dial, name_icon: str) -> None:
-        self._get_count_widget(MDFloatingRootButton).icon = name_icon
+        self._set_button_property(MDFloatingRootButton, "icon", name_icon)
 
-    def on_label_text_color(self, instance_speed_dial, color: list) -> None:
+    def on_label_text_color(
+        self, instance_speed_dial, color: list | str
+    ) -> None:
         for widget in self.children:
             if isinstance(widget, MDFloatingLabel):
                 widget.text_color = color
@@ -1736,34 +2105,52 @@ class MDFloatingActionButtonSpeedDial(ThemableBehavior, FloatLayout):
     def on_color_icon_stack_button(
         self, instance_speed_dial, color: list
     ) -> None:
-        for widget in self.children:
-            if isinstance(widget, MDFloatingBottomButton):
-                widget.text_color = color
+        self._set_button_property(MDFloatingBottomButton, "icon_color", color)
 
     def on_hint_animation(self, instance_speed_dial, value: bool) -> None:
         for widget in self.children:
             if isinstance(widget, MDFloatingLabel):
-                widget.bg_color = (0, 0, 0, 0)
+                widget.md_bg_color = (0, 0, 0, 0)
 
     def on_bg_hint_color(self, instance_speed_dial, color: list) -> None:
-        for widget in self.children:
-            if isinstance(widget, MDFloatingBottomButton):
-                widget._bg_color = color
+        setattr(MDFloatingBottomButton, "_bg_color", color)
 
     def on_color_icon_root_button(
         self, instance_speed_dial, color: list
     ) -> None:
-        self._get_count_widget(MDFloatingRootButton).text_color = color
+        self._set_button_property(MDFloatingRootButton, "icon_color", color)
 
     def on_bg_color_stack_button(
         self, instance_speed_dial, color: list
     ) -> None:
-        for widget in self.children:
-            if isinstance(widget, MDFloatingBottomButton):
-                widget.md_bg_color = color
+        self._set_button_property(MDFloatingBottomButton, "md_bg_color", color)
 
     def on_bg_color_root_button(self, instance_speed_dial, color: list) -> None:
-        self._get_count_widget(MDFloatingRootButton).md_bg_color = color
+        self._set_button_property(MDFloatingRootButton, "md_bg_color", color)
+
+    def on_press_stack_button(self, *args) -> None:
+        """
+        Called at the on_press event for the stack button.
+
+        .. code-block:: kv
+
+            MDFloatingActionButtonSpeedDial:
+                on_press_stack_button: print(*args)
+
+        .. versionadded:: 1.1.0
+        """
+
+    def on_release_stack_button(self, *args) -> None:
+        """
+        Called at the on_release event for the stack button.
+
+        .. code-block:: kv
+
+            MDFloatingActionButtonSpeedDial:
+                on_release_stack_button: print(*args)
+
+        .. versionadded:: 1.1.0
+        """
 
     def set_pos_labels(self, instance_floating_label: MDFloatingLabel) -> None:
         """
@@ -1784,9 +2171,14 @@ class MDFloatingActionButtonSpeedDial(ThemableBehavior, FloatLayout):
         Called when the application's root window is resized.
         """
 
-        if self.anchor == "right":
-            instance_floating_root_button.y = dp(20)
-            instance_floating_root_button.x = Window.width - (dp(56) + dp(20))
+        def set_pos_root_button(*args):
+            if self.anchor == "right":
+                instance_floating_root_button.y = dp(20)
+                instance_floating_root_button.x = self.parent.width - (
+                    dp(56) + dp(20)
+                )
+
+        Clock.schedule_once(set_pos_root_button)
 
     def set_pos_bottom_buttons(
         self, instance_floating_bottom_button: MDFloatingBottomButton
@@ -1817,7 +2209,7 @@ class MDFloatingActionButtonSpeedDial(ThemableBehavior, FloatLayout):
 
         if self.state != "open":
             y = 0
-            label_position = dp(56)
+            label_position = dp(54)
             anim_buttons_data = {}
             anim_labels_data = {}
 
@@ -1849,7 +2241,7 @@ class MDFloatingActionButtonSpeedDial(ThemableBehavior, FloatLayout):
                 ):
                     # Rotates the root button 45 degrees.
                     Animation(
-                        _angle=-45,
+                        rotate_value_angle=-45,
                         d=self.opening_time_button_rotation,
                         t=self.opening_transition_button_rotation,
                     ).start(widget)
@@ -1908,13 +2300,14 @@ class MDFloatingActionButtonSpeedDial(ThemableBehavior, FloatLayout):
                     opacity=0,
                 ).start(widget)
             elif isinstance(widget, MDFloatingLabel):
-                Animation(opacity=0, d=0.1).start(widget)
+                if widget.opacity > 0:
+                    Animation(opacity=0, d=0.1).start(widget)
             elif (
                 isinstance(widget, MDFloatingRootButton)
                 and self.root_button_anim
             ):
                 Animation(
-                    _angle=0,
+                    rotate_value_angle=0,
                     d=self.closing_time_button_rotation,
                     t=self.closing_transition_button_rotation,
                 ).start(widget)
@@ -1931,9 +2324,15 @@ class MDFloatingActionButtonSpeedDial(ThemableBehavior, FloatLayout):
             elif isinstance(widget, MDFloatingLabel):
                 self.set_pos_labels(widget)
 
-    def _get_count_widget(self, instance):
-        widget = None
-        for widget in self.children:
-            if isinstance(widget, instance):
-                break
-        return widget
+    def _set_button_property(
+        self, instance, property_name: str, property_value: str | list
+    ):
+        def set_count_widget(*args):
+            if self.children:
+                for widget in self.children:
+                    if isinstance(widget, instance):
+                        setattr(instance, property_name, property_value)
+                        Clock.unschedule(set_count_widget)
+                        break
+
+        Clock.schedule_interval(set_count_widget, 0)

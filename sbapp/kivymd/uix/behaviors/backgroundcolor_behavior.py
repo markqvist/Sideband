@@ -7,8 +7,9 @@ Behaviors/Background Color
 
 __all__ = ("BackgroundColorBehavior", "SpecificBackgroundColorBehavior")
 
-from typing import List
+from typing import List, Union
 
+from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.properties import (
     ColorProperty,
@@ -24,8 +25,6 @@ from kivy.utils import get_color_from_hex
 from kivymd.color_definitions import hue, palette, text_colors
 from kivymd.theming import ThemeManager
 
-from .elevation import CommonElevationBehavior
-
 Builder.load_string(
     """
 #:import RelativeLayout kivy.uix.relativelayout.RelativeLayout
@@ -38,7 +37,7 @@ Builder.load_string(
             angle: self.angle
             origin: self._background_origin
         Color:
-            rgba: self.md_bg_color
+            rgba: self._md_bg_color
         RoundedRectangle:
             group: "Background_instruction"
             size: self.size
@@ -67,7 +66,7 @@ Builder.load_string(
 )
 
 
-class BackgroundColorBehavior(CommonElevationBehavior):
+class BackgroundColorBehavior:
     background = StringProperty()
     """
     Background image path.
@@ -153,14 +152,25 @@ class BackgroundColorBehavior(CommonElevationBehavior):
 
     _background_x = NumericProperty(0)
     _background_y = NumericProperty(0)
-    _background_origin = ReferenceListProperty(
-        _background_x,
-        _background_y,
-    )
+    _background_origin = ReferenceListProperty(_background_x, _background_y)
+    _md_bg_color = ColorProperty([0, 0, 0, 0])
 
     def __init__(self, **kwarg):
         super().__init__(**kwarg)
         self.bind(pos=self.update_background_origin)
+
+    def on_md_bg_color(self, instance_md_widget, color: Union[list, str]):
+        if (
+            hasattr(self, "theme_cls")
+            and self.theme_cls.theme_style_switch_animation
+        ):
+            Animation(
+                _md_bg_color=color,
+                d=self.theme_cls.theme_style_switch_animation_duration,
+                t="linear",
+            ).start(self)
+        else:
+            self._md_bg_color = color
 
     def update_background_origin(
         self, instance_md_widget, pos: List[float]
@@ -206,12 +216,14 @@ class SpecificBackgroundColorBehavior(BackgroundColorBehavior):
         super().__init__(**kwargs)
         if hasattr(self, "theme_cls"):
             self.theme_cls.bind(
-                primary_palette=self._update_specific_text_color
+                primary_palette=self._update_specific_text_color,
+                accent_palette=self._update_specific_text_color,
+                theme_style=self._update_specific_text_color,
             )
-            self.theme_cls.bind(accent_palette=self._update_specific_text_color)
-            self.theme_cls.bind(theme_style=self._update_specific_text_color)
-        self.bind(background_hue=self._update_specific_text_color)
-        self.bind(background_palette=self._update_specific_text_color)
+        self.bind(
+            background_hue=self._update_specific_text_color,
+            background_palette=self._update_specific_text_color,
+        )
         self._update_specific_text_color(None, None)
 
     def _update_specific_text_color(
@@ -234,5 +246,17 @@ class SpecificBackgroundColorBehavior(BackgroundColorBehavior):
             secondary_color[3] = 0.54
         else:
             secondary_color[3] = 0.7
-        self.specific_text_color = color
-        self.specific_secondary_text_color = secondary_color
+
+        if (
+            hasattr(self, "theme_cls")
+            and self.theme_cls.theme_style_switch_animation
+        ):
+            Animation(
+                specific_text_color=color,
+                specific_secondary_text_color=secondary_color,
+                d=self.theme_cls.theme_style_switch_animation_duration,
+                t="linear",
+            ).start(self)
+        else:
+            self.specific_text_color = color
+            self.specific_secondary_text_color = secondary_color

@@ -11,18 +11,20 @@ from .backgroundcolor_behavior import (
 )
 
 # flake8: NOQA
-from .declarative_bahavior import DeclarativeBehavior
+from .declarative_behavior import DeclarativeBehavior
 from .elevation import (
     CircularElevationBehavior,
     CommonElevationBehavior,
     FakeCircularElevationBehavior,
     FakeRectangularElevationBehavior,
-    ObservableShadow,
     RectangularElevationBehavior,
     RoundedRectangularElevationBehavior,
 )
 from .magic_behavior import MagicBehavior
 from .ripple_behavior import CircularRippleBehavior, RectangularRippleBehavior
+from .rotate_behavior import RotateBehavior
+from .scale_behavior import ScaleBehavior
+from .stencil_behavior import StencilBehavior
 from .touch_behavior import TouchBehavior
 
 from .hover_behavior import HoverBehavior  # isort:skip

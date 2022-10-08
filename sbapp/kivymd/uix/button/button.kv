@@ -3,9 +3,9 @@
         Clear
         Color:
             rgba:
-                (self._md_bg_color or [0.0, 0.0, 0.0, 0.0]) \
+                self._md_bg_color \
                 if not self.disabled else \
-                (self._md_bg_color_disabled or [0.0, 0.0, 0.0, 0.0])
+                self._md_bg_color_disabled
         RoundedRectangle:
             size: self.size
             pos: self.pos
@@ -13,19 +13,17 @@
             radius: [root._radius, ]
         Color:
             rgba:
-                root._line_color or [0.0, 0.0, 0.0, 0.0] \
+                root._line_color \
                 if not root.disabled else \
-                ( \
-                root._line_color_disabled \
-                or self._disabled_color \
-                or [0.0, 0.0, 0.0, 0.0] \
-                )
+                (root._line_color_disabled or self._disabled_color)
         Line:
             width: root.line_width
             rounded_rectangle:
-                (self.x, self.y, self.width, self.height, \
+                ( \
+                self.x, self.y, self.width, self.height, \
                 root._radius, root._radius, root._radius, root._radius, \
-                self.height)
+                self.height \
+                )
 
     size_hint: None, None
     anchor_x: root.halign
@@ -33,21 +31,28 @@
     _round_rad: [self._radius] * 4
 
 
-
 <ButtonContentsText>
     lbl_txt: lbl_txt
     width:
-        max(root._min_width, \
-        root.padding[0] + lbl_txt.texture_size[0] + root.padding[2])
+        max( \
+        root._min_width, \
+        root.padding[0] + lbl_txt.texture_size[0] + root.padding[2] \
+        )
     size_hint_min_x:
-        max(root._min_width, \
-        root.padding[0] + lbl_txt.texture_size[0] + root.padding[2])
+        max( \
+        root._min_width, \
+        root.padding[0] + lbl_txt.texture_size[0] + root.padding[2] \
+        )
     height:
-        max(root._min_height, \
-        root.padding[1] + lbl_txt.texture_size[1] + root.padding[3])
+        max( \
+        root._min_height, \
+        root.padding[1] + lbl_txt.texture_size[1] + root.padding[3] \
+        )
     size_hint_min_y:
-        max(root._min_height, \
-        root.padding[1] + lbl_txt.texture_size[1] + root.padding[3])
+        max( \
+        root._min_height, \
+        root.padding[1] + lbl_txt.texture_size[1] + root.padding[3] \
+        )
 
     MDLabel:
         id: lbl_txt
@@ -84,7 +89,10 @@
             #  This is only a temporary fix and does not fix the cause of the error.
             (root._icon_color if root._icon_color else root.theme_cls.text_color) \
             if not root.disabled else \
-            root.theme_cls.disabled_hint_text_color
+            root.theme_cls.disabled_hint_text_color \
+            if not root.disabled_color else \
+            root.disabled_color
+
         on_icon:
             if self.icon not in md_icons.keys(): self.size_hint = (1, 1)
         theme_text_color: root._theme_icon_color
@@ -131,7 +139,7 @@
         id: box
         adaptive_size: True
         padding: 0
-        spacing: "4dp"
+        spacing: "8dp"
 
         MDIcon:
             id: lbl_ic
@@ -193,48 +201,21 @@
             radius: [self.height / 2]
 
 
-<BaseFloatingRootButton>
+<MDFloatingRootButton>
     theme_text_color: "Custom"
     md_bg_color: self.theme_cls.primary_color
 
+
+<MDFloatingLabel>
+    padding_x: "8dp"
+    padding_y: "8dp"
+    adaptive_size: True
+    theme_text_color: "Custom"
+
     canvas.before:
-        PushMatrix
-        Rotate:
-            angle: self._angle
-            axis: (0, 0, 1)
-            origin: self.center
-    canvas.after:
-        PopMatrix
-
-
-# FIXME: Use :class:`~kivymd.uix.boxlayout.MDBoxLayout` instead
-#  :class:`~kivy.uix.boxlayout.BoxLayout`.
-<BaseFloatingLabel>
-    size_hint: None, None
-    padding: "8dp", "4dp", "8dp", "4dp"
-    height: label.texture_size[1] + self.padding[1] * 2
-    width: label.texture_size[0] + self.padding[0] * 2
-    elevation: 10
-
-    # TODO: Use `md_bg_color` and `radius` instead `canvasю
-    canvas:
         Color:
-            rgba:
-                self.theme_cls.primary_color \
-                if not root.bg_color else \
-                root.bg_color
+            rgba: self.bg_color
         RoundedRectangle:
-            pos: self.pos
             size: self.size
-            radius: [5]
-
-    Label:
-        id: label
-        markup: True
-        text: root.text
-        size_hint: None, None
-        size: self.texture_size
-        color:
-            root.theme_cls.text_color \
-            if not root.text_color else \
-            root.text_color
+            pos: self.pos
+            radius: self.radius

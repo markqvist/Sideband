@@ -1,4 +1,3 @@
-#:import sm kivy.uix.screenmanager
 #:import STANDARD_INCREMENT kivymd.material_resources.STANDARD_INCREMENT
 
 
@@ -7,9 +6,9 @@
     height:
         STANDARD_INCREMENT if app.theme_cls.material_style == "M2" else "80dp"
 
-    MDScreenManager:
+    ScreenManager:
         id: tab_manager
-        transition: sm.FadeTransition(duration=.2)
+        transition: root.transition(duration=root.transition_duration)
         on_current:
             root.dispatch( \
             "on_switch_tabs", \
@@ -96,7 +95,7 @@
                     radius: [16,]
                     size: root._selected_region_width, dp(32)
                     pos:
-                        self.center_x - self.width - dp(8), \
+                        self.center_x - root._selected_region_width / 2, \
                         self.center_y - (dp(16))
 
         MDLabel:

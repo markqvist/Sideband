@@ -192,15 +192,10 @@ from kivy.properties import (
 )
 from kivy.uix.behaviors import ToggleButtonBehavior
 from kivy.uix.floatlayout import FloatLayout
-from kivy.utils import get_color_from_hex
 
 from kivymd import uix_path
-from kivymd.color_definitions import colors
 from kivymd.theming import ThemableBehavior
-from kivymd.uix.behaviors import (
-    CircularRippleBehavior,
-    FakeCircularElevationBehavior,
-)
+from kivymd.uix.behaviors import CircularRippleBehavior, CommonElevationBehavior
 from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.uix.label import MDIcon
 
@@ -361,8 +356,10 @@ class MDCheckbox(CircularRippleBehavior, ToggleButtonBehavior, MDIcon):
             disabled=self.update_color,
             state=self.update_color,
         )
-        self.theme_cls.bind(primary_color=self.update_primary_color)
-        self.theme_cls.bind(theme_style=self.update_primary_color)
+        self.theme_cls.bind(
+            theme_style=self.update_primary_color,
+            primary_color=self.update_primary_color,
+        )
         self.update_icon()
         self.update_color()
 
@@ -423,7 +420,7 @@ class ThumbIcon(MDIcon):
 
 
 class Thumb(
-    FakeCircularElevationBehavior,
+    CommonElevationBehavior,
     CircularRippleBehavior,
     MDFloatLayout,
 ):

@@ -14,7 +14,6 @@ Components/TextField
 `KivyMD` provides the following field classes for use:
 
 - MDTextField_
-- MDTextFieldRound_
 - MDTextFieldRect_
 
 .. Note:: :class:`~MDTextField` inherited from
@@ -79,15 +78,15 @@ parameter to `True`:
     from kivymd.app import MDApp
 
     KV = '''
-    BoxLayout:
-        padding: "10dp"
+    MDScreen:
 
         MDTextField:
             id: text_field_error
             hint_text: "Helper text on error (press 'Enter')"
             helper_text: "There will always be a mistake"
             helper_text_mode: "on_error"
-            pos_hint: {"center_y": .5}
+            pos_hint: {"center_x": .5, "center_y": .5}
+            size_hint_x: .5
     '''
 
 
@@ -97,6 +96,8 @@ parameter to `True`:
             self.screen = Builder.load_string(KV)
 
         def build(self):
+            self.theme_cls.theme_style = "Dark"
+            self.theme_cls.primary_palette = "Orange"
             self.screen.ids.text_field_error.bind(
                 on_text_validate=self.set_error_message,
                 on_focus=self.set_error_message,
@@ -119,6 +120,7 @@ Helper text mode `'on_error'` (with required)
 
     MDTextField:
         hint_text: "required = True"
+        text: "required = True"
         required: True
         helper_text_mode: "on_error"
         helper_text: "Enter text"
@@ -186,7 +188,7 @@ Round mode
         max_text_length: 15
         helper_text: "Massage"
 
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-round-mode.png
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-round-mode.gif
     :align: center
 
 .. MDTextFieldRect:
@@ -203,6 +205,7 @@ MDTextFieldRect
     MDTextFieldRect:
         size_hint: 1, None
         height: "30dp"
+        background_color: app.theme_cls.bg_normal
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-rect.gif
     :align: center
@@ -278,18 +281,17 @@ __all__ = ("MDTextField", "MDTextFieldRect")
 
 import os
 import re
+from datetime import date
 from typing import Union
 
 from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.lang import Builder
-from kivy.logger import Logger
 from kivy.metrics import dp, sp
 from kivy.properties import (
     AliasProperty,
     BooleanProperty,
     ColorProperty,
-    DictProperty,
     ListProperty,
     NumericProperty,
     ObjectProperty,
@@ -309,6 +311,220 @@ with open(
     os.path.join(uix_path, "textfield", "textfield.kv"), encoding="utf-8"
 ) as kv_file:
     Builder.load_string(kv_file.read())
+
+
+# TODO: Add a class to work with the phone number mask.
+
+
+class AutoFormatTelephoneNumber:
+    """
+    Implements automatic formatting of the text entered in the text field
+    according to the mask, for example '+38 (###) ### ## ##'.
+    """
+
+    def __init__(self):
+        self._backspace = False
+
+    def isnumeric(self, value):
+        try:
+            int(value)
+            return True
+        except ValueError:
+            return False
+
+    def do_backspace(self, *args):
+        if self.validator and self.validator == "phone":
+            self._backspace = True
+            text = self.text
+            text = text[:-1]
+            self.text = text
+            self._backspace = False
+
+    def field_filter(self, value, boolean):
+        if self.validator and self.validator == "phone":
+            if len(self.text) == 14:
+                return
+            if self.isnumeric(value):
+                return value
+        return value
+
+    def format(self, value):
+        if value != "" and not value.isspace() and not self._backspace:
+            if len(value) <= 1 and self.focus:
+                self.text = value
+                self._check_cursor()
+            elif len(value) == 4:
+                start = self.text[:-1]
+                end = self.text[-1]
+                self.text = "%s) %s" % (start, end)
+                self._check_cursor()
+            elif len(value) == 8:
+                self.text += "-"
+                self._check_cursor()
+            elif len(value) in [12, 16]:
+                start = self.text[:-1]
+                end = self.text[-1]
+                self.text = "%s-%s" % (start, end)
+                self._check_cursor()
+
+    def _check_cursor(self):
+        def set_pos_cursor(pos_corsor, interval=0.5):
+            self.cursor = (pos_corsor, 0)
+
+        if self.focus:
+            Clock.schedule_once(lambda x: set_pos_cursor(len(self.text)), 0.1)
+
+
+class Validator:
+    """Container class for various validation methods."""
+
+    datetime_date = ObjectProperty()
+    """
+    The last valid date as a <class 'datetime.date'> object.
+
+    :attr:`datetime_date` is an :class:`~kivy.properties.ObjectProperty`
+    and defaults to `None`.
+    """
+
+    date_interval = ListProperty([None, None])
+    """
+    The date interval that is valid for input.
+    Can be entered as <class 'datetime.date'> objects or a string format.
+    Both values or just one value can be entered.
+
+    In string format, must follow the current date_format.
+    Example: Given date_format -> "mm/dd/yyyy"
+    Input examples -> "12/31/1900", "12/31/2100" or "12/31/1900", None.
+
+    :attr:`date_interval` is an :class:`~kivy.properties.ListProperty`
+    and defaults to `[None, None]`.
+    """
+
+    date_format = OptionProperty(
+        None,
+        options=[
+            "dd/mm/yyyy",
+            "mm/dd/yyyy",
+            "yyyy/mm/dd",
+        ],
+    )
+
+    """
+    Format of date strings that will be entered.
+    Available options are: `'dd/mm/yyyy'`, `'mm/dd/yyyy'`, `'yyyy/mm/dd'`.
+
+    :attr:`date_format` is an :class:`~kivy.properties.OptionProperty`
+    and defaults to `None`.
+    """
+
+    def is_email_valid(self, text: str) -> bool:
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", text):
+            return True
+        return False
+
+    def is_time_valid(self, text: str) -> bool:
+        if re.match(r"^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$", text) or re.match(
+            r"^(2[0-3]|[01]?[0-9]):([0-5]?[0-9]):([0-5]?[0-9])$", text
+        ):
+            return False
+
+        return True
+
+    def is_date_valid(self, text: str) -> bool:
+        if not self.date_format:
+            raise Exception("TextInput date_format was not defined.")
+
+        # Regex strings.
+        dd = "[0][1-9]|[1-2][0-9]|[3][0-1]"
+        mm = "[0][1-9]|[1][0-2]"
+        yyyy = "[0-9][0-9][0-9][0-9]"
+        fmt = self.date_format.split("/")
+        largs = locals()
+        # Access  the local variables  dict in the correct format based on
+        # date_format split. Example: "mm/dd/yyyy" -> ["mm", "dd", "yyyy"]
+        # largs[fmt[0]] would be largs["mm"] so the month regex string.
+        if re.match(
+            f"^({largs[fmt[0]]})/({largs[fmt[1]]})/({largs[fmt[2]]})$", text
+        ):
+            input_split = text.split("/")
+            largs[fmt[0]] = input_split[0]
+            largs[fmt[1]] = input_split[1]
+            largs[fmt[2]] = input_split[2]
+            # Organize input  into correct slots and try to convert
+            # to datetime  object. This way February exceptions are
+            # tested. Also tests with the date_interval are simpler
+            # using datetime objects.
+            try:
+                datetime = date(
+                    int(largs["yyyy"]), int(largs["mm"]), int(largs["dd"])
+                )
+            except ValueError:
+                return True
+
+            if self.date_interval:
+                if (
+                    self.date_interval[0]
+                    and not self.date_interval[0] <= datetime
+                    or self.date_interval[1]
+                    and not datetime <= self.date_interval[1]
+                ):
+                    return True
+
+            self.datetime_date = datetime
+            return False
+        return True
+
+    def on_date_interval(self, *args) -> None:
+        """Default event handler for date_interval input."""
+
+        def on_date_interval():
+            if not self.date_format:
+                raise Exception("TextInput date_format was not defined.")
+
+            fmt = self.date_format.split("/")
+            largs = {}
+            # Convert string inputs into datetime.date objects and store
+            # them back into self.date_interval.
+            try:
+                if self.date_interval[0] and not isinstance(
+                    self.date_interval[0], date
+                ):
+                    split = self.date_interval[0].split("/")
+                    largs[fmt[0]] = split[0]
+                    largs[fmt[1]] = split[1]
+                    largs[fmt[2]] = split[2]
+                    self.date_interval[0] = date(
+                        int(largs["yyyy"]), int(largs["mm"]), int(largs["dd"])
+                    )
+                if self.date_interval[1] and not isinstance(
+                    self.date_interval[1], date
+                ):
+                    split = self.date_interval[1].split("/")
+                    largs[fmt[0]] = split[0]
+                    largs[fmt[1]] = split[1]
+                    largs[fmt[2]] = split[2]
+                    self.date_interval[1] = date(
+                        int(largs["yyyy"]), int(largs["mm"]), int(largs["dd"])
+                    )
+
+            except Exception:
+                raise Exception(
+                    r"TextInput date_interval was defined incorrectly, it must "
+                    r"be composed of <class 'datetime.date'> objects or strings"
+                    r" following current date_format."
+                )
+
+            # Test if the interval is valid.
+            if isinstance(self.date_interval[0], date) and isinstance(
+                self.date_interval[1], date
+            ):
+                if self.date_interval[0] >= self.date_interval[1]:
+                    raise Exception(
+                        "TextInput date_interval last date must be greater"
+                        " than the first date or set to None."
+                    )
+
+        Clock.schedule_once(lambda x: on_date_interval())
 
 
 class MDTextFieldRect(ThemableBehavior, TextInput):
@@ -383,7 +599,13 @@ class TextfieldLabel(ThemableBehavior, Label):
         self.font_size = sp(self.theme_cls.font_styles[self.font_style][1])
 
 
-class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
+class MDTextField(
+    DeclarativeBehavior,
+    ThemableBehavior,
+    TextInput,
+    Validator,
+    AutoFormatTelephoneNumber,
+):
     helper_text = StringProperty()
     """
     Text for ``helper_text`` mode.
@@ -430,17 +652,185 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
     and defaults to `'line'`.
     """
 
+    phone_mask = StringProperty("")
+
+    validator = OptionProperty(None, options=["date", "email", "time", "phone"])
+    """
+    The type of text field for entering Email, time, etc.
+    Automatically sets the type of the text field as "error" if the user input
+    does not match any of the set validation types.
+    Available options are: `'date'`, `'email'`, `'time'`.
+
+    When using `'date'`, :attr:`date_format` must be defined.
+
+    .. versionadded:: 1.1.0
+
+    .. code-block:: python
+
+        MDTextField:
+            hint_text: "Email"
+            helper_text: "user@gmail.com"
+            validator: "email"
+
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-validator.png
+        :align: center
+
+    .. tabs::
+
+        .. tab:: Declarative KV style
+
+            .. code-block:: python
+
+                from kivy.lang import Builder
+
+                from kivymd.app import MDApp
+
+                KV = '''
+                MDScreen:
+
+                    MDBoxLayout:
+                        orientation: "vertical"
+                        spacing: "20dp"
+                        adaptive_height: True
+                        size_hint_x: .8
+                        pos_hint: {"center_x": .5, "center_y": .5}
+
+                        MDTextField:
+                            hint_text: "Date dd/mm/yyyy without limits"
+                            helper_text: "Enter a valid dd/mm/yyyy date"
+                            validator: "date"
+                            date_format: "dd/mm/yyyy"
+
+                        MDTextField:
+                            hint_text: "Date mm/dd/yyyy without limits"
+                            helper_text: "Enter a valid mm/dd/yyyy date"
+                            validator: "date"
+                            date_format: "mm/dd/yyyy"
+
+                        MDTextField:
+                            hint_text: "Date yyyy/mm/dd without limits"
+                            helper_text: "Enter a valid yyyy/mm/dd date"
+                            validator: "date"
+                            date_format: "yyyy/mm/dd"
+
+                        MDTextField:
+                            hint_text: "Date dd/mm/yyyy in [01/01/1900, 01/01/2100] interval"
+                            helper_text: "Enter a valid dd/mm/yyyy date"
+                            validator: "date"
+                            date_format: "dd/mm/yyyy"
+                            date_interval: "01/01/1900", "01/01/2100"
+
+                        MDTextField:
+                            hint_text: "Date dd/mm/yyyy in [01/01/1900, None] interval"
+                            helper_text: "Enter a valid dd/mm/yyyy date"
+                            validator: "date"
+                            date_format: "dd/mm/yyyy"
+                            date_interval: "01/01/1900", None
+
+                        MDTextField:
+                            hint_text: "Date dd/mm/yyyy in [None, 01/01/2100] interval"
+                            helper_text: "Enter a valid dd/mm/yyyy date"
+                            validator: "date"
+                            date_format: "dd/mm/yyyy"
+                            date_interval: None, "01/01/2100"
+                '''
+
+
+                class Test(MDApp):
+                    def build(self):
+                        self.theme_cls.theme_style = "Dark"
+                        self.theme_cls.primary_palette = "Orange"
+                        return Builder.load_string(KV)
+
+
+                Test().run()
+
+        .. tab:: Declarative python style
+
+            .. code-block:: python
+
+                from kivymd.app import MDApp
+                from kivymd.uix.boxlayout import MDBoxLayout
+                from kivymd.uix.screen import MDScreen
+                from kivymd.uix.textfield import MDTextField
+
+
+                class Test(MDApp):
+                    def build(self):
+                        self.theme_cls.theme_style = "Dark"
+                        self.theme_cls.primary_palette = "Orange"
+                        return (
+                            MDScreen(
+                                MDBoxLayout(
+                                    MDTextField(
+                                        hint_text="Date dd/mm/yyyy without limits",
+                                        helper_text="Enter a valid dd/mm/yyyy date",
+                                        validator="date",
+                                        date_format="dd/mm/yyyy",
+                                    ),
+                                    MDTextField(
+                                        hint_text="Date mm/dd/yyyy without limits",
+                                        helper_text="Enter a valid mm/dd/yyyy date",
+                                        validator="date",
+                                        date_format="mm/dd/yyyy",
+                                    ),
+                                    MDTextField(
+                                        hint_text="Date yyyy/mm/dd without limits",
+                                        helper_text="Enter a valid yyyy/mm/dd date",
+                                        validator="date",
+                                        date_format="yyyy/mm/dd",
+                                    ),
+                                    MDTextField(
+                                        hint_text="Date dd/mm/yyyy in [01/01/1900, 01/01/2100] interval",
+                                        helper_text="Enter a valid dd/mm/yyyy date",
+                                        validator="date",
+                                        date_format="dd/mm/yyyy",
+                                        date_interval=["01/01/1900", "01/01/2100"],
+                                    ),
+                                    MDTextField(
+                                        hint_text="Date dd/mm/yyyy in [01/01/1900, None] interval",
+                                        helper_text="Enter a valid dd/mm/yyyy date",
+                                        validator="date",
+                                        date_format="dd/mm/yyyy",
+                                        date_interval=["01/01/1900", None],
+                                    ),
+                                    MDTextField(
+                                        hint_text="Date dd/mm/yyyy in [None, 01/01/2100] interval",
+                                        helper_text="Enter a valid dd/mm/yyyy date",
+                                        validator="date",
+                                        date_format="dd/mm/yyyy",
+                                        date_interval=[None, "01/01/2100"],
+                                    ),
+                                    orientation="vertical",
+                                    spacing="20dp",
+                                    adaptive_height=True,
+                                    size_hint_x=0.8,
+                                    pos_hint={"center_x": 0.5, "center_y": 0.5},
+                                )
+                            )
+                        )
+
+
+                Test().run()
+
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-validator-date.png
+        :align: center
+
+    :attr:`validator` is an :class:`~kivy.properties.OptionProperty`
+    and defaults to `None`.
+    """
+
     line_color_normal = ColorProperty([0, 0, 0, 0])
     """
-    Line color normal (static underline line) in ``rgba`` format.
+    Line color normal (static underline line) in (r, g, b, a) or string format.
 
     .. code-block:: kv
 
         MDTextField:
             hint_text: "line_color_normal"
-            line_color_normal: 1, 0, 1, 1
+            line_color_normal: "red"
 
-    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-line-color-normal.gif
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-line-color-normal.png
         :align: center
 
     :attr:`line_color_normal` is an :class:`~kivy.properties.ColorProperty`
@@ -449,13 +839,13 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
     line_color_focus = ColorProperty([0, 0, 0, 0])
     """
-    Line color focus (active underline line) in ``rgba`` format.
+    Line color focus (active underline line) in (r, g, b, a) or string format.
 
     .. code-block:: kv
 
         MDTextField:
             hint_text: "line_color_focus"
-            line_color_focus: 0, 1, 0, 1
+            line_color_focus: "red"
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-line-color-focus.gif
         :align: center
@@ -474,7 +864,7 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
     error_color = ColorProperty([0, 0, 0, 0])
     """
-    Error color in ``rgba`` format for ``required = True``.
+    Error color in (r, g, b, a) or string format for ``required = True``.
 
     :attr:`error_color` is an :class:`~kivy.properties.ColorProperty`
     and defaults to `[0, 0, 0, 0]`.
@@ -482,7 +872,18 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
     fill_color_normal = ColorProperty([0, 0, 0, 0])
     """
-    Fill background color in 'fill' mode when text field is out of focus.
+    Fill background color in (r, g, b, a) or string format in 'fill' mode when]
+    text field is out of focus.
+
+    .. code=block:: kv
+
+        MDTextField:
+            hint_text: "Fill mode"
+            mode: "fill"
+            fill_color_normal: "brown"
+
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-fill-color-normal.png
+        :align: center
 
     :attr:`fill_color_normal` is an :class:`~kivy.properties.ColorProperty`
     and defaults to `[0, 0, 0, 0]`.
@@ -490,7 +891,18 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
     fill_color_focus = ColorProperty([0, 0, 0, 0])
     """
-    Fill background color in 'fill' mode when the text field has focus.
+    Fill background color in (r, g, b, a) or string format in 'fill' mode when
+    the text field has focus.
+
+    .. code=block:: kv
+
+        MDTextField:
+            hint_text: "Fill mode"
+            mode: "fill"
+            fill_color_focus: "brown"
+
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-fill-color-focus.gif
+        :align: center
 
     :attr:`fill_color_focus` is an :class:`~kivy.properties.ColorProperty`
     and defaults to `[0, 0, 0, 0]`.
@@ -514,7 +926,8 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
     hint_text_color_normal = ColorProperty([0, 0, 0, 0])
     """
-    Hint text color when text field is out of focus.
+    Hint text color in (r, g, b, a) or string format when text field is out
+    of focus.
 
     .. versionadded:: 1.0.0
 
@@ -522,9 +935,9 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
         MDTextField:
             hint_text: "hint_text_color_normal"
-            hint_text_color_normal: 0, 1, 0, 1
+            hint_text_color_normal: "red"
 
-    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-hint-text-color-normal.gif
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-hint-text-color-normal.png
         :align: center
 
     :attr:`hint_text_color_normal` is an :class:`~kivy.properties.ColorProperty`
@@ -533,7 +946,8 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
     hint_text_color_focus = ColorProperty([0, 0, 0, 0])
     """
-    Hint text color when the text field has focus.
+    Hint text color in (r, g, b, a) or string format when the text field has
+    focus.
 
     .. versionadded:: 1.0.0
 
@@ -541,7 +955,7 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
         MDTextField:
             hint_text: "hint_text_color_focus"
-            hint_text_color_focus: 0, 1, 0, 1
+            hint_text_color_focus: "red"
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-hint-text-color-focus.gif
         :align: center
@@ -552,7 +966,8 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
     helper_text_color_normal = ColorProperty([0, 0, 0, 0])
     """
-    Helper text color when text field is out of focus.
+    Helper text color in (r, g, b, a) or string format when text field is out
+    of focus.
 
     .. versionadded:: 1.0.0
 
@@ -561,7 +976,7 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
         MDTextField:
             helper_text: "helper_text_color_normal"
             helper_text_mode: "persistent"
-            helper_text_color_normal: 0, 1, 0, 1
+            helper_text_color_normal: "red"
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-helper-text-color-normal.png
         :align: center
@@ -572,7 +987,8 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
     helper_text_color_focus = ColorProperty([0, 0, 0, 0])
     """
-    Helper text color when the text field has focus.
+    Helper text color in (r, g, b, a) or string format when the text field has
+    focus.
 
     .. versionadded:: 1.0.0
 
@@ -581,7 +997,7 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
         MDTextField:
             helper_text: "helper_text_color_focus"
             helper_text_mode: "persistent"
-            helper_text_color_focus: 0, 1, 0, 1
+            helper_text_color_focus: "red"
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-helper-text-color-focus.gif
         :align: center
@@ -592,7 +1008,8 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
     icon_right_color_normal = ColorProperty([0, 0, 0, 0])
     """
-    Color of right icon when text field is out of focus.
+    Color in (r, g, b, a) or string format of right icon when text field is out
+    of focus.
 
     .. versionadded:: 1.0.0
 
@@ -601,9 +1018,9 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
         MDTextField:
             icon_right: "language-python"
             hint_text: "icon_right_color_normal"
-            icon_right_color_normal: 0, 1, 0, 1
+            icon_right_color_normal: "red"
 
-    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-icon-right-color-normal.gif
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-icon-right-color-normal.png
         :align: center
 
     :attr:`icon_right_color_normal` is an :class:`~kivy.properties.ColorProperty`
@@ -612,7 +1029,8 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
     icon_right_color_focus = ColorProperty([0, 0, 0, 0])
     """
-    Color of right icon  when the text field has focus.
+    Color in (r, g, b, a) or string format of right icon  when the text field
+    has focus.
 
     .. versionadded:: 1.0.0
 
@@ -621,7 +1039,7 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
         MDTextField:
             icon_right: "language-python"
             hint_text: "icon_right_color_focus"
-            icon_right_color_focus: 0, 1, 0, 1
+            icon_right_color_focus: "red"
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-icon-right-color-focus.gif
         :align: center
@@ -632,19 +1050,10 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
     icon_left_color_normal = ColorProperty([0, 0, 0, 0])
     """
-    Color of right icon when text field is out of focus.
+    Color in (r, g, b, a) or string format of right icon when text field is out
+    of focus.
 
     .. versionadded:: 1.0.0
-
-    .. code-block:: kv
-
-        MDTextField:
-            icon_right: "language-python"
-            hint_text: "icon_right_color_normal"
-            icon_left_color_normal: 0, 1, 0, 1
-
-    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-icon-right-color-normal.gif
-        :align: center
 
     :attr:`icon_left_color_normal` is an :class:`~kivy.properties.ColorProperty`
     and defaults to `[0, 0, 0, 0]`.
@@ -652,19 +1061,10 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
     icon_left_color_focus = ColorProperty([0, 0, 0, 0])
     """
-    Color of right icon  when the text field has focus.
+    Color in (r, g, b, a) or string format of right icon  when the text field
+    has focus.
 
     .. versionadded:: 1.0.0
-
-    .. code-block:: kv
-
-        MDTextField:
-            icon_right: "language-python"
-            hint_text: "icon_right_color_focus"
-            icon_right_color_focus: 0, 1, 0, 1
-
-    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-icon-right-color-focus.gif
-        :align: center
 
     :attr:`icon_left_color_focus` is an :class:`~kivy.properties.ColorProperty`
     and defaults to `[0, 0, 0, 0]`.
@@ -672,7 +1072,8 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
     max_length_text_color = ColorProperty([0, 0, 0, 0])
     """
-    Text color of the maximum length of characters to be input.
+    Text color in (r, g, b, a) or string format of the maximum length of
+    characters to be input.
 
     .. versionadded:: 1.0.0
 
@@ -680,10 +1081,10 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
         MDTextField:
             hint_text: "max_length_text_color"
-            max_length_text_color: 0, 1, 0, 1
+            max_length_text_color: "red"
             max_text_length: 5
 
-    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-max-length-text-color.gif
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-max-length-text-color.png
         :align: center
 
     :attr:`max_length_text_color` is an :class:`~kivy.properties.ColorProperty`
@@ -718,7 +1119,7 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
     text_color_normal = ColorProperty([0, 0, 0, 0])
     """
-    Text color in ``rgba`` format when text field is out of focus.
+    Text color in (r, g, b, a) or string format when text field is out of focus.
 
     .. versionadded:: 1.0.0
 
@@ -726,9 +1127,9 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
         MDTextField:
             hint_text: "text_color_normal"
-            text_color_normal: 0, 1, 0, 1
+            text_color_normal: "red"
 
-    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-text-color-normal.gif
+    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-text-color-normal.png
         :align: center
 
     :attr:`text_color_normal` is an :class:`~kivy.properties.ColorProperty`
@@ -737,7 +1138,7 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
     text_color_focus = ColorProperty([0, 0, 0, 0])
     """
-    Text color in ``rgba`` format when text field has focus.
+    Text color in (r, g, b, a) or string format when text field has focus.
 
     .. versionadded:: 1.0.0
 
@@ -745,7 +1146,7 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
         MDTextField:
             hint_text: "text_color_focus"
-            text_color_focus: 0, 1, 0, 1
+            text_color_focus: "red"
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/text-field-text-color-focus.gif
         :align: center
@@ -879,8 +1280,8 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
             text=self.set_text,
         )
         self.theme_cls.bind(
-            primary_color=lambda x, y: self.set_default_colors(0, True),
-            theme_style=lambda x, y: self.set_default_colors(0, True),
+            primary_color=self.set_default_colors,
+            theme_style=self.set_default_colors,
         )
         Clock.schedule_once(self.check_text)
 
@@ -930,9 +1331,17 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
             )
 
         if self.error_color == [0, 0, 0, 0] or updated:
-            self.error_color = self.theme_cls.error_color
+            self.error_color = (
+                self.theme_cls.error_color
+                if self.error_color == [0, 0, 0, 0]
+                else self.error_color
+            )
         if self.max_length_text_color == [0, 0, 0, 0] or updated:
-            self.max_length_text_color = self.theme_cls.disabled_hint_text_color
+            self.max_length_text_color = (
+                self.theme_cls.disabled_hint_text_color
+                if self.max_length_text_color == [0, 0, 0, 0]
+                else self.max_length_text_color
+            )
 
         self._hint_text_color = self.hint_text_color_normal
         self._text_color_normal = self.text_color_normal
@@ -1101,8 +1510,11 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
         self.text = re.sub("\n", " ", text) if not self.multiline else text
         self.set_max_text_length()
+        if self.validator and self.validator == "phone":
+            pass
+            # self.format(self.text)
 
-        if self.text and self.max_length_text_color and self._get_has_error():
+        if (self.text and self.max_length_text_color) or self._get_has_error():
             self.error = True
         if (
             self.text
@@ -1301,22 +1713,34 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
         if value_height >= self.max_height and self.max_height:
             self.height = self.max_height
 
-    def on_text_color_normal(self, instance_text_field, color: list):
+    def on_text_color_normal(
+        self, instance_text_field, color: Union[list, str]
+    ):
         self._text_color_normal = color
 
-    def on_hint_text_color_normal(self, instance_text_field, color: list):
+    def on_hint_text_color_normal(
+        self, instance_text_field, color: Union[list, str]
+    ):
         self._hint_text_color = color
 
-    def on_helper_text_color_normal(self, instance_text_field, color: list):
+    def on_helper_text_color_normal(
+        self, instance_text_field, color: Union[list, str]
+    ):
         self._helper_text_color = color
 
-    def on_icon_right_color_normal(self, instance_text_field, color: list):
+    def on_icon_right_color_normal(
+        self, instance_text_field, color: Union[list, str]
+    ):
         self._icon_right_color = color
 
-    def on_line_color_normal(self, instance_text_field, color: list):
+    def on_line_color_normal(
+        self, instance_text_field, color: Union[list, str]
+    ):
         self._line_color_normal = color
 
-    def on_max_length_text_color(self, instance_text_field, color: list):
+    def on_max_length_text_color(
+        self, instance_text_field, color: Union[list, str]
+    ):
         self._max_length_text_color = color
 
     def _set_color(self, attr_name: str, color: str, updated: bool) -> None:
@@ -1353,6 +1777,13 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
         the :attr:`~MDTextField.required` parameter is set to `True`.
         """
 
+        if self.validator and self.validator != "phone":
+            has_error = {
+                "date": self.is_date_valid,
+                "email": self.is_email_valid,
+                "time": self.is_time_valid,
+            }[self.validator](self.text)
+            return has_error
         if self.max_text_length and len(self.text) > self.max_text_length:
             has_error = True
         else:
@@ -1367,8 +1798,11 @@ class MDTextField(DeclarativeBehavior, ThemableBehavior, TextInput):
 
 
 if __name__ == "__main__":
+    from kivy.core.window import Window
     from kivy.lang import Builder
     from kivy.uix.textinput import TextInput
+
+    Window.size = (800, 750)
 
     from kivymd.app import MDApp
 
@@ -1385,41 +1819,53 @@ MDScreen:
 
         MDTextField:
             hint_text: "Label"
-            helper_text: "Error massage"
+            helper_text: "Error message"
             mode: "rectangle"
             max_text_length: 5
 
         MDTextField:
             icon_left: "git"
             hint_text: "Label"
-            helper_text: "Error massage"
+            helper_text: "Error message"
             mode: "rectangle"
 
         MDTextField:
             icon_left: "git"
             hint_text: "Label"
-            helper_text: "Error massage"
+            helper_text: "Error message"
             mode: "fill"
 
         MDTextField:
             hint_text: "Label"
-            helper_text: "Error massage"
+            helper_text: "Error message"
             mode: "fill"
 
         MDTextField:
             hint_text: "Label"
-            helper_text: "Error massage"
+            helper_text: "Error message"
 
         MDTextField:
             icon_left: "git"
             hint_text: "Label"
-            helper_text: "Error massage"
+            helper_text: "Error message"
 
         MDTextField:
             hint_text: "Round mode"
             mode: "round"
             max_text_length: 15
-            helper_text: "Massage"
+            helper_text: "Message"
+
+        MDTextField:
+            hint_text: "Date dd/mm/yyyy in [01/01/1900, 01/01/2100] interval"
+            helper_text: "Enter a valid dd/mm/yyyy date"
+            validator: "date"
+            date_format: "dd/mm/yyyy"
+            date_interval: "01/01/1900", "01/01/2100"
+
+        MDTextField:
+            hint_text: "Email"
+            helper_text: "user@gmail.com"
+            validator: "email"
 
         MDFlatButton:
             text: "SET TEXT"
@@ -1429,6 +1875,8 @@ MDScreen:
 
     class Test(MDApp):
         def build(self):
+            self.theme_cls.theme_style = "Dark"
+            self.theme_cls.primary_palette = "Orange"
             return Builder.load_string(KV)
 
         def set_text(self):

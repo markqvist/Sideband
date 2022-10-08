@@ -16,35 +16,73 @@ Components/TimePicker
 
 .. rubric:: Usage
 
-.. code-block::
+.. tabs::
 
-    from kivy.lang import Builder
+    .. tab:: Declarative KV style
 
-    from kivymd.app import MDApp
-    from kivymd.uix.pickers import MDTimePicker
+        .. code-block:: python
 
-    KV = '''
-    MDFloatLayout:
+            from kivy.lang import Builder
 
-        MDRaisedButton:
-            text: "Open time picker"
-            pos_hint: {'center_x': .5, 'center_y': .5}
-            on_release: app.show_time_picker()
-    '''
+            from kivymd.app import MDApp
+            from kivymd.uix.pickers import MDTimePicker
 
+            KV = '''
+            MDFloatLayout:
 
-    class Test(MDApp):
-        def build(self):
-            return Builder.load_string(KV)
-
-        def show_time_picker(self):
-            '''Open time picker dialog.'''
-
-            time_dialog = MDTimePicker()
-            time_dialog.open()
+                MDRaisedButton:
+                    text: "Open time picker"
+                    pos_hint: {'center_x': .5, 'center_y': .5}
+                    on_release: app.show_time_picker()
+            '''
 
 
-    Test().run()
+            class Test(MDApp):
+                def build(self):
+                    self.theme_cls.theme_style = "Dark"
+                    self.theme_cls.primary_palette = "Orange"
+                    return Builder.load_string(KV)
+
+                def show_time_picker(self):
+                    '''Open time picker dialog.'''
+
+                    time_dialog = MDTimePicker()
+                    time_dialog.open()
+
+
+            Test().run()
+
+    .. tab:: Declarative python style
+
+        .. code-block:: python
+
+            from kivymd.app import MDApp
+            from kivymd.uix.button import MDRaisedButton
+            from kivymd.uix.pickers import MDTimePicker
+            from kivymd.uix.screen import MDScreen
+
+
+            class Test(MDApp):
+                def build(self):
+                    self.theme_cls.theme_style = "Dark"
+                    self.theme_cls.primary_palette = "Orange"
+                    return (
+                        MDScreen(
+                            MDRaisedButton(
+                                text="Open time picker",
+                                pos_hint={'center_x': .5, 'center_y': .5},
+                                on_release=self.show_time_picker,
+                            )
+                        )
+                    )
+
+                def show_time_picker(self, *args):
+                    '''Open time picker dialog.'''
+
+                    MDTimePicker().open()
+
+
+            Test().run()
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/MDTimePicker.png
     :align: center
@@ -91,14 +129,14 @@ Use the :attr:`~MDTimePicker.set_time` method of the
 
 .. code-block:: python
 
-    time_dialog = MDTimePicker(
-        primary_color=get_color_from_hex("#72225b"),
-        accent_color=get_color_from_hex("#5d1a4a"),
-        text_button_color=(1, 1, 1, 1),
-    )
+        MDTimePicker(
+            primary_color="brown",
+            accent_color="red",
+            text_button_color="white",
+        ).open()
 
-    .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/time-picker-customization.png
-        :align: center
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/time-picker-customization.png
+    :align: center
 """
 
 __all__ = ("MDTimePicker",)
@@ -194,8 +232,8 @@ class TimeInputTextField(MDTextField):
     hour_regx = "^[0-9]$|^0[1-9]$|^1[0-2]$"
     minute_regx = "^[0-9]$|^0[0-9]$|^[1-5][0-9]$"
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         Clock.schedule_once(self.set_text)
         self.register_event_type("on_select")
         self.bind(text_color_focus=self.setter("hint_text_color_normal"))
@@ -217,17 +255,20 @@ class TimeInputTextField(MDTextField):
         to somehow make them aligned.
         """
 
-        if not self.text:
-            self.text = " "
+        def set_text(*args):
+            if not self.text:
+                self.text = " "
 
-        self._refresh_text(self.text)
-        max_size = max(self._lines_rects, key=lambda r: r.size[0]).size
-        dx = (self.width - max_size[0]) / 2.0
-        dy = (self.height - max_size[1]) / 2.0
-        self.padding = [dx, dy, dx, dy]
+            self._refresh_text(self.text)
+            max_size = max(self._lines_rects, key=lambda r: r.size[0]).size
+            dx = (self.width - max_size[0]) / 2.0
+            dy = (self.height - max_size[1]) / 2.0
+            self.padding = [dx, dy, dx, dy]
 
-        if len(self.text) > 1:
-            self.text = self.text.replace(" ", "")
+            if len(self.text) > 1:
+                self.text = self.text.replace(" ", "")
+
+        Clock.schedule_once(set_text)
 
     def on_focus(self, *args) -> None:
         super().on_focus(*args)

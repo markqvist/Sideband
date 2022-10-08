@@ -43,9 +43,10 @@ __all__ = ("MDApp",)
 import os
 
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.logger import Logger
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, StringProperty
 
 from kivymd.theming import ThemeManager
 
@@ -56,19 +57,32 @@ class FpsMonitoring:
     def fps_monitor_start(self) -> None:
         """Adds a monitor to the main application window."""
 
-        from kivy.core.window import Window
+        def add_monitor(*args):
+            from kivy.core.window import Window
 
-        from kivymd.utils.fpsmonitor import FpsMonitor
+            from kivymd.utils.fpsmonitor import FpsMonitor
 
-        monitor = FpsMonitor()
-        monitor.start()
-        Window.add_widget(monitor)
+            monitor = FpsMonitor()
+            monitor.start()
+            Window.add_widget(monitor)
+
+        Clock.schedule_once(add_monitor)
 
 
 class MDApp(App, FpsMonitoring):
     """
     Application class, see :class:`~kivy.app.App` class documentation for more
     information.
+    """
+
+    icon = StringProperty("kivymd/images/logo/kivymd-icon-512.png")
+    """
+    See :attr:`~kivy.app.App.icon` attribute for more information.
+
+    .. versionadded:: 1.1.0
+
+    :attr:`icon` is an :class:`~kivy.properties.StringProperty`
+    adn default to `kivymd/images/logo/kivymd-icon-512.png`.
     """
 
     theme_cls = ObjectProperty()
