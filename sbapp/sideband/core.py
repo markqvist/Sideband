@@ -163,6 +163,7 @@ class SidebandCore():
         self.config = {}
         # Settings
         self.config["display_name"] = "Anonymous Peer"
+        self.config["settings_notifications_on"] = False
         self.config["dark_ui"] = False
         self.config["start_announce"] = False
         self.config["propagation_by_default"] = False
@@ -220,6 +221,8 @@ class SidebandCore():
             self.config["lxmf_periodic_sync"] = False
         if not "lxmf_sync_interval" in self.config:
             self.config["lxmf_sync_interval"] = 43200
+        if not "notifications_on" in self.config:
+            self.config["notifications_on"] = True
 
         # Make sure we have a database
         if not os.path.isfile(self.db_path):
@@ -267,9 +270,7 @@ class SidebandCore():
 
 
     def notify(self, title, content, group=None, context_id=None):
-        notifications_enabled = True
-
-        if notifications_enabled:
+        if self.config["notifications_on"]:
             if RNS.vendor.platformutils.get_platform() == "android":
                 if self.getpersistent("permissions.notifications"):
                     notifications_permitted = True

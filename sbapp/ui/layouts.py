@@ -847,6 +847,21 @@ MDNavigationLayout:
                                 height: dp(48)
                                 
                                 MDLabel:
+                                    text: "Notifications"
+                                    font_style: "H6"
+
+                                MDSwitch:
+                                    id: settings_notifications_on
+                                    pos_hint: {"center_y": 0.3}
+                                    active: True
+
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                size_hint_y: None
+                                padding: [0,0,dp(24),dp(0)]
+                                height: dp(48)
+                                
+                                MDLabel:
                                     text: "Dark Mode UI"
                                     font_style: "H6"
 

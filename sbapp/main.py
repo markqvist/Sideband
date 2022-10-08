@@ -856,6 +856,10 @@ class SidebandApp(MDApp):
                 self.sideband.save_configuration()
                 self.update_ui_theme()
 
+            def save_notifications_on(sender=None, event=None):
+                self.sideband.config["notifications_on"] = self.root.ids.settings_notifications_on.active
+                self.sideband.save_configuration()
+
             def save_start_announce(sender=None, event=None):
                 self.sideband.config["start_announce"] = self.root.ids.settings_start_announce.active
                 self.sideband.save_configuration()
@@ -883,10 +887,9 @@ class SidebandApp(MDApp):
                 interval_text = RNS.prettytime(interval)
                 pre = self.root.ids.settings_lxmf_sync_periodic.text
                 self.root.ids.settings_lxmf_sync_periodic.text = "Auto sync every "+interval_text
-                if pre != self.root.ids.settings_lxmf_sync_periodic.text:
-                    if save:
-                        self.sideband.config["lxmf_sync_interval"] = interval
-                        self.sideband.save_configuration()
+                if save:
+                    self.sideband.config["lxmf_sync_interval"] = interval
+                    self.sideband.save_configuration()
 
             self.root.ids.settings_lxmf_address.text = RNS.hexrep(self.sideband.lxmf_destination.hash, delimit=False)
 
@@ -903,6 +906,9 @@ class SidebandApp(MDApp):
             self.root.ids.settings_propagation_node_address.bind(on_text_validate=save_prop_addr)
             self.root.ids.settings_propagation_node_address.bind(focus=save_prop_addr)
 
+            self.root.ids.settings_notifications_on.active = self.sideband.config["notifications_on"]
+            self.root.ids.settings_notifications_on.bind(active=save_notifications_on)
+
             self.root.ids.settings_dark_ui.active = self.sideband.config["dark_ui"]
             self.root.ids.settings_dark_ui.bind(active=save_dark_ui)
 
@@ -916,7 +922,10 @@ class SidebandApp(MDApp):
             self.root.ids.settings_lxmf_periodic_sync.bind(active=save_lxmf_periodic_sync)
             save_lxmf_periodic_sync(save=False)
 
-            self.root.ids.settings_lxmf_sync_interval.bind(value=sync_interval_change)
+            def sync_interval_change_cb(sender=None, event=None):
+                sync_interval_change(sender=sender, event=event, save=False)
+            self.root.ids.settings_lxmf_sync_interval.bind(value=sync_interval_change_cb)
+            self.root.ids.settings_lxmf_sync_interval.bind(on_touch_up=sync_interval_change)
             self.root.ids.settings_lxmf_sync_interval.value = self.sideband.config["lxmf_sync_interval"]
             sync_interval_change(save=False)
 
