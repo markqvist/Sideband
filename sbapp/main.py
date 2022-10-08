@@ -506,6 +506,9 @@ class SidebandApp(MDApp):
         self.open_conversations(direction="right")
 
     def message_send_action(self, sender=None):
+        if self.root.ids.message_text.text == "":
+            return
+            
         def cb(dt):
             self.message_send_dispatch(sender)
         Clock.schedule_once(cb, 0.20)
