@@ -493,6 +493,8 @@ class SidebandApp(MDApp):
         self.root.ids.nokeys_text.text = ""
         self.message_area_detect()
         self.update_message_widgets()
+        self.root.ids.message_text.disabled = False
+
 
         self.root.ids.screen_manager.current = "messages_screen"
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
@@ -504,6 +506,12 @@ class SidebandApp(MDApp):
         self.open_conversations(direction="right")
 
     def message_send_action(self, sender=None):
+        def cb(dt):
+            self.message_send_dispatch(sender)
+        Clock.schedule_once(cb, 0.20)
+
+    def message_send_dispatch(self, sender=None):
+        self.root.ids.message_send_button.disabled = True
         if self.root.ids.screen_manager.current == "messages_screen":
             if self.outbound_mode_propagation and self.sideband.message_router.get_outbound_propagation_node() == None:
                 self.messages_view.send_error_dialog = MDDialog(
@@ -542,6 +550,11 @@ class SidebandApp(MDApp):
                         # elevation=0,
                     )
                     self.messages_view.send_error_dialog.open()
+        
+        def cb(dt):
+            self.root.ids.message_send_button.disabled = False
+        Clock.schedule_once(cb, 0.5)
+
 
     def message_propagation_action(self, sender):
         if self.outbound_mode_propagation:

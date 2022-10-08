@@ -167,6 +167,7 @@ MDNavigationLayout:
                         max_height: dp(100)
 
                     MDRectangleFlatIconButton:
+                        id: message_send_button
                         icon: "transfer-up"
                         text: "Send"
                         padding: [dp(10), dp(13), dp(10), dp(14)]
