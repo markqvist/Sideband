@@ -552,9 +552,72 @@ MDNavigationLayout:
                         height: self.minimum_height
                         padding: [dp(35), dp(16), dp(35), dp(16)]
 
+                        MDLabel:
+                            id: guide_info1
+                            markup: True
+                            text: ""
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
 
                         MDLabel:
-                            id: guide_info
+                            id: guide_info2
+                            markup: True
+                            text: ""
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDLabel:
+                            id: guide_info3
+                            markup: True
+                            text: ""
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDLabel:
+                            id: guide_info4
+                            markup: True
+                            text: ""
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDLabel:
+                            id: guide_info5
+                            markup: True
+                            text: ""
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDLabel:
+                            id: guide_info6
+                            markup: True
+                            text: ""
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDLabel:
+                            id: guide_info7
+                            markup: True
+                            text: ""
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDLabel:
+                            id: guide_info8
+                            markup: True
+                            text: ""
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDLabel:
+                            id: guide_info9
                             markup: True
                             text: ""
                             size_hint_y: None
