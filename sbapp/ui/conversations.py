@@ -9,6 +9,7 @@ from kivymd.uix.menu import MDDropdownMenu
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
+from kivy.core.clipboard import Clipboard
 
 from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.dialog import MDDialog
@@ -187,6 +188,12 @@ class Conversations():
                         dialog.open()
                     return x
 
+                def gen_copy_addr(dest, item):
+                    def x():
+                        Clipboard.copy(RNS.hexrep(dest, delimit=False))
+                        item.dmenu.dismiss()
+                    return x
+
                 if self.conversation_dropdown == None:
                     dmi_h = 40
                     dm_items = [
@@ -195,6 +202,12 @@ class Conversations():
                             "text": "Edit",
                             "height": dp(dmi_h),
                             "on_release": gen_edit(context_dest, item)
+                        },
+                        {
+                            "text": "Copy Address",
+                            "viewclass": "OneLineListItem",
+                            "height": dp(dmi_h),
+                            "on_release": gen_copy_addr(context_dest, item)
                         },
                         {
                             "text": "Clear Messages",
