@@ -452,12 +452,12 @@ class SidebandApp(MDApp):
     def announce_now_action(self, sender=None):
         self.sideband.lxmf_announce()
 
-        yes_button = MDFlatButton(
-            text="OK",
-        )
+        yes_button = MDRectangleFlatButton(text="OK",font_size=sp(18))
+
 
         dialog = MDDialog(
-            text="An announce for your LXMF destination was sent on all available interfaces",
+            title="Announce Sent",
+            text="Your LXMF address has been announced on all available interfaces",
             buttons=[ yes_button ],
             # elevation=0,
         )
