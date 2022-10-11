@@ -1,6 +1,7 @@
-__debug_build__ = False
+# TODO: Reset
+__debug_build__ = True
 __disable_shaders__ = True
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 __variant__ = "beta"
 
 import sys
@@ -453,7 +454,6 @@ class SidebandApp(MDApp):
         self.sideband.lxmf_announce()
 
         yes_button = MDRectangleFlatButton(text="OK",font_size=sp(18))
-
 
         dialog = MDDialog(
             title="Announce Sent",
@@ -1017,6 +1017,9 @@ class SidebandApp(MDApp):
                 self.sideband.config["connect_i2p_b32"] = self.root.ids.connectivity_i2p_b32.text
                 self.sideband.config["connect_i2p_ifac_netname"] = self.root.ids.connectivity_i2p_ifac_netname.text
                 self.sideband.config["connect_i2p_ifac_passphrase"] = self.root.ids.connectivity_i2p_ifac_passphrase.text
+                self.sideband.config["connect_rnode"] = self.root.ids.connectivity_use_rnode.active
+                self.sideband.config["connect_rnode_ifac_netname"] = self.root.ids.connectivity_rnode_ifac_netname.text
+                self.sideband.config["connect_rnode_ifac_passphrase"] = self.root.ids.connectivity_rnode_ifac_passphrase.text
 
                 con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
                 con_collapse_tcp(collapse=not self.root.ids.connectivity_use_tcp.active)
