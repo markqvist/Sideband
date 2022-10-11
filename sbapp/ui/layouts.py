@@ -410,13 +410,13 @@ MDNavigationLayout:
                                 id: connectivity_rnode_label
                                 text: "Connect via RNode"
                                 font_style: "H6"
-                                disabled: True
+                                disabled: False
 
                             MDSwitch:
                                 id: connectivity_use_rnode
                                 active: False
                                 pos_hint: {"center_y": 0.3}
-                                disabled: True
+                                disabled: False
 
                         MDBoxLayout:
                             id: connectivity_rnode_fields
@@ -439,6 +439,18 @@ MDNavigationLayout:
                                 text: ""
                                 font_size: dp(24)
                                 # disabled: True
+
+                            MDTextField:
+                                id: connectivity_rnode_ifac_netname
+                                hint_text: "Optional IFAC network name"
+                                text: ""
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: connectivity_rnode_ifac_passphrase
+                                hint_text: "Optional IFAC passphrase"
+                                text: ""
+                                font_size: dp(24)
 
 
                         MDBoxLayout:
