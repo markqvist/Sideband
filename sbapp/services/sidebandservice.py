@@ -1,10 +1,16 @@
+# TODO: Reset
+__debug_build__ = True
+
 import time
 import RNS
 from os import environ
 
 from kivy.logger import Logger, LOG_LEVELS
-# Logger.setLevel(LOG_LEVELS["debug"])
-Logger.setLevel(LOG_LEVELS["error"])
+
+if __debug_build__ or args.verbose:
+    Logger.setLevel(LOG_LEVELS["debug"])
+else:
+    Logger.setLevel(LOG_LEVELS["error"])
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass, cast
@@ -20,6 +26,8 @@ if RNS.vendor.platformutils.get_platform() == "android":
     NotificationBuilder = autoclass('android.app.Notification$Builder')
     NotificationChannel = autoclass('android.app.NotificationChannel')
     
+    from usb4a import usb
+    from usbserial4a import serial4a
     from sideband.core import SidebandCore
 
 else:
@@ -95,24 +103,49 @@ class SidebandService():
         self.app_context = None
         self.wifi_manager = None
         self.power_manager = None
+        self.usb_devices = []
 
         self.notification_service = None
         self.notification_channel = None
         self.notification_intent = None
         self.notification_small_icon = None
 
-        if RNS.vendor.platformutils.get_platform() == "android":
+        if RNS.vendor.platformutils.is_android():
             self.android_service = autoclass('org.kivy.android.PythonService').mService
             self.app_context = self.android_service.getApplication().getApplicationContext()
             self.wifi_manager = self.app_context.getSystemService(Context.WIFI_SERVICE)
             self.power_manager = self.app_context.getSystemService(Context.POWER_SERVICE)
             # The returned instance /\ is an android.net.wifi.WifiManager
+
+            self.discover_usb_devices()
         
-        self.sideband = SidebandCore(self, is_service=True, android_app_dir=self.app_dir)
+        self.sideband = SidebandCore(self, is_service=True, android_app_dir=self.app_dir, verbose=__debug_build__)
         self.sideband.service_context = self.android_service
         self.sideband.owner_service = self
         self.sideband.start()
         self.update_connectivity_type()
+        
+        if RNS.vendor.platformutils.is_android():
+            RNS.log("Discovered USB devices: "+str(self.usb_devices), RNS.LOG_DEBUG)
+
+
+    def discover_usb_devices(self):
+        self.usb_devices = []
+        RNS.log("Discovering attached USB devices...", RNS.LOG_DEBUG)
+        try:
+            devices = usb.get_usb_device_list()
+            for device in devices:
+                device_entry = {
+                    "port": device.getDeviceName(),
+                    "vid": device.getVendorId(),
+                    "pid": device.getProductId(),
+                    "manufacturer": device.getManufacturerName(),
+                    "productname": device.getProductName(),
+                }
+                self.usb_devices.append(device_entry)
+
+        except Exception as e:
+            RNS.log("Could not list USB devices. The contained exception was: "+str(e), RNS.LOG_ERROR)
     
     def start(self):
         self.should_run = True
