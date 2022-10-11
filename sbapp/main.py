@@ -109,7 +109,21 @@ class SidebandApp(MDApp):
         self.icon = self.sideband.asset_dir+"/icon.png"
         self.notification_icon = self.sideband.asset_dir+"/notification_icon.png"
 
+    def update_loading_text(self):
+        if self.sideband:
+            loadingstate = self.sideband.getstate("init.loadingstate")
+            if loadingstate:
+                self.root.ids.connecting_status.text = loadingstate
+
+    def update_init_status(self, dt):
+        self.update_loading_text()
+        if not RNS.vendor.platformutils.is_android() or self.sideband.service_available():
+            self.start_final()
+            self.loading_updater.cancel()
+
     def start_core(self, dt):
+        self.loading_updater = Clock.schedule_interval(self.update_init_status, 0.3)
+
         self.check_permissions()
         self.start_service()
         
@@ -122,21 +136,11 @@ class SidebandApp(MDApp):
         if RNS.vendor.platformutils.get_platform() == "android":
             Clock.schedule_once(dismiss_splash, 0)
 
+        self.set_bars_colors()
+
         self.sideband.setstate("app.loaded", True)
         self.sideband.setstate("app.running", True)
         self.sideband.setstate("app.foreground", True)
-
-        if self.sideband.first_run:
-            self.guide_action()
-            def fp(delta_time):
-                self.request_permissions()
-            Clock.schedule_once(fp, 3)
-        else:
-            self.open_conversations()
-
-        self.set_bars_colors()
-
-        self.app_state = SidebandApp.ACTIVE
         
     def start_service(self):
         RNS.log("Launching platform-specific service for RNS and LXMF")
@@ -146,23 +150,30 @@ class SidebandApp(MDApp):
             argument = self.app_dir
             self.android_service.start(mActivity, argument)
 
-            # Wait a little extra for user to react to permissions prompt
-            if self.sideband.first_run:
-                time.sleep(6)
-
-            # Wait for service to become available
-            while not self.sideband.service_available():
-                time.sleep(0.20)
-
-            # Start local core instance
-            self.sideband.start()
-
-        else:
-            self.sideband.start()
+    def start_final(self):
+        # Start local core instance
+        self.sideband.start()
 
         # Pre-load announce stream widgets
+        self.update_loading_text()
         self.init_announces_view()
         self.announces_view.update()
+
+        # Wait a little extra for user to react to permissions prompt
+        # if RNS.vendor.platformutils.get_platform() == "android":
+        #     if self.sideband.first_run:
+        #         time.sleep(6)
+
+        if self.sideband.first_run:
+            self.guide_action()
+            def fp(delta_time):
+                self.request_permissions()
+            Clock.schedule_once(fp, 3)
+        else:
+            self.open_conversations()
+
+        self.app_state = SidebandApp.ACTIVE
+        self.loading_updater.cancel()
 
 
     #################################################
@@ -386,8 +397,13 @@ class SidebandApp(MDApp):
 
 
     def keydown_event(self, instance, keyboard, keycode, text, modifiers):
-        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "w" or text == "q"):
+        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "q"):
             self.quit_action(self)
+        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "w"):
+            if self.root.ids.screen_manager.current == "conversations_screen":
+                self.quit_action(self)
+            else:
+                self.open_conversations()
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "s" or text == "d"):
             if self.root.ids.screen_manager.current == "messages_screen":
                 self.message_send_action()
