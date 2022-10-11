@@ -38,7 +38,7 @@ MDNavigationLayout:
                         icon_size: "72dp"
 
                     MDLabel:
-                        id: connecting_info
+                        id: connecting_status
                         halign: "center"
                         text: "Substantiating Reticulum"
                         font_size: "32dp"
@@ -61,7 +61,7 @@ MDNavigationLayout:
                     size_hint_y: None
 
                     MDLabel:
-                        id: connecting_info
+                        id: exiting_info
                         halign: "center"
                         text: "Please Wait"
                         font_size: "32dp"
@@ -76,7 +76,7 @@ MDNavigationLayout:
                         icon_size: "72dp"
 
                     MDLabel:
-                        id: connecting_info
+                        id: exiting_status
                         halign: "center"
                         text: "Dissolving Reticulum"
                         font_size: "32dp"
