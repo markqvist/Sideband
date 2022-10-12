@@ -946,10 +946,24 @@ class SidebandCore():
 
     def _service_jobs(self):
         if self.is_service:
+            last_usb_discovery = time.time()
             while True:
                 time.sleep(SidebandCore.SERVICE_JOB_INTERVAL)
+                now = time.time()
                 if self.getstate("wants.announce"):
                     self.lxmf_announce()
+
+                if (now - last_usb_discovery > 5):
+                    if self.interface_rnode != None and not self.interface_rnode.online:
+                        self.owner_app.discover_usb_devices()
+                        last_usb_discovery = time.time()
+
+                        if hasattr(self.owner_app, "usb_devices") and self.owner_app.usb_devices != None:
+                            if len(self.owner_app.usb_devices) > 0:
+                                target_device = self.owner_app.usb_devices[0]
+                                if self.interface_rnode.port != target_device["port"]:
+                                    RNS.log("Updating RNode device to "+str(target_device))
+                                    self.interface_rnode.port = target_device["port"]
 
     def _periodic_jobs(self):
         if self.is_service or self.is_standalone:
