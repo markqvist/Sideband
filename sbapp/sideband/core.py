@@ -190,6 +190,9 @@ class SidebandCore():
         self.config["connect_i2p_b32"] = "mrwqlsioq4hoo2lmeeud7dkfscnm7yxak7dmiyvsrnpfag3z5tsq.b32.i2p"
         self.config["connect_i2p_ifac_netname"] = ""
         self.config["connect_i2p_ifac_passphrase"] = ""
+        self.config["connect_rnode"] = False
+        self.config["connect_rnode_ifac_netname"] = ""
+        self.config["connect_rnode_ifac_passphrase"] = ""
 
         if not os.path.isfile(self.db_path):
             self.__db_init()
@@ -223,6 +226,12 @@ class SidebandCore():
             self.config["lxmf_sync_interval"] = 43200
         if not "notifications_on" in self.config:
             self.config["notifications_on"] = True
+        if not "connect_rnode" in self.config:
+            self.config["connect_rnode"] = False
+        if not "connect_rnode_ifac_netname" in self.config:
+            self.config["connect_rnode_ifac_netname"] = ""
+        if not "connect_rnode_ifac_passphrase" in self.config:
+            self.config["connect_rnode_ifac_passphrase"] = ""
 
         # Make sure we have a database
         if not os.path.isfile(self.db_path):
@@ -992,6 +1001,7 @@ class SidebandCore():
         else:
             selected_level = 2
 
+        self.setstate("init.loadingstate", "Substantiating Reticulum")
         self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=selected_level)
 
         if RNS.vendor.platformutils.get_platform() == "android":
@@ -1001,8 +1011,10 @@ class SidebandCore():
                 self.interface_local = None
                 self.interface_tcp   = None
                 self.interface_i2p   = None
+                self.interface_rnode = None
 
                 if self.config["connect_local"]:
+                    self.setstate("init.loadingstate", "Discovering Topography")
                     try:
                         RNS.log("Adding Auto Interface...")
                         if self.config["connect_local_groupid"] == "":
@@ -1034,6 +1046,7 @@ class SidebandCore():
                         self.interface_local = None
 
                 if self.config["connect_tcp"]:
+                    self.setstate("init.loadingstate", "Connecting TCP Tunnel")
                     try:
                         RNS.log("Adding TCP Interface...")
 
@@ -1070,6 +1083,7 @@ class SidebandCore():
                         self.interface_tcp = None
 
                 if self.config["connect_i2p"]:
+                    self.setstate("init.loadingstate", "Opening I2P Endpoints")
                     try:
                         if self.config["connect_i2p_b32"].endswith(".b32.i2p"):
 
@@ -1103,7 +1117,60 @@ class SidebandCore():
                         RNS.log("Error while adding I2P Interface. The contained exception was: "+str(e))
                         self.interface_i2p = None
 
+                if self.config["connect_rnode"]:
+                    self.setstate("init.loadingstate", "Starting RNode")
+                    try:
+                        RNS.log("Adding RNode Interface...")
+
+                        target_device = None
+                        if len(self.owner_app.usb_devices) > 0:
+                            # TODO: Add more intelligent selection here
+                            target_device = self.owner_app.usb_devices[0]
+
+                        if target_device:
+                            rnode_port      = target_device["port"]
+                            rnode_frequency = None
+                            rnode_bw        = None
+                            rnode_sf        = None
+                            rnode_cr        = None
+                            rnode_txp       = None
+
+                            if self.config["connect_rnode_ifac_netname"] == "":
+                                ifac_netname = None
+                            else:
+                                ifac_netname = self.config["connect_rnode_ifac_netname"]
+
+                            if self.config["connect_rnode_ifac_passphrase"] == "":
+                                ifac_netkey = None
+                            else:
+                                ifac_netkey = self.config["connect_rnode_ifac_passphrase"]
+
+                            rnodeinterface = RNS.Interfaces.Android.RNodeInterface.RNodeInterface(
+                                    RNS.Transport,
+                                    "RNodeInterface",
+                                    rnode_port,
+                                    frequency = rnode_frequency,
+                                    bandwidth = rnode_bw,
+                                    txpower = rnode_txp,
+                                    sf = rnode_sf,
+                                    cr = rnode_cr,
+                                    flow_control = None,
+                                    id_interval = None,
+                                    id_callsign = None,
+                                )
+
+                            rnodeinterface.OUT = True
+                            self.reticulum._add_interface(rnodeinterface,ifac_netname=ifac_netname,ifac_netkey=ifac_netkey)
+                            self.interface_rnode = rnodeinterface
+
+                    except Exception as e:
+                        RNS.log("Error while adding RNode Interface. The contained exception was: "+str(e))
+                        self.interface_rnode = None
+
+
+
         RNS.log("Reticulum started, activating LXMF...")
+        self.setstate("init.loadingstate", "Activating LXMF Router")
         self.message_router = LXMF.LXMRouter(identity = self.identity, storagepath = self.lxmf_storage, autopeer = True)
         self.message_router.register_delivery_callback(self.lxmf_delivery)
 
