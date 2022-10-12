@@ -58,6 +58,7 @@ class Conversations():
 
         self.app.sideband.setstate("app.flags.unread_conversations", False)
         self.app.sideband.setstate("app.flags.new_conversations", False)
+        self.app.sideband.setstate("wants.viewupdate.conversations", False)
 
     def update_widget(self):
         us = time.time()

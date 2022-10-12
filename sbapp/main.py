@@ -122,7 +122,7 @@ class SidebandApp(MDApp):
             self.loading_updater.cancel()
 
     def start_core(self, dt):
-        self.loading_updater = Clock.schedule_interval(self.update_init_status, 0.3)
+        self.loading_updater = Clock.schedule_interval(self.update_init_status, 0.1)
 
         self.check_permissions()
         self.start_service()
@@ -242,7 +242,8 @@ class SidebandApp(MDApp):
         self.sideband.should_persist_data()
         if self.conversations_view != None:
             self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
-            self.conversations_view.update()
+            # TODO: Check if we actually need this
+            self.sideband.setstate("wants.viewupdate.conversations", True)
             self.root.ids.conversations_scrollview.scroll = 1
 
         RNS.log("App paused", RNS.LOG_DEBUG)
@@ -256,7 +257,8 @@ class SidebandApp(MDApp):
         self.app_state = SidebandApp.ACTIVE
         if self.conversations_view != None:
             self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
-            self.conversations_view.update()
+            # TODO: Check if we actually need this
+            # self.sideband.setstate("wants.viewupdate.conversations", True)
             self.root.ids.conversations_scrollview.scroll = 1
             
         else:
@@ -348,6 +350,10 @@ class SidebandApp(MDApp):
                     self.announces_view.update()
 
         if self.sideband.getstate("app.flags.new_conversations"):
+            if self.conversations_view != None:
+                self.conversations_view.update()
+
+        if self.sideband.getstate("wants.viewupdate.conversations"):
             if self.conversations_view != None:
                 self.conversations_view.update()
 
@@ -464,7 +470,7 @@ class SidebandApp(MDApp):
             MDApp.get_running_app().stop()
             Window.close()
 
-        Clock.schedule_once(final_exit, 0.5)
+        Clock.schedule_once(final_exit, 0.65)
 
     def announce_now_action(self, sender=None):
         self.sideband.lxmf_announce()
