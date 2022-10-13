@@ -193,6 +193,23 @@ class SidebandCore():
         self.config["connect_rnode"] = False
         self.config["connect_rnode_ifac_netname"] = ""
         self.config["connect_rnode_ifac_passphrase"] = ""
+        # Hardware
+        self.config["hw_rnode_frequency"] = None
+        self.config["hw_rnode_modulation"] = "LoRa"
+        self.config["hw_rnode_bandwidth"] = 62500
+        self.config["hw_rnode_spreading_factor"] = 8
+        self.config["hw_rnode_coding_rate"] = 6
+        self.config["hw_rnode_tx_power"] = 0
+        self.config["hw_rnode_beaconinterval"] = None
+        self.config["hw_rnode_beacondata"] = None
+        self.config["hw_modem_preamble"] = 150
+        self.config["hw_modem_tail"] = 20
+        self.config["hw_modem_persistence"] = 220
+        self.config["hw_modem_slottime"] = 20
+        self.config["hw_serial_baudrate"] = 57600
+        self.config["hw_serial_databits"] = 8
+        self.config["hw_serial_stopbits"] = 1
+        self.config["hw_serial_parity"] = "none"
 
         if not os.path.isfile(self.db_path):
             self.__db_init()
@@ -232,6 +249,41 @@ class SidebandCore():
             self.config["connect_rnode_ifac_netname"] = ""
         if not "connect_rnode_ifac_passphrase" in self.config:
             self.config["connect_rnode_ifac_passphrase"] = ""
+        
+        if not "hw_rnode_frequency" in self.config:
+            self.config["hw_rnode_frequency"] = None
+        if not "hw_rnode_modulation" in self.config:
+            self.config["hw_rnode_modulation"] = "LoRa"
+        if not "hw_rnode_bandwidth" in self.config:
+            self.config["hw_rnode_bandwidth"] = 62500
+        if not "hw_rnode_spreading_factor" in self.config:
+            self.config["hw_rnode_spreading_factor"] = 8
+        if not "hw_rnode_coding_rate" in self.config:
+            self.config["hw_rnode_coding_rate"] = 6
+        if not "hw_rnode_tx_power" in self.config:
+            self.config["hw_rnode_tx_power"] = 0
+        if not "hw_rnode_beaconinterval" in self.config:
+            self.config["hw_rnode_beaconinterval"] = None
+        if not "hw_rnode_beacondata" in self.config:
+            self.config["hw_rnode_beacondata"] = None
+
+        if not "hw_modem_preamble" in self.config:
+            self.config["hw_modem_preamble"] = 150
+        if not "hw_modem_tail" in self.config:
+            self.config["hw_modem_tail"] = 20
+        if not "hw_modem_persistence" in self.config:
+            self.config["hw_modem_persistence"] = 220
+        if not "hw_modem_slottime" in self.config:
+            self.config["hw_modem_slottime"] = 20
+        
+        if not "hw_serial_baudrate" in self.config:
+            self.config["hw_serial_baudrate"] = 57600
+        if not "hw_serial_databits" in self.config:
+            self.config["hw_serial_databits"] = 8
+        if not "hw_serial_stopbits" in self.config:
+            self.config["hw_serial_stopbits"] = 1
+        if not "hw_serial_parity" in self.config:
+            self.config["hw_serial_parity"] = "none"
 
         # Make sure we have a database
         if not os.path.isfile(self.db_path):
@@ -1010,7 +1062,8 @@ class SidebandCore():
             self.periodic_thread.start()
         
     def __start_jobs_immediate(self):
-        if self.log_verbose:
+        # TODO: Reset
+        if True or self.log_verbose:
             selected_level = 7
         else:
             selected_level = 2
@@ -1142,13 +1195,6 @@ class SidebandCore():
                             target_device = self.owner_app.usb_devices[0]
 
                         if target_device:
-                            rnode_port      = target_device["port"]
-                            rnode_frequency = None
-                            rnode_bw        = None
-                            rnode_sf        = None
-                            rnode_cr        = None
-                            rnode_txp       = None
-
                             if self.config["connect_rnode_ifac_netname"] == "":
                                 ifac_netname = None
                             else:
@@ -1162,15 +1208,15 @@ class SidebandCore():
                             rnodeinterface = RNS.Interfaces.Android.RNodeInterface.RNodeInterface(
                                     RNS.Transport,
                                     "RNodeInterface",
-                                    rnode_port,
-                                    frequency = rnode_frequency,
-                                    bandwidth = rnode_bw,
-                                    txpower = rnode_txp,
-                                    sf = rnode_sf,
-                                    cr = rnode_cr,
+                                    target_device["port"],
+                                    frequency = self.config["hw_rnode_frequency"],
+                                    bandwidth = self.config["hw_rnode_bandwidth"],
+                                    txpower = self.config["hw_rnode_tx_power"],
+                                    sf = self.config["hw_rnode_spreading_factor"],
+                                    cr = self.config["hw_rnode_coding_rate"],
                                     flow_control = None,
-                                    id_interval = None,
-                                    id_callsign = None,
+                                    id_interval = self.config["hw_rnode_beaconinterval"],
+                                    id_callsign = self.config["hw_rnode_beacondata"],
                                 )
 
                             rnodeinterface.OUT = True
