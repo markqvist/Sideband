@@ -1011,7 +1011,6 @@ class SidebandApp(MDApp):
                 self.widget_hide(self.root.ids.connectivity_bluetooth_fields)
                 self.widget_hide(self.root.ids.connectivity_transport_label)
                 self.widget_hide(self.root.ids.connectivity_enable_transport)
-                # self.widget_hide(self.root.ids.rnode_support_info)
 
             def con_collapse_local(collapse=True):
                 self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
@@ -1030,6 +1029,9 @@ class SidebandApp(MDApp):
                 
             def con_collapse_modem(collapse=True):
                 self.widget_hide(self.root.ids.connectivity_modem_fields, collapse)
+                
+            def con_collapse_serial(collapse=True):
+                self.widget_hide(self.root.ids.connectivity_serial_fields, collapse)
                 
             def save_connectivity(sender=None, event=None):
                 self.sideband.config["connect_local"] = self.root.ids.connectivity_use_local.active
@@ -1055,8 +1057,13 @@ class SidebandApp(MDApp):
                 con_collapse_rnode(collapse=not self.root.ids.connectivity_use_rnode.active)
                 con_collapse_bluetooth(collapse=not self.root.ids.connectivity_use_bluetooth.active)
                 con_collapse_modem(collapse=not self.root.ids.connectivity_use_modem.active)
+                con_collapse_serial(collapse=not self.root.ids.connectivity_use_serial.active)
 
                 self.sideband.save_configuration()
+
+            def focus_save(sender=None, event=None):
+                if not sender.focus:
+                    save_connectivity(sender, event)
 
             if RNS.vendor.platformutils.get_platform() == "android":
                 if not self.sideband.getpersistent("service.is_controlling_connectivity"):
@@ -1090,14 +1097,19 @@ class SidebandApp(MDApp):
                     self.root.ids.connectivity_i2p_ifac_netname.text = self.sideband.config["connect_i2p_ifac_netname"]
                     self.root.ids.connectivity_i2p_ifac_passphrase.text = self.sideband.config["connect_i2p_ifac_passphrase"]
 
-                    self.root.ids.connectivity_use_rnode.active = False
+                    self.root.ids.connectivity_use_rnode.active = self.sideband.config["connect_rnode"]
                     con_collapse_rnode(collapse=not self.root.ids.connectivity_use_rnode.active)
+                    self.root.ids.connectivity_rnode_ifac_netname.text = self.sideband.config["connect_rnode_ifac_netname"]
+                    self.root.ids.connectivity_rnode_ifac_passphrase.text = self.sideband.config["connect_rnode_ifac_passphrase"]
 
                     self.root.ids.connectivity_use_bluetooth.active = False
                     con_collapse_bluetooth(collapse=not self.root.ids.connectivity_use_bluetooth.active)
 
                     self.root.ids.connectivity_use_modem.active = False
                     con_collapse_modem(collapse=not self.root.ids.connectivity_use_modem.active)
+
+                    self.root.ids.connectivity_use_serial.active = False
+                    con_collapse_serial(collapse=not self.root.ids.connectivity_use_serial.active)
 
                     self.root.ids.connectivity_use_local.bind(active=save_connectivity)
                     self.root.ids.connectivity_local_groupid.bind(on_text_validate=save_connectivity)
@@ -1113,7 +1125,24 @@ class SidebandApp(MDApp):
                     self.root.ids.connectivity_i2p_ifac_netname.bind(on_text_validate=save_connectivity)
                     self.root.ids.connectivity_i2p_ifac_passphrase.bind(on_text_validate=save_connectivity)
                     self.root.ids.connectivity_use_rnode.bind(active=save_connectivity)
+                    self.root.ids.connectivity_rnode_ifac_netname.bind(on_text_validate=save_connectivity)
+                    self.root.ids.connectivity_rnode_ifac_passphrase.bind(on_text_validate=save_connectivity)
+                    self.root.ids.connectivity_use_modem.bind(active=save_connectivity)
+                    self.root.ids.connectivity_use_serial.bind(active=save_connectivity)
                     self.root.ids.connectivity_use_bluetooth.bind(active=save_connectivity)
+
+                    self.root.ids.connectivity_local_groupid.bind(focus=focus_save)
+                    self.root.ids.connectivity_local_ifac_netname.bind(focus=focus_save)
+                    self.root.ids.connectivity_local_ifac_passphrase.bind(focus=focus_save)
+                    self.root.ids.connectivity_tcp_host.bind(focus=focus_save)
+                    self.root.ids.connectivity_tcp_port.bind(focus=focus_save)
+                    self.root.ids.connectivity_tcp_ifac_netname.bind(focus=focus_save)
+                    self.root.ids.connectivity_tcp_ifac_passphrase.bind(focus=focus_save)
+                    self.root.ids.connectivity_i2p_b32.bind(focus=focus_save)
+                    self.root.ids.connectivity_i2p_ifac_netname.bind(focus=focus_save)
+                    self.root.ids.connectivity_i2p_ifac_passphrase.bind(focus=focus_save)
+                    self.root.ids.connectivity_rnode_ifac_netname.bind(focus=focus_save)
+                    self.root.ids.connectivity_rnode_ifac_passphrase.bind(focus=focus_save)
 
             else:
                 info = ""
@@ -1170,6 +1199,8 @@ class SidebandApp(MDApp):
             self.sideband.config["hw_rnode_beacondata"] = None
         else:
             self.sideband.config["hw_rnode_beacondata"] = self.root.ids.hardware_rnode_beacondata.text
+
+        self.sideband.save_configuration()
 
     def hardware_rnode_init(self, sender=None):
         if not self.hardware_rnode_ready:
@@ -1232,7 +1263,6 @@ class SidebandApp(MDApp):
             self.root.ids.hardware_rnode_codingrate.bind(on_text_validate=save_connectivity)
             self.root.ids.hardware_rnode_beaconinterval.bind(on_text_validate=save_connectivity)
             self.root.ids.hardware_rnode_beacondata.bind(on_text_validate=save_connectivity)
-
 
     def hardware_rnode_validate(self, sender=None):
         valid = True        
@@ -1320,11 +1350,25 @@ class SidebandApp(MDApp):
 
         try:
             config = msgpack.unpackb(base64.b32decode(mote))
-            self.root.ids.hardware_rnode_frequency.text       = str(config["f"]/1000000.0)
-            self.root.ids.hardware_rnode_bandwidth.text       = str(config["b"]/1000.0)
-            self.root.ids.hardware_rnode_txpower.text         = str(config["t"])
-            self.root.ids.hardware_rnode_spreadingfactor.text = str(config["s"])
-            self.root.ids.hardware_rnode_codingrate.text      = str(config["c"])
+            self.root.ids.hardware_rnode_frequency.text        = str(config["f"]/1000000.0)
+            self.root.ids.hardware_rnode_bandwidth.text        = str(config["b"]/1000.0)
+            self.root.ids.hardware_rnode_txpower.text          = str(config["t"])
+            self.root.ids.hardware_rnode_spreadingfactor.text  = str(config["s"])
+            self.root.ids.hardware_rnode_codingrate.text       = str(config["c"])
+            
+            if "n" in config and config["n"] != None:
+                ifn = str(config["n"])
+            else:
+                ifn = ""
+            if "p" in config and config["p"] != None:
+                ifp = str(config["p"])
+            else:
+                ifp = ""
+
+            self.root.ids.connectivity_rnode_ifac_netname.text    = ifn
+            self.sideband.config["connect_rnode_ifac_netname"]             = ifn
+            self.root.ids.connectivity_rnode_ifac_passphrase.text = ifp
+            self.sideband.config["connect_rnode_ifac_passphrase"]          = ifp
 
             if config["i"] != None:
                 ti = str(config["i"])
@@ -1366,7 +1410,6 @@ class SidebandApp(MDApp):
             yes_button.bind(on_release=dl_yes)
             dialog.open()
 
-    
     def hardware_rnode_export(self, sender=None):
         mote = None
         try:
@@ -1378,6 +1421,8 @@ class SidebandApp(MDApp):
                 "c": self.sideband.config["hw_rnode_coding_rate"],
                 "i": self.sideband.config["hw_rnode_beaconinterval"],
                 "d": self.sideband.config["hw_rnode_beacondata"],
+                "n": self.sideband.config["connect_rnode_ifac_netname"],
+                "p": self.sideband.config["connect_rnode_ifac_passphrase"],
             }))
         except Exception as e:
             pass

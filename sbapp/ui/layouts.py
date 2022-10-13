@@ -428,39 +428,6 @@ MDNavigationLayout:
                             height: dp(24)
                             
                             MDLabel:
-                                id: connectivity_bluetooth_label
-                                text: "Connect via Bluetooth"
-                                font_style: "H6"
-                                disabled: True
-
-                            MDSwitch:
-                                id: connectivity_use_bluetooth
-                                active: False
-                                pos_hint: {"center_y": 0.3}
-                                disabled: True
-
-                        MDBoxLayout:
-                            id: connectivity_bluetooth_fields
-                            orientation: "vertical"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [0, 0, 0, dp(32)]
-
-                            MDTextField:
-                                id: connectivity_bluetooth_cid
-                                hint_text: "Bluetooth Pairing ID"
-                                text: ""
-                                font_size: dp(24)
-                                # disabled: True
-
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            padding: [0,0,dp(24),0]
-                            size_hint_y: None
-                            height: dp(24)
-                            
-                            MDLabel:
                                 id: connectivity_modem_label
                                 text: "Connect via Radio Modem"
                                 font_style: "H6"
@@ -482,6 +449,72 @@ MDNavigationLayout:
                             MDTextField:
                                 id: connectivity_modem_cid
                                 hint_text: "Modem Pairing ID"
+                                text: ""
+                                font_size: dp(24)
+                                # disabled: True
+
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            padding: [0,0,dp(24),0]
+                            size_hint_y: None
+                            height: dp(24)
+                            
+                            MDLabel:
+                                id: connectivity_serial_label
+                                text: "Connect via Serial Port"
+                                font_style: "H6"
+                                disabled: True
+
+                            MDSwitch:
+                                id: connectivity_use_serial
+                                active: False
+                                pos_hint: {"center_y": 0.3}
+                                disabled: True
+
+                        MDBoxLayout:
+                            id: connectivity_serial_fields
+                            orientation: "vertical"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [0, 0, 0, dp(32)]
+
+                            MDTextField:
+                                id: connectivity_serial_baud
+                                hint_text: "Baud Rate"
+                                text: ""
+                                font_size: dp(24)
+                                # disabled: True
+
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            padding: [0,0,dp(24),0]
+                            size_hint_y: None
+                            height: dp(24)
+                            
+                            MDLabel:
+                                id: connectivity_bluetooth_label
+                                text: "Connect via Bluetooth"
+                                font_style: "H6"
+                                disabled: True
+
+                            MDSwitch:
+                                id: connectivity_use_bluetooth
+                                active: False
+                                pos_hint: {"center_y": 0.3}
+                                disabled: True
+
+                        MDBoxLayout:
+                            id: connectivity_bluetooth_fields
+                            orientation: "vertical"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [0, 0, 0, dp(32)]
+
+                            MDTextField:
+                                id: connectivity_bluetooth_cid
+                                hint_text: "Bluetooth Pairing ID"
                                 text: ""
                                 font_size: dp(24)
                                 # disabled: True
