@@ -1434,9 +1434,9 @@ class SidebandApp(MDApp):
     def hardware_init(self, sender=None):
         if not self.hardware_ready:
             def con_hide_settings():
-                pass
-                # self.widget_hide(self.root.ids.connectivity_use_local)
-                # self.widget_hide(self.root.ids.rnode_support_info)
+                self.widget_hide(self.root.ids.hardware_rnode_button)
+                self.widget_hide(self.root.ids.hardware_modem_button)
+                self.widget_hide(self.root.ids.hardware_serial_button)
 
             def con_collapse_local(collapse=True):
                 self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
@@ -1446,8 +1446,8 @@ class SidebandApp(MDApp):
                 con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
                 self.sideband.save_configuration()
 
-            if True or RNS.vendor.platformutils.get_platform() == "android":
-                if False and not self.sideband.getpersistent("service.is_controlling_connectivity"):
+            if RNS.vendor.platformutils.get_platform() == "android":
+                if not self.sideband.getpersistent("service.is_controlling_connectivity"):
                     info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
                     info += "To configure hardware parameters, edit the relevant configuration file for the instance."
                     self.root.ids.hardware_info.text = info
