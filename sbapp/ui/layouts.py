@@ -1104,7 +1104,7 @@ MDNavigationLayout:
                             MDRectangleFlatIconButton:
                                 id: hardware_modem_button
                                 icon: "router-wireless"
-                                text: "Packet Modem"
+                                text: "Radio Modem"
                                 padding: [dp(0), dp(14), dp(0), dp(14)]
                                 icon_size: dp(24)
                                 font_size: dp(16)

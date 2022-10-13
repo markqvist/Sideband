@@ -511,7 +511,9 @@ class SidebandApp(MDApp):
 
 
     def conversation_action(self, sender):
-        self.open_conversation(sender.sb_uid)
+        def cb(dt):
+            self.open_conversation(sender.sb_uid)
+        Clock.schedule_once(cb, 0.15)
 
     def open_conversation(self, context_dest):
         if self.sideband.config["propagation_by_default"]:
@@ -698,6 +700,11 @@ class SidebandApp(MDApp):
         dialog.open()
 
     def lxmf_sync_action(self, sender):
+        def cb(dt):
+            self.lxmf_sync_request(sender)
+        Clock.schedule_once(cb, 0.15)
+
+    def lxmf_sync_request(self, sender):
         if self.sideband.message_router.get_outbound_propagation_node() == None:
             yes_button = MDFlatButton(
                 text="OK",
@@ -757,6 +764,11 @@ class SidebandApp(MDApp):
             dialog_content.ids.sync_status.text = self.sideband.get_sync_status()
 
     def new_conversation_action(self, sender=None):
+        def cb(dt):
+            self.new_conversation_request(sender)
+        Clock.schedule_once(cb, 0.15)
+
+    def new_conversation_request(self, sender=None):
         try:
             yes_button = MDFlatButton(
                 text="OK",
