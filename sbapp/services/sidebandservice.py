@@ -196,6 +196,8 @@ class SidebandService():
             ts = "Disabled"
             i2s = "Disabled"
 
+            stat = "[size=22dp][b]Connectivity Status[/b][/size]\n\n"
+
             if self.sideband.interface_local != None:
                 np = len(self.sideband.interface_local.peers)
                 if np == 1:
@@ -203,11 +205,23 @@ class SidebandService():
                 else:
                     ws = str(np)+" reachable peers"
 
+                stat += "[b]Local[/b]\n{ws}\n\n".format(ws=ws)
+
+            if self.sideband.interface_rnode != None:
+                if self.sideband.interface_rnode.online:
+                    rs = "On-air at "+str(self.sideband.interface_rnode.bitrate_kbps)+" Kbps"
+                else:
+                    rs = "Interface Down"
+
+                stat += "[b]RNode[/b]\n{rs}\n\n".format(rs=rs)
+
             if self.sideband.interface_tcp != None:
                 if self.sideband.interface_tcp.online:
                     ts = "Connected to "+str(self.sideband.interface_tcp.target_ip)+":"+str(self.sideband.interface_tcp.target_port)
                 else:
                     ts = "Interface Down"
+
+                stat += "[b]TCP[/b]\n{ts}\n\n".format(ts=ts)
 
             if self.sideband.interface_i2p != None:
                 if self.sideband.interface_i2p.online:
@@ -215,7 +229,9 @@ class SidebandService():
                 else:
                     i2s = "Connecting to I2P"
 
-            return "[size=22dp][b]Connectivity Status[/b][/size]\n\n[b]Local[/b]\n{ws}\n\n[b]TCP[/b]\n{ts}\n\n[b]I2P[/b]\n{i2s}".format(ws=ws, ts=ts, i2s=i2s)
+                stat += "[b]I2P[/b]\n{i2s}".format(i2s=i2s)
+
+            return stat
 
     def run(self):
         while self.should_run:
