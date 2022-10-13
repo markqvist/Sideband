@@ -1,5 +1,4 @@
-# TODO: Reset
-__debug_build__ = True
+__debug_build__ = False
 
 import time
 import RNS
@@ -7,7 +6,7 @@ from os import environ
 
 from kivy.logger import Logger, LOG_LEVELS
 
-if __debug_build__ or args.verbose:
+if __debug_build__:
     Logger.setLevel(LOG_LEVELS["debug"])
 else:
     Logger.setLevel(LOG_LEVELS["error"])

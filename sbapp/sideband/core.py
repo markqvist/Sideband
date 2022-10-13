@@ -1062,8 +1062,7 @@ class SidebandCore():
             self.periodic_thread.start()
         
     def __start_jobs_immediate(self):
-        # TODO: Reset
-        if True or self.log_verbose:
+        if self.log_verbose:
             selected_level = 7
         else:
             selected_level = 2
@@ -1226,8 +1225,6 @@ class SidebandCore():
                     except Exception as e:
                         RNS.log("Error while adding RNode Interface. The contained exception was: "+str(e))
                         self.interface_rnode = None
-
-
 
         RNS.log("Reticulum started, activating LXMF...")
         self.setstate("init.loadingstate", "Activating LXMF Router")
