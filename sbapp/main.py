@@ -1606,7 +1606,7 @@ class SidebandApp(MDApp):
         dialog.open()
 
     def identity_copy_action(self, sender=None):
-        c_yes_button = MDRectangleFlatButton(text="Yes, copy my key",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
+        c_yes_button = MDRectangleFlatButton(text="Yes",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
         c_no_button = MDRectangleFlatButton(text="No, go back",font_size=dp(18))
         c_dialog = MDDialog(text="[b]Caution![/b]\n\nYour Identity key will be copied to the system clipboard. Take extreme care that no untrusted app steals your key by reading the clipboard data. Clear the system clipboard immediately after pasting your key where you need it.\n\nAre you sure that you wish to proceed?", buttons=[ c_no_button, c_yes_button ])
         def c_dl_no(s):
@@ -1632,7 +1632,7 @@ class SidebandApp(MDApp):
             self.share_text(str(base64.b32encode(self.sideband.identity.get_private_key()).decode("utf-8")))
 
     def identity_restore_action(self, sender=None):
-        c_yes_button = MDRectangleFlatButton(text="Yes, import the key",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
+        c_yes_button = MDRectangleFlatButton(text="Yes",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
         c_no_button = MDRectangleFlatButton(text="No, go back",font_size=dp(18))
         c_dialog = MDDialog(text="[b]Caution![/b]\n\nYou are about to import a new Identity key into Sideband. The currently active key will be irreversibly destroyed, and you will loose your LXMF address if you have not already backed up your current Identity key.\n\nAre you sure that you wish to import the key?", buttons=[ c_no_button, c_yes_button ])
         def c_dl_no(s):
