@@ -19,6 +19,7 @@ import os
 import plyer
 import base64
 import threading
+import RNS.vendor.umsgpack as msgpack
 
 from kivy.logger import Logger, LOG_LEVELS
 if __debug_build__ or args.verbose:
@@ -104,6 +105,10 @@ class SidebandApp(MDApp):
         self.sync_dialog = None
         self.settings_ready = False
         self.connectivity_ready = False
+        self.hardware_ready = False
+        self.hardware_rnode_ready = False
+        self.hardware_modem_ready = False
+        self.hardware_serial_ready = False
 
         Window.softinput_mode = "below_target"
         self.icon = self.sideband.asset_dir+"/icon.png"
@@ -995,8 +1000,9 @@ class SidebandApp(MDApp):
                 self.widget_hide(self.root.ids.connectivity_local_label)
                 self.widget_hide(self.root.ids.connectivity_i2p_label)
                 self.widget_hide(self.root.ids.connectivity_rnode_label)
+                self.widget_hide(self.root.ids.connectivity_rnode_ifac_netname)
+                self.widget_hide(self.root.ids.connectivity_rnode_ifac_passphrase)
                 self.widget_hide(self.root.ids.connectivity_use_rnode)
-                self.widget_hide(self.root.ids.connectivity_rnode_cid)
                 self.widget_hide(self.root.ids.connectivity_modem_label)
                 self.widget_hide(self.root.ids.connectivity_use_modem)
                 self.widget_hide(self.root.ids.connectivity_modem_fields)
@@ -1130,6 +1136,348 @@ class SidebandApp(MDApp):
         self.connectivity_ready = True
 
     def close_connectivity_action(self, sender=None):
+        self.open_conversations(direction="right")
+
+    ### Hardware screen
+    ######################################
+    def hardware_action(self, sender=None, direction="left"):
+        self.hardware_init()
+        self.root.ids.screen_manager.transition.direction = direction
+        self.root.ids.screen_manager.current = "hardware_screen"
+        self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+    def hardware_rnode_action(self, sender=None):
+        self.hardware_rnode_init()
+        self.root.ids.screen_manager.transition.direction = "left"
+        self.root.ids.screen_manager.current = "hardware_rnode_screen"
+        self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+    def hardware_rnode_save(self):
+        self.sideband.config["hw_rnode_frequency"] = int(float(self.root.ids.hardware_rnode_frequency.text)*1000000)
+        self.sideband.config["hw_rnode_bandwidth"] = int(float(self.root.ids.hardware_rnode_bandwidth.text)*1000)
+        self.sideband.config["hw_rnode_tx_power"] = int(self.root.ids.hardware_rnode_txpower.text)
+        self.sideband.config["hw_rnode_spreading_factor"] = int(self.root.ids.hardware_rnode_spreadingfactor.text)
+        self.sideband.config["hw_rnode_coding_rate"] = int(self.root.ids.hardware_rnode_codingrate.text)
+        
+        if self.root.ids.hardware_rnode_beaconinterval.text == "":
+            self.sideband.config["hw_rnode_beaconinterval"] = None
+        else:
+            self.sideband.config["hw_rnode_beaconinterval"] = int(self.root.ids.hardware_rnode_beaconinterval.text)
+
+        if self.root.ids.hardware_rnode_beacondata.text == "":
+            self.sideband.config["hw_rnode_beacondata"] = None
+        else:
+            self.sideband.config["hw_rnode_beacondata"] = self.root.ids.hardware_rnode_beacondata.text
+
+    def hardware_rnode_init(self, sender=None):
+        if not self.hardware_rnode_ready:
+            def save_connectivity(sender=None, event=None):
+                if self.hardware_rnode_validate():
+                    self.hardware_rnode_save()
+
+            def focus_save(sender=None, event=None):
+                if sender != None:
+                    if not sender.focus:
+                        save_connectivity(sender=sender)
+
+            if self.sideband.config["hw_rnode_frequency"] != None:
+                t_freq = str(self.sideband.config["hw_rnode_frequency"]/1000000.0)
+            else:
+                t_freq = ""
+            if self.sideband.config["hw_rnode_bandwidth"] != None:
+                t_bw = str(self.sideband.config["hw_rnode_bandwidth"]/1000.0)
+            else:
+                t_bw = str(62.5)
+            if self.sideband.config["hw_rnode_tx_power"] != None:
+                t_p = str(self.sideband.config["hw_rnode_tx_power"])
+            else:
+                t_p = str(0)
+            if self.sideband.config["hw_rnode_spreading_factor"] != None:
+                t_sf = str(self.sideband.config["hw_rnode_spreading_factor"])
+            else:
+                t_sf = str(8)
+            if self.sideband.config["hw_rnode_coding_rate"] != None:
+                t_cr = str(self.sideband.config["hw_rnode_coding_rate"])
+            else:
+                t_cr = str(6)
+            if self.sideband.config["hw_rnode_beaconinterval"] != None:
+                t_bi = str(self.sideband.config["hw_rnode_beaconinterval"])
+            else:
+                t_bi = ""
+            if self.sideband.config["hw_rnode_beacondata"] != None:
+                t_bd = str(self.sideband.config["hw_rnode_beacondata"])
+            else:
+                t_bd = ""
+
+            self.root.ids.hardware_rnode_frequency.text = t_freq
+            self.root.ids.hardware_rnode_bandwidth.text = t_bw
+            self.root.ids.hardware_rnode_txpower.text = t_p
+            self.root.ids.hardware_rnode_spreadingfactor.text = t_sf
+            self.root.ids.hardware_rnode_codingrate.text = t_cr
+            self.root.ids.hardware_rnode_beaconinterval.text = t_bi
+            self.root.ids.hardware_rnode_beacondata.text = t_bd
+            self.root.ids.hardware_rnode_frequency.bind(focus=focus_save)
+            self.root.ids.hardware_rnode_bandwidth.bind(focus=focus_save)
+            self.root.ids.hardware_rnode_txpower.bind(focus=focus_save)
+            self.root.ids.hardware_rnode_spreadingfactor.bind(focus=focus_save)
+            self.root.ids.hardware_rnode_codingrate.bind(focus=focus_save)
+            self.root.ids.hardware_rnode_beaconinterval.bind(focus=focus_save)
+            self.root.ids.hardware_rnode_beacondata.bind(focus=focus_save)
+            self.root.ids.hardware_rnode_frequency.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_rnode_bandwidth.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_rnode_txpower.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_rnode_spreadingfactor.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_rnode_codingrate.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_rnode_beaconinterval.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_rnode_beacondata.bind(on_text_validate=save_connectivity)
+
+
+    def hardware_rnode_validate(self, sender=None):
+        valid = True        
+        try:
+            val = float(self.root.ids.hardware_rnode_frequency.text)
+            if not val > 0:
+                raise ValueError("Invalid frequency")
+            self.root.ids.hardware_rnode_frequency.error = False
+            self.root.ids.hardware_rnode_frequency.text = str(val)
+        except:
+            self.root.ids.hardware_rnode_frequency.error = True
+            valid = False
+        
+        try:
+            valid_vals = [7.8, 10.4, 15.6, 20.8, 31.25, 41.7, 62.5, 125, 250, 500]
+            val = float(self.root.ids.hardware_rnode_bandwidth.text)
+            if not val in valid_vals:
+                raise ValueError("Invalid bandwidth")
+            self.root.ids.hardware_rnode_bandwidth.error = False
+            self.root.ids.hardware_rnode_bandwidth.text = str(val)
+        except:
+            self.root.ids.hardware_rnode_bandwidth.error = True
+            valid = False
+        
+        try:
+            val = int(self.root.ids.hardware_rnode_txpower.text)
+            if not val >= 0:
+                raise ValueError("Invalid TX power")
+            self.root.ids.hardware_rnode_txpower.error = False
+            self.root.ids.hardware_rnode_txpower.text = str(val)
+        except:
+            self.root.ids.hardware_rnode_txpower.error = True
+            valid = False
+        
+        try:
+            val = int(self.root.ids.hardware_rnode_spreadingfactor.text)
+            if val < 7 or val > 12:
+                raise ValueError("Invalid sf")
+            self.root.ids.hardware_rnode_spreadingfactor.error = False
+            self.root.ids.hardware_rnode_spreadingfactor.text = str(val)
+        except:
+            self.root.ids.hardware_rnode_spreadingfactor.error = True
+            valid = False
+        
+        try:
+            val = int(self.root.ids.hardware_rnode_codingrate.text)
+            if val < 5 or val > 8:
+                raise ValueError("Invalid cr")
+            self.root.ids.hardware_rnode_codingrate.error = False
+            self.root.ids.hardware_rnode_codingrate.text = str(val)
+        except:
+            self.root.ids.hardware_rnode_codingrate.error = True
+            valid = False
+        
+        try:
+            if self.root.ids.hardware_rnode_beaconinterval.text != "":
+                val = int(self.root.ids.hardware_rnode_beaconinterval.text)
+                if val < 10:
+                    raise ValueError("Invalid bi")
+                self.root.ids.hardware_rnode_beaconinterval.text = str(val)
+
+            self.root.ids.hardware_rnode_beaconinterval.error = False
+        except:
+            self.root.ids.hardware_rnode_beaconinterval.text = ""
+            valid = False
+        
+        return valid
+
+    def hardware_rnode_import(self, sender=None):
+        mote = None
+        try:
+            mote = Clipboard.paste()
+        except Exception as e:
+            yes_button = MDRectangleFlatButton(text="OK",font_size=sp(18))
+            dialog = MDDialog(
+                title="Import Failed",
+                text="Could not read data from your clipboard, please check your system permissions.",
+                buttons=[ yes_button ],
+                # elevation=0,
+            )
+            def dl_yes(s):
+                dialog.dismiss()
+            yes_button.bind(on_release=dl_yes)
+            dialog.open()
+
+        try:
+            config = msgpack.unpackb(base64.b32decode(mote))
+            self.root.ids.hardware_rnode_frequency.text       = str(config["f"]/1000000.0)
+            self.root.ids.hardware_rnode_bandwidth.text       = str(config["b"]/1000.0)
+            self.root.ids.hardware_rnode_txpower.text         = str(config["t"])
+            self.root.ids.hardware_rnode_spreadingfactor.text = str(config["s"])
+            self.root.ids.hardware_rnode_codingrate.text      = str(config["c"])
+
+            if config["i"] != None:
+                ti = str(config["i"])
+            else:
+                ti = ""
+            self.root.ids.hardware_rnode_beaconinterval.text  = ti
+            if config["d"] != None:
+                td = str(config["d"])
+            else:
+                td = ""
+            self.root.ids.hardware_rnode_beacondata.text      = td
+
+            if self.hardware_rnode_validate():
+                self.hardware_rnode_save()
+                yes_button = MDRectangleFlatButton(text="OK",font_size=sp(18))
+                dialog = MDDialog(
+                    title="Configuration Imported",
+                    text="The config mote was imported and saved as your active configuration.",
+                    buttons=[ yes_button ],
+                    # elevation=0,
+                )
+                def dl_yes(s):
+                    dialog.dismiss()
+                yes_button.bind(on_release=dl_yes)
+                dialog.open()
+            else:
+                raise ValueError("Invalid mote")
+
+        except Exception as e:
+            yes_button = MDRectangleFlatButton(text="OK",font_size=sp(18))
+            dialog = MDDialog(
+                title="Import Failed",
+                text="The read data did not contain a valid config mote. If any data was decoded, you may try to correct it by editing the relevant fields. The reported error was:\n\n"+str(e),
+                buttons=[ yes_button ],
+                # elevation=0,
+            )
+            def dl_yes(s):
+                dialog.dismiss()
+            yes_button.bind(on_release=dl_yes)
+            dialog.open()
+
+    
+    def hardware_rnode_export(self, sender=None):
+        mote = None
+        try:
+            mote = base64.b32encode(msgpack.packb({
+                "f": self.sideband.config["hw_rnode_frequency"],
+                "b": self.sideband.config["hw_rnode_bandwidth"],
+                "t": self.sideband.config["hw_rnode_tx_power"],
+                "s": self.sideband.config["hw_rnode_spreading_factor"],
+                "c": self.sideband.config["hw_rnode_coding_rate"],
+                "i": self.sideband.config["hw_rnode_beaconinterval"],
+                "d": self.sideband.config["hw_rnode_beacondata"],
+            }))
+        except Exception as e:
+            pass
+
+        if mote != None:
+            Clipboard.copy(mote)
+            yes_button = MDRectangleFlatButton(text="OK",font_size=sp(18))
+            dialog = MDDialog(
+                title="Configuration Exported",
+                text="The config mote was created and copied to your clipboard.",
+                buttons=[ yes_button ],
+                # elevation=0,
+            )
+            def dl_yes(s):
+                dialog.dismiss()
+            yes_button.bind(on_release=dl_yes)
+            dialog.open()
+        else:
+            yes_button = MDRectangleFlatButton(text="OK",font_size=sp(18))
+            dialog = MDDialog(
+                title="Export Failed",
+                text="The config mote could not be created, please check your settings.",
+                buttons=[ yes_button ],
+                # elevation=0,
+            )
+            def dl_yes(s):
+                dialog.dismiss()
+            yes_button.bind(on_release=dl_yes)
+            dialog.open()
+    
+    def hardware_modem_action(self, sender=None):
+        self.hardware_modem_init()
+        self.root.ids.screen_manager.transition.direction = "left"
+        self.root.ids.screen_manager.current = "hardware_rnode_screen"
+        self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+    def hardware_modem_init(self, sender=None):
+        pass
+    
+    def hardware_serial_action(self, sender=None):
+        self.hardware_serial_init()
+        self.root.ids.screen_manager.transition.direction = "left"
+        self.root.ids.screen_manager.current = "hardware_serial_screen"
+        self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+    def hardware_serial_init(self, sender=None):
+        pass
+
+    def close_sub_hardware_action(self, sender=None):
+        self.hardware_action(direction="right")
+    
+    def hardware_init(self, sender=None):
+        if not self.hardware_ready:
+            def con_hide_settings():
+                pass
+                # self.widget_hide(self.root.ids.connectivity_use_local)
+                # self.widget_hide(self.root.ids.rnode_support_info)
+
+            def con_collapse_local(collapse=True):
+                self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
+                                
+            def save_connectivity(sender=None, event=None):
+                # self.sideband.config["connect_local"] = self.root.ids.connectivity_use_local.active
+                con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
+                self.sideband.save_configuration()
+
+            if True or RNS.vendor.platformutils.get_platform() == "android":
+                if False and not self.sideband.getpersistent("service.is_controlling_connectivity"):
+                    info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
+                    info += "To configure hardware parameters, edit the relevant configuration file for the instance."
+                    self.root.ids.hardware_info.text = info
+                    con_hide_settings()
+
+                else:
+                    info =  "When using external hardware for communicating, you may configure various parameters, such as channel settings, modulation schemes, interface speeds and access parameters. You can set up these parameters per device type, and Sideband will apply the configuration when opening a device of that type.\n\n"
+                    info += "Hardware configurations can also be exported or imported as [i]config motes[/i], which are self-contained plaintext strings that are easy to share with others. When importing a config mote, Sideband will automatically set all relevant parameters as specified within it.\n\n"
+                    info += "For changes to hardware parameters to take effect, you must shut down and restart Sideband.\n"
+                    self.root.ids.hardware_info.text = info
+
+            else:
+                info = ""
+
+                if self.sideband.reticulum.is_connected_to_shared_instance:
+                    info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
+                    info += "To configure hardware parameters, edit the configuration file located at:\n\n"
+                    info += str(RNS.Reticulum.configpath)
+                else:
+                    info =  "Sideband is currently running a standalone or master Reticulum instance on this system.\n\n"
+                    info += "To configure hardware parameters, edit the configuration file located at:\n\n"
+                    info += str(RNS.Reticulum.configpath)
+
+                self.root.ids.hardware_info.text = info
+
+                con_hide_settings()
+
+        self.hardware_ready = True
+
+    def close_hardware_action(self, sender=None):
         self.open_conversations(direction="right")
 
     ### Announce Stream screen

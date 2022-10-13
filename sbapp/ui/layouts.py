@@ -248,23 +248,6 @@ MDNavigationLayout:
                             text_size: self.width, None
                             height: self.texture_size[1]
 
-
-                        # MDBoxLayout:
-                        #     orientation: "horizontal"
-                        #     size_hint_y: None
-                        #     padding: [0,0,dp(24),0]
-                        #     height: dp(48)
-                            
-                        #     MDLabel:
-                        #         text: "Send via Propagation Node by default"
-                        #         font_style: "H6"
-
-                        #     MDSwitch:
-                        #         id: settings_lxmf_delivery_by_default
-                        #         pos_hint: {"center_y": 0.3}
-                        #         disabled: False
-                        #         active: False
-
                         MDBoxLayout:
                             orientation: "horizontal"
                             padding: [0,0,dp(24),0]
@@ -424,21 +407,6 @@ MDNavigationLayout:
                             size_hint_y: None
                             height: self.minimum_height
                             padding: [0, 0, 0, dp(32)]
-
-                            # MDLabel:
-                            #     id: rnode_support_info
-                            #     markup: True
-                            #     text: "[i]RNode support is in development[/i]"
-                            #     size_hint_y: None
-                            #     text_size: self.width, None
-                            #     height: self.texture_size[1]
-
-                            MDTextField:
-                                id: connectivity_rnode_cid
-                                hint_text: "RNode Pairing ID"
-                                text: ""
-                                font_size: dp(24)
-                                # disabled: True
 
                             MDTextField:
                                 id: connectivity_rnode_ifac_netname
@@ -840,7 +808,7 @@ MDNavigationLayout:
                 orientation: "vertical"
 
                 MDTopAppBar:
-                    title: "Settings"
+                    title: "Preferences"
                     anchor_title: "left"
                     elevation: 2
                     left_action_items:
@@ -1055,7 +1023,230 @@ MDNavigationLayout:
                                     pos_hint: {"center_y": 0.3}
                                     disabled: True
                                     active: False
-        
+
+        MDScreen:
+            name: "hardware_screen"
+            
+            BoxLayout:
+                orientation: "vertical"
+
+                MDTopAppBar:
+                    title: "Hardware"
+                    anchor_title: "left"
+                    elevation: 2
+                    left_action_items:
+                        [['menu', lambda x: nav_drawer.set_state("open")]]
+                    right_action_items:
+                        [
+                        ['close', lambda x: root.ids.screen_manager.app.close_hardware_action(self)],
+                        ]
+
+                ScrollView:
+                    id: hardware_scrollview
+
+                    MDBoxLayout:
+                        orientation: "vertical"
+                        spacing: "8dp"
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: [dp(28), dp(48), dp(28), dp(16)]
+
+                        MDLabel:
+                            text: "Configure Hardware Parameters\\n"
+                            font_style: "H6"
+
+                        MDLabel:
+                            id: hardware_info
+                            markup: True
+                            text: ""
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+
+                        MDBoxLayout:
+                            orientation: "vertical"
+                            spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [dp(0), dp(35), dp(0), dp(35)]
+
+                            MDRectangleFlatIconButton:
+                                id: hardware_rnode_button
+                                icon: "radio-handheld"
+                                text: "RNode"
+                                padding: [dp(0), dp(14), dp(0), dp(14)]
+                                icon_size: dp(24)
+                                font_size: dp(16)
+                                size_hint: [1.0, None]
+                                on_release: root.ids.screen_manager.app.hardware_rnode_action(self)
+
+                            MDRectangleFlatIconButton:
+                                id: hardware_modem_button
+                                icon: "router-wireless"
+                                text: "Packet Modem"
+                                padding: [dp(0), dp(14), dp(0), dp(14)]
+                                icon_size: dp(24)
+                                font_size: dp(16)
+                                size_hint: [1.0, None]
+                                on_release: root.ids.screen_manager.app.hardware_mode_action(self)
+                                disabled: True
+
+                            MDRectangleFlatIconButton:
+                                id: hardware_serial_button
+                                icon: "cable-data"
+                                text: "Serial Port"
+                                padding: [dp(0), dp(14), dp(0), dp(14)]
+                                icon_size: dp(24)
+                                font_size: dp(16)
+                                size_hint: [1.0, None]
+                                on_release: root.ids.screen_manager.app.hardware_serial_action(self)
+                                disabled: True
+
+        MDScreen:
+            name: "hardware_rnode_screen"
+            
+            BoxLayout:
+                orientation: "vertical"
+
+                MDTopAppBar:
+                    title: "RNode"
+                    anchor_title: "left"
+                    elevation: 2
+                    left_action_items:
+                        [['menu', lambda x: nav_drawer.set_state("open")]]
+                    right_action_items:
+                        [
+                        ['close', lambda x: root.ids.screen_manager.app.close_sub_hardware_action(self)],
+                        ]
+
+                ScrollView:
+                    id: hardware_rnode_scrollview
+
+                    MDBoxLayout:
+                        orientation: "vertical"
+                        spacing: "8dp"
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: [dp(28), dp(48), dp(28), dp(16)]
+
+                        MDLabel:
+                            text: "RNode Hardware Parameters\\n"
+                            font_style: "H6"
+
+                        MDLabel:
+                            id: hardware_rnode_info
+                            markup: True
+                            text: "To communicate using an RNode, you will need to specify the following parameters. For two or more RNodes to be able to communicate, all parameters must match, except for the [i]Coding Rate[/i] parameter, which can vary between devices.\\n"
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                            MDRectangleFlatIconButton:
+                                id: rnode_mote_export
+                                icon: "upload"
+                                text: "Export"
+                                padding: [dp(0), dp(14), dp(0), dp(14)]
+                                icon_size: dp(24)
+                                font_size: dp(16)
+                                size_hint: [1.0, None]
+                                on_release: root.ids.screen_manager.app.hardware_rnode_export(self)
+
+                            MDRectangleFlatIconButton:
+                                id: rnode_mote_import
+                                icon: "download"
+                                text: "Import"
+                                padding: [dp(0), dp(14), dp(0), dp(14)]
+                                icon_size: dp(24)
+                                font_size: dp(16)
+                                size_hint: [1.0, None]
+                                on_release: root.ids.screen_manager.app.hardware_rnode_import(self)
+
+                        MDLabel:
+                            text: "Radio Options"
+                            font_style: "H6"
+
+                        # MDTextField:
+                        #     id: hardware_rnode_modulation
+                        #     hint_text: "Modulation"
+                        #     text: "LoRa"
+                        #     disabled: True
+                        #     font_size: dp(24)
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                            MDTextField:
+                                id: hardware_rnode_frequency
+                                hint_text: "Frequency (MHz)"
+                                text: ""
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: hardware_rnode_bandwidth
+                                hint_text: "Bandwidth (KHz)"
+                                text: ""
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: hardware_rnode_txpower
+                                hint_text: "TX Power (dBm)"
+                                text: ""
+                                font_size: dp(24)
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [dp(0), dp(0), dp(0), dp(24)]
+
+                            MDTextField:
+                                id: hardware_rnode_spreadingfactor
+                                hint_text: "Spreading Factor"
+                                text: ""
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: hardware_rnode_codingrate
+                                hint_text: "Coding Rate"
+                                text: ""
+                                font_size: dp(24)
+
+                        MDLabel:
+                            text: "Optional Settings"
+                            font_style: "H6"
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                            MDTextField:
+                                id: hardware_rnode_beaconinterval
+                                hint_text: "Beacon Interval (seconds)"
+                                text: ""
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: hardware_rnode_beacondata
+                                hint_text: "Beacon Data"
+                                text: ""
+                                font_size: dp(24)
+
 
     MDNavigationDrawer:
         id: nav_drawer
@@ -1105,6 +1296,16 @@ MDNavigationLayout:
 
                                                        
                         OneLineIconListItem:
+                            text: "Preferences"
+                            on_release: root.ids.screen_manager.app.settings_action(self)
+                            _no_ripple_effect: True
+                        
+                            IconLeftWidget:
+                                icon: "cog"
+                                on_release: root.ids.screen_manager.app.settings_action(self)
+
+                                                       
+                        OneLineIconListItem:
                             text: "Connectivity"
                             on_release: root.ids.screen_manager.app.connectivity_action(self)
                             _no_ripple_effect: True
@@ -1115,13 +1316,13 @@ MDNavigationLayout:
 
                                                        
                         OneLineIconListItem:
-                            text: "Settings"
-                            on_release: root.ids.screen_manager.app.settings_action(self)
+                            text: "Hardware"
+                            on_release: root.ids.screen_manager.app.hardware_action(self)
                             _no_ripple_effect: True
                         
                             IconLeftWidget:
-                                icon: "cog"
-                                on_release: root.ids.screen_manager.app.settings_action(self)
+                                icon: "router-wireless"
+                                on_release: root.ids.screen_manager.app.hardware_action(self)
 
                                                        
                         OneLineIconListItem:
