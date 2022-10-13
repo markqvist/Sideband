@@ -85,7 +85,7 @@ class Announces():
 
                 def gen_info(ts, dest, name, dtype):
                     def x(sender):
-                        yes_button = MDRectangleFlatButton(text="OK",font_size=sp(18))
+                        yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                         
                         if dtype == "lxmf.delivery":
                             ad_text = "[size=22dp]LXMF Peer[/size]\n\nReceived: "+ts+"\nAnnounced Name: "+name+"\nAddress: "+RNS.prettyhexrep(dest)
@@ -127,8 +127,8 @@ class Announces():
 
                 def gen_del(dest, item):
                     def x():
-                        yes_button = MDRectangleFlatButton(text="Yes",font_size=sp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
-                        no_button = MDRectangleFlatButton(text="No",font_size=sp(18))
+                        yes_button = MDRectangleFlatButton(text="Yes",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
+                        no_button = MDRectangleFlatButton(text="No",font_size=dp(18))
                         dialog = MDDialog(
                             title="Delete announce?",
                             buttons=[ yes_button, no_button ],

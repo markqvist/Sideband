@@ -479,7 +479,7 @@ class SidebandApp(MDApp):
     def announce_now_action(self, sender=None):
         self.sideband.lxmf_announce()
 
-        yes_button = MDRectangleFlatButton(text="OK",font_size=sp(18))
+        yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
 
         dialog = MDDialog(
             title="Announce Sent",
@@ -563,12 +563,12 @@ class SidebandApp(MDApp):
         if self.root.ids.screen_manager.current == "messages_screen":
             if self.outbound_mode_propagation and self.sideband.message_router.get_outbound_propagation_node() == None:
                 self.messages_view.send_error_dialog = MDDialog(
-                    text="Error: Propagated delivery was requested, but no active LXMF propagation nodes were found. Cannot send message. Wait for a Propagation Node to announce on the network, or manually specify one in the settings.",
+                    title="Error",
+                    text="Propagated delivery was requested, but no active LXMF propagation nodes were found. Cannot send message.\n\nWait for a Propagation Node to announce on the network, or manually specify one in the settings.",
                     buttons=[
-                        MDFlatButton(
+                        MDRectangleFlatButton(
                             text="OK",
-                            theme_text_color="Custom",
-                            text_color=self.theme_cls.primary_color,
+                            font_size=dp(18),
                             on_release=self.messages_view.close_send_error_dialog
                         )
                     ],
@@ -586,12 +586,12 @@ class SidebandApp(MDApp):
                     self.jobs(0)
                 else:
                     self.messages_view.send_error_dialog = MDDialog(
-                        text="Error: Could not send the message",
+                        title="Error",
+                        text="Could not send the message",
                         buttons=[
-                            MDFlatButton(
+                            MDRectangleFlatButton(
                                 text="OK",
-                                theme_text_color="Custom",
-                                text_color=self.theme_cls.primary_color,
+                                font_size=dp(18),
                                 on_release=self.messages_view.close_send_error_dialog
                             )
                         ],
@@ -723,8 +723,8 @@ class SidebandApp(MDApp):
             self.sideband.setpersistent("lxmf.syncretrying", False)
             self.sideband.request_lxmf_sync(limit=sl)
 
-            close_button = MDRectangleFlatButton(text="Close",font_size=sp(18))
-            stop_button = MDRectangleFlatButton(text="Stop",font_size=sp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
+            close_button = MDRectangleFlatButton(text="Close",font_size=dp(18))
+            stop_button = MDRectangleFlatButton(text="Stop",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
             dialog_content = MsgSync()
             dialog = MDDialog(
                 title="LXMF Sync via "+RNS.prettyhexrep(self.sideband.message_router.get_outbound_propagation_node()),
@@ -763,8 +763,8 @@ class SidebandApp(MDApp):
                 font_size=dp(20),
             )
 
-            cancel_button = MDRectangleFlatButton(text="Cancel",font_size=sp(18))
-            create_button = MDRectangleFlatButton(text="Create",font_size=sp(18), theme_text_color="Custom", line_color=self.color_accept, text_color=self.color_accept)
+            cancel_button = MDRectangleFlatButton(text="Cancel",font_size=dp(18))
+            create_button = MDRectangleFlatButton(text="Create",font_size=dp(18), theme_text_color="Custom", line_color=self.color_accept, text_color=self.color_accept)
             
             dialog_content = NewConv()
             dialog = MDDialog(
@@ -1338,7 +1338,7 @@ class SidebandApp(MDApp):
         try:
             mote = Clipboard.paste()
         except Exception as e:
-            yes_button = MDRectangleFlatButton(text="OK",font_size=sp(18))
+            yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
             dialog = MDDialog(
                 title="Import Failed",
                 text="Could not read data from your clipboard, please check your system permissions.",
@@ -1385,7 +1385,7 @@ class SidebandApp(MDApp):
 
             if self.hardware_rnode_validate():
                 self.hardware_rnode_save()
-                yes_button = MDRectangleFlatButton(text="OK",font_size=sp(18))
+                yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                 dialog = MDDialog(
                     title="Configuration Imported",
                     text="The config mote was imported and saved as your active configuration.",
@@ -1400,7 +1400,7 @@ class SidebandApp(MDApp):
                 raise ValueError("Invalid mote")
 
         except Exception as e:
-            yes_button = MDRectangleFlatButton(text="OK",font_size=sp(18))
+            yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
             dialog = MDDialog(
                 title="Import Failed",
                 text="The read data did not contain a valid config mote. If any data was decoded, you may try to correct it by editing the relevant fields. The reported error was:\n\n"+str(e),
@@ -1431,7 +1431,7 @@ class SidebandApp(MDApp):
 
         if mote != None:
             Clipboard.copy(mote)
-            yes_button = MDRectangleFlatButton(text="OK",font_size=sp(18))
+            yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
             dialog = MDDialog(
                 title="Configuration Exported",
                 text="The config mote was created and copied to your clipboard.",
@@ -1443,7 +1443,7 @@ class SidebandApp(MDApp):
             yes_button.bind(on_release=dl_yes)
             dialog.open()
         else:
-            yes_button = MDRectangleFlatButton(text="OK",font_size=sp(18))
+            yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
             dialog = MDDialog(
                 title="Export Failed",
                 text="The config mote could not be created, please check your settings.",

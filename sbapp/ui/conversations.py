@@ -95,8 +95,8 @@ class Conversations():
                             disp_name = self.app.sideband.raw_display_name(dest)
                             is_trusted = self.app.sideband.is_trusted(dest)
 
-                            yes_button = MDRectangleFlatButton(text="Save",font_size=sp(18), theme_text_color="Custom", line_color=self.app.color_accept, text_color=self.app.color_accept)
-                            no_button = MDRectangleFlatButton(text="Cancel",font_size=sp(18))
+                            yes_button = MDRectangleFlatButton(text="Save",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_accept, text_color=self.app.color_accept)
+                            no_button = MDRectangleFlatButton(text="Cancel",font_size=dp(18))
                             dialog_content = ConvSettings(disp_name=disp_name, context_dest=RNS.hexrep(dest, delimit=False), trusted=is_trusted)
                             dialog = MDDialog(
                                 title="Edit Conversation",
@@ -145,8 +145,8 @@ class Conversations():
                 def gen_clear(dest, item):
                     def x():
                         dest = self.conversation_dropdown.context_dest
-                        yes_button = MDRectangleFlatButton(text="Yes",font_size=sp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
-                        no_button = MDRectangleFlatButton(text="No",font_size=sp(18))
+                        yes_button = MDRectangleFlatButton(text="Yes",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
+                        no_button = MDRectangleFlatButton(text="No",font_size=dp(18))
 
                         dialog = MDDialog(
                             title="Clear all messages in conversation?",
@@ -167,8 +167,8 @@ class Conversations():
 
                 def gen_del(dest, item):
                     def x():
-                        yes_button = MDRectangleFlatButton(text="Yes",font_size=sp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
-                        no_button = MDRectangleFlatButton(text="No",font_size=sp(18))
+                        yes_button = MDRectangleFlatButton(text="Yes",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
+                        no_button = MDRectangleFlatButton(text="No",font_size=dp(18))
                         dialog = MDDialog(
                             title="Delete conversation?",
                             buttons=[ yes_button, no_button ],
