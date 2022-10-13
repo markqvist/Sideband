@@ -32,7 +32,7 @@ MDNavigationLayout:
                     MDIconButton:
                         pos_hint: {"center_x": .5, "center_y": .5}
                         icon: "transit-connection-variant"
-                        icon_size: "72dp"
+                        icon_size: "92dp"
 
                     MDLabel:
                         id: connecting_status
@@ -63,7 +63,7 @@ MDNavigationLayout:
                     MDIconButton:
                         pos_hint: {"center_x": .5, "center_y": .5}
                         icon: "waves"
-                        icon_size: "72dp"
+                        icon_size: "92dp"
 
                     MDLabel:
                         id: exiting_status
