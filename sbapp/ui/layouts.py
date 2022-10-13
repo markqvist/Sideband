@@ -176,6 +176,10 @@ MDNavigationLayout:
                     elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
+                    right_action_items:
+                        [
+                        ['close', lambda x: root.ids.screen_manager.app.close_any_action(self)],
+                        ]
 
                 ScrollView:
                     id: broadcasts_scrollview
@@ -672,6 +676,10 @@ MDNavigationLayout:
                     elevation: 2
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
+                    right_action_items:
+                        [
+                        ['close', lambda x: root.ids.screen_manager.app.close_any_action(self)],
+                        ]
 
                 ScrollView:
                     id:information_scrollview

@@ -67,7 +67,7 @@ else:
     from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
 
 from kivy.metrics import dp, sp
-from kivymd.uix.button import MDFlatButton, MDRectangleFlatButton
+from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.color_definitions import colors
 
@@ -225,6 +225,9 @@ class SidebandApp(MDApp):
                 [0,0,0,0],  # navigation bar color
                 "Light",                       # icons color of status bar
             )
+
+    def close_any_action(self, sender=None):
+        self.open_conversations(direction="right")
 
     def share_text(self, text):
         if RNS.vendor.platformutils.get_platform() == "android":
@@ -685,9 +688,7 @@ class SidebandApp(MDApp):
             else:
                 connectivity_status = "[size=22dp][b]Connectivity Status[/b][/size]\n\nSideband is currently running a standalone or master Reticulum instance on this system. Use the rnstatus utility to obtain full connectivity info."
 
-        yes_button = MDFlatButton(
-            text="OK",
-        )
+        yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
         dialog = MDDialog(
             text=connectivity_status,
             buttons=[ yes_button ],
@@ -706,9 +707,7 @@ class SidebandApp(MDApp):
 
     def lxmf_sync_request(self, sender):
         if self.sideband.message_router.get_outbound_propagation_node() == None:
-            yes_button = MDFlatButton(
-                text="OK",
-            )
+            yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
 
             dialog = MDDialog(
                 text="No active LXMF propagation nodes were found. Cannot fetch messages. Wait for a Propagation Node to announce on the network, or manually specify one in the settings.",
@@ -770,11 +769,6 @@ class SidebandApp(MDApp):
 
     def new_conversation_request(self, sender=None):
         try:
-            yes_button = MDFlatButton(
-                text="OK",
-                font_size=dp(20),
-            )
-
             cancel_button = MDRectangleFlatButton(text="Cancel",font_size=dp(18))
             create_button = MDRectangleFlatButton(text="Create",font_size=dp(18), theme_text_color="Custom", line_color=self.color_accept, text_color=self.color_accept)
             
@@ -1598,9 +1592,7 @@ class SidebandApp(MDApp):
         self.open_conversations(direction="right")
 
     def identity_display_action(self, sender=None):
-        yes_button = MDFlatButton(
-            text="OK",
-        )
+        yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
 
         dialog = MDDialog(
             text="Your Identity key, in base32 format is as follows:\n\n[b]"+str(base64.b32encode(self.sideband.identity.get_private_key()).decode("utf-8"))+"[/b]",
@@ -1614,14 +1606,14 @@ class SidebandApp(MDApp):
         dialog.open()
 
     def identity_copy_action(self, sender=None):
-        c_yes_button = MDFlatButton(text="Yes, copy my key")
-        c_no_button = MDFlatButton(text="No, go back")
+        c_yes_button = MDRectangleFlatButton(text="Yes, copy my key",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
+        c_no_button = MDRectangleFlatButton(text="No, go back",font_size=dp(18))
         c_dialog = MDDialog(text="[b]Caution![/b]\n\nYour Identity key will be copied to the system clipboard. Take extreme care that no untrusted app steals your key by reading the clipboard data. Clear the system clipboard immediately after pasting your key where you need it.\n\nAre you sure that you wish to proceed?", buttons=[ c_no_button, c_yes_button ])
         def c_dl_no(s):
             c_dialog.dismiss()
         def c_dl_yes(s):
             c_dialog.dismiss()
-            yes_button = MDFlatButton(text="OK")
+            yes_button = MDRectangleFlatButton(text="OK")
             dialog = MDDialog(text="Your Identity key was copied to the system clipboard", buttons=[ yes_button ])
             def dl_yes(s):
                 dialog.dismiss()
@@ -1640,8 +1632,8 @@ class SidebandApp(MDApp):
             self.share_text(str(base64.b32encode(self.sideband.identity.get_private_key()).decode("utf-8")))
 
     def identity_restore_action(self, sender=None):
-        c_yes_button = MDFlatButton(text="Yes, import the key")
-        c_no_button = MDFlatButton(text="No, go back")
+        c_yes_button = MDRectangleFlatButton(text="Yes, import the key",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
+        c_no_button = MDRectangleFlatButton(text="No, go back",font_size=dp(18))
         c_dialog = MDDialog(text="[b]Caution![/b]\n\nYou are about to import a new Identity key into Sideband. The currently active key will be irreversibly destroyed, and you will loose your LXMF address if you have not already backed up your current Identity key.\n\nAre you sure that you wish to import the key?", buttons=[ c_no_button, c_yes_button ])
         def c_dl_no(s):
             c_dialog.dismiss()
@@ -1656,7 +1648,7 @@ class SidebandApp(MDApp):
                 if new_id != None:
                     new_id.to_file(self.sideband.identity_path)
 
-                yes_button = MDFlatButton(text="OK")
+                yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                 dialog = MDDialog(text="[b]The provided Identity key data was imported[/b]\n\nThe app will now exit. Please restart Sideband to use the new Identity.", buttons=[ yes_button ])
                 def dl_yes(s):
                     dialog.dismiss()
@@ -1665,7 +1657,7 @@ class SidebandApp(MDApp):
                 dialog.open()
 
             except Exception as e:
-                yes_button = MDFlatButton(text="OK")
+                yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                 dialog = MDDialog(text="[b]The provided Identity key data was not valid[/b]\n\nThe error reported by Reticulum was:\n\n[i]"+str(e)+"[/i]\n\nNo Identity was imported into Sideband.", buttons=[ yes_button ])
                 def dl_yes(s):
                     dialog.dismiss()
