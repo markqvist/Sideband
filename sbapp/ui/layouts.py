@@ -14,9 +14,9 @@ MDNavigationLayout:
             name: "starting_screen"
                  
             AnchorLayout:
+                padding: [dp(0), dp(72), dp(0), dp(0)]
                 anchor_x: "center"
                 anchor_y: "center"
-                padding: dp(64)
 
                 BoxLayout:
                     spacing: dp(36)
@@ -28,9 +28,6 @@ MDNavigationLayout:
                         halign: "center"
                         text: "Please Wait"
                         font_size: "32dp"
-                        size_hint_y: None
-                        text_size: self.width, None
-                        height: self.texture_size[1]
 
                     MDIconButton:
                         pos_hint: {"center_x": .5, "center_y": .5}
@@ -42,18 +39,15 @@ MDNavigationLayout:
                         halign: "center"
                         text: "Substantiating Reticulum"
                         font_size: "32dp"
-                        size_hint_y: None
-                        text_size: self.width, None
-                        height: self.texture_size[1]
 
 
         MDScreen:
             name: "exit_screen"
                  
             AnchorLayout:
+                padding: [dp(0), dp(72), dp(0), dp(0)]
                 anchor_x: "center"
                 anchor_y: "center"
-                padding: dp(64)
 
                 BoxLayout:
                     spacing: dp(36)
@@ -65,13 +59,9 @@ MDNavigationLayout:
                         halign: "center"
                         text: "Please Wait"
                         font_size: "32dp"
-                        size_hint_y: None
-                        text_size: self.width, None
-                        height: self.texture_size[1]
 
                     MDIconButton:
                         pos_hint: {"center_x": .5, "center_y": .5}
-                        # icon: "close-network-outline"
                         icon: "waves"
                         icon_size: "72dp"
 
@@ -80,9 +70,6 @@ MDNavigationLayout:
                         halign: "center"
                         text: "Dissolving Reticulum"
                         font_size: "32dp"
-                        size_hint_y: None
-                        text_size: self.width, None
-                        height: self.texture_size[1]
 
 
         MDScreen:
