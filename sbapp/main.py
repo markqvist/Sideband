@@ -1011,6 +1011,9 @@ class SidebandApp(MDApp):
                 self.widget_hide(self.root.ids.connectivity_bluetooth_fields)
                 self.widget_hide(self.root.ids.connectivity_transport_label)
                 self.widget_hide(self.root.ids.connectivity_enable_transport)
+                self.widget_hide(self.root.ids.connectivity_serial_label)
+                self.widget_hide(self.root.ids.connectivity_use_serial)
+                self.widget_hide(self.root.ids.connectivity_serial_fields)
 
             def con_collapse_local(collapse=True):
                 self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
