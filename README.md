@@ -27,7 +27,7 @@ Aditionally, you can install Sideband with ``pip`` on Linux and macOS:
 pip install sbapp
 
 # Install Sideband and dependencies on macOS
-pip install sbapp[macos]
+pip install "sbapp[macos]"
 
 # Run it
 sideband
