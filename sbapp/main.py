@@ -113,6 +113,11 @@ class SidebandApp(MDApp):
         self.icon = self.sideband.asset_dir+"/icon.png"
         self.notification_icon = self.sideband.asset_dir+"/notification_icon.png"
 
+
+    #################################################
+    # Application Startup                           #
+    #################################################
+
     def update_loading_text(self):
         if self.sideband:
             loadingstate = self.sideband.getstate("init.loadingstate")
@@ -408,7 +413,6 @@ class SidebandApp(MDApp):
 
             fix_back_button()
 
-
     def keydown_event(self, instance, keyboard, keycode, text, modifiers):
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "q"):
             self.quit_action(self)
@@ -430,7 +434,6 @@ class SidebandApp(MDApp):
             if self.root.ids.screen_manager.current == "conversations_screen":
                 if not hasattr(self, "dialog_open") or not self.dialog_open:
                     self.new_conversation_action(self)
-
             
     def keyboard_event(self, window, key, *largs):
         # Handle escape/back
@@ -1184,6 +1187,59 @@ class SidebandApp(MDApp):
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
+    def close_sub_hardware_action(self, sender=None):
+        self.hardware_action(direction="right")
+    
+    def hardware_init(self, sender=None):
+        if not self.hardware_ready:
+            def con_hide_settings():
+                self.widget_hide(self.root.ids.hardware_rnode_button)
+                self.widget_hide(self.root.ids.hardware_modem_button)
+                self.widget_hide(self.root.ids.hardware_serial_button)
+
+            def con_collapse_local(collapse=True):
+                self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
+                                
+            def save_connectivity(sender=None, event=None):
+                # self.sideband.config["connect_local"] = self.root.ids.connectivity_use_local.active
+                con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
+                self.sideband.save_configuration()
+
+            if RNS.vendor.platformutils.get_platform() == "android":
+                if not self.sideband.getpersistent("service.is_controlling_connectivity"):
+                    info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
+                    info += "To configure hardware parameters, edit the relevant configuration file for the instance."
+                    self.root.ids.hardware_info.text = info
+                    con_hide_settings()
+
+                else:
+                    info =  "When using external hardware for communicating, you may configure various parameters, such as channel settings, modulation schemes, interface speeds and access parameters. You can set up these parameters per device type, and Sideband will apply the configuration when opening a device of that type.\n\n"
+                    info += "Hardware configurations can also be exported or imported as [i]config motes[/i], which are self-contained plaintext strings that are easy to share with others. When importing a config mote, Sideband will automatically set all relevant parameters as specified within it.\n\n"
+                    info += "For changes to hardware parameters to take effect, you must shut down and restart Sideband.\n"
+                    self.root.ids.hardware_info.text = info
+
+            else:
+                info = ""
+
+                if self.sideband.reticulum.is_connected_to_shared_instance:
+                    info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
+                    info += "To configure hardware parameters, edit the configuration file located at:\n\n"
+                    info += str(RNS.Reticulum.configpath)
+                else:
+                    info =  "Sideband is currently running a standalone or master Reticulum instance on this system.\n\n"
+                    info += "To configure hardware parameters, edit the configuration file located at:\n\n"
+                    info += str(RNS.Reticulum.configpath)
+
+                self.root.ids.hardware_info.text = info
+
+                con_hide_settings()
+
+        self.hardware_ready = True
+
+    def close_hardware_action(self, sender=None):
+        self.open_conversations(direction="right")
+
+    ## RNode hardware screen
     def hardware_rnode_action(self, sender=None):
         self.hardware_rnode_init()
         self.root.ids.screen_manager.transition.direction = "left"
@@ -1461,6 +1517,7 @@ class SidebandApp(MDApp):
             yes_button.bind(on_release=dl_yes)
             dialog.open()
     
+    ## Modem hardware screen
     def hardware_modem_action(self, sender=None):
         self.hardware_modem_init()
         self.root.ids.screen_manager.transition.direction = "left"
@@ -1471,6 +1528,7 @@ class SidebandApp(MDApp):
     def hardware_modem_init(self, sender=None):
         pass
     
+    ## Serial hardware screen
     def hardware_serial_action(self, sender=None):
         self.hardware_serial_init()
         self.root.ids.screen_manager.transition.direction = "left"
@@ -1480,58 +1538,6 @@ class SidebandApp(MDApp):
 
     def hardware_serial_init(self, sender=None):
         pass
-
-    def close_sub_hardware_action(self, sender=None):
-        self.hardware_action(direction="right")
-    
-    def hardware_init(self, sender=None):
-        if not self.hardware_ready:
-            def con_hide_settings():
-                self.widget_hide(self.root.ids.hardware_rnode_button)
-                self.widget_hide(self.root.ids.hardware_modem_button)
-                self.widget_hide(self.root.ids.hardware_serial_button)
-
-            def con_collapse_local(collapse=True):
-                self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
-                                
-            def save_connectivity(sender=None, event=None):
-                # self.sideband.config["connect_local"] = self.root.ids.connectivity_use_local.active
-                con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
-                self.sideband.save_configuration()
-
-            if RNS.vendor.platformutils.get_platform() == "android":
-                if not self.sideband.getpersistent("service.is_controlling_connectivity"):
-                    info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
-                    info += "To configure hardware parameters, edit the relevant configuration file for the instance."
-                    self.root.ids.hardware_info.text = info
-                    con_hide_settings()
-
-                else:
-                    info =  "When using external hardware for communicating, you may configure various parameters, such as channel settings, modulation schemes, interface speeds and access parameters. You can set up these parameters per device type, and Sideband will apply the configuration when opening a device of that type.\n\n"
-                    info += "Hardware configurations can also be exported or imported as [i]config motes[/i], which are self-contained plaintext strings that are easy to share with others. When importing a config mote, Sideband will automatically set all relevant parameters as specified within it.\n\n"
-                    info += "For changes to hardware parameters to take effect, you must shut down and restart Sideband.\n"
-                    self.root.ids.hardware_info.text = info
-
-            else:
-                info = ""
-
-                if self.sideband.reticulum.is_connected_to_shared_instance:
-                    info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
-                    info += "To configure hardware parameters, edit the configuration file located at:\n\n"
-                    info += str(RNS.Reticulum.configpath)
-                else:
-                    info =  "Sideband is currently running a standalone or master Reticulum instance on this system.\n\n"
-                    info += "To configure hardware parameters, edit the configuration file located at:\n\n"
-                    info += str(RNS.Reticulum.configpath)
-
-                self.root.ids.hardware_info.text = info
-
-                con_hide_settings()
-
-        self.hardware_ready = True
-
-    def close_hardware_action(self, sender=None):
-        self.open_conversations(direction="right")
 
     ### Announce Stream screen
     ######################################

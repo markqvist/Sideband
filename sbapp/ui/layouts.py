@@ -438,11 +438,16 @@ MDNavigationLayout:
                             padding: [0, 0, 0, dp(32)]
 
                             MDTextField:
-                                id: connectivity_modem_cid
-                                hint_text: "Modem Pairing ID"
+                                id: connectivity_modem_ifac_netname
+                                hint_text: "Optional IFAC network name"
                                 text: ""
                                 font_size: dp(24)
-                                # disabled: True
+
+                            MDTextField:
+                                id: connectivity_modem_ifac_passphrase
+                                hint_text: "Optional IFAC passphrase"
+                                text: ""
+                                font_size: dp(24)
 
 
                         MDBoxLayout:
@@ -471,11 +476,16 @@ MDNavigationLayout:
                             padding: [0, 0, 0, dp(32)]
 
                             MDTextField:
-                                id: connectivity_serial_baud
-                                hint_text: "Baud Rate"
+                                id: connectivity_serial_ifac_netname
+                                hint_text: "Optional IFAC network name"
                                 text: ""
                                 font_size: dp(24)
-                                # disabled: True
+
+                            MDTextField:
+                                id: connectivity_serial_ifac_passphrase
+                                hint_text: "Optional IFAC passphrase"
+                                text: ""
+                                font_size: dp(24)
 
 
                         MDBoxLayout:
