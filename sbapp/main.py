@@ -1,4 +1,5 @@
-__debug_build__ = False
+# TODO: Reset
+__debug_build__ = True
 __disable_shaders__ = True
 __version__ = "0.2.3"
 __variant__ = "beta"
@@ -1556,12 +1557,227 @@ class SidebandApp(MDApp):
     def hardware_modem_action(self, sender=None):
         self.hardware_modem_init()
         self.root.ids.screen_manager.transition.direction = "left"
-        self.root.ids.screen_manager.current = "hardware_rnode_screen"
+        self.root.ids.screen_manager.current = "hardware_modem_screen"
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
     def hardware_modem_init(self, sender=None):
-        pass
+        if not self.hardware_modem_ready:
+            def save_connectivity(sender=None, event=None):
+                if self.hardware_modem_validate():
+                    self.hardware_modem_save()
+
+            def focus_save(sender=None, event=None):
+                if sender != None:
+                    if not sender.focus:
+                        save_connectivity(sender=sender)
+
+            if self.sideband.config["hw_modem_baudrate"] != None:
+                t_b = str(self.sideband.config["hw_modem_baudrate"])
+            else:
+                t_b = ""
+
+            if self.sideband.config["hw_modem_databits"] != None:
+                t_db = str(self.sideband.config["hw_modem_databits"])
+            else:
+                t_db = ""
+
+            if self.sideband.config["hw_modem_parity"] != None:
+                t_p = str(self.sideband.config["hw_modem_parity"])
+            else:
+                t_p = ""
+            
+            if self.sideband.config["hw_modem_stopbits"] != None:
+                t_sb = str(self.sideband.config["hw_modem_stopbits"])
+            else:
+                t_sb = ""
+            
+            if self.sideband.config["hw_modem_preamble"] != None:
+                t_pa = str(self.sideband.config["hw_modem_preamble"])
+            else:
+                t_pa = ""
+            
+            if self.sideband.config["hw_modem_tail"] != None:
+                t_t = str(self.sideband.config["hw_modem_tail"])
+            else:
+                t_t = ""
+            
+            if self.sideband.config["hw_modem_persistence"] != None:
+                t_ps = str(self.sideband.config["hw_modem_persistence"])
+            else:
+                t_ps = ""
+
+            if self.sideband.config["hw_modem_slottime"] != None:
+                t_st = str(self.sideband.config["hw_modem_slottime"])
+            else:
+                t_st = ""
+
+            if self.sideband.config["hw_modem_beaconinterval"] != None:
+                t_bi = str(self.sideband.config["hw_modem_beaconinterval"])
+            else:
+                t_bi = ""
+            if self.sideband.config["hw_modem_beacondata"] != None:
+                t_bd = str(self.sideband.config["hw_modem_beacondata"])
+            else:
+                t_bd = ""
+            
+            self.root.ids.hardware_modem_baudrate.text = t_b
+            self.root.ids.hardware_modem_databits.text = t_db
+            self.root.ids.hardware_modem_parity.text = t_p
+            self.root.ids.hardware_modem_stopbits.text = t_sb
+            self.root.ids.hardware_modem_beaconinterval.text = t_bi
+            self.root.ids.hardware_modem_beacondata.text = t_bd
+            self.root.ids.hardware_modem_preamble.text = t_pa
+            self.root.ids.hardware_modem_tail.text = t_t
+            self.root.ids.hardware_modem_persistence.text = t_ps
+            self.root.ids.hardware_modem_slottime.text = t_st
+            
+            self.root.ids.hardware_modem_baudrate.bind(focus=focus_save)
+            self.root.ids.hardware_modem_databits.bind(focus=focus_save)
+            self.root.ids.hardware_modem_parity.bind(focus=focus_save)
+            self.root.ids.hardware_modem_stopbits.bind(focus=focus_save)
+            self.root.ids.hardware_modem_beaconinterval.bind(focus=focus_save)
+            self.root.ids.hardware_modem_beacondata.bind(focus=focus_save)
+            self.root.ids.hardware_modem_preamble.bind(focus=focus_save)
+            self.root.ids.hardware_modem_tail.bind(focus=focus_save)
+            self.root.ids.hardware_modem_persistence.bind(focus=focus_save)
+            self.root.ids.hardware_modem_slottime.bind(focus=focus_save)
+            
+            self.root.ids.hardware_modem_baudrate.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_modem_databits.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_modem_parity.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_modem_stopbits.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_modem_beaconinterval.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_modem_beacondata.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_modem_preamble.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_modem_tail.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_modem_persistence.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_modem_slottime.bind(on_text_validate=save_connectivity)
+    
+    def hardware_modem_save(self):
+        self.sideband.config["hw_modem_baudrate"] = int(self.root.ids.hardware_modem_baudrate.text)
+        self.sideband.config["hw_modem_databits"] = int(self.root.ids.hardware_modem_databits.text)
+        self.sideband.config["hw_modem_parity"] = self.root.ids.hardware_modem_parity.text
+        self.sideband.config["hw_modem_stopbits"] = int(self.root.ids.hardware_modem_stopbits.text)
+        self.sideband.config["hw_modem_preamble"] = int(self.root.ids.hardware_modem_preamble.text)
+        self.sideband.config["hw_modem_tail"] = int(self.root.ids.hardware_modem_tail.text)
+        self.sideband.config["hw_modem_persistence"] = int(self.root.ids.hardware_modem_persistence.text)
+        self.sideband.config["hw_modem_slottime"] = int(self.root.ids.hardware_modem_slottime.text)
+
+        if self.root.ids.hardware_modem_beaconinterval.text == "":
+            self.sideband.config["hw_modem_beaconinterval"] = None
+        else:
+            self.sideband.config["hw_modem_beaconinterval"] = int(self.root.ids.hardware_modem_beaconinterval.text)
+
+        if self.root.ids.hardware_modem_beacondata.text == "":
+            self.sideband.config["hw_modem_beacondata"] = None
+        else:
+            self.sideband.config["hw_modem_beacondata"] = self.root.ids.hardware_modem_beacondata.text
+
+        self.sideband.save_configuration()
+
+    def hardware_modem_validate(self, sender=None):
+        valid = True        
+        try:
+            val = int(self.root.ids.hardware_modem_baudrate.text)
+            if not val > 0:
+                raise ValueError("Invalid baudrate")
+            self.root.ids.hardware_modem_baudrate.error = False
+            self.root.ids.hardware_modem_baudrate.text = str(val)
+        except:
+            self.root.ids.hardware_modem_baudrate.error = True
+            valid = False
+        
+        try:
+            val = int(self.root.ids.hardware_modem_databits.text)
+            if not val > 0:
+                raise ValueError("Invalid databits")
+            self.root.ids.hardware_modem_databits.error = False
+            self.root.ids.hardware_modem_databits.text = str(val)
+        except:
+            self.root.ids.hardware_modem_databits.error = True
+            valid = False
+        
+        try:
+            val = int(self.root.ids.hardware_modem_stopbits.text)
+            if not val > 0:
+                raise ValueError("Invalid stopbits")
+            self.root.ids.hardware_modem_stopbits.error = False
+            self.root.ids.hardware_modem_stopbits.text = str(val)
+        except:
+            self.root.ids.hardware_modem_stopbits.error = True
+            valid = False
+        
+        try:
+            val = int(self.root.ids.hardware_modem_preamble.text)
+            if not (val >= 0 and val <= 1000):
+                raise ValueError("Invalid preamble")
+            self.root.ids.hardware_modem_preamble.error = False
+            self.root.ids.hardware_modem_preamble.text = str(val)
+        except:
+            self.root.ids.hardware_modem_preamble.error = True
+            valid = False
+        
+        try:
+            val = int(self.root.ids.hardware_modem_tail.text)
+            if not (val > 0 and val <= 500):
+                raise ValueError("Invalid tail")
+            self.root.ids.hardware_modem_tail.error = False
+            self.root.ids.hardware_modem_tail.text = str(val)
+        except:
+            self.root.ids.hardware_modem_tail.error = True
+            valid = False
+        
+        try:
+            val = int(self.root.ids.hardware_modem_slottime.text)
+            if not (val > 0 and val <= 500):
+                raise ValueError("Invalid slottime")
+            self.root.ids.hardware_modem_slottime.error = False
+            self.root.ids.hardware_modem_slottime.text = str(val)
+        except:
+            self.root.ids.hardware_modem_slottime.error = True
+            valid = False
+        
+        try:
+            val = int(self.root.ids.hardware_modem_persistence.text)
+            if not (val > 0 and val <= 255):
+                raise ValueError("Invalid persistence")
+            self.root.ids.hardware_modem_persistence.error = False
+            self.root.ids.hardware_modem_persistence.text = str(val)
+        except:
+            self.root.ids.hardware_modem_persistence.error = True
+            valid = False
+        
+        try:
+            val = self.root.ids.hardware_modem_parity.text
+            nval = val.lower()
+            if nval in ["e", "ev", "eve", "even"]:
+                val = "even"
+            if nval in ["o", "od", "odd"]:
+                val = "odd"
+            if nval in ["n", "no", "non", "none", "not", "null", "off"]:
+                val = "none"
+            if not val in ["even", "odd", "none"]:
+                raise ValueError("Invalid parity")
+            self.root.ids.hardware_modem_parity.error = False
+            self.root.ids.hardware_modem_parity.text = str(val)
+        except:
+            self.root.ids.hardware_modem_parity.error = True
+            valid = False
+
+        try:
+            if self.root.ids.hardware_modem_beaconinterval.text != "":
+                val = int(self.root.ids.hardware_modem_beaconinterval.text)
+                if val < 10:
+                    raise ValueError("Invalid bi")
+                self.root.ids.hardware_modem_beaconinterval.text = str(val)
+
+            self.root.ids.hardware_modem_beaconinterval.error = False
+        except:
+            self.root.ids.hardware_modem_beaconinterval.text = ""
+            valid = False
+
+        return valid
     
     ## Serial hardware screen
     def hardware_serial_action(self, sender=None):

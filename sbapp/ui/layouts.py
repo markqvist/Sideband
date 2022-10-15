@@ -1127,8 +1127,8 @@ MDNavigationLayout:
                                 icon_size: dp(24)
                                 font_size: dp(16)
                                 size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.hardware_mode_action(self)
-                                disabled: True
+                                on_release: root.ids.screen_manager.app.hardware_modem_action(self)
+                                disabled: False
 
                             MDRectangleFlatIconButton:
                                 id: hardware_serial_button
@@ -1281,6 +1281,152 @@ MDNavigationLayout:
 
                             MDTextField:
                                 id: hardware_rnode_beacondata
+                                hint_text: "Beacon Data"
+                                text: ""
+                                font_size: dp(24)
+
+        MDScreen:
+            name: "hardware_modem_screen"
+            
+            BoxLayout:
+                orientation: "vertical"
+
+                MDTopAppBar:
+                    title: "Radio Modem"
+                    anchor_title: "left"
+                    elevation: 2
+                    left_action_items:
+                        [['menu', lambda x: nav_drawer.set_state("open")]]
+                    right_action_items:
+                        [
+                        ['close', lambda x: root.ids.screen_manager.app.close_sub_hardware_action(self)],
+                        ]
+
+                ScrollView:
+                    id: hardware_modem_scrollview
+
+                    MDBoxLayout:
+                        orientation: "vertical"
+                        spacing: "8dp"
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: [dp(28), dp(48), dp(28), dp(16)]
+
+                        MDLabel:
+                            text: "Modem Hardware Parameters\\n"
+                            font_style: "H6"
+
+                        MDLabel:
+                            id: hardware_modem_info
+                            markup: True
+                            text: "To communicate using a Radio Modem, you will need to specify the following parameters. Serial port parameters must be set to match those of the modem. CSMA parameters can be left at their default values in most cases.\\n"
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDLabel:
+                            text: "Port Options"
+                            font_style: "H6"
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                            MDTextField:
+                                id: hardware_modem_baudrate
+                                hint_text: "Baud Rate"
+                                text: ""
+                                font_size: dp(24)
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [dp(0), dp(0), dp(0), dp(24)]
+
+                            MDTextField:
+                                id: hardware_modem_databits
+                                hint_text: "Data Bits"
+                                text: ""
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: hardware_modem_parity
+                                hint_text: "Parity"
+                                text: ""
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: hardware_modem_stopbits
+                                hint_text: "Stop Bits"
+                                text: ""
+                                font_size: dp(24)
+
+                        MDLabel:
+                            text: "CSMA Parameters"
+                            font_style: "H6"
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [dp(0), dp(0), dp(0), dp(0)]
+
+                            MDTextField:
+                                id: hardware_modem_preamble
+                                hint_text: "Preamble (ms)"
+                                text: ""
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: hardware_modem_tail
+                                hint_text: "TX Tail (ms)"
+                                text: ""
+                                font_size: dp(24)
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [dp(0), dp(0), dp(0), dp(24)]
+
+                            MDTextField:
+                                id: hardware_modem_persistence
+                                hint_text: "Persistence (1-255)"
+                                text: ""
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: hardware_modem_slottime
+                                hint_text: "Slot Time (ms)"
+                                text: ""
+                                font_size: dp(24)
+
+                        MDLabel:
+                            text: "Optional Settings"
+                            font_style: "H6"
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                            MDTextField:
+                                id: hardware_modem_beaconinterval
+                                hint_text: "Beacon Interval (seconds)"
+                                text: ""
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: hardware_modem_beacondata
                                 hint_text: "Beacon Data"
                                 text: ""
                                 font_size: dp(24)
