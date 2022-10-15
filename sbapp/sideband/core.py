@@ -193,6 +193,12 @@ class SidebandCore():
         self.config["connect_rnode"] = False
         self.config["connect_rnode_ifac_netname"] = ""
         self.config["connect_rnode_ifac_passphrase"] = ""
+        self.config["connect_serial"] = False
+        self.config["connect_serial_ifac_netname"] = ""
+        self.config["connect_serial_ifac_passphrase"] = ""
+        self.config["connect_modem"] = False
+        self.config["connect_modem_ifac_netname"] = ""
+        self.config["connect_modem_ifac_passphrase"] = ""
         # Hardware
         self.config["hw_rnode_frequency"] = None
         self.config["hw_rnode_modulation"] = "LoRa"
@@ -249,7 +255,18 @@ class SidebandCore():
             self.config["connect_rnode_ifac_netname"] = ""
         if not "connect_rnode_ifac_passphrase" in self.config:
             self.config["connect_rnode_ifac_passphrase"] = ""
-        
+        if not "connect_serial" in self.config:
+            self.config["connect_serial"] = False
+        if not "connect_serial_ifac_netname" in self.config:
+            self.config["connect_serial_ifac_netname"] = ""
+        if not "connect_serial_ifac_passphrase" in self.config:
+            self.config["connect_serial_ifac_passphrase"] = ""
+        if not "connect_modem" in self.config:
+            self.config["connect_modem"] = False
+        if not "connect_modem_ifac_netname" in self.config:
+            self.config["connect_modem_ifac_netname"] = ""
+        if not "connect_modem_ifac_passphrase" in self.config:
+            self.config["connect_modem_ifac_passphrase"] = ""
         if not "hw_rnode_frequency" in self.config:
             self.config["hw_rnode_frequency"] = None
         if not "hw_rnode_modulation" in self.config:

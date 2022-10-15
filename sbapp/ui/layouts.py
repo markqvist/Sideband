@@ -422,13 +422,13 @@ MDNavigationLayout:
                                 id: connectivity_modem_label
                                 text: "Connect via Radio Modem"
                                 font_style: "H6"
-                                disabled: True
+                                disabled: False
 
                             MDSwitch:
                                 id: connectivity_use_modem
                                 active: False
                                 pos_hint: {"center_y": 0.3}
-                                disabled: True
+                                disabled: False
 
                         MDBoxLayout:
                             id: connectivity_modem_fields
@@ -460,13 +460,13 @@ MDNavigationLayout:
                                 id: connectivity_serial_label
                                 text: "Connect via Serial Port"
                                 font_style: "H6"
-                                disabled: True
+                                disabled: False
 
                             MDSwitch:
                                 id: connectivity_use_serial
                                 active: False
                                 pos_hint: {"center_y": 0.3}
-                                disabled: True
+                                disabled: False
 
                         MDBoxLayout:
                             id: connectivity_serial_fields

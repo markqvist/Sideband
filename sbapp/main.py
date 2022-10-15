@@ -1062,6 +1062,14 @@ class SidebandApp(MDApp):
                 self.sideband.config["connect_rnode_ifac_netname"] = self.root.ids.connectivity_rnode_ifac_netname.text
                 self.sideband.config["connect_rnode_ifac_passphrase"] = self.root.ids.connectivity_rnode_ifac_passphrase.text
 
+                self.sideband.config["connect_serial"] = self.root.ids.connectivity_use_serial.active
+                self.sideband.config["connect_serial_ifac_netname"] = self.root.ids.connectivity_serial_ifac_netname.text
+                self.sideband.config["connect_serial_ifac_passphrase"] = self.root.ids.connectivity_serial_ifac_passphrase.text
+
+                self.sideband.config["connect_modem"] = self.root.ids.connectivity_use_modem.active
+                self.sideband.config["connect_modem_ifac_netname"] = self.root.ids.connectivity_modem_ifac_netname.text
+                self.sideband.config["connect_modem_ifac_passphrase"] = self.root.ids.connectivity_modem_ifac_passphrase.text
+
                 con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
                 con_collapse_tcp(collapse=not self.root.ids.connectivity_use_tcp.active)
                 con_collapse_i2p(collapse=not self.root.ids.connectivity_use_i2p.active)
@@ -1071,6 +1079,20 @@ class SidebandApp(MDApp):
                 con_collapse_serial(collapse=not self.root.ids.connectivity_use_serial.active)
 
                 self.sideband.save_configuration()
+
+            def serial_connectivity_save(sender=None, event=None):
+                if sender.active:
+                    self.root.ids.connectivity_use_rnode.unbind(active=serial_connectivity_save)
+                    self.root.ids.connectivity_use_modem.unbind(active=serial_connectivity_save)
+                    self.root.ids.connectivity_use_serial.unbind(active=serial_connectivity_save)
+                    self.root.ids.connectivity_use_rnode.active = False
+                    self.root.ids.connectivity_use_modem.active = False
+                    self.root.ids.connectivity_use_serial.active = False
+                    sender.active = True
+                    self.root.ids.connectivity_use_rnode.bind(active=serial_connectivity_save)
+                    self.root.ids.connectivity_use_modem.bind(active=serial_connectivity_save)
+                    self.root.ids.connectivity_use_serial.bind(active=serial_connectivity_save)
+                save_connectivity(sender, event)
 
             def focus_save(sender=None, event=None):
                 if not sender.focus:
@@ -1116,11 +1138,16 @@ class SidebandApp(MDApp):
                     self.root.ids.connectivity_use_bluetooth.active = False
                     con_collapse_bluetooth(collapse=not self.root.ids.connectivity_use_bluetooth.active)
 
-                    self.root.ids.connectivity_use_modem.active = False
-                    con_collapse_modem(collapse=not self.root.ids.connectivity_use_modem.active)
 
-                    self.root.ids.connectivity_use_serial.active = False
+                    self.root.ids.connectivity_use_modem.active = self.sideband.config["connect_modem"]
+                    con_collapse_modem(collapse=not self.root.ids.connectivity_use_modem.active)
+                    self.root.ids.connectivity_modem_ifac_netname.text = self.sideband.config["connect_modem_ifac_netname"]
+                    self.root.ids.connectivity_modem_ifac_passphrase.text = self.sideband.config["connect_modem_ifac_passphrase"]
+
+                    self.root.ids.connectivity_use_serial.active = self.sideband.config["connect_serial"]
                     con_collapse_serial(collapse=not self.root.ids.connectivity_use_serial.active)
+                    self.root.ids.connectivity_serial_ifac_netname.text = self.sideband.config["connect_serial_ifac_netname"]
+                    self.root.ids.connectivity_serial_ifac_passphrase.text = self.sideband.config["connect_serial_ifac_passphrase"]
 
                     self.root.ids.connectivity_use_local.bind(active=save_connectivity)
                     self.root.ids.connectivity_local_groupid.bind(on_text_validate=save_connectivity)
@@ -1135,12 +1162,13 @@ class SidebandApp(MDApp):
                     self.root.ids.connectivity_i2p_b32.bind(on_text_validate=save_connectivity)
                     self.root.ids.connectivity_i2p_ifac_netname.bind(on_text_validate=save_connectivity)
                     self.root.ids.connectivity_i2p_ifac_passphrase.bind(on_text_validate=save_connectivity)
-                    self.root.ids.connectivity_use_rnode.bind(active=save_connectivity)
                     self.root.ids.connectivity_rnode_ifac_netname.bind(on_text_validate=save_connectivity)
                     self.root.ids.connectivity_rnode_ifac_passphrase.bind(on_text_validate=save_connectivity)
-                    self.root.ids.connectivity_use_modem.bind(active=save_connectivity)
-                    self.root.ids.connectivity_use_serial.bind(active=save_connectivity)
                     self.root.ids.connectivity_use_bluetooth.bind(active=save_connectivity)
+
+                    self.root.ids.connectivity_use_rnode.bind(active=serial_connectivity_save)
+                    self.root.ids.connectivity_use_modem.bind(active=serial_connectivity_save)
+                    self.root.ids.connectivity_use_serial.bind(active=serial_connectivity_save)
 
                     self.root.ids.connectivity_local_groupid.bind(focus=focus_save)
                     self.root.ids.connectivity_local_ifac_netname.bind(focus=focus_save)
@@ -1154,6 +1182,12 @@ class SidebandApp(MDApp):
                     self.root.ids.connectivity_i2p_ifac_passphrase.bind(focus=focus_save)
                     self.root.ids.connectivity_rnode_ifac_netname.bind(focus=focus_save)
                     self.root.ids.connectivity_rnode_ifac_passphrase.bind(focus=focus_save)
+
+                    self.root.ids.connectivity_modem_ifac_netname.bind(focus=focus_save)
+                    self.root.ids.connectivity_modem_ifac_passphrase.bind(focus=focus_save)
+
+                    self.root.ids.connectivity_serial_ifac_netname.bind(focus=focus_save)
+                    self.root.ids.connectivity_serial_ifac_passphrase.bind(focus=focus_save)
 
             else:
                 info = ""
@@ -1205,8 +1239,9 @@ class SidebandApp(MDApp):
                 con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
                 self.sideband.save_configuration()
 
-            if RNS.vendor.platformutils.get_platform() == "android":
-                if not self.sideband.getpersistent("service.is_controlling_connectivity"):
+            # TODO: Reset
+            if True or RNS.vendor.platformutils.get_platform() == "android":
+                if False and not self.sideband.getpersistent("service.is_controlling_connectivity"):
                     info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
                     info += "To configure hardware parameters, edit the relevant configuration file for the instance."
                     self.root.ids.hardware_info.text = info
