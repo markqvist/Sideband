@@ -215,6 +215,22 @@ class SidebandService():
 
                 stat += "[b]RNode[/b]\n{rs}\n\n".format(rs=rs)
 
+            if self.sideband.interface_modem != None:
+                if self.sideband.interface_modem.online:
+                    rm = "Connected"
+                else:
+                    rm = "Interface Down"
+
+                stat += "[b]Radio Modem[/b]\n{rm}\n\n".format(rm=rm)
+
+            if self.sideband.interface_serial != None:
+                if self.sideband.interface_serial.online:
+                    rs = "Running at "+RNS.prettysize(self.sideband.interface_serial.bitrate/8, suffix="b")+"ps"
+                else:
+                    rs = "Interface Down"
+
+                stat += "[b]Serial Port[/b]\n{rs}\n\n".format(rs=rs)
+
             if self.sideband.interface_tcp != None:
                 if self.sideband.interface_tcp.online:
                     ts = "Connected to "+str(self.sideband.interface_tcp.target_ip)+":"+str(self.sideband.interface_tcp.target_port)
