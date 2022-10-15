@@ -1091,10 +1091,12 @@ class SidebandCore():
             if not self.reticulum.is_connected_to_shared_instance:
                 RNS.log("Running as master or standalone instance, adding interfaces")
                 
-                self.interface_local = None
-                self.interface_tcp   = None
-                self.interface_i2p   = None
-                self.interface_rnode = None
+                self.interface_local  = None
+                self.interface_tcp    = None
+                self.interface_i2p    = None
+                self.interface_rnode  = None
+                self.interface_modem  = None
+                self.interface_serial = None
 
                 if self.config["connect_local"]:
                     self.setstate("init.loadingstate", "Discovering Topography")
@@ -1242,6 +1244,45 @@ class SidebandCore():
                     except Exception as e:
                         RNS.log("Error while adding RNode Interface. The contained exception was: "+str(e))
                         self.interface_rnode = None
+
+                elif self.config["connect_serial"]:
+                    self.setstate("init.loadingstate", "Starting Serial Interface")
+                    try:
+                        RNS.log("Adding Serial Interface...")
+
+                        target_device = None
+                        if len(self.owner_app.usb_devices) > 0:
+                            # TODO: Add more intelligent selection here
+                            target_device = self.owner_app.usb_devices[0]
+
+                        if target_device:
+                            if self.config["connect_serial_ifac_netname"] == "":
+                                ifac_netname = None
+                            else:
+                                ifac_netname = self.config["connect_serial_ifac_netname"]
+
+                            if self.config["connect_serial_ifac_passphrase"] == "":
+                                ifac_netkey = None
+                            else:
+                                ifac_netkey = self.config["connect_serial_ifac_passphrase"]
+
+                            serialinterface = RNS.Interfaces.Android.SerialInterface.SerialInterface(
+                                    RNS.Transport,
+                                    "SerialInterface",
+                                    target_device["port"],
+                                    self.config["hw_serial_baudrate"],
+                                    self.config["hw_serial_databits"],
+                                    self.config["hw_serial_parity"],
+                                    self.config["hw_serial_stopbits"],
+                                )
+
+                            serialinterface.OUT = True
+                            self.reticulum._add_interface(serialinterface,ifac_netname=ifac_netname,ifac_netkey=ifac_netkey)
+                            self.interface_serial = serialinterface
+
+                    except Exception as e:
+                        RNS.log("Error while adding Serial Interface. The contained exception was: "+str(e))
+                        self.interface_serial = None
 
         RNS.log("Reticulum started, activating LXMF...")
         self.setstate("init.loadingstate", "Activating LXMF Router")
