@@ -7,6 +7,7 @@ import time
 import sqlite3
 
 import RNS.vendor.umsgpack as msgpack
+import RNS.Interfaces.Interface as Interface
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass, cast
@@ -1169,7 +1170,14 @@ class SidebandCore():
                             group_id = group_id
                         )
                         autointerface.OUT = True
-                        self.reticulum._add_interface(autointerface,ifac_netname=ifac_netname,ifac_netkey=ifac_netkey)
+
+                        # TODO: Make this configurable in UI
+                        if RNS.Reticulum.transport_enabled():
+                            if_mode = Interface.Interface.MODE_GATEWAY
+                        else:
+                            if_mode = None
+                            
+                        self.reticulum._add_interface(autointerface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
                         self.interface_local = autointerface
 
                     except Exception as e:
@@ -1206,7 +1214,14 @@ class SidebandCore():
                                 )
 
                                 tcpinterface.OUT = True
-                                self.reticulum._add_interface(tcpinterface,ifac_netname=ifac_netname,ifac_netkey=ifac_netkey)
+
+                                # TODO: Make this configurable in UI
+                                if RNS.Reticulum.transport_enabled():
+                                    if_mode = Interface.Interface.MODE_GATEWAY
+                                else:
+                                    if_mode = None
+                                    
+                                self.reticulum._add_interface(tcpinterface, mode=if_mode, ifac_netname=ifac_netname, ifac_netkey=ifac_netkey)
                                 self.interface_tcp = tcpinterface
 
                     except Exception as e:
@@ -1237,7 +1252,14 @@ class SidebandCore():
                             )
 
                             i2pinterface.OUT = True
-                            self.reticulum._add_interface(i2pinterface,ifac_netname=ifac_netname,ifac_netkey=ifac_netkey)
+
+                            # TODO: Make this configurable in UI
+                            if RNS.Reticulum.transport_enabled():
+                                if_mode = Interface.Interface.MODE_GATEWAY
+                            else:
+                                if_mode = None
+                                
+                            self.reticulum._add_interface(i2pinterface, mode = if_mode, ifac_netname=ifac_netname, ifac_netkey=ifac_netkey)
                             
                             for si in RNS.Transport.interfaces:
                                 if type(si) == RNS.Interfaces.I2PInterface.I2PInterfacePeer:
@@ -1284,7 +1306,14 @@ class SidebandCore():
                                 )
 
                             rnodeinterface.OUT = True
-                            self.reticulum._add_interface(rnodeinterface,ifac_netname=ifac_netname,ifac_netkey=ifac_netkey)
+
+                            # TODO: Make this configurable in UI
+                            if RNS.Reticulum.transport_enabled():
+                                if_mode = Interface.Interface.MODE_GATEWAY
+                            else:
+                                if_mode = Interface.Interface.MODE_FULL
+                                
+                            self.reticulum._add_interface(rnodeinterface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
                             self.interface_rnode = rnodeinterface
 
                     except Exception as e:
@@ -1323,7 +1352,14 @@ class SidebandCore():
                             )
 
                             serialinterface.OUT = True
-                            self.reticulum._add_interface(serialinterface,ifac_netname=ifac_netname,ifac_netkey=ifac_netkey)
+
+                            # TODO: Make this configurable in UI
+                            if RNS.Reticulum.transport_enabled():
+                                if_mode = Interface.Interface.MODE_GATEWAY
+                            else:
+                                if_mode = Interface.Interface.MODE_FULL
+                                
+                            self.reticulum._add_interface(serialinterface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
                             self.interface_serial = serialinterface
 
                     except Exception as e:
@@ -1369,7 +1405,14 @@ class SidebandCore():
                             )
 
                             modeminterface.OUT = True
-                            self.reticulum._add_interface(modeminterface,ifac_netname=ifac_netname,ifac_netkey=ifac_netkey)
+
+                            # TODO: Make this configurable in UI
+                            if RNS.Reticulum.transport_enabled():
+                                if_mode = Interface.Interface.MODE_GATEWAY
+                            else:
+                                if_mode = Interface.Interface.MODE_FULL
+                                
+                            self.reticulum._add_interface(modeminterface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
                             self.interface_modem = modeminterface
 
                     except Exception as e:
