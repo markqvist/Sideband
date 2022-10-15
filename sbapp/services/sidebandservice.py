@@ -245,7 +245,42 @@ class SidebandService():
                 else:
                     i2s = "Connecting to I2P"
 
-                stat += "[b]I2P[/b]\n{i2s}".format(i2s=i2s)
+                stat += "[b]I2P[/b]\n{i2s}\n\n".format(i2s=i2s)
+
+            total_rxb = 0
+            total_txb = 0
+
+            if self.sideband.interface_local != None:
+                total_rxb += self.sideband.interface_local.rxb
+                total_txb += self.sideband.interface_local.txb
+            
+            if self.sideband.interface_rnode != None:
+                total_rxb += self.sideband.interface_rnode.rxb
+                total_txb += self.sideband.interface_rnode.txb
+            
+            if self.sideband.interface_modem != None:
+                total_rxb += self.sideband.interface_modem.rxb
+                total_txb += self.sideband.interface_modem.txb
+            
+            if self.sideband.interface_serial != None:
+                total_rxb += self.sideband.interface_serial.rxb
+                total_txb += self.sideband.interface_serial.txb
+            
+            if self.sideband.interface_tcp != None:
+                total_rxb += self.sideband.interface_tcp.rxb
+                total_txb += self.sideband.interface_tcp.txb
+            
+            if self.sideband.interface_i2p != None:
+                total_rxb += self.sideband.interface_i2p.rxb
+                total_txb += self.sideband.interface_i2p.txb
+
+            if RNS.Reticulum.transport_enabled():
+                stat += "[b]Transport Instance[/b]\nRouting Traffic\n\n"
+
+            stat += "[b]Traffic[/b]\nIn: {inb}\nOut: {outb}\n\n".format(inb=RNS.prettysize(total_rxb), outb=RNS.prettysize(total_txb))
+
+            if stat.endswith("\n\n"):
+                stat = stat[:-2]
 
             return stat
 

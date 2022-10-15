@@ -1045,6 +1045,7 @@ class SidebandApp(MDApp):
                 self.widget_hide(self.root.ids.connectivity_serial_fields, collapse)
                 
             def save_connectivity(sender=None, event=None):
+                self.sideband.config["connect_transport"] = self.root.ids.connectivity_enable_transport.active
                 self.sideband.config["connect_local"] = self.root.ids.connectivity_use_local.active
                 self.sideband.config["connect_local_groupid"] = self.root.ids.connectivity_local_groupid.text
                 self.sideband.config["connect_local_ifac_netname"] = self.root.ids.connectivity_local_ifac_netname.text
@@ -1111,6 +1112,7 @@ class SidebandApp(MDApp):
                     info += "For changes to connectivity to take effect, you must shut down and restart Sideband.\n"
                     self.root.ids.connectivity_info.text = info
 
+                    self.root.ids.connectivity_enable_transport.active = self.sideband.config["connect_transport"]
                     self.root.ids.connectivity_use_local.active = self.sideband.config["connect_local"]
                     con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
                     self.root.ids.connectivity_local_groupid.text = self.sideband.config["connect_local_groupid"]
@@ -1149,6 +1151,7 @@ class SidebandApp(MDApp):
                     self.root.ids.connectivity_serial_ifac_netname.text = self.sideband.config["connect_serial_ifac_netname"]
                     self.root.ids.connectivity_serial_ifac_passphrase.text = self.sideband.config["connect_serial_ifac_passphrase"]
 
+                    self.root.ids.connectivity_enable_transport.bind(active=save_connectivity)
                     self.root.ids.connectivity_use_local.bind(active=save_connectivity)
                     self.root.ids.connectivity_local_groupid.bind(on_text_validate=save_connectivity)
                     self.root.ids.connectivity_local_ifac_netname.bind(on_text_validate=save_connectivity)

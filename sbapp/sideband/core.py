@@ -135,8 +135,16 @@ class SidebandCore():
                     os.makedirs(self.rns_configdir)
 
                 RNS.log("Configuring Reticulum instance...")
+                if self.config["connect_transport"]:
+                    RNS.log("Enabling Reticulum Transport")
+                    generated_config = rns_config.replace("TRANSPORT_IS_ENABLED", "Yes")
+                else:
+                    RNS.log("Not enabling Reticulum Transport")
+                    generated_config = rns_config.replace("TRANSPORT_IS_ENABLED", "No")
+
+
                 config_file = open(self.rns_configdir+"/config", "wb")
-                config_file.write(rns_config)
+                config_file.write(generated_config.encode("utf-8"))
                 config_file.close()
 
             except Exception as e:
@@ -176,6 +184,7 @@ class SidebandCore():
         self.config["last_lxmf_propagation_node"] = None
         self.config["nn_home_node"] = None
         # Connectivity
+        self.config["connect_transport"] = False
         self.config["connect_local"] = True
         self.config["connect_local_groupid"] = ""
         self.config["connect_local_ifac_netname"] = ""
@@ -254,6 +263,8 @@ class SidebandCore():
             self.config["lxmf_sync_interval"] = 43200
         if not "notifications_on" in self.config:
             self.config["notifications_on"] = True
+        if not "connect_transport" in self.config:
+            self.config["connect_transport"] = False
         if not "connect_rnode" in self.config:
             self.config["connect_rnode"] = False
         if not "connect_rnode_ifac_netname" in self.config:
@@ -1577,7 +1588,7 @@ class SidebandCore():
 
 rns_config = """
 [reticulum]
-enable_transport = False
+enable_transport = TRANSPORT_IS_ENABLED
 share_instance = Yes
 shared_instance_port = 37428
 instance_control_port = 37429
@@ -1586,4 +1597,4 @@ panic_on_interface_error = No
 [logging]
 loglevel = 3
 
-""".encode("utf-8")
+"""

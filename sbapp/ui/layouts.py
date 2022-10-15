@@ -531,13 +531,13 @@ MDNavigationLayout:
                                 id: connectivity_transport_label
                                 text: "Enable Reticulum Transport"
                                 font_style: "H6"
-                                disabled: True
+                                # disabled: True
 
                             MDSwitch:
                                 id: connectivity_enable_transport
                                 active: False
                                 pos_hint: {"center_y": 0.3}
-                                disabled: True
+                                # disabled: True
 
         
         MDScreen:
