@@ -1034,6 +1034,28 @@ class SidebandCore():
                                     RNS.log("Updating RNode device to "+str(target_device))
                                     self.interface_rnode.port = target_device["port"]
 
+                    if self.interface_serial != None and not self.interface_serial.online:
+                        self.owner_app.discover_usb_devices()
+                        last_usb_discovery = time.time()
+
+                        if hasattr(self.owner_app, "usb_devices") and self.owner_app.usb_devices != None:
+                            if len(self.owner_app.usb_devices) > 0:
+                                target_device = self.owner_app.usb_devices[0]
+                                if self.interface_serial.port != target_device["port"]:
+                                    RNS.log("Updating serial device to "+str(target_device))
+                                    self.interface_serial.port = target_device["port"]
+
+                    if self.interface_modem != None and not self.interface_modem.online:
+                        self.owner_app.discover_usb_devices()
+                        last_usb_discovery = time.time()
+
+                        if hasattr(self.owner_app, "usb_devices") and self.owner_app.usb_devices != None:
+                            if len(self.owner_app.usb_devices) > 0:
+                                target_device = self.owner_app.usb_devices[0]
+                                if self.interface_modem.port != target_device["port"]:
+                                    RNS.log("Updating modem device to "+str(target_device))
+                                    self.interface_modem.port = target_device["port"]
+
     def _periodic_jobs(self):
         if self.is_service or self.is_standalone:
             while True:
