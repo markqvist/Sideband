@@ -1537,7 +1537,109 @@ class SidebandApp(MDApp):
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
     def hardware_serial_init(self, sender=None):
-        pass
+        if not self.hardware_serial_ready:
+            def save_connectivity(sender=None, event=None):
+                if self.hardware_serial_validate():
+                    self.hardware_serial_save()
+
+            def focus_save(sender=None, event=None):
+                if sender != None:
+                    if not sender.focus:
+                        save_connectivity(sender=sender)
+
+            if self.sideband.config["hw_serial_baudrate"] != None:
+                t_b = str(self.sideband.config["hw_serial_baudrate"])
+            else:
+                t_b = ""
+
+            if self.sideband.config["hw_serial_databits"] != None:
+                t_db = str(self.sideband.config["hw_serial_databits"])
+            else:
+                t_db = ""
+
+            if self.sideband.config["hw_serial_parity"] != None:
+                t_p = str(self.sideband.config["hw_serial_parity"])
+            else:
+                t_p = ""
+            
+            if self.sideband.config["hw_serial_stopbits"] != None:
+                t_sb = str(self.sideband.config["hw_serial_stopbits"])
+            else:
+                t_sb = ""
+            
+            self.root.ids.hardware_serial_baudrate.text = t_b
+            self.root.ids.hardware_serial_databits.text = t_db
+            self.root.ids.hardware_serial_parity.text = t_p
+            self.root.ids.hardware_serial_stopbits.text = t_sb
+            
+            self.root.ids.hardware_serial_baudrate.bind(focus=focus_save)
+            self.root.ids.hardware_serial_databits.bind(focus=focus_save)
+            self.root.ids.hardware_serial_parity.bind(focus=focus_save)
+            self.root.ids.hardware_serial_stopbits.bind(focus=focus_save)
+            
+            self.root.ids.hardware_serial_baudrate.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_serial_databits.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_serial_parity.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_serial_stopbits.bind(on_text_validate=save_connectivity)
+
+    def hardware_serial_validate(self, sender=None):
+        valid = True        
+        try:
+            val = int(self.root.ids.hardware_serial_baudrate.text)
+            if not val > 0:
+                raise ValueError("Invalid baudrate")
+            self.root.ids.hardware_serial_baudrate.error = False
+            self.root.ids.hardware_serial_baudrate.text = str(val)
+        except:
+            self.root.ids.hardware_serial_baudrate.error = True
+            valid = False
+        
+        try:
+            val = int(self.root.ids.hardware_serial_databits.text)
+            if not val > 0:
+                raise ValueError("Invalid databits")
+            self.root.ids.hardware_serial_databits.error = False
+            self.root.ids.hardware_serial_databits.text = str(val)
+        except:
+            self.root.ids.hardware_serial_databits.error = True
+            valid = False
+        
+        try:
+            val = int(self.root.ids.hardware_serial_stopbits.text)
+            if not val > 0:
+                raise ValueError("Invalid stopbits")
+            self.root.ids.hardware_serial_stopbits.error = False
+            self.root.ids.hardware_serial_stopbits.text = str(val)
+        except:
+            self.root.ids.hardware_serial_stopbits.error = True
+            valid = False
+        
+        try:
+            val = self.root.ids.hardware_serial_parity.text
+            nval = val.lower()
+            if nval in ["e", "ev", "eve", "even"]:
+                val = "even"
+            if nval in ["o", "od", "odd"]:
+                val = "odd"
+            if nval in ["n", "no", "non", "none", "not", "null", "off"]:
+                val = "none"
+            if not val in ["even", "odd", "none"]:
+                raise ValueError("Invalid parity")
+            self.root.ids.hardware_serial_parity.error = False
+            self.root.ids.hardware_serial_parity.text = str(val)
+        except:
+            self.root.ids.hardware_serial_parity.error = True
+            valid = False
+
+        return valid
+
+    def hardware_serial_save(self):
+        self.sideband.config["hw_serial_baudrate"] = int(self.root.ids.hardware_serial_baudrate.text)
+        self.sideband.config["hw_serial_databits"] = int(self.root.ids.hardware_serial_databits.text)
+        self.sideband.config["hw_serial_parity"] = self.root.ids.hardware_serial_parity.text
+        self.sideband.config["hw_serial_stopbits"] = int(self.root.ids.hardware_serial_stopbits.text)
+
+        self.sideband.save_configuration()
 
     ### Announce Stream screen
     ######################################

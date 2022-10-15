@@ -1139,7 +1139,7 @@ MDNavigationLayout:
                                 font_size: dp(16)
                                 size_hint: [1.0, None]
                                 on_release: root.ids.screen_manager.app.hardware_serial_action(self)
-                                disabled: True
+                                disabled: False
 
         MDScreen:
             name: "hardware_rnode_screen"
@@ -1282,6 +1282,114 @@ MDNavigationLayout:
                             MDTextField:
                                 id: hardware_rnode_beacondata
                                 hint_text: "Beacon Data"
+                                text: ""
+                                font_size: dp(24)
+
+        MDScreen:
+            name: "hardware_serial_screen"
+            
+            BoxLayout:
+                orientation: "vertical"
+
+                MDTopAppBar:
+                    title: "Serial Port"
+                    anchor_title: "left"
+                    elevation: 2
+                    left_action_items:
+                        [['menu', lambda x: nav_drawer.set_state("open")]]
+                    right_action_items:
+                        [
+                        ['close', lambda x: root.ids.screen_manager.app.close_sub_hardware_action(self)],
+                        ]
+
+                ScrollView:
+                    id: hardware_serial_scrollview
+
+                    MDBoxLayout:
+                        orientation: "vertical"
+                        spacing: "8dp"
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: [dp(28), dp(48), dp(28), dp(16)]
+
+                        MDLabel:
+                            text: "Serial Hardware Parameters\\n"
+                            font_style: "H6"
+
+                        MDLabel:
+                            id: hardware_serial_info
+                            markup: True
+                            text: "To communicate using a serial port, you will need to specify the following parameters. If communicating directly to another Reticulum instance over serial, the parameters must match the other device. If you are using a serial-connected device to pass on data to other Reticulum instances, it must be pass data transparently to the desired endpoints.\\n"
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        # MDBoxLayout:
+                        #     orientation: "horizontal"
+                        #     spacing: "24dp"
+                        #     size_hint_y: None
+                        #     height: self.minimum_height
+                        #     padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                        #     MDRectangleFlatIconButton:
+                        #         id: serial_mote_export
+                        #         icon: "upload"
+                        #         text: "Export"
+                        #         padding: [dp(0), dp(14), dp(0), dp(14)]
+                        #         icon_size: dp(24)
+                        #         font_size: dp(16)
+                        #         size_hint: [1.0, None]
+                        #         on_release: root.ids.screen_manager.app.hardware_serial_export(self)
+
+                        #     MDRectangleFlatIconButton:
+                        #         id: serial_mote_import
+                        #         icon: "download"
+                        #         text: "Import"
+                        #         padding: [dp(0), dp(14), dp(0), dp(14)]
+                        #         icon_size: dp(24)
+                        #         font_size: dp(16)
+                        #         size_hint: [1.0, None]
+                        #         on_release: root.ids.screen_manager.app.hardware_serial_import(self)
+
+                        MDLabel:
+                            text: "Port Options"
+                            font_style: "H6"
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                            MDTextField:
+                                id: hardware_serial_baudrate
+                                hint_text: "Baud Rate"
+                                text: ""
+                                font_size: dp(24)
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [dp(0), dp(0), dp(0), dp(24)]
+
+                            MDTextField:
+                                id: hardware_serial_databits
+                                hint_text: "Data Bits"
+                                text: ""
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: hardware_serial_parity
+                                hint_text: "Parity"
+                                text: ""
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: hardware_serial_stopbits
+                                hint_text: "Stop Bits"
                                 text: ""
                                 font_size: dp(24)
 
