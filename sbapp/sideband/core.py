@@ -170,7 +170,7 @@ class SidebandCore():
         self.config = {}
         # Settings
         self.config["display_name"] = "Anonymous Peer"
-        self.config["settings_notifications_on"] = False
+        self.config["notifications_on"] = True
         self.config["dark_ui"] = False
         self.config["start_announce"] = False
         self.config["propagation_by_default"] = False
