@@ -1239,9 +1239,8 @@ class SidebandApp(MDApp):
                 con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
                 self.sideband.save_configuration()
 
-            # TODO: Reset
-            if True or RNS.vendor.platformutils.get_platform() == "android":
-                if False and not self.sideband.getpersistent("service.is_controlling_connectivity"):
+            if RNS.vendor.platformutils.get_platform() == "android":
+                if not self.sideband.getpersistent("service.is_controlling_connectivity"):
                     info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
                     info += "To configure hardware parameters, edit the relevant configuration file for the instance."
                     self.root.ids.hardware_info.text = info
