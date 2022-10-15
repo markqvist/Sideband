@@ -1081,6 +1081,22 @@ class SidebandApp(MDApp):
 
                 self.sideband.save_configuration()
 
+                if sender == self.root.ids.connectivity_enable_transport:
+                    if sender.active:
+                        def cb(dt):
+                            yes_button = MDRectangleFlatButton(text="Understood",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
+                            dialog = MDDialog(
+                                title="Warning!",
+                                text="You have enabled [i]Reticulum Transport[/i] for this device.\n\nFor normal operation, and for most users, this is [b]not[/b] necessary, and might even degrade your network performance.\n\nWhen Transport is enabled, your device will route traffic between all connected interfaces and for all reachable devices on the network.\n\nThis should only be done if you intend to keep your device in a fixed position and for it to remain available continously.\n\nIf this is not the case, or you don't understand any of this, turn off Transport.",
+                                buttons=[ yes_button ],
+                                # elevation=0,
+                            )
+                            def dl_yes(s):
+                                dialog.dismiss()
+                            yes_button.bind(on_release=dl_yes)
+                            dialog.open()
+                        Clock.schedule_once(cb, 0.65)
+
             def serial_connectivity_save(sender=None, event=None):
                 if sender.active:
                     self.root.ids.connectivity_use_rnode.unbind(active=serial_connectivity_save)
