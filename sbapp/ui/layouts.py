@@ -1175,7 +1175,7 @@ MDNavigationLayout:
                         MDLabel:
                             id: hardware_rnode_info
                             markup: True
-                            text: "To communicate using an RNode, you will need to specify the following parameters. For two or more RNodes to be able to communicate, all parameters must match, except for the [i]Coding Rate[/i] parameter, which can vary between devices.\\n"
+                            text: "To communicate using an RNode, you will need to specify the following parameters. For two or more RNodes to be able to communicate, all parameters must match, except for the [i]Coding Rate[/i] and [i]TX Power[/i] parameter, which can vary between devices.\\n"
                             size_hint_y: None
                             text_size: self.width, None
                             height: self.texture_size[1]
@@ -1465,7 +1465,7 @@ MDNavigationLayout:
                         MDLabel:
                             id: hardware_serial_info
                             markup: True
-                            text: "To communicate using a serial port, you will need to specify the following parameters. If communicating directly to another Reticulum instance over serial, the parameters must match the other device. If you are using a serial-connected device to pass on data to other Reticulum instances, it must be pass data transparently to the desired endpoints.\\n"
+                            text: "To communicate using a serial port, you will need to specify the following parameters. If communicating directly to another Reticulum instance over serial, the parameters must match the other device.\\n\\nIf you are using a serial-connected device to pass on data to other Reticulum instances, it should be configured to pass data transparently to the desired endpoints.\\n"
                             size_hint_y: None
                             text_size: self.width, None
                             height: self.texture_size[1]
