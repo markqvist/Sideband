@@ -151,7 +151,6 @@ class SidebandCore():
         RNS.Transport.register_announce_handler(self)
         RNS.Transport.register_announce_handler(self.propagation_detector)
 
-
     def __init_config(self):
         RNS.log("Creating new Sideband configuration...")
         if os.path.isfile(self.identity_path):
@@ -208,10 +207,16 @@ class SidebandCore():
         self.config["hw_rnode_tx_power"] = 0
         self.config["hw_rnode_beaconinterval"] = None
         self.config["hw_rnode_beacondata"] = None
+        self.config["hw_modem_baudrate"] = 57600
+        self.config["hw_modem_databits"] = 8
+        self.config["hw_modem_stopbits"] = 1
+        self.config["hw_modem_parity"] = "none"
         self.config["hw_modem_preamble"] = 150
         self.config["hw_modem_tail"] = 20
         self.config["hw_modem_persistence"] = 220
         self.config["hw_modem_slottime"] = 20
+        self.config["hw_modem_beaconinterval"] = None
+        self.config["hw_modem_beacondata"] = None
         self.config["hw_serial_baudrate"] = 57600
         self.config["hw_serial_databits"] = 8
         self.config["hw_serial_stopbits"] = 1
@@ -284,6 +289,14 @@ class SidebandCore():
         if not "hw_rnode_beacondata" in self.config:
             self.config["hw_rnode_beacondata"] = None
 
+        if not "hw_modem_baudrate" in self.config:
+            self.config["hw_modem_baudrate"] = 115200
+        if not "hw_modem_databits" in self.config:
+            self.config["hw_modem_databits"] = 8
+        if not "hw_modem_stopbits" in self.config:
+            self.config["hw_modem_stopbits"] = 1
+        if not "hw_modem_parity" in self.config:
+            self.config["hw_modem_parity"] = "none"
         if not "hw_modem_preamble" in self.config:
             self.config["hw_modem_preamble"] = 150
         if not "hw_modem_tail" in self.config:
@@ -292,6 +305,10 @@ class SidebandCore():
             self.config["hw_modem_persistence"] = 220
         if not "hw_modem_slottime" in self.config:
             self.config["hw_modem_slottime"] = 20
+        if not "hw_modem_beaconinterval" in self.config:
+            self.config["hw_modem_beaconinterval"] = None
+        if not "hw_modem_beacondata" in self.config:
+            self.config["hw_modem_beacondata"] = None
         
         if not "hw_serial_baudrate" in self.config:
             self.config["hw_serial_baudrate"] = 57600
@@ -308,7 +325,6 @@ class SidebandCore():
         else:
             self._db_initstate()
             self._db_initpersistent()
-
 
     def __reload_config(self):
         RNS.log("Reloading Sideband configuration... "+str(self.config_path), RNS.LOG_DEBUG)
@@ -345,7 +361,6 @@ class SidebandCore():
                 self.__save_config()
             except Exception as e:
                 RNS.log("Error while setting LXMF propagation node: "+str(e), RNS.LOG_ERROR)
-
 
     def notify(self, title, content, group=None, context_id=None):
         if self.config["notifications_on"]:
@@ -1086,8 +1101,6 @@ class SidebandCore():
                                     self.setpersistent("lxmf.lastsync", time.time())
                                     self.setpersistent("lxmf.syncretrying", False)
 
-
-
     def __start_jobs_deferred(self):
         if self.config["start_announce"]:
             self.lxmf_announce()
@@ -1289,14 +1302,14 @@ class SidebandCore():
                                 ifac_netkey = self.config["connect_serial_ifac_passphrase"]
 
                             serialinterface = RNS.Interfaces.Android.SerialInterface.SerialInterface(
-                                    RNS.Transport,
-                                    "SerialInterface",
-                                    target_device["port"],
-                                    self.config["hw_serial_baudrate"],
-                                    self.config["hw_serial_databits"],
-                                    self.config["hw_serial_parity"],
-                                    self.config["hw_serial_stopbits"],
-                                )
+                                RNS.Transport,
+                                "SerialInterface",
+                                target_device["port"],
+                                self.config["hw_serial_baudrate"],
+                                self.config["hw_serial_databits"],
+                                self.config["hw_serial_parity"],
+                                self.config["hw_serial_stopbits"],
+                            )
 
                             serialinterface.OUT = True
                             self.reticulum._add_interface(serialinterface,ifac_netname=ifac_netname,ifac_netkey=ifac_netkey)
@@ -1305,6 +1318,52 @@ class SidebandCore():
                     except Exception as e:
                         RNS.log("Error while adding Serial Interface. The contained exception was: "+str(e))
                         self.interface_serial = None
+
+                elif self.config["connect_modem"]:
+                    self.setstate("init.loadingstate", "Starting Radio Modem")
+                    try:
+                        RNS.log("Adding Modem Interface...")
+
+                        target_device = None
+                        if len(self.owner_app.usb_devices) > 0:
+                            # TODO: Add more intelligent selection here
+                            target_device = self.owner_app.usb_devices[0]
+
+                        if target_device:
+                            if self.config["connect_modem_ifac_netname"] == "":
+                                ifac_netname = None
+                            else:
+                                ifac_netname = self.config["connect_modem_ifac_netname"]
+
+                            if self.config["connect_modem_ifac_passphrase"] == "":
+                                ifac_netkey = None
+                            else:
+                                ifac_netkey = self.config["connect_modem_ifac_passphrase"]
+
+                            modeminterface = RNS.Interfaces.Android.KISSInterface.KISSInterface(
+                                RNS.Transport,
+                                "ModemInterface",
+                                target_device["port"],
+                                self.config["hw_modem_baudrate"],
+                                self.config["hw_modem_databits"],
+                                self.config["hw_modem_parity"],
+                                self.config["hw_modem_stopbits"],
+                                self.config["hw_modem_preamble"],
+                                self.config["hw_modem_tail"],
+                                self.config["hw_modem_persistence"],
+                                self.config["hw_modem_slottime"],
+                                False, # flow control
+                                self.config["hw_modem_beaconinterval"],
+                                self.config["hw_modem_beacondata"],
+                            )
+
+                            modeminterface.OUT = True
+                            self.reticulum._add_interface(modeminterface,ifac_netname=ifac_netname,ifac_netkey=ifac_netkey)
+                            self.interface_modem = modeminterface
+
+                    except Exception as e:
+                        RNS.log("Error while adding Modem Interface. The contained exception was: "+str(e))
+                        self.interface_modem = None
 
         RNS.log("Reticulum started, activating LXMF...")
         self.setstate("init.loadingstate", "Activating LXMF Router")
@@ -1339,7 +1398,6 @@ class SidebandCore():
             self.message_router.handle_outbound(message)
         else:
             self.lxm_ingest(message, originator=True)
-
 
     def send_message(self, content, destination_hash, propagation):
         try:
@@ -1446,7 +1504,6 @@ class SidebandCore():
 
             self.notify(title=self.peer_display_name(context_dest), content=notification_content, group="LXM", context_id=RNS.hexrep(context_dest, delimit=False))
 
-
     def start(self):
         self._db_clean_messages()
         self.__start_jobs_immediate()
@@ -1472,7 +1529,6 @@ class SidebandCore():
 
     def get_sync_progress(self):
         return self.message_router.propagation_transfer_progress
-
 
     def lxmf_delivery(self, message):
         time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp))
