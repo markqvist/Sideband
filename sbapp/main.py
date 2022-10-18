@@ -39,7 +39,6 @@ from kivy.lang.builder import Builder
 from kivy.effects.scroll import ScrollEffect
 from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.screenmanager import FadeTransition, NoTransition
-from kivy.effects.dampedscroll import DampedScrollEffect
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from sideband.core import SidebandCore
@@ -827,6 +826,7 @@ class SidebandApp(MDApp):
             import webbrowser
             webbrowser.open("https://unsigned.io/sideband")
 
+        self.root.ids.information_scrollview.effect_cls = ScrollEffect
         info = "This is Sideband v"+__version__+" "+__variant__+", on RNS v"+RNS.__version__+"\n\nHumbly build using the following open components:\n\n - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)\n - [b]Kivy[/b] (MIT License)\n - [b]Python[/b] (PSF License)"+"\n\nGo to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2022 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of Sideband v"+__version__+" "+__variant__+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - USE AT YOUR OWN RISK AND RESPONSIBILITY"
         self.root.ids.information_info.text = info
         self.root.ids.information_info.bind(on_ref_press=link_exec)
@@ -852,6 +852,7 @@ class SidebandApp(MDApp):
 
     def settings_init(self, sender=None):
         if not self.settings_ready:
+            self.root.ids.settings_scrollview.effect_cls = ScrollEffect
             def save_disp_name(sender=None, event=None):
                 in_name = self.root.ids.settings_display_name.text
                 if in_name == "":
@@ -990,6 +991,7 @@ class SidebandApp(MDApp):
 
     def connectivity_init(self, sender=None):
         if not self.connectivity_ready:
+            self.root.ids.connectivity_scrollview.effect_cls = ScrollEffect
             def con_hide_settings():
                 self.widget_hide(self.root.ids.connectivity_use_local)
                 self.widget_hide(self.root.ids.connectivity_local_groupid)
@@ -1291,6 +1293,8 @@ class SidebandApp(MDApp):
     
     def hardware_init(self, sender=None):
         if not self.hardware_ready:
+            self.root.ids.hardware_scrollview.effect_cls = ScrollEffect
+
             def con_hide_settings():
                 self.widget_hide(self.root.ids.hardware_rnode_button)
                 self.widget_hide(self.root.ids.hardware_modem_button)
@@ -1367,6 +1371,7 @@ class SidebandApp(MDApp):
 
     def hardware_rnode_init(self, sender=None):
         if not self.hardware_rnode_ready:
+            self.root.ids.hardware_rnode_scrollview.effect_cls = ScrollEffect
             def save_connectivity(sender=None, event=None):
                 if self.hardware_rnode_validate():
                     self.hardware_rnode_save()
@@ -1626,6 +1631,7 @@ class SidebandApp(MDApp):
 
     def hardware_modem_init(self, sender=None):
         if not self.hardware_modem_ready:
+            self.root.ids.hardware_modem_scrollview.effect_cls = ScrollEffect
             def save_connectivity(sender=None, event=None):
                 if self.hardware_modem_validate():
                     self.hardware_modem_save()
@@ -1852,6 +1858,7 @@ class SidebandApp(MDApp):
 
     def hardware_serial_init(self, sender=None):
         if not self.hardware_serial_ready:
+            self.root.ids.hardware_serial_scrollview.effect_cls = ScrollEffect
             def save_connectivity(sender=None, event=None):
                 if self.hardware_serial_validate():
                     self.hardware_serial_save()
@@ -1999,6 +2006,7 @@ class SidebandApp(MDApp):
         #     webbrowser.open("https://unsigned.io/sideband")
         # self.root.ids.keys_info.bind(on_ref_press=link_exec)
 
+        self.root.ids.keys_scrollview.effect_cls = ScrollEffect
         info = "Your primary encryption keys are stored in a Reticulum Identity within the Sideband app. If you want to backup this Identity for later use on this or another device, you can export it as a plain text blob, with the key data encoded in Base32 format. This will allow you to restore your address in Sideband or other LXMF clients at a later point.\n\n[b]Warning![/b] Anyone that gets access to the key data will be able to control your LXMF address, impersonate you, and read your messages. In is [b]extremely important[/b] that you keep the Identity data secure if you export it.\n\nBefore displaying or exporting your Identity data, make sure that no machine or person in your vicinity is able to see, copy or record your device screen or similar."
 
         if not RNS.vendor.platformutils.get_platform() == "android":
@@ -2176,6 +2184,7 @@ Thank you very much for using Free Communications Systems.
         self.root.ids.guide_info8.text = info8
         self.root.ids.guide_info9.text = info9
         self.root.ids.guide_info9.bind(on_ref_press=link_exec)
+        self.root.ids.guide_scrollview.effect_cls = ScrollEffect
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "guide_screen"
         self.root.ids.nav_drawer.set_state("closed")
@@ -2191,6 +2200,7 @@ Thank you very much for using Free Communications Systems.
             import webbrowser
             webbrowser.open("https://unsigned.io/sideband")
 
+        self.root.ids.map_scrollview.effect_cls = ScrollEffect
         info = "The [b]Local Area[/b] feature is not yet implemented in Sideband.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project."
         if self.theme_cls.theme_style == "Dark":
             info = "[color=#"+dark_theme_text_color+"]"+info+"[/color]"
@@ -2206,6 +2216,7 @@ Thank you very much for using Free Communications Systems.
             import webbrowser
             webbrowser.open("https://unsigned.io/sideband")
 
+        self.root.ids.broadcasts_scrollview.effect_cls = ScrollEffect
         info = "The [b]Local Broadcasts[/b] feature will allow you to send and listen for local broadcast transmissions on connected radio, LoRa and WiFi interfaces.\n\n[b]Local Broadcasts[/b] makes it easy to establish public information exchange with anyone in direct radio range, or even with large areas far away using the [i]Remote Broadcast Repeater[/i] feature.\n\nThese features are not yet implemented in Sideband.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project."
         if self.theme_cls.theme_style == "Dark":
             info = "[color=#"+dark_theme_text_color+"]"+info+"[/color]"

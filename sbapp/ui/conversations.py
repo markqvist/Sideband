@@ -10,10 +10,10 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
 from kivy.core.clipboard import Clipboard
+from kivy.effects.scroll import ScrollEffect
 
 from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.dialog import MDDialog
-
 
 class NewConv(BoxLayout):
     pass
@@ -234,6 +234,7 @@ class Conversations():
                         opening_transition="linear",
                         opening_time=0.0,
                     )
+                    self.conversation_dropdown.effect_cls = ScrollEffect
 
                 item.iconr = IconRightWidget(icon="dots-vertical");
                 item.dmenu = self.conversation_dropdown

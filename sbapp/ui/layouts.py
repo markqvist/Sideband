@@ -769,7 +769,7 @@ MDNavigationLayout:
                         ]
 
                 ScrollView:
-                    id:information_scrollview
+                    id:map_scrollview
 
                     MDBoxLayout:
                         orientation: "vertical"
@@ -1850,7 +1850,7 @@ MDNavigationLayout:
     MDBoxLayout:
         orientation: "horizontal"
         size_hint_y: None
-        padding: [0,0,dp(8),0]
+        padding: [0,0,dp(8),dp(24)]
         height: dp(48)
         MDLabel:
             id: "trusted_switch_label"
