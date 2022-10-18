@@ -1,6 +1,6 @@
 __debug_build__ = False
 __disable_shaders__ = True
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 __variant__ = "beta"
 
 import sys
@@ -1044,6 +1044,9 @@ class SidebandApp(MDApp):
             def con_collapse_serial(collapse=True):
                 self.widget_hide(self.root.ids.connectivity_serial_fields, collapse)
                 
+            def con_collapse_transport(collapse=True):
+                self.widget_hide(self.root.ids.connectivity_transport_fields, collapse)
+                
             def save_connectivity(sender=None, event=None):
                 self.sideband.config["connect_transport"] = self.root.ids.connectivity_enable_transport.active
                 self.sideband.config["connect_local"] = self.root.ids.connectivity_use_local.active
@@ -1071,6 +1074,13 @@ class SidebandApp(MDApp):
                 self.sideband.config["connect_modem_ifac_netname"] = self.root.ids.connectivity_modem_ifac_netname.text
                 self.sideband.config["connect_modem_ifac_passphrase"] = self.root.ids.connectivity_modem_ifac_passphrase.text
 
+                self.sideband.config["connect_ifmode_local"] = self.root.ids.connectivity_local_ifmode.text.lower()
+                self.sideband.config["connect_ifmode_tcp"] = self.root.ids.connectivity_tcp_ifmode.text.lower()
+                self.sideband.config["connect_ifmode_i2p"] = self.root.ids.connectivity_i2p_ifmode.text.lower()
+                self.sideband.config["connect_ifmode_rnode"] = self.root.ids.connectivity_rnode_ifmode.text.lower()
+                self.sideband.config["connect_ifmode_modem"] = self.root.ids.connectivity_modem_ifmode.text.lower()
+                self.sideband.config["connect_ifmode_serial"] = self.root.ids.connectivity_serial_ifmode.text.lower()
+
                 con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
                 con_collapse_tcp(collapse=not self.root.ids.connectivity_use_tcp.active)
                 con_collapse_i2p(collapse=not self.root.ids.connectivity_use_i2p.active)
@@ -1078,6 +1088,7 @@ class SidebandApp(MDApp):
                 con_collapse_bluetooth(collapse=not self.root.ids.connectivity_use_bluetooth.active)
                 con_collapse_modem(collapse=not self.root.ids.connectivity_use_modem.active)
                 con_collapse_serial(collapse=not self.root.ids.connectivity_use_serial.active)
+                con_collapse_transport(collapse=not self.sideband.config["connect_transport"])
 
                 self.sideband.save_configuration()
 
@@ -1115,6 +1126,37 @@ class SidebandApp(MDApp):
                 if not sender.focus:
                     save_connectivity(sender, event)
 
+            def ifmode_validate(sender=None, event=None):
+                if not sender.focus:
+                    all_valid = True
+                    iftypes = ["local", "tcp", "i2p", "rnode", "modem", "serial"]
+                    for iftype in iftypes:
+                        element = self.root.ids["connectivity_"+iftype+"_ifmode"]
+                        modes = ["full", "gateway", "access point", "roaming", "boundary"]
+                        value = element.text.lower()
+                        if value in ["", "f"] or value.startswith("fu"):
+                            value = "full"
+                        elif value in ["g", "gw"] or value.startswith("ga"):
+                            value = "gateway"
+                        elif value in ["a", "ap", "a p", "accesspoint", "access point", "ac", "acc", "acce", "acces"] or value.startswith("access"):
+                            value = "access point"
+                        elif value in ["r"] or value.startswith("ro"):
+                            value = "roaming"
+                        elif value in ["b", "edge"] or value.startswith("bo"):
+                            value = "boundary"
+                        else:
+                            value = "full"
+
+                        if value in modes:
+                            element.text = value.capitalize()
+                            element.error = False
+                        else:
+                            element.error = True
+                            all_valid = False
+
+                    if all_valid:
+                        save_connectivity(sender, event)
+
             if RNS.vendor.platformutils.get_platform() == "android":
                 if not self.sideband.getpersistent("service.is_controlling_connectivity"):
                     info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
@@ -1128,7 +1170,6 @@ class SidebandApp(MDApp):
                     info += "For changes to connectivity to take effect, you must shut down and restart Sideband.\n"
                     self.root.ids.connectivity_info.text = info
 
-                    self.root.ids.connectivity_enable_transport.active = self.sideband.config["connect_transport"]
                     self.root.ids.connectivity_use_local.active = self.sideband.config["connect_local"]
                     con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
                     self.root.ids.connectivity_local_groupid.text = self.sideband.config["connect_local_groupid"]
@@ -1156,7 +1197,6 @@ class SidebandApp(MDApp):
                     self.root.ids.connectivity_use_bluetooth.active = False
                     con_collapse_bluetooth(collapse=not self.root.ids.connectivity_use_bluetooth.active)
 
-
                     self.root.ids.connectivity_use_modem.active = self.sideband.config["connect_modem"]
                     con_collapse_modem(collapse=not self.root.ids.connectivity_use_modem.active)
                     self.root.ids.connectivity_modem_ifac_netname.text = self.sideband.config["connect_modem_ifac_netname"]
@@ -1167,46 +1207,52 @@ class SidebandApp(MDApp):
                     self.root.ids.connectivity_serial_ifac_netname.text = self.sideband.config["connect_serial_ifac_netname"]
                     self.root.ids.connectivity_serial_ifac_passphrase.text = self.sideband.config["connect_serial_ifac_passphrase"]
 
+                    self.root.ids.connectivity_enable_transport.active = self.sideband.config["connect_transport"]
+                    con_collapse_transport(collapse=not self.sideband.config["connect_transport"])
                     self.root.ids.connectivity_enable_transport.bind(active=save_connectivity)
+                    self.root.ids.connectivity_local_ifmode.text = self.sideband.config["connect_ifmode_local"].capitalize()
+                    self.root.ids.connectivity_tcp_ifmode.text = self.sideband.config["connect_ifmode_tcp"].capitalize()
+                    self.root.ids.connectivity_i2p_ifmode.text = self.sideband.config["connect_ifmode_i2p"].capitalize()
+                    self.root.ids.connectivity_rnode_ifmode.text = self.sideband.config["connect_ifmode_rnode"].capitalize()
+                    self.root.ids.connectivity_modem_ifmode.text = self.sideband.config["connect_ifmode_modem"].capitalize()
+                    self.root.ids.connectivity_serial_ifmode.text = self.sideband.config["connect_ifmode_serial"].capitalize()
+
                     self.root.ids.connectivity_use_local.bind(active=save_connectivity)
-                    self.root.ids.connectivity_local_groupid.bind(on_text_validate=save_connectivity)
-                    self.root.ids.connectivity_local_ifac_netname.bind(on_text_validate=save_connectivity)
-                    self.root.ids.connectivity_local_ifac_passphrase.bind(on_text_validate=save_connectivity)
-                    self.root.ids.connectivity_use_tcp.bind(active=save_connectivity)
-                    self.root.ids.connectivity_tcp_host.bind(on_text_validate=save_connectivity)
-                    self.root.ids.connectivity_tcp_port.bind(on_text_validate=save_connectivity)
-                    self.root.ids.connectivity_tcp_ifac_netname.bind(on_text_validate=save_connectivity)
-                    self.root.ids.connectivity_tcp_ifac_passphrase.bind(on_text_validate=save_connectivity)
-                    self.root.ids.connectivity_use_i2p.bind(active=save_connectivity)
-                    self.root.ids.connectivity_i2p_b32.bind(on_text_validate=save_connectivity)
-                    self.root.ids.connectivity_i2p_ifac_netname.bind(on_text_validate=save_connectivity)
-                    self.root.ids.connectivity_i2p_ifac_passphrase.bind(on_text_validate=save_connectivity)
-                    self.root.ids.connectivity_rnode_ifac_netname.bind(on_text_validate=save_connectivity)
-                    self.root.ids.connectivity_rnode_ifac_passphrase.bind(on_text_validate=save_connectivity)
-                    self.root.ids.connectivity_use_bluetooth.bind(active=save_connectivity)
-
-                    self.root.ids.connectivity_use_rnode.bind(active=serial_connectivity_save)
-                    self.root.ids.connectivity_use_modem.bind(active=serial_connectivity_save)
-                    self.root.ids.connectivity_use_serial.bind(active=serial_connectivity_save)
-
                     self.root.ids.connectivity_local_groupid.bind(focus=focus_save)
                     self.root.ids.connectivity_local_ifac_netname.bind(focus=focus_save)
                     self.root.ids.connectivity_local_ifac_passphrase.bind(focus=focus_save)
+
+                    self.root.ids.connectivity_use_tcp.bind(active=save_connectivity)
                     self.root.ids.connectivity_tcp_host.bind(focus=focus_save)
                     self.root.ids.connectivity_tcp_port.bind(focus=focus_save)
                     self.root.ids.connectivity_tcp_ifac_netname.bind(focus=focus_save)
                     self.root.ids.connectivity_tcp_ifac_passphrase.bind(focus=focus_save)
+                    
+                    self.root.ids.connectivity_use_i2p.bind(active=save_connectivity)
                     self.root.ids.connectivity_i2p_b32.bind(focus=focus_save)
                     self.root.ids.connectivity_i2p_ifac_netname.bind(focus=focus_save)
                     self.root.ids.connectivity_i2p_ifac_passphrase.bind(focus=focus_save)
+                    
+                    self.root.ids.connectivity_use_rnode.bind(active=serial_connectivity_save)
                     self.root.ids.connectivity_rnode_ifac_netname.bind(focus=focus_save)
                     self.root.ids.connectivity_rnode_ifac_passphrase.bind(focus=focus_save)
 
+                    self.root.ids.connectivity_use_modem.bind(active=serial_connectivity_save)
                     self.root.ids.connectivity_modem_ifac_netname.bind(focus=focus_save)
                     self.root.ids.connectivity_modem_ifac_passphrase.bind(focus=focus_save)
 
+                    self.root.ids.connectivity_use_serial.bind(active=serial_connectivity_save)
                     self.root.ids.connectivity_serial_ifac_netname.bind(focus=focus_save)
                     self.root.ids.connectivity_serial_ifac_passphrase.bind(focus=focus_save)
+
+                    self.root.ids.connectivity_local_ifmode.bind(focus=ifmode_validate)
+                    self.root.ids.connectivity_tcp_ifmode.bind(focus=ifmode_validate)
+                    self.root.ids.connectivity_i2p_ifmode.bind(focus=ifmode_validate)
+                    self.root.ids.connectivity_rnode_ifmode.bind(focus=ifmode_validate)
+                    self.root.ids.connectivity_modem_ifmode.bind(focus=ifmode_validate)
+                    self.root.ids.connectivity_serial_ifmode.bind(focus=ifmode_validate)
+
+                    self.root.ids.connectivity_use_bluetooth.bind(active=save_connectivity)
 
             else:
                 info = ""

@@ -520,7 +520,6 @@ MDNavigationLayout:
                                 font_size: dp(24)
                                 # disabled: True
 
-
                         MDBoxLayout:
                             orientation: "horizontal"
                             padding: [0,0,dp(24),0]
@@ -538,6 +537,84 @@ MDNavigationLayout:
                                 active: False
                                 pos_hint: {"center_y": 0.3}
                                 # disabled: True
+
+                        MDBoxLayout:
+                            id: connectivity_transport_fields
+                            orientation: "vertical"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [0, 0, 0, dp(32)]
+
+                            # MDLabel:
+                            #     id: connectivity_modes_info
+                            #     markup: True
+                            #     text: "With Transport enabled, you can configure the interface modes for any enabled interfaces. Changing interface modes affects how Reticulum processes traffic and announces. For more information, refer to the Reticulum Manual."
+                            #     size_hint_y: None
+                            #     text_size: self.width, None
+                            #     height: self.texture_size[1]
+
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                spacing: "24dp"
+                                size_hint_y: None
+                                height: self.minimum_height
+                                padding: [dp(0), dp(12), dp(0), dp(12)]
+
+                                MDTextField:
+                                    id: connectivity_local_ifmode
+                                    hint_text: "Local Interface Mode"
+                                    text: ""
+                                    font_size: dp(24)
+
+                                MDTextField:
+                                    id: connectivity_tcp_ifmode
+                                    hint_text: "TCP Interface Mode"
+                                    text: ""
+                                    font_size: dp(24)
+
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                spacing: "24dp"
+                                size_hint_y: None
+                                height: self.minimum_height
+                                padding: [dp(0), dp(12), dp(0), dp(12)]
+
+                                MDTextField:
+                                    id: connectivity_i2p_ifmode
+                                    hint_text: "I2P Mode"
+                                    text: ""
+                                    font_size: dp(24)
+
+                                MDTextField:
+                                    id: connectivity_rnode_ifmode
+                                    hint_text: "RNode Mode"
+                                    text: ""
+                                    font_size: dp(24)
+
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                spacing: "24dp"
+                                size_hint_y: None
+                                height: self.minimum_height
+                                padding: [dp(0), dp(12), dp(0), dp(12)]
+
+                                MDTextField:
+                                    id: connectivity_modem_ifmode
+                                    hint_text: "Modem Mode"
+                                    text: ""
+                                    font_size: dp(24)
+
+                                MDTextField:
+                                    id: connectivity_serial_ifmode
+                                    hint_text: "Serial Mode"
+                                    text: ""
+                                    font_size: dp(24)
+
+                            # MDTextField:
+                            #     id: connectivity_bluetooth_ifmode
+                            #     hint_text: "Bluetooth Mode"
+                            #     text: ""
+                            #     font_size: dp(24)
 
         
         MDScreen:

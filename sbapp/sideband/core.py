@@ -208,6 +208,13 @@ class SidebandCore():
         self.config["connect_modem"] = False
         self.config["connect_modem_ifac_netname"] = ""
         self.config["connect_modem_ifac_passphrase"] = ""
+        self.config["connect_ifmode_local"] = "full"
+        self.config["connect_ifmode_tcp"] = "full"
+        self.config["connect_ifmode_i2p"] = "full"
+        self.config["connect_ifmode_rnode"] = "full"
+        self.config["connect_ifmode_modem"] = "full"
+        self.config["connect_ifmode_serial"] = "full"
+        self.config["connect_ifmode_bluetooth"] = "full"
         # Hardware
         self.config["hw_rnode_frequency"] = None
         self.config["hw_rnode_modulation"] = "LoRa"
@@ -264,6 +271,7 @@ class SidebandCore():
             self.config["lxmf_sync_interval"] = 43200
         if not "notifications_on" in self.config:
             self.config["notifications_on"] = True
+
         if not "connect_transport" in self.config:
             self.config["connect_transport"] = False
         if not "connect_rnode" in self.config:
@@ -284,6 +292,22 @@ class SidebandCore():
             self.config["connect_modem_ifac_netname"] = ""
         if not "connect_modem_ifac_passphrase" in self.config:
             self.config["connect_modem_ifac_passphrase"] = ""
+
+        if not "connect_ifmode_local" in self.config:
+            self.config["connect_ifmode_local"] = "full"
+        if not "connect_ifmode_tcp" in self.config:
+            self.config["connect_ifmode_tcp"] = "full"
+        if not "connect_ifmode_i2p" in self.config:
+            self.config["connect_ifmode_i2p"] = "full"
+        if not "connect_ifmode_rnode" in self.config:
+            self.config["connect_ifmode_rnode"] = "full"
+        if not "connect_ifmode_modem" in self.config:
+            self.config["connect_ifmode_modem"] = "full"
+        if not "connect_ifmode_serial" in self.config:
+            self.config["connect_ifmode_serial"] = "full"
+        if not "connect_ifmode_bluetooth" in self.config:
+            self.config["connect_ifmode_bluetooth"] = "full"
+
         if not "hw_rnode_frequency" in self.config:
             self.config["hw_rnode_frequency"] = None
         if not "hw_rnode_modulation" in self.config:
