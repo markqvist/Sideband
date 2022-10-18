@@ -1195,9 +1195,16 @@ class SidebandCore():
                         )
                         autointerface.OUT = True
 
-                        # TODO: Make this configurable in UI
                         if RNS.Reticulum.transport_enabled():
-                            if_mode = Interface.Interface.MODE_GATEWAY
+                            if_mode = Interface.Interface.MODE_FULL
+                            if self.config["connect_ifmode_local"] == "gateway":
+                                if_mode = Interface.Interface.MODE_GATEWAY
+                            elif self.config["connect_ifmode_local"] == "access point":
+                                if_mode = Interface.Interface.MODE_ACCESS_POINT
+                            elif self.config["connect_ifmode_local"] == "roaming":
+                                if_mode = Interface.Interface.MODE_ROAMING
+                            elif self.config["connect_ifmode_local"] == "boundary":
+                                if_mode = Interface.Interface.MODE_BOUNDARY
                         else:
                             if_mode = None
                             
@@ -1239,9 +1246,16 @@ class SidebandCore():
 
                                 tcpinterface.OUT = True
 
-                                # TODO: Make this configurable in UI
                                 if RNS.Reticulum.transport_enabled():
-                                    if_mode = Interface.Interface.MODE_GATEWAY
+                                    if_mode = Interface.Interface.MODE_FULL
+                                    if self.config["connect_ifmode_tcp"] == "gateway":
+                                        if_mode = Interface.Interface.MODE_GATEWAY
+                                    elif self.config["connect_ifmode_tcp"] == "access point":
+                                        if_mode = Interface.Interface.MODE_ACCESS_POINT
+                                    elif self.config["connect_ifmode_tcp"] == "roaming":
+                                        if_mode = Interface.Interface.MODE_ROAMING
+                                    elif self.config["connect_ifmode_tcp"] == "boundary":
+                                        if_mode = Interface.Interface.MODE_BOUNDARY
                                 else:
                                     if_mode = None
                                     
@@ -1277,9 +1291,16 @@ class SidebandCore():
 
                             i2pinterface.OUT = True
 
-                            # TODO: Make this configurable in UI
                             if RNS.Reticulum.transport_enabled():
-                                if_mode = Interface.Interface.MODE_GATEWAY
+                                if_mode = Interface.Interface.MODE_FULL
+                                if self.config["connect_ifmode_i2p"] == "gateway":
+                                    if_mode = Interface.Interface.MODE_GATEWAY
+                                elif self.config["connect_ifmode_i2p"] == "access point":
+                                    if_mode = Interface.Interface.MODE_ACCESS_POINT
+                                elif self.config["connect_ifmode_i2p"] == "roaming":
+                                    if_mode = Interface.Interface.MODE_ROAMING
+                                elif self.config["connect_ifmode_i2p"] == "boundary":
+                                    if_mode = Interface.Interface.MODE_BOUNDARY
                             else:
                                 if_mode = None
                                 
@@ -1331,11 +1352,18 @@ class SidebandCore():
 
                             rnodeinterface.OUT = True
 
-                            # TODO: Make this configurable in UI
                             if RNS.Reticulum.transport_enabled():
-                                if_mode = Interface.Interface.MODE_GATEWAY
-                            else:
                                 if_mode = Interface.Interface.MODE_FULL
+                                if self.config["connect_ifmode_rnode"] == "gateway":
+                                    if_mode = Interface.Interface.MODE_GATEWAY
+                                elif self.config["connect_ifmode_rnode"] == "access point":
+                                    if_mode = Interface.Interface.MODE_ACCESS_POINT
+                                elif self.config["connect_ifmode_rnode"] == "roaming":
+                                    if_mode = Interface.Interface.MODE_ROAMING
+                                elif self.config["connect_ifmode_rnode"] == "boundary":
+                                    if_mode = Interface.Interface.MODE_BOUNDARY
+                            else:
+                                if_mode = None
                                 
                             self.reticulum._add_interface(rnodeinterface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
                             self.interface_rnode = rnodeinterface
@@ -1377,11 +1405,18 @@ class SidebandCore():
 
                             serialinterface.OUT = True
 
-                            # TODO: Make this configurable in UI
                             if RNS.Reticulum.transport_enabled():
-                                if_mode = Interface.Interface.MODE_GATEWAY
-                            else:
                                 if_mode = Interface.Interface.MODE_FULL
+                                if self.config["connect_ifmode_serial"] == "gateway":
+                                    if_mode = Interface.Interface.MODE_GATEWAY
+                                elif self.config["connect_ifmode_serial"] == "access point":
+                                    if_mode = Interface.Interface.MODE_ACCESS_POINT
+                                elif self.config["connect_ifmode_serial"] == "roaming":
+                                    if_mode = Interface.Interface.MODE_ROAMING
+                                elif self.config["connect_ifmode_serial"] == "boundary":
+                                    if_mode = Interface.Interface.MODE_BOUNDARY
+                            else:
+                                if_mode = None
                                 
                             self.reticulum._add_interface(serialinterface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
                             self.interface_serial = serialinterface
@@ -1430,11 +1465,18 @@ class SidebandCore():
 
                             modeminterface.OUT = True
 
-                            # TODO: Make this configurable in UI
                             if RNS.Reticulum.transport_enabled():
-                                if_mode = Interface.Interface.MODE_GATEWAY
-                            else:
                                 if_mode = Interface.Interface.MODE_FULL
+                                if self.config["connect_ifmode_modem"] == "gateway":
+                                    if_mode = Interface.Interface.MODE_GATEWAY
+                                elif self.config["connect_ifmode_modem"] == "access point":
+                                    if_mode = Interface.Interface.MODE_ACCESS_POINT
+                                elif self.config["connect_ifmode_modem"] == "roaming":
+                                    if_mode = Interface.Interface.MODE_ROAMING
+                                elif self.config["connect_ifmode_modem"] == "boundary":
+                                    if_mode = Interface.Interface.MODE_BOUNDARY
+                            else:
+                                if_mode = None
                                 
                             self.reticulum._add_interface(modeminterface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
                             self.interface_modem = modeminterface
