@@ -82,7 +82,7 @@ class Messages():
                     titlestr = ""
                     if msg["title"]:
                         titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                    w.heading = titlestr+"[b]Sent[/b] "+txstr+" [b]State[/b] Delivered"
+                    w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Delivered"
                     m["state"] = msg["state"]
 
                 if msg["method"] == LXMF.LXMessage.PROPAGATED and msg["state"] == LXMF.LXMessage.SENT:
@@ -91,7 +91,7 @@ class Messages():
                     titlestr = ""
                     if msg["title"]:
                         titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                    w.heading = titlestr+"[b]Sent[/b] "+txstr+" [b]State[/b] On Propagation Net"
+                    w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] On Propagation Net"
                     m["state"] = msg["state"]
 
                 if msg["state"] == LXMF.LXMessage.FAILED:
@@ -100,7 +100,7 @@ class Messages():
                     titlestr = ""
                     if msg["title"]:
                         titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                    w.heading = titlestr+"[b]Sent[/b] "+txstr+" [b]State[/b] Failed"
+                    w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Failed"
                     m["state"] = msg["state"]
 
 
@@ -124,23 +124,23 @@ class Messages():
                 if m["source"] == self.app.sideband.lxmf_destination.hash:
                     if m["state"] == LXMF.LXMessage.DELIVERED:
                         msg_color = mdc(color_delivered, intensity_msgs)
-                        heading_str = titlestr+"[b]Sent[/b] "+txstr+" [b]State[/b] Delivered"
+                        heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Delivered"
 
                     elif m["method"] == LXMF.LXMessage.PROPAGATED and m["state"] == LXMF.LXMessage.SENT:
                         msg_color = mdc(color_propagated, intensity_msgs)
-                        heading_str = titlestr+"[b]Sent[/b] "+txstr+" [b]State[/b] On Propagation Net"
+                        heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] On Propagation Net"
 
                     elif m["state"] == LXMF.LXMessage.FAILED:
                         msg_color = mdc(color_failed, intensity_msgs)
-                        heading_str = titlestr+"[b]Sent[/b] "+txstr+" [b]State[/b] Failed"
+                        heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Failed"
 
                     elif m["state"] == LXMF.LXMessage.OUTBOUND or m["state"] == LXMF.LXMessage.SENDING:
                         msg_color = mdc(color_unknown, intensity_msgs)
-                        heading_str = titlestr+"[b]Sent[/b] "+txstr+" [b]State[/b] Sending                          "
+                        heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Sending                          "
 
                     else:
                         msg_color = mdc(color_unknown, intensity_msgs)
-                        heading_str = titlestr+"[b]Sent[/b] "+txstr+" [b]State[/b] Unknown"
+                        heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Unknown"
 
                 else:
                     msg_color = mdc(color_received, intensity_msgs)
