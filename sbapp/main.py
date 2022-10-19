@@ -253,8 +253,9 @@ class SidebandApp(MDApp):
         self.sideband.should_persist_data()
         if self.conversations_view != None:
             self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
-            # TODO: Check if we actually need this
-            self.sideband.setstate("wants.viewupdate.conversations", True)
+            # TODO: Check if we actually need this now that the bouncy
+            # scrolling bug has been eliminated
+            # self.sideband.setstate("wants.viewupdate.conversations", True)
             self.root.ids.conversations_scrollview.scroll = 1
 
         RNS.log("App paused", RNS.LOG_DEBUG)
@@ -268,7 +269,8 @@ class SidebandApp(MDApp):
         self.app_state = SidebandApp.ACTIVE
         if self.conversations_view != None:
             self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
-            # TODO: Check if we actually need this
+            # TODO: Check if we actually need this now that the bouncy
+            # scrolling bug has been eliminated
             # self.sideband.setstate("wants.viewupdate.conversations", True)
             self.root.ids.conversations_scrollview.scroll = 1
             
@@ -679,8 +681,11 @@ class SidebandApp(MDApp):
 
         self.root.ids.screen_manager.current = "conversations_screen"
         self.root.ids.messages_scrollview.active_conversation = None
-        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
-        self.sideband.setstate("wants.clear_notifications", True)
+
+        def cb(dt):
+            self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+            self.sideband.setstate("wants.clear_notifications", True)
+        Clock.schedule_once(cb, 0.10)
 
     def connectivity_status(self, sender):
         hs = dp(22)
