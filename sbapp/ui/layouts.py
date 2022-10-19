@@ -751,11 +751,22 @@ MDNavigationLayout:
                             text_size: self.width, None
                             height: self.texture_size[1]
 
-                        MDIconButton:
+                        MDBoxLayout:
+                            orientation: "vertical"
+                            size_hint_y: None
+                            size_hint_x: None
+                            height: dp(256)
+                            width: dp(256)
+                            spacing: dp(0)
+                            padding: [dp(0), dp(0), dp(0), dp(0)]
                             pos_hint: {"center_x": .5, "center_y": .5}
-                            icon: "assets/rns_256.png"
-                            icon_size: "256dp"
-        
+
+                            MDIcon:
+                                pos_hint: {"center_x": .5, "center_y": .5}
+                                id: information_logo
+                                font_size: "256dp"
+                                width: dp(256)
+                                height: dp(256)
 
         MDScreen:
             name: "map_screen"
