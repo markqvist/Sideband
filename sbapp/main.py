@@ -246,38 +246,50 @@ class SidebandApp(MDApp):
             mActivity.startActivity(shareIntent)
 
     def on_pause(self):
-        RNS.log("App pausing...", RNS.LOG_DEBUG)
-        self.sideband.setstate("app.running", True)
-        self.sideband.setstate("app.foreground", False)
-        self.app_state = SidebandApp.PAUSED
-        self.sideband.should_persist_data()
-        if self.conversations_view != None:
-            self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
-            # TODO: Check if we actually need this now that the bouncy
-            # scrolling bug has been eliminated
-            # self.sideband.setstate("wants.viewupdate.conversations", True)
-            self.root.ids.conversations_scrollview.scroll = 1
+        if self.sideband:
+            if self.sideband.getstate("flag.focusfix_pause"):
+                self.sideband.setstate("flag.focusfix_pause", False)
+                return True
+            else:
+                RNS.log("App pausing...", RNS.LOG_DEBUG)
+                self.sideband.setstate("app.running", True)
+                self.sideband.setstate("app.foreground", False)
+                self.app_state = SidebandApp.PAUSED
+                self.sideband.should_persist_data()
+                if self.conversations_view != None:
+                    self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
+                    # TODO: Check if we actually need this now that the bouncy
+                    # scrolling bug has been eliminated
+                    # self.sideband.setstate("wants.viewupdate.conversations", True)
+                    self.root.ids.conversations_scrollview.scroll = 1
 
-        RNS.log("App paused", RNS.LOG_DEBUG)
-        return True
+                RNS.log("App paused", RNS.LOG_DEBUG)
+                return True
+        else:
+            return True
 
     def on_resume(self):
-        RNS.log("App resuming...", RNS.LOG_DEBUG)
-        self.sideband.setstate("app.running", True)
-        self.sideband.setstate("app.foreground", True)
-        self.sideband.setstate("wants.clear_notifications", True)
-        self.app_state = SidebandApp.ACTIVE
-        if self.conversations_view != None:
-            self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
-            # TODO: Check if we actually need this now that the bouncy
-            # scrolling bug has been eliminated
-            # self.sideband.setstate("wants.viewupdate.conversations", True)
-            self.root.ids.conversations_scrollview.scroll = 1
-            
-        else:
-            RNS.log("Conversations view did not exist", RNS.LOG_DEBUG)
+        if self.sideband:
+            if self.sideband.getstate("flag.focusfix_resume"):
+                self.sideband.setstate("flag.focusfix_resume", False)
+                return True
+            else:
+                RNS.log("App resuming...", RNS.LOG_DEBUG)
+                self.sideband.setstate("app.running", True)
+                self.sideband.setstate("app.foreground", True)
+                self.sideband.setstate("wants.clear_notifications", True)
+                self.app_state = SidebandApp.ACTIVE
+                if self.conversations_view != None:
+                    self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
+                    # TODO: Check if we actually need this now that the bouncy
+                    # scrolling bug has been eliminated
+                    # self.sideband.setstate("wants.viewupdate.conversations", True)
+                    self.root.ids.conversations_scrollview.scroll = 1
+                    
+                else:
+                    RNS.log("Conversations view did not exist", RNS.LOG_DEBUG)
 
-        RNS.log("App resumed...", RNS.LOG_DEBUG)
+                RNS.log("App resumed", RNS.LOG_DEBUG)
 
     def on_stop(self):
         RNS.log("App stopping...", RNS.LOG_DEBUG)
@@ -383,7 +395,7 @@ class SidebandApp(MDApp):
         # the software keyboard on Android. Without this the back
         # button/gesture does not work after the soft-keyboard has
         # appeared for the first time.
-        if RNS.vendor.platformutils.get_platform() == "android":
+        if RNS.vendor.platformutils.is_android():
             BIND_CLASSES = ["kivymd.uix.textfield.textfield.MDTextField",]
             
             for e in self.root.ids:
@@ -392,11 +404,6 @@ class SidebandApp(MDApp):
 
                 if ts in BIND_CLASSES:
                     te.bind(focus=self.android_focus_fix)
-                #     RNS.log("Bound "+str(e)+" / "+ts)
-                # else:
-                #     RNS.log("Did not bind "+str(e)+" / "+ts)
-
-                # RNS.log(str(e))
 
         self.root.ids.screen_manager.app = self
         self.root.ids.app_version_info.text = "Sideband v"+__version__+" "+__variant__
@@ -408,6 +415,8 @@ class SidebandApp(MDApp):
         if not val:
             @run_on_ui_thread
             def fix_back_button():
+                self.sideband.setstate("flag.focusfix_pause", True)
+                self.sideband.setstate("flag.focusfix_resume", True)
                 activity = autoclass('org.kivy.android.PythonActivity').mActivity
                 activity.onWindowFocusChanged(False)
                 activity.onWindowFocusChanged(True)
