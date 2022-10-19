@@ -199,13 +199,22 @@ class SidebandService():
             stat = "[size=22dp][b]Connectivity Status[/b][/size]\n\n"
 
             if self.sideband.interface_local != None:
+                netdevs = self.sideband.interface_local.adopted_interfaces
+                if len(netdevs) > 0:
+                    ds = "Using "
+                    for netdev in netdevs:
+                        ds += "[i]"+str(netdev)+"[/i], "
+                    ds = ds[:-2]
+                else:
+                    ds = "No usable network devices"
+
                 np = len(self.sideband.interface_local.peers)
                 if np == 1:
                     ws = "1 reachable peer"
                 else:
                     ws = str(np)+" reachable peers"
 
-                stat += "[b]Local[/b]\n{ws}\n\n".format(ws=ws)
+                stat += "[b]Local[/b]\n{ds}\n{ws}\n\n".format(ds=ds, ws=ws)
 
             if self.sideband.interface_rnode != None:
                 if self.sideband.interface_rnode.online:
