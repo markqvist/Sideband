@@ -740,6 +740,7 @@ MDNavigationLayout:
                         orientation: "vertical"
                         size_hint_y: None
                         height: self.minimum_height
+                        spacing: dp(35)
                         padding: [dp(35), dp(32), dp(35), dp(16)]
 
                         MDLabel:
@@ -749,6 +750,11 @@ MDNavigationLayout:
                             size_hint_y: None
                             text_size: self.width, None
                             height: self.texture_size[1]
+
+                        MDIconButton:
+                            pos_hint: {"center_x": .5, "center_y": .5}
+                            icon: "assets/rns_256.png"
+                            icon_size: "256dp"
         
 
         MDScreen:
