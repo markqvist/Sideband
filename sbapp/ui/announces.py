@@ -4,7 +4,7 @@ import RNS
 from kivy.metrics import dp,sp
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import StringProperty, BooleanProperty
-from kivymd.uix.list import MDList, IconLeftWidget, IconRightWidget, OneLineAvatarIconListItem
+from kivymd.uix.list import MDList, IconLeftWidget, IconRightWidget, TwoLineAvatarIconListItem
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -120,7 +120,7 @@ class Announces():
                     disp_name = "Unknown Announce"
                     iconl = IconLeftWidget(icon="progress-question")
 
-                item = OneLineAvatarIconListItem(text=time_string+": "+disp_name, on_release=gen_info(time_string, context_dest, a_data, dest_type))
+                item = TwoLineAvatarIconListItem(text=time_string, secondary_text=disp_name, on_release=gen_info(time_string, context_dest, a_data, dest_type))
                 item.add_widget(iconl)
                 item.sb_uid = context_dest
                 item.ts = ts
