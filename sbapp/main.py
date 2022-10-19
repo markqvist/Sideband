@@ -474,10 +474,15 @@ class SidebandApp(MDApp):
             while self.sideband.service_available():
                 time.sleep(0.2)
             RNS.log("Service stopped")
-            
-            RNS.exit()
-            MDApp.get_running_app().stop()
-            Window.close()
+
+            if RNS.vendor.platformutils.is_android():
+                RNS.log("Finishing activity")
+                activity = autoclass('org.kivy.android.PythonActivity').mActivity
+                activity.finishAndRemoveTask()
+            else:
+                RNS.exit()
+                MDApp.get_running_app().stop()
+                Window.close()
 
         Clock.schedule_once(final_exit, 0.65)
 
@@ -712,6 +717,7 @@ class SidebandApp(MDApp):
             yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
 
             dialog = MDDialog(
+                title="Can't Sync",
                 text="No active LXMF propagation nodes were found. Cannot fetch messages. Wait for a Propagation Node to announce on the network, or manually specify one in the settings.",
                 buttons=[ yes_button ],
                 # elevation=0,
