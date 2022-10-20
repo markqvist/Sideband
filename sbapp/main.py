@@ -55,6 +55,7 @@ if RNS.vendor.platformutils.get_platform() == "android":
     from android.permissions import request_permissions, check_permission
 
     from kivymd.utils.set_bars_colors import set_bars_colors
+    android_api_version = autoclass('android.os.Build$VERSION').SDK_INT
 
 else:
     from .sideband.core import SidebandCore
@@ -151,6 +152,9 @@ class SidebandApp(MDApp):
         self.sideband.setstate("app.foreground", True)
         
     def start_service(self):
+        if RNS.vendor.platformutils.is_android():
+            RNS.log("Running on Android API level "+str(android_api_version))
+
         RNS.log("Launching platform-specific service for RNS and LXMF")
         if RNS.vendor.platformutils.get_platform() == "android":
             self.android_service = autoclass('io.unsigned.sideband.ServiceSidebandservice')
@@ -217,10 +221,8 @@ class SidebandApp(MDApp):
 
         self.update_ui_colors()
 
-        st = time.time()
-        RNS.log("Recursing widgets...")
-        for wid in self.root.ids:
-            RNS.log("Found: "+str(wid)+str(self.root.ids[wid]))
+        # for wid in self.root.ids:
+        #     RNS.log("Found: "+str(wid)+str(self.root.ids[wid]))
 
     def set_bars_colors(self):
         if RNS.vendor.platformutils.get_platform() == "android":
@@ -868,13 +870,13 @@ class SidebandApp(MDApp):
     ### Settings screen
     ######################################
     def settings_action(self, sender=None):
-        self.root.ids.screen_manager.transition.direction = "left"
-
-        self.settings_init()
-
-        self.root.ids.screen_manager.current = "settings_screen"
         self.root.ids.nav_drawer.set_state("closed")
-        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+        def cb(dt):
+            self.root.ids.screen_manager.transition.direction = "left"
+            self.settings_init()
+            self.root.ids.screen_manager.current = "settings_screen"
+            self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+        Clock.schedule_once(cb, 0.2)
 
     def settings_init(self, sender=None):
         if not self.settings_ready:
@@ -969,8 +971,12 @@ class SidebandApp(MDApp):
             self.root.ids.settings_propagation_node_address.bind(on_text_validate=save_prop_addr)
             self.root.ids.settings_propagation_node_address.bind(focus=save_prop_addr)
 
-            self.root.ids.settings_notifications_on.active = self.sideband.config["notifications_on"]
-            self.root.ids.settings_notifications_on.bind(active=save_notifications_on)
+            if android_api_version >= 26:
+                self.root.ids.settings_notifications_on.active = self.sideband.config["notifications_on"]
+                self.root.ids.settings_notifications_on.bind(active=save_notifications_on)
+            else:
+                self.root.ids.settings_notifications_on.active = False
+                self.root.ids.settings_notifications_on.disabled = True
 
             self.root.ids.settings_dark_ui.active = self.sideband.config["dark_ui"]
             self.root.ids.settings_dark_ui.bind(active=save_dark_ui)

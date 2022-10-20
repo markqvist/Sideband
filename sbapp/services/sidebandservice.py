@@ -14,6 +14,8 @@ else:
 if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass, cast
     from android import python_act
+    android_api_version = autoclass('android.os.Build$VERSION').SDK_INT
+
     Context = autoclass('android.content.Context')
     Intent = autoclass('android.content.Intent')
     BitmapFactory = autoclass('android.graphics.BitmapFactory')
@@ -22,9 +24,11 @@ if RNS.vendor.platformutils.get_platform() == "android":
     AndroidString = autoclass('java.lang.String')
     NotificationManager = autoclass('android.app.NotificationManager')
     Context = autoclass('android.content.Context')
-    NotificationBuilder = autoclass('android.app.Notification$Builder')
-    NotificationChannel = autoclass('android.app.NotificationChannel')
-    
+
+    if android_api_version >= 26:
+        NotificationBuilder = autoclass('android.app.Notification$Builder')
+        NotificationChannel = autoclass('android.app.NotificationChannel')
+
     from usb4a import usb
     from usbserial4a import serial4a
     from sideband.core import SidebandCore
@@ -34,62 +38,65 @@ else:
 
 class SidebandService():
     def android_notification(self, title="", content="", ticker="", group=None, context_id=None):
-        package_name = "io.unsigned.sideband"
-
-        if not self.notification_service:
-            self.notification_service = cast(NotificationManager, self.app_context.getSystemService(
-                Context.NOTIFICATION_SERVICE
-            ))
-
-        channel_id = package_name
-        group_id = ""
-        if group != None:
-            channel_id += "."+str(group)
-            group_id += str(group)
-        if context_id != None:
-            channel_id += "."+str(context_id)
-            group_id += "."+str(context_id)
-
-        if not title or title == "":
-            channel_name = "Sideband"
+        if android_api_version < 26:
+            return
         else:
-            channel_name = title
+            package_name = "io.unsigned.sideband"
 
-        self.notification_channel = NotificationChannel(channel_id, channel_name, NotificationManager.IMPORTANCE_DEFAULT)
-        self.notification_channel.enableVibration(True)
-        self.notification_channel.setShowBadge(True)
-        self.notification_service.createNotificationChannel(self.notification_channel)
+            if not self.notification_service:
+                self.notification_service = cast(NotificationManager, self.app_context.getSystemService(
+                    Context.NOTIFICATION_SERVICE
+                ))
 
-        notification = NotificationBuilder(self.app_context, channel_id)
-        notification.setContentTitle(title)
-        notification.setContentText(AndroidString(content))
-        
-        # if group != None:
-        #     notification.setGroup(group_id)
+            channel_id = package_name
+            group_id = ""
+            if group != None:
+                channel_id += "."+str(group)
+                group_id += str(group)
+            if context_id != None:
+                channel_id += "."+str(context_id)
+                group_id += "."+str(context_id)
 
-        if not self.notification_small_icon:
-            path = self.sideband.notification_icon
-            bitmap = BitmapFactory.decodeFile(path)
-            self.notification_small_icon = Icon.createWithBitmap(bitmap)
+            if not title or title == "":
+                channel_name = "Sideband"
+            else:
+                channel_name = title
 
-        notification.setSmallIcon(self.notification_small_icon)
+            self.notification_channel = NotificationChannel(channel_id, channel_name, NotificationManager.IMPORTANCE_DEFAULT)
+            self.notification_channel.enableVibration(True)
+            self.notification_channel.setShowBadge(True)
+            self.notification_service.createNotificationChannel(self.notification_channel)
 
-        # large_icon_path = self.sideband.icon
-        # bitmap_icon = BitmapFactory.decodeFile(large_icon_path)
-        # notification.setLargeIcon(bitmap_icon)
+            notification = NotificationBuilder(self.app_context, channel_id)
+            notification.setContentTitle(title)
+            notification.setContentText(AndroidString(content))
+            
+            # if group != None:
+            #     notification.setGroup(group_id)
 
-        if not self.notification_intent:
-            notification_intent = Intent(self.app_context, python_act)
-            notification_intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            notification_intent.setAction(Intent.ACTION_MAIN)
-            notification_intent.addCategory(Intent.CATEGORY_LAUNCHER)
-            self.notification_intent = PendingIntent.getActivity(self.app_context, 0, notification_intent, 0)
+            if not self.notification_small_icon:
+                path = self.sideband.notification_icon
+                bitmap = BitmapFactory.decodeFile(path)
+                self.notification_small_icon = Icon.createWithBitmap(bitmap)
 
-        notification.setContentIntent(self.notification_intent)
-        notification.setAutoCancel(True)
+            notification.setSmallIcon(self.notification_small_icon)
 
-        built_notification = notification.build()
-        self.notification_service.notify(0, built_notification)
+            # large_icon_path = self.sideband.icon
+            # bitmap_icon = BitmapFactory.decodeFile(large_icon_path)
+            # notification.setLargeIcon(bitmap_icon)
+
+            if not self.notification_intent:
+                notification_intent = Intent(self.app_context, python_act)
+                notification_intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                notification_intent.setAction(Intent.ACTION_MAIN)
+                notification_intent.addCategory(Intent.CATEGORY_LAUNCHER)
+                self.notification_intent = PendingIntent.getActivity(self.app_context, 0, notification_intent, 0)
+
+            notification.setContentIntent(self.notification_intent)
+            notification.setAutoCancel(True)
+
+            built_notification = notification.build()
+            self.notification_service.notify(0, built_notification)
 
     def __init__(self):
         self.argument = environ.get('PYTHON_SERVICE_ARGUMENT', '')
