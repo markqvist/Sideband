@@ -345,9 +345,10 @@ class SidebandApp(MDApp):
 
         self.announces_view = None
 
-        ActivityInfo = autoclass('android.content.pm.ActivityInfo')
-        activity = autoclass('org.kivy.android.PythonActivity').mActivity
-        activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
+        if RNS.vendor.platformutils.is_android():
+            ActivityInfo = autoclass('android.content.pm.ActivityInfo')
+            activity = autoclass('org.kivy.android.PythonActivity').mActivity
+            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
 
         screen = Builder.load_string(root_layout)
 
