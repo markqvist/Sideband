@@ -396,6 +396,7 @@ class SidebandCore():
                 self.active_propagation_node = dest
                 self.config["last_lxmf_propagation_node"] = dest
                 self.message_router.set_outbound_propagation_node(dest)
+                self.owner_app.root.ids.settings_propagation_node_address.text = RNS.hexrep(dest, delimit=False)
                 RNS.log("Active propagation node set to: "+RNS.prettyhexrep(dest))
                 self.__save_config()
             except Exception as e:
