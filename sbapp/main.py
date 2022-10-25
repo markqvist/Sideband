@@ -958,6 +958,7 @@ class SidebandApp(MDApp):
                     self.sideband.save_configuration()
 
             self.root.ids.settings_lxmf_address.text = RNS.hexrep(self.sideband.lxmf_destination.hash, delimit=False)
+            self.root.ids.settings_identity_hash.text = RNS.hexrep(self.sideband.lxmf_destination.identity.hash, delimit=False)
 
             self.root.ids.settings_display_name.text = self.sideband.config["display_name"]
             self.root.ids.settings_display_name.bind(on_text_validate=save_disp_name)
@@ -972,7 +973,7 @@ class SidebandApp(MDApp):
             self.root.ids.settings_propagation_node_address.bind(on_text_validate=save_prop_addr)
             self.root.ids.settings_propagation_node_address.bind(focus=save_prop_addr)
 
-            if android_api_version >= 26:
+            if not RNS.vendor.platformutils.is_android() or android_api_version >= 26:
                 self.root.ids.settings_notifications_on.active = self.sideband.config["notifications_on"]
                 self.root.ids.settings_notifications_on.bind(active=save_notifications_on)
             else:

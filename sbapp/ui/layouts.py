@@ -984,14 +984,6 @@ MDNavigationLayout:
                                 font_size: dp(24)
 
                             MDTextField:
-                                id: settings_lxmf_address
-                                hint_text: "Your LXMF Address"
-                                text: ""
-                                disabled: False
-                                max_text_length: 32
-                                font_size: dp(24)
-
-                            MDTextField:
                                 id: settings_propagation_node_address
                                 hint_text: "LXMF Propagation Node"
                                 disabled: False
@@ -1004,6 +996,30 @@ MDNavigationLayout:
                                 hint_text: "Nomad Network Home Node"
                                 disabled: False
                                 text: ""
+                                max_text_length: 32
+                                font_size: dp(24)
+
+                            MDLabel:
+                                text: ""
+                                font_style: "H6"
+
+                            MDLabel:
+                                text: "Address & Identity"
+                                font_style: "H6"
+
+                            MDTextField:
+                                id: settings_lxmf_address
+                                hint_text: "Your LXMF Address"
+                                text: ""
+                                disabled: False
+                                max_text_length: 32
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: settings_identity_hash
+                                hint_text: "Your Identity Hash"
+                                text: ""
+                                disabled: False
                                 max_text_length: 32
                                 font_size: dp(24)
 
