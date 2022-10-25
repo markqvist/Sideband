@@ -1,4 +1,5 @@
-# Sideband
+Sideband <img align="right" src="https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg"/>
+=========
 
 Sideband is an LXMF client for Android, Linux and macOS. It allows you to communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, or anything else Reticulum supports.
 
@@ -52,5 +53,15 @@ You can help support the continued development of open, free and private communi
 - Ko-Fi: https://ko-fi.com/markqvist
 
 <br/>
+
+## License
+This work is licensed under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License][cc-by-nc-sa].
+
+[![CC BY-NC-SA 4.0][cc-by-nc-sa-image]][cc-by-nc-sa]
+
+[cc-by-nc-sa]: http://creativecommons.org/licenses/by-nc-sa/4.0/
+[cc-by-nc-sa-image]: https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png
+[cc-by-nc-sa-shield]: https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg
+
 
 *Device screenshots generated with [deviceframes](https://deviceframes.com). Thanks!*
