@@ -1,4 +1,5 @@
-__debug_build__ = False
+# TODO: Reset
+__debug_build__ = True
 __disable_shaders__ = True
 __version__ = "0.2.6"
 __variant__ = "beta"
@@ -186,6 +187,27 @@ class SidebandApp(MDApp):
 
         self.app_state = SidebandApp.ACTIVE
         self.loading_updater.cancel()
+
+        def check_errors(dt):
+            if self.sideband.getpersistent("startup.errors.rnode") != None:
+                description = self.sideband.getpersistent("startup.errors.rnode")["description"]
+                self.sideband.setpersistent("startup.errors.rnode", None)
+                yes_button = MDRectangleFlatButton(
+                    text="OK",
+                    font_size=dp(18),
+                )
+                self.hw_error_dialog = MDDialog(
+                    title="Hardware Error",
+                    text="When starting a connected RNode, Reticulum reported the following error:\n\n[i]"+description+"[/i]",
+                    buttons=[ yes_button ],
+                    # elevation=0,
+                )
+                def dl_yes(s):
+                    self.hw_error_dialog.dismiss()
+                yes_button.bind(on_release=dl_yes)
+                self.hw_error_dialog.open()
+
+        Clock.schedule_once(check_errors, 1.5)
 
 
     #################################################
