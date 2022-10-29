@@ -321,6 +321,7 @@ class SidebandService():
 
             time.sleep(sleep_time)
 
+        self.sideband.cleanup()
         self.release_locks()
 
 SidebandService().start()

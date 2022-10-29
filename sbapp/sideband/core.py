@@ -9,6 +9,8 @@ import sqlite3
 import RNS.vendor.umsgpack as msgpack
 import RNS.Interfaces.Interface as Interface
 
+from .res import sideband_fb_data
+
 if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass, cast
 
@@ -396,7 +398,10 @@ class SidebandCore():
                 self.active_propagation_node = dest
                 self.config["last_lxmf_propagation_node"] = dest
                 self.message_router.set_outbound_propagation_node(dest)
-                self.owner_app.root.ids.settings_propagation_node_address.text = RNS.hexrep(dest, delimit=False)
+                
+                if not self.is_service:
+                    self.owner_app.root.ids.settings_propagation_node_address.text = RNS.hexrep(dest, delimit=False)
+
                 RNS.log("Active propagation node set to: "+RNS.prettyhexrep(dest))
                 self.__save_config()
             except Exception as e:
@@ -675,6 +680,13 @@ class SidebandCore():
             try:
                 entry = result[0]
                 val = msgpack.unpackb(entry[1])
+                if val == None:
+                    db = sqlite3.connect(self.db_path)
+                    dbc = db.cursor()
+                    query = "delete from persistent where (property=:uprop);"
+                    dbc.execute(query, {"uprop": prop.encode("utf-8")})
+                    db.commit()
+
                 return val
             except Exception as e:
                 RNS.log("Could not unpack persistent value from database for property \""+str(prop)+"\". The contained exception was: "+str(e), RNS.LOG_ERROR)
@@ -1372,6 +1384,14 @@ class SidebandCore():
                             self.reticulum._add_interface(rnodeinterface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
                             self.interface_rnode = rnodeinterface
 
+                            if rnodeinterface != None:
+                                if len(rnodeinterface.hw_errors) > 0:
+                                    self.setpersistent("startup.errors.rnode", rnodeinterface.hw_errors[0])
+
+                            if self.interface_rnode.online:
+                                self.interface_rnode.display_image(sideband_fb_data)
+                                self.interface_rnode.enable_external_framebuffer()
+
                     except Exception as e:
                         RNS.log("Error while adding RNode Interface. The contained exception was: "+str(e))
                         self.interface_rnode = None
@@ -1698,6 +1718,11 @@ class SidebandCore():
                 return "Downloaded "+str(new_msgs)+" new messages"
         else:
             return "Unknown"
+
+    def cleanup(self):
+        if RNS.vendor.platformutils.get_platform() == "android":
+            if not self.reticulum.is_connected_to_shared_instance:
+                RNS.Transport.detach_interfaces()
 
 rns_config = """
 [reticulum]
