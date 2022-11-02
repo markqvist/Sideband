@@ -1395,6 +1395,74 @@ MDNavigationLayout:
                                 text: ""
                                 font_size: dp(24)
 
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Connect using Bluetooth"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: hardware_rnode_bluetooth
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDLabel:
+                            id: hardware_rnode_info
+                            markup: True
+                            text: "If you enable connection via Bluetooth, Sideband will attempt to connect to any available and paired RNodes over Bluetooth.\\n\\nYou must first pair the RNode with your device for this to work. If your RNode does not have a physical pairing button, you can enable Bluetooth and put it into pairing mode by first connecting it via a USB cable, and using the buttons below. You can also do this using the \\"rnodeconf\\" utility from a computer.\\n\\nBy default, Sideband will connect to the first available RNode that is paired. If you want to always use a specific RNode, you can enter its name in the Preferred RNode Device Name field below, for example \\"RNode A8EB\\".\\n"
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDBoxLayout:
+                            orientation: "vertical"
+                            spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                            MDRectangleFlatIconButton:
+                                id: hardware_rnode_bt_on_button
+                                icon: "bluetooth"
+                                text: "Enable Bluetooth"
+                                padding: [dp(0), dp(14), dp(0), dp(14)]
+                                icon_size: dp(24)
+                                font_size: dp(16)
+                                size_hint: [1.0, None]
+                                on_release: root.ids.screen_manager.app.hardware_rnode_bt_on_action(self)
+
+                            MDRectangleFlatIconButton:
+                                id: hardware_rnode_bt_off_button
+                                icon: "bluetooth-off"
+                                text: "Disable Bluetooth"
+                                padding: [dp(0), dp(14), dp(0), dp(14)]
+                                icon_size: dp(24)
+                                font_size: dp(16)
+                                size_hint: [1.0, None]
+                                on_release: root.ids.screen_manager.app.hardware_rnode_bt_off_action(self)
+                                disabled: False
+
+                            MDRectangleFlatIconButton:
+                                id: hardware_rnode_bt_pair_button
+                                icon: "link-variant"
+                                text: "Start Pairing Mode"
+                                padding: [dp(0), dp(14), dp(0), dp(14)]
+                                icon_size: dp(24)
+                                font_size: dp(16)
+                                size_hint: [1.0, None]
+                                on_release: root.ids.screen_manager.app.hardware_rnode_bt_pair_action(self)
+                                disabled: False
+
+                            MDTextField:
+                                id: hardware_rnode_bt_device
+                                hint_text: "Preferred RNode Device Name"
+                                text: ""
+                                font_size: dp(24)
+
         MDScreen:
             name: "hardware_modem_screen"
             
