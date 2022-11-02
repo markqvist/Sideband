@@ -1,6 +1,6 @@
 __debug_build__ = False
 __disable_shaders__ = True
-__version__ = "0.2.6"
+__version__ = "0.3.0"
 __variant__ = "beta"
 
 import sys
@@ -134,6 +134,7 @@ class SidebandApp(MDApp):
         self.loading_updater = Clock.schedule_interval(self.update_init_status, 0.1)
 
         self.check_permissions()
+        self.check_bluetooth_permissions()
         self.start_service()
         
         Clock.schedule_interval(self.jobs, 1)
@@ -327,6 +328,20 @@ class SidebandApp(MDApp):
         else:
             return False
 
+    def check_bluetooth_permissions(self):
+        if RNS.vendor.platformutils.get_platform() == "android":
+            mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+            Context = autoclass('android.content.Context')
+            
+            if check_permission("android.permission.BLUETOOTH_CONNECT"):
+                RNS.log("Have bluetooth connect permissions", RNS.LOG_DEBUG)
+                self.sideband.setpersistent("permissions.bluetooth", True)
+            else:
+                RNS.log("Do not have bluetooth connect permissions")
+                self.sideband.setpersistent("permissions.bluetooth", False)
+        else:
+            self.sideband.setpersistent("permissions.bluetooth", True)
+
     def check_permissions(self):
         if RNS.vendor.platformutils.get_platform() == "android":
             mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
@@ -356,6 +371,14 @@ class SidebandApp(MDApp):
                 request_permissions(["android.permission.POST_NOTIFICATIONS"])
             
         self.check_permissions()
+
+    def request_bluetooth_permissions(self):
+        if RNS.vendor.platformutils.get_platform() == "android":
+            if not check_permission("android.permission.BLUETOOTH_CONNECT"):
+                RNS.log("Requesting bluetooth permission", RNS.LOG_DEBUG)
+                request_permissions(["android.permission.BLUETOOTH_CONNECT"])
+
+        self.check_bluetooth_permissions()
 
     def build(self):
         FONT_PATH = self.sideband.asset_dir+"/fonts"
@@ -1363,8 +1386,9 @@ class SidebandApp(MDApp):
                 con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
                 self.sideband.save_configuration()
 
-            if RNS.vendor.platformutils.get_platform() == "android":
-                if not self.sideband.getpersistent("service.is_controlling_connectivity"):
+            # TODO: Remove
+            if True or RNS.vendor.platformutils.get_platform() == "android":
+                if False and not self.sideband.getpersistent("service.is_controlling_connectivity"):
                     info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
                     info += "To configure hardware parameters, edit the relevant configuration file for the instance."
                     self.root.ids.hardware_info.text = info
@@ -1424,6 +1448,58 @@ class SidebandApp(MDApp):
 
         self.sideband.save_configuration()
 
+    def hardware_rnode_bt_on_action(self, sender=None):
+        self.root.ids.hardware_rnode_bt_pair_button.disabled = True
+        self.root.ids.hardware_rnode_bt_on_button.disabled = True
+        self.root.ids.hardware_rnode_bt_off_button.disabled = True
+        def re_enable():
+            time.sleep(2)
+            while self.sideband.getstate("executing.bt_on"):
+                time.sleep(1)
+            self.root.ids.hardware_rnode_bt_off_button.disabled = False
+            self.root.ids.hardware_rnode_bt_pair_button.disabled = False
+            self.root.ids.hardware_rnode_bt_on_button.disabled = False
+        threading.Thread(target=re_enable, daemon=True).start()
+        self.sideband.setstate("wants.bt_on", True)
+
+    def hardware_rnode_bt_off_action(self, sender=None):
+        self.root.ids.hardware_rnode_bt_pair_button.disabled = True
+        self.root.ids.hardware_rnode_bt_on_button.disabled = True
+        self.root.ids.hardware_rnode_bt_off_button.disabled = True
+        def re_enable():
+            time.sleep(2)
+            while self.sideband.getstate("executing.bt_off"):
+                time.sleep(1)
+            self.root.ids.hardware_rnode_bt_off_button.disabled = False
+            self.root.ids.hardware_rnode_bt_pair_button.disabled = False
+            self.root.ids.hardware_rnode_bt_on_button.disabled = False
+        threading.Thread(target=re_enable, daemon=True).start()
+        self.sideband.setstate("wants.bt_off", True)
+
+    def hardware_rnode_bt_pair_action(self, sender=None):
+        self.root.ids.hardware_rnode_bt_pair_button.disabled = True
+        self.root.ids.hardware_rnode_bt_on_button.disabled = True
+        self.root.ids.hardware_rnode_bt_off_button.disabled = True
+        def re_enable():
+            time.sleep(2)
+            while self.sideband.getstate("executing.bt_pair"):
+                time.sleep(1)
+            self.root.ids.hardware_rnode_bt_off_button.disabled = False
+            self.root.ids.hardware_rnode_bt_pair_button.disabled = False
+            self.root.ids.hardware_rnode_bt_on_button.disabled = False
+        threading.Thread(target=re_enable, daemon=True).start()
+        self.sideband.setstate("wants.bt_pair", True)
+
+    def hardware_rnode_bt_toggle_action(self, sender=None, event=None):
+        if sender.active:
+            self.sideband.config["hw_rnode_bluetooth"] = True
+            self.request_bluetooth_permissions()
+        else:
+            self.sideband.config["hw_rnode_bluetooth"] = False
+
+        self.sideband.save_configuration()
+
+    
     def hardware_rnode_init(self, sender=None):
         if not self.hardware_rnode_ready:
             self.root.ids.hardware_rnode_scrollview.effect_cls = ScrollEffect
@@ -1465,6 +1541,7 @@ class SidebandApp(MDApp):
             else:
                 t_bd = ""
 
+            self.root.ids.hardware_rnode_bluetooth.active = self.sideband.config["hw_rnode_bluetooth"]
             self.root.ids.hardware_rnode_frequency.text = t_freq
             self.root.ids.hardware_rnode_bandwidth.text = t_bw
             self.root.ids.hardware_rnode_txpower.text = t_p
@@ -1486,6 +1563,8 @@ class SidebandApp(MDApp):
             self.root.ids.hardware_rnode_codingrate.bind(on_text_validate=save_connectivity)
             self.root.ids.hardware_rnode_beaconinterval.bind(on_text_validate=save_connectivity)
             self.root.ids.hardware_rnode_beacondata.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_rnode_bluetooth.bind(active=self.hardware_rnode_bt_toggle_action)
+
 
     def hardware_rnode_validate(self, sender=None):
         valid = True        
