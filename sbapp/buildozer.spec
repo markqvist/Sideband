@@ -23,7 +23,7 @@ android.presplash_color = #00000000
 orientation = all
 fullscreen = 0
 
-android.permissions = INTERNET,POST_NOTIFICATIONS,WAKE_LOCK,FOREGROUND_SERVICE,CHANGE_WIFI_MULTICAST_STATE
+android.permissions = INTERNET,POST_NOTIFICATIONS,WAKE_LOCK,FOREGROUND_SERVICE,CHANGE_WIFI_MULTICAST_STATE,BLUETOOTH_CONNECT
 android.api = 30
 android.minapi = 24
 android.ndk = 23b
