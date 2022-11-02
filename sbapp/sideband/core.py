@@ -329,6 +329,8 @@ class SidebandCore():
             self.config["hw_rnode_beaconinterval"] = None
         if not "hw_rnode_beacondata" in self.config:
             self.config["hw_rnode_beacondata"] = None
+        if not "hw_rnode_bluetooth" in self.config:
+            self.config["hw_rnode_bluetooth"] = False
 
         if not "hw_modem_baudrate" in self.config:
             self.config["hw_modem_baudrate"] = 115200
@@ -1089,6 +1091,42 @@ class SidebandCore():
                 if self.getstate("wants.announce"):
                     self.lxmf_announce()
 
+                if self.getstate("wants.bt_on"):
+                    self.setstate("wants.bt_on", False)
+                    self.setstate("executing.bt_on", True)
+                    if self.interface_rnode != None:
+                        self.interface_rnode.enable_bluetooth()
+                    else:
+                        if hasattr(self.owner_app, "usb_devices") and self.owner_app.usb_devices != None:
+                            if len(self.owner_app.usb_devices) > 0:
+                                target_port = self.owner_app.usb_devices[0]["port"]
+                                RNS.Interfaces.Android.RNodeInterface.RNodeInterface.bluetooth_control(port=target_port, enable_bluetooth = True)
+                    self.setstate("executing.bt_on", False)
+                
+                if self.getstate("wants.bt_off"):
+                    self.setstate("wants.bt_off", False)
+                    self.setstate("executing.bt_off", True)
+                    if self.interface_rnode != None:
+                        self.interface_rnode.disable_bluetooth()
+                    else:
+                        if hasattr(self.owner_app, "usb_devices") and self.owner_app.usb_devices != None:
+                            if len(self.owner_app.usb_devices) > 0:
+                                target_port = self.owner_app.usb_devices[0]["port"]
+                                RNS.Interfaces.Android.RNodeInterface.RNodeInterface.bluetooth_control(port=target_port, disable_bluetooth = True)
+                    self.setstate("executing.bt_off", False)
+                
+                if self.getstate("wants.bt_pair"):
+                    self.setstate("wants.bt_pair", False)
+                    self.setstate("executing.bt_pair", True)
+                    if self.interface_rnode != None:
+                        self.interface_rnode.bluetooth_pair()
+                    else:
+                        if hasattr(self.owner_app, "usb_devices") and self.owner_app.usb_devices != None:
+                            if len(self.owner_app.usb_devices) > 0:
+                                target_port = self.owner_app.usb_devices[0]["port"]
+                                RNS.Interfaces.Android.RNodeInterface.RNodeInterface.bluetooth_control(port=target_port, pairing_mode = True)
+                    self.setstate("executing.bt_pair", False)
+
                 if (now - last_usb_discovery > 5):
                     if self.interface_rnode != None and not self.interface_rnode.online:
                         self.owner_app.discover_usb_devices()
@@ -1188,7 +1226,7 @@ class SidebandCore():
                 if self.config["connect_local"]:
                     self.setstate("init.loadingstate", "Discovering Topography")
                     try:
-                        RNS.log("Adding Auto Interface...")
+                        RNS.log("Adding Auto Interface...", RNS.LOG_DEBUG)
                         if self.config["connect_local_groupid"] == "":
                             group_id = None
                         else:
@@ -1234,7 +1272,7 @@ class SidebandCore():
                 if self.config["connect_tcp"]:
                     self.setstate("init.loadingstate", "Connecting TCP Tunnel")
                     try:
-                        RNS.log("Adding TCP Interface...")
+                        RNS.log("Adding TCP Interface...", RNS.LOG_DEBUG)
 
                         if self.config["connect_tcp_host"] != "":
                             tcp_host = self.config["connect_tcp_host"]
@@ -1285,6 +1323,7 @@ class SidebandCore():
                 if self.config["connect_i2p"]:
                     self.setstate("init.loadingstate", "Opening I2P Endpoints")
                     try:
+                        RNS.log("Adding I2P Interface...", RNS.LOG_DEBUG)
                         if self.config["connect_i2p_b32"].endswith(".b32.i2p"):
 
                             if self.config["connect_i2p_ifac_netname"] == "":
@@ -1334,14 +1373,34 @@ class SidebandCore():
                 if self.config["connect_rnode"]:
                     self.setstate("init.loadingstate", "Starting RNode")
                     try:
-                        RNS.log("Adding RNode Interface...")
-
+                        RNS.log("Adding RNode Interface...", RNS.LOG_DEBUG)
                         target_device = None
                         if len(self.owner_app.usb_devices) > 0:
                             # TODO: Add more intelligent selection here
                             target_device = self.owner_app.usb_devices[0]
 
-                        if target_device:
+                        if target_device or self.config["hw_rnode_bluetooth"]:
+                            if target_device != None:
+                                target_port = target_device["port"]
+                            else:
+                                target_port = None
+
+                            if self.getpersistent("permissions.bluetooth"):
+                                if self.config["hw_rnode_bluetooth"]:
+                                    # TODO: Remove
+                                    RNS.log("Allowing RNode bluetooth")
+                                    rnode_allow_bluetooth = True
+                                else:
+                                    # TODO: Remove
+                                    RNS.log("Disallowing RNode bluetooth since config is disabled")
+                                    rnode_allow_bluetooth = False
+                            else:
+                                # TODO: Remove 
+                                RNS.log("Disallowing RNode bluetooth due to missing permission")
+                                rnode_allow_bluetooth = True
+
+
+
                             if self.config["connect_rnode_ifac_netname"] == "":
                                 ifac_netname = None
                             else:
@@ -1355,7 +1414,7 @@ class SidebandCore():
                             rnodeinterface = RNS.Interfaces.Android.RNodeInterface.RNodeInterface(
                                     RNS.Transport,
                                     "RNodeInterface",
-                                    target_device["port"],
+                                    target_port,
                                     frequency = self.config["hw_rnode_frequency"],
                                     bandwidth = self.config["hw_rnode_bandwidth"],
                                     txpower = self.config["hw_rnode_tx_power"],
@@ -1364,6 +1423,7 @@ class SidebandCore():
                                     flow_control = None,
                                     id_interval = self.config["hw_rnode_beaconinterval"],
                                     id_callsign = self.config["hw_rnode_beacondata"],
+                                    allow_bluetooth = rnode_allow_bluetooth,
                                 )
 
                             rnodeinterface.OUT = True
@@ -1399,7 +1459,7 @@ class SidebandCore():
                 elif self.config["connect_serial"]:
                     self.setstate("init.loadingstate", "Starting Serial Interface")
                     try:
-                        RNS.log("Adding Serial Interface...")
+                        RNS.log("Adding Serial Interface...", RNS.LOG_DEBUG)
 
                         target_device = None
                         if len(self.owner_app.usb_devices) > 0:
@@ -1452,7 +1512,7 @@ class SidebandCore():
                 elif self.config["connect_modem"]:
                     self.setstate("init.loadingstate", "Starting Radio Modem")
                     try:
-                        RNS.log("Adding Modem Interface...")
+                        RNS.log("Adding Modem Interface...", RNS.LOG_DEBUG)
 
                         target_device = None
                         if len(self.owner_app.usb_devices) > 0:
