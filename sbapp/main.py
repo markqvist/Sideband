@@ -508,7 +508,14 @@ class SidebandApp(MDApp):
                     self.last_exit_event = time.time()
 
             else:
-                self.open_conversations(direction="right")
+                if self.root.ids.screen_manager.current == "hardware_rnode_screen":
+                    self.close_sub_hardware_action()
+                elif self.root.ids.screen_manager.current == "hardware_modem_screen":
+                    self.close_sub_hardware_action()
+                elif self.root.ids.screen_manager.current == "hardware_serial_screen":
+                    self.close_sub_hardware_action()
+                else:
+                    self.open_conversations(direction="right")
 
             return True
 
