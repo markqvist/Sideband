@@ -1,5 +1,4 @@
-# TODO: Reset
-__debug_build__ = True
+__debug_build__ = False
 __disable_shaders__ = True
 __version__ = "0.3.0"
 __variant__ = "beta"
@@ -113,6 +112,8 @@ class SidebandApp(MDApp):
         Window.softinput_mode = "below_target"
         self.icon = self.sideband.asset_dir+"/icon.png"
         self.notification_icon = self.sideband.asset_dir+"/notification_icon.png"
+
+        self.connectivity_updater = None
 
 
     #################################################
@@ -748,9 +749,7 @@ class SidebandApp(MDApp):
             self.sideband.setstate("wants.clear_notifications", True)
         Clock.schedule_once(cb, 0.10)
 
-    def connectivity_status(self, sender):
-        hs = dp(22)
-
+    def get_connectivity_text(self):
         connectivity_status = ""
         if RNS.vendor.platformutils.get_platform() == "android":
             connectivity_status = self.sideband.getstate("service.connectivity_status")
@@ -761,17 +760,31 @@ class SidebandApp(MDApp):
             else:
                 connectivity_status = "[size=22dp][b]Connectivity Status[/b][/size]\n\nSideband is currently running a standalone or master Reticulum instance on this system. Use the rnstatus utility to obtain full connectivity info."
 
+        return connectivity_status
+    
+    def connectivity_status(self, sender):
+        hs = dp(22)
+
+        
         yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
         dialog = MDDialog(
-            text=connectivity_status,
+            text=self.get_connectivity_text(),
             buttons=[ yes_button ],
             # elevation=0,
         )
+        def cs_updater(dt):
+            dialog.text = self.get_connectivity_text()
         def dl_yes(s):
+            self.connectivity_updater.cancel()
             dialog.dismiss()
-        
+
         yes_button.bind(on_release=dl_yes)
         dialog.open()
+        if self.connectivity_updater != None:
+            self.connectivity_updater.cancel()
+        self.connectivity_updater = Clock.schedule_interval(cs_updater, 1.0)
+
+
 
     def lxmf_sync_action(self, sender):
         def cb(dt):
@@ -1103,6 +1116,11 @@ class SidebandApp(MDApp):
                 self.widget_hide(self.root.ids.connectivity_serial_label)
                 self.widget_hide(self.root.ids.connectivity_use_serial)
                 self.widget_hide(self.root.ids.connectivity_serial_fields)
+                
+                self.widget_hide(self.root.ids.connectivity_transport_label)
+                self.widget_hide(self.root.ids.connectivity_enable_transport)
+                self.widget_hide(self.root.ids.connectivity_transport_info)
+                self.widget_hide(self.root.ids.connectivity_transport_fields)
 
             def con_collapse_local(collapse=True):
                 # self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
@@ -1396,9 +1414,8 @@ class SidebandApp(MDApp):
                 con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
                 self.sideband.save_configuration()
 
-            # TODO: Remove
-            if True or RNS.vendor.platformutils.get_platform() == "android":
-                if False and not self.sideband.getpersistent("service.is_controlling_connectivity"):
+            if RNS.vendor.platformutils.get_platform() == "android":
+                if not self.sideband.getpersistent("service.is_controlling_connectivity"):
                     info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
                     info += "To configure hardware parameters, edit the relevant configuration file for the instance."
                     self.root.ids.hardware_info.text = info

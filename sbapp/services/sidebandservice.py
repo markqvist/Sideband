@@ -1,5 +1,4 @@
-# TODO: Reset
-__debug_build__ = True
+__debug_build__ = False
 
 import time
 import RNS
