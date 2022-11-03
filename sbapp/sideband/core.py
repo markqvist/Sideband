@@ -229,6 +229,7 @@ class SidebandCore():
         self.config["hw_rnode_tx_power"] = 0
         self.config["hw_rnode_beaconinterval"] = None
         self.config["hw_rnode_beacondata"] = None
+        self.config["hw_rnode_bt_device"] = None
         self.config["hw_modem_baudrate"] = 57600
         self.config["hw_modem_databits"] = 8
         self.config["hw_modem_stopbits"] = 1
@@ -331,6 +332,8 @@ class SidebandCore():
             self.config["hw_rnode_beacondata"] = None
         if not "hw_rnode_bluetooth" in self.config:
             self.config["hw_rnode_bluetooth"] = False
+        if not "hw_rnode_bt_device" in self.config:
+            self.config["hw_rnode_bt_device"] = None
 
         if not "hw_modem_baudrate" in self.config:
             self.config["hw_modem_baudrate"] = 115200
@@ -1390,6 +1393,10 @@ class SidebandCore():
                                     # TODO: Remove
                                     RNS.log("Allowing RNode bluetooth")
                                     rnode_allow_bluetooth = True
+                                    if self.config["hw_rnode_bt_device"] != None:
+                                        bt_device_name = self.config["hw_rnode_bt_device"]
+                                    else:
+                                        bt_device_name = None
                                 else:
                                     # TODO: Remove
                                     RNS.log("Disallowing RNode bluetooth since config is disabled")
@@ -1424,6 +1431,7 @@ class SidebandCore():
                                     id_interval = self.config["hw_rnode_beaconinterval"],
                                     id_callsign = self.config["hw_rnode_beacondata"],
                                     allow_bluetooth = rnode_allow_bluetooth,
+                                    target_device_name = bt_device_name,
                                 )
 
                             rnodeinterface.OUT = True

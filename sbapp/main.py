@@ -1456,6 +1456,11 @@ class SidebandApp(MDApp):
         else:
             self.sideband.config["hw_rnode_beacondata"] = self.root.ids.hardware_rnode_beacondata.text
 
+        if self.root.ids.hardware_rnode_bt_device.text == "":
+            self.sideband.config["hw_rnode_bt_device"] = None
+        else:
+            self.sideband.config["hw_rnode_bt_device"] = self.root.ids.hardware_rnode_bt_device.text
+
         self.sideband.save_configuration()
 
     def hardware_rnode_bt_on_action(self, sender=None):
@@ -1550,6 +1555,10 @@ class SidebandApp(MDApp):
                 t_bd = str(self.sideband.config["hw_rnode_beacondata"])
             else:
                 t_bd = ""
+            if self.sideband.config["hw_rnode_bt_device"] != None:
+                t_btd = str(self.sideband.config["hw_rnode_bt_device"])
+            else:
+                t_btd = ""
 
             self.root.ids.hardware_rnode_bluetooth.active = self.sideband.config["hw_rnode_bluetooth"]
             self.root.ids.hardware_rnode_frequency.text = t_freq
@@ -1559,6 +1568,7 @@ class SidebandApp(MDApp):
             self.root.ids.hardware_rnode_codingrate.text = t_cr
             self.root.ids.hardware_rnode_beaconinterval.text = t_bi
             self.root.ids.hardware_rnode_beacondata.text = t_bd
+            self.root.ids.hardware_rnode_bt_device.text = t_btd
             self.root.ids.hardware_rnode_frequency.bind(focus=focus_save)
             self.root.ids.hardware_rnode_bandwidth.bind(focus=focus_save)
             self.root.ids.hardware_rnode_txpower.bind(focus=focus_save)
@@ -1566,6 +1576,7 @@ class SidebandApp(MDApp):
             self.root.ids.hardware_rnode_codingrate.bind(focus=focus_save)
             self.root.ids.hardware_rnode_beaconinterval.bind(focus=focus_save)
             self.root.ids.hardware_rnode_beacondata.bind(focus=focus_save)
+            self.root.ids.hardware_rnode_bt_device.bind(focus=focus_save)
             self.root.ids.hardware_rnode_frequency.bind(on_text_validate=save_connectivity)
             self.root.ids.hardware_rnode_bandwidth.bind(on_text_validate=save_connectivity)
             self.root.ids.hardware_rnode_txpower.bind(on_text_validate=save_connectivity)
