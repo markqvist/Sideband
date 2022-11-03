@@ -1,4 +1,5 @@
-__debug_build__ = False
+# TODO: Reset
+__debug_build__ = True
 __disable_shaders__ = True
 __version__ = "0.3.0"
 __variant__ = "beta"
@@ -1094,9 +1095,9 @@ class SidebandApp(MDApp):
                 self.widget_hide(self.root.ids.connectivity_modem_label)
                 self.widget_hide(self.root.ids.connectivity_use_modem)
                 self.widget_hide(self.root.ids.connectivity_modem_fields)
-                self.widget_hide(self.root.ids.connectivity_bluetooth_label)
-                self.widget_hide(self.root.ids.connectivity_use_bluetooth)
-                self.widget_hide(self.root.ids.connectivity_bluetooth_fields)
+                # self.widget_hide(self.root.ids.connectivity_bluetooth_label)
+                # self.widget_hide(self.root.ids.connectivity_use_bluetooth)
+                # self.widget_hide(self.root.ids.connectivity_bluetooth_fields)
                 self.widget_hide(self.root.ids.connectivity_transport_label)
                 self.widget_hide(self.root.ids.connectivity_enable_transport)
                 self.widget_hide(self.root.ids.connectivity_serial_label)
@@ -1104,28 +1105,36 @@ class SidebandApp(MDApp):
                 self.widget_hide(self.root.ids.connectivity_serial_fields)
 
             def con_collapse_local(collapse=True):
-                self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
+                # self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
+                pass
                 
             def con_collapse_tcp(collapse=True):
-                self.widget_hide(self.root.ids.connectivity_tcp_fields, collapse)
+                # self.widget_hide(self.root.ids.connectivity_tcp_fields, collapse)
+                pass
                 
             def con_collapse_i2p(collapse=True):
-                self.widget_hide(self.root.ids.connectivity_i2p_fields, collapse)
+                # self.widget_hide(self.root.ids.connectivity_i2p_fields, collapse)
+                pass
                 
             def con_collapse_bluetooth(collapse=True):
-                self.widget_hide(self.root.ids.connectivity_bluetooth_fields, collapse)
+                # self.widget_hide(self.root.ids.connectivity_bluetooth_fields, collapse)
+                pass
                 
             def con_collapse_rnode(collapse=True):
-                self.widget_hide(self.root.ids.connectivity_rnode_fields, collapse)
+                # self.widget_hide(self.root.ids.connectivity_rnode_fields, collapse)
+                pass
                 
             def con_collapse_modem(collapse=True):
-                self.widget_hide(self.root.ids.connectivity_modem_fields, collapse)
+                # self.widget_hide(self.root.ids.connectivity_modem_fields, collapse)
+                pass
                 
             def con_collapse_serial(collapse=True):
-                self.widget_hide(self.root.ids.connectivity_serial_fields, collapse)
+                # self.widget_hide(self.root.ids.connectivity_serial_fields, collapse)
+                pass
                 
             def con_collapse_transport(collapse=True):
-                self.widget_hide(self.root.ids.connectivity_transport_fields, collapse)
+                # self.widget_hide(self.root.ids.connectivity_transport_fields, collapse)
+                pass
                 
             def save_connectivity(sender=None, event=None):
                 self.sideband.config["connect_transport"] = self.root.ids.connectivity_enable_transport.active
@@ -1165,10 +1174,11 @@ class SidebandApp(MDApp):
                 con_collapse_tcp(collapse=not self.root.ids.connectivity_use_tcp.active)
                 con_collapse_i2p(collapse=not self.root.ids.connectivity_use_i2p.active)
                 con_collapse_rnode(collapse=not self.root.ids.connectivity_use_rnode.active)
-                con_collapse_bluetooth(collapse=not self.root.ids.connectivity_use_bluetooth.active)
                 con_collapse_modem(collapse=not self.root.ids.connectivity_use_modem.active)
                 con_collapse_serial(collapse=not self.root.ids.connectivity_use_serial.active)
                 con_collapse_transport(collapse=not self.sideband.config["connect_transport"])
+
+                # con_collapse_bluetooth(collapse=not self.root.ids.connectivity_use_bluetooth.active)
 
                 self.sideband.save_configuration()
 
@@ -1274,8 +1284,8 @@ class SidebandApp(MDApp):
                     self.root.ids.connectivity_rnode_ifac_netname.text = self.sideband.config["connect_rnode_ifac_netname"]
                     self.root.ids.connectivity_rnode_ifac_passphrase.text = self.sideband.config["connect_rnode_ifac_passphrase"]
 
-                    self.root.ids.connectivity_use_bluetooth.active = False
-                    con_collapse_bluetooth(collapse=not self.root.ids.connectivity_use_bluetooth.active)
+                    # self.root.ids.connectivity_use_bluetooth.active = False
+                    # con_collapse_bluetooth(collapse=not self.root.ids.connectivity_use_bluetooth.active)
 
                     self.root.ids.connectivity_use_modem.active = self.sideband.config["connect_modem"]
                     con_collapse_modem(collapse=not self.root.ids.connectivity_use_modem.active)
@@ -1332,7 +1342,7 @@ class SidebandApp(MDApp):
                     self.root.ids.connectivity_modem_ifmode.bind(focus=ifmode_validate)
                     self.root.ids.connectivity_serial_ifmode.bind(focus=ifmode_validate)
 
-                    self.root.ids.connectivity_use_bluetooth.bind(active=save_connectivity)
+                    # self.root.ids.connectivity_use_bluetooth.bind(active=save_connectivity)
 
             else:
                 info = ""
@@ -2243,7 +2253,7 @@ class SidebandApp(MDApp):
     def guide_action(self, sender=None):
         def link_exec(sender=None, event=None):
             import webbrowser
-            webbrowser.open("https://unsigned.io/sideband")
+            webbrowser.open("https://unsigned.io/donate")
 
         guide_text1 = """
 [size=18dp][b]Introduction[/b][/size][size=5dp]\n \n[/size]Welcome to [i]Sideband[/i], an LXMF client for Android, Linux and macOS. With Sideband, you can communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, or anything else Reticulum supports.
@@ -2284,7 +2294,7 @@ If you use Reticulum and LXMF on hardware that does not carry any identifiers ti
  - Ctrl-G Show guide"""
         
         guide_text9 = """
-[size=18dp][b]Sow Seeds Of Freedom[/b][/size][size=5dp]\n \n[/size]It took me more than seven years to design and built the entire ecosystem of software and hardware that makes this possible. If this project is valuable to you, please go to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project with a donation. Every donation directly makes the entire Reticulum project possible.
+[size=18dp][b]Sow Seeds Of Freedom[/b][/size][size=5dp]\n \n[/size]It took me more than seven years to design and built the entire ecosystem of software and hardware that makes this possible. If this project is valuable to you, please go to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project with a donation. Every donation directly makes the entire Reticulum project possible.
 
 Thank you very much for using Free Communications Systems.
 """

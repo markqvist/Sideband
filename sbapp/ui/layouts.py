@@ -222,7 +222,7 @@ MDNavigationLayout:
 
                     MDBoxLayout:
                         orientation: "vertical"
-                        spacing: "8dp"
+                        spacing: "10dp"
                         size_hint_y: None
                         height: self.minimum_height
                         padding: [dp(28), dp(48), dp(28), dp(16)]
@@ -488,37 +488,37 @@ MDNavigationLayout:
                                 font_size: dp(24)
 
 
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            padding: [0,0,dp(24),0]
-                            size_hint_y: None
-                            height: dp(24)
+                        # MDBoxLayout:
+                        #     orientation: "horizontal"
+                        #     padding: [0,0,dp(24),0]
+                        #     size_hint_y: None
+                        #     height: dp(24)
                             
-                            MDLabel:
-                                id: connectivity_bluetooth_label
-                                text: "Connect via Bluetooth"
-                                font_style: "H6"
-                                disabled: True
+                        #     MDLabel:
+                        #         id: connectivity_bluetooth_label
+                        #         text: "Connect via Bluetooth"
+                        #         font_style: "H6"
+                        #         disabled: True
 
-                            MDSwitch:
-                                id: connectivity_use_bluetooth
-                                active: False
-                                pos_hint: {"center_y": 0.3}
-                                disabled: True
+                        #     MDSwitch:
+                        #         id: connectivity_use_bluetooth
+                        #         active: False
+                        #         pos_hint: {"center_y": 0.3}
+                        #         disabled: True
 
-                        MDBoxLayout:
-                            id: connectivity_bluetooth_fields
-                            orientation: "vertical"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [0, 0, 0, dp(32)]
+                        # MDBoxLayout:
+                        #     id: connectivity_bluetooth_fields
+                        #     orientation: "vertical"
+                        #     size_hint_y: None
+                        #     height: self.minimum_height
+                        #     padding: [0, 0, 0, dp(32)]
 
-                            MDTextField:
-                                id: connectivity_bluetooth_cid
-                                hint_text: "Bluetooth Pairing ID"
-                                text: ""
-                                font_size: dp(24)
-                                # disabled: True
+                        #     MDTextField:
+                        #         id: connectivity_bluetooth_cid
+                        #         hint_text: "Bluetooth Pairing ID"
+                        #         text: ""
+                        #         font_size: dp(24)
+                        #         # disabled: True
 
                         MDBoxLayout:
                             orientation: "horizontal"
@@ -537,6 +537,14 @@ MDNavigationLayout:
                                 active: False
                                 pos_hint: {"center_y": 0.3}
                                 # disabled: True
+
+                        MDLabel:
+                            id: connectivity_transport_info
+                            markup: True
+                            text: "Enabling Reticulum Transport will allow this device to route traffic between all enabled interfaces.\\n\\nFor general usage, this option should not be enabled, but it can be useful in situations where you want to share connectivity from one device to many others. An example of this could be sharing connectivity from a radio interface to other people on your local WiFi network.\\n\\nWhen enabled, you will be able to configure the interface mode for all interfaces configured on this device. For more information on this topic, refer to the Reticulum Manual."
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
 
                         MDBoxLayout:
                             id: connectivity_transport_fields

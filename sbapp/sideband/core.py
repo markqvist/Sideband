@@ -201,7 +201,7 @@ class SidebandCore():
         self.config["connect_tcp_ifac_netname"] = ""
         self.config["connect_tcp_ifac_passphrase"] = ""
         self.config["connect_i2p"] = False
-        self.config["connect_i2p_b32"] = "mrwqlsioq4hoo2lmeeud7dkfscnm7yxak7dmiyvsrnpfag3z5tsq.b32.i2p"
+        self.config["connect_i2p_b32"] = "pmlm3l5rpympihoy2o5ago43kluei2jjjzsalcuiuylbve3mwi2a.b32.i2p"
         self.config["connect_i2p_ifac_netname"] = ""
         self.config["connect_i2p_ifac_passphrase"] = ""
         self.config["connect_rnode"] = False

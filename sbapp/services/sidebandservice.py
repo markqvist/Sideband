@@ -1,4 +1,5 @@
-__debug_build__ = False
+# TODO: Reset
+__debug_build__ = True
 
 import time
 import RNS
@@ -256,10 +257,19 @@ class SidebandService():
                 stat += "[b]TCP[/b]\n{ts}\n\n".format(ts=ts)
 
             if self.sideband.interface_i2p != None:
-                if self.sideband.interface_i2p.online:
-                    i2s = "Connected"
+                i2s = "Unknown"
+                if hasattr(self.sideband.interface_i2p, "i2p_tunnel_state") and self.sideband.interface_i2p.i2p_tunnel_state != None:
+                    if self.sideband.interface_i2p.i2p_tunnel_state == RNS.Interfaces.I2PInterface.I2PInterfacePeer.TUNNEL_STATE_INIT:
+                        i2s = "Tunnel Connecting"
+                    elif self.sideband.interface_i2p.i2p_tunnel_state == RNS.Interfaces.I2PInterface.I2PInterfacePeer.TUNNEL_STATE_ACTIVE:
+                        i2s = "Tunnel Active"
+                    elif self.sideband.interface_i2p.i2p_tunnel_state == RNS.Interfaces.I2PInterface.I2PInterfacePeer.TUNNEL_STATE_STALE:
+                        i2s = "Tunnel Unresponsive"
                 else:
-                    i2s = "Connecting to I2P"
+                    if self.sideband.interface_i2p.online:
+                        i2s = "Connected"
+                    else:
+                        i2s = "Connecting to I2P"
 
                 stat += "[b]I2P[/b]\n{i2s}\n\n".format(i2s=i2s)
 
