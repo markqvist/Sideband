@@ -916,12 +916,12 @@ class SidebandApp(MDApp):
     def information_action(self, sender=None):
         def link_exec(sender=None, event=None):
             import webbrowser
-            webbrowser.open("https://unsigned.io/sideband")
+            webbrowser.open("https://unsigned.io/donate")
 
         self.root.ids.information_scrollview.effect_cls = ScrollEffect
         self.root.ids.information_logo.icon = self.sideband.asset_dir+"/rns_256.png"
 
-        info = "This is Sideband v"+__version__+" "+__variant__+", on RNS v"+RNS.__version__+"\n\nHumbly build using the following open components:\n\n - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)\n - [b]Kivy[/b] (MIT License)\n - [b]Python[/b] (PSF License)"+"\n\nGo to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2022 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of Sideband v"+__version__+" "+__variant__+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - USE AT YOUR OWN RISK AND RESPONSIBILITY"
+        info = "This is Sideband v"+__version__+" "+__variant__+", on RNS v"+RNS.__version__+"\n\nHumbly build using the following open components:\n\n - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)\n - [b]Kivy[/b] (MIT License)\n - [b]Python[/b] (PSF License)"+"\n\nGo to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2022 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of Sideband v"+__version__+" "+__variant__+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - USE AT YOUR OWN RISK AND RESPONSIBILITY"
         self.root.ids.information_info.text = info
         self.root.ids.information_info.bind(on_ref_press=link_exec)
         self.root.ids.screen_manager.transition.direction = "left"
@@ -2377,10 +2377,10 @@ Thank you very much for using Free Communications Systems.
     def map_action(self, sender=None):
         def link_exec(sender=None, event=None):
             import webbrowser
-            webbrowser.open("https://unsigned.io/sideband")
+            webbrowser.open("https://unsigned.io/donate")
 
         self.root.ids.map_scrollview.effect_cls = ScrollEffect
-        info = "The [b]Local Area[/b] feature is not yet implemented in Sideband.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project."
+        info = "The [b]Local Area[/b] feature is not yet implemented in Sideband.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project."
         if self.theme_cls.theme_style == "Dark":
             info = "[color=#"+dark_theme_text_color+"]"+info+"[/color]"
         self.root.ids.map_info.text = info
@@ -2393,10 +2393,10 @@ Thank you very much for using Free Communications Systems.
     def broadcasts_action(self, sender=None):
         def link_exec(sender=None, event=None):
             import webbrowser
-            webbrowser.open("https://unsigned.io/sideband")
+            webbrowser.open("https://unsigned.io/donate")
 
         self.root.ids.broadcasts_scrollview.effect_cls = ScrollEffect
-        info = "The [b]Local Broadcasts[/b] feature will allow you to send and listen for local broadcast transmissions on connected radio, LoRa and WiFi interfaces.\n\n[b]Local Broadcasts[/b] makes it easy to establish public information exchange with anyone in direct radio range, or even with large areas far away using the [i]Remote Broadcast Repeater[/i] feature.\n\nThese features are not yet implemented in Sideband.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/sideband[/ref][/u] to support the project."
+        info = "The [b]Local Broadcasts[/b] feature will allow you to send and listen for local broadcast transmissions on connected radio, LoRa and WiFi interfaces.\n\n[b]Local Broadcasts[/b] makes it easy to establish public information exchange with anyone in direct radio range, or even with large areas far away using the [i]Remote Broadcast Repeater[/i] feature.\n\nThese features are not yet implemented in Sideband.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project."
         if self.theme_cls.theme_style == "Dark":
             info = "[color=#"+dark_theme_text_color+"]"+info+"[/color]"
         self.root.ids.broadcasts_info.text = info
