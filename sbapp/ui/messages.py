@@ -220,6 +220,11 @@ class Messages():
                 def gen_save_qr(lxm, item):
                     if RNS.vendor.platformutils.is_android():
                         def x():
+                            qr_image = lxm.as_qr()
+                            hash_str = RNS.hexrep(lxm.hash[-2:], delimit=False)
+                            filename = "Paper_Message_"+time.strftime(file_ts_format, time.localtime(m["sent"]))+"_"+hash_str+".png"
+                            # filename = "Paper_Message.png"
+                            self.app.share_image(qr_image, filename)
                             item.dmenu.dismiss()
                         return x
 
@@ -303,41 +308,67 @@ class Messages():
                 if m["method"] == LXMF.LXMessage.PAPER:
                     if RNS.vendor.platformutils.is_android():
                         qr_save_text = "Share QR Code"
-                    else:
-                        qr_save_text = "Save QR Code"
+                        dm_items = [
+                            {
+                                "viewclass": "OneLineListItem",
+                                "text": "Share QR Code",
+                                "height": dp(40),
+                                "on_release": gen_save_qr(m["lxm"], item)
+                            },
+                            {
+                                "viewclass": "OneLineListItem",
+                                "text": "Copy LXM URI",
+                                "height": dp(40),
+                                "on_release": gen_copy_lxm_uri(m["lxm"], item)
+                            },
+                            {
+                                "viewclass": "OneLineListItem",
+                                "text": "Copy message text",
+                                "height": dp(40),
+                                "on_release": gen_copy(m["content"].decode("utf-8"), item)
+                            },
+                            {
+                                "text": "Delete",
+                                "viewclass": "OneLineListItem",
+                                "height": dp(40),
+                                "on_release": gen_del(m["hash"], item)
+                            }
+                        ]
 
-                    dm_items = [
-                        {
-                            "viewclass": "OneLineListItem",
-                            "text": "Print QR Code",
-                            "height": dp(40),
-                            "on_release": gen_print_qr(m["lxm"], item)
-                        },
-                        {
-                            "viewclass": "OneLineListItem",
-                            "text": qr_save_text,
-                            "height": dp(40),
-                            "on_release": gen_save_qr(m["lxm"], item)
-                        },
-                        {
-                            "viewclass": "OneLineListItem",
-                            "text": "Copy LXM URI",
-                            "height": dp(40),
-                            "on_release": gen_copy_lxm_uri(m["lxm"], item)
-                        },
-                        {
-                            "viewclass": "OneLineListItem",
-                            "text": "Copy message text",
-                            "height": dp(40),
-                            "on_release": gen_copy(m["content"].decode("utf-8"), item)
-                        },
-                        {
-                            "text": "Delete",
-                            "viewclass": "OneLineListItem",
-                            "height": dp(40),
-                            "on_release": gen_del(m["hash"], item)
-                        }
-                    ]
+                    else:
+                        dm_items = [
+                            {
+                                "viewclass": "OneLineListItem",
+                                "text": "Print QR Code",
+                                "height": dp(40),
+                                "on_release": gen_print_qr(m["lxm"], item)
+                            },
+                            {
+                                "viewclass": "OneLineListItem",
+                                "text": "Save QR Code",
+                                "height": dp(40),
+                                "on_release": gen_save_qr(m["lxm"], item)
+                            },
+                            {
+                                "viewclass": "OneLineListItem",
+                                "text": "Copy LXM URI",
+                                "height": dp(40),
+                                "on_release": gen_copy_lxm_uri(m["lxm"], item)
+                            },
+                            {
+                                "viewclass": "OneLineListItem",
+                                "text": "Copy message text",
+                                "height": dp(40),
+                                "on_release": gen_copy(m["content"].decode("utf-8"), item)
+                            },
+                            {
+                                "text": "Delete",
+                                "viewclass": "OneLineListItem",
+                                "height": dp(40),
+                                "on_release": gen_del(m["hash"], item)
+                            }
+                        ]
+
                 else:
                     dm_items = [
                         {

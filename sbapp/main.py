@@ -1,4 +1,5 @@
-__debug_build__ = False
+# TODO: Reset
+__debug_build__ = True
 __disable_shaders__ = True
 __version__ = "0.4.0"
 __variant__ = "beta"
@@ -271,6 +272,45 @@ class SidebandApp(MDApp):
 
             mActivity.startActivity(shareIntent)
 
+    def share_image(self, image, filename):
+        if RNS.vendor.platformutils.get_platform() == "android":
+            save_path = self.sideband.exports_dir
+            file_path = save_path+"/"+filename
+
+            try:
+                if not os.path.isdir(save_path):
+                    RNS.log("Creating directory: "+str(save_path))
+                    os.makedirs(save_path)
+
+                Intent = autoclass("android.content.Intent")
+                Uri = autoclass("android.net.Uri")
+                File = autoclass("java.io.File")
+                FileProvider = autoclass("android.support.v4.content.FileProvider")
+
+                image.save(file_path)
+                i_file = File(file_path)
+                image_uri = FileProvider.getUriForFile(mActivity, "io.unsigned.sideband.provider", i_file)
+
+                shareIntent = Intent()
+                shareIntent.setAction(Intent.ACTION_SEND)
+                shareIntent.setType("image/png")
+                shareIntent.putExtra(Intent.EXTRA_STREAM, cast('android.os.Parcelable', image_uri))
+                mActivity.startActivity(shareIntent)
+
+            except Exception as e:
+                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                dialog = MDDialog(
+                    title="Export Error",
+                    text="The QR-code could not be exported and shared:\n\n"+str(e),
+                    buttons=[ ok_button ],
+                )
+                def dl_ok(s):
+                    dialog.dismiss()
+                
+                ok_button.bind(on_release=dl_ok)
+                dialog.open()
+
+
     def on_pause(self):
         if self.sideband:
             if self.sideband.getstate("flag.focusfix_pause"):
@@ -373,6 +413,52 @@ class SidebandApp(MDApp):
                 request_permissions(["android.permission.POST_NOTIFICATIONS"])
             
         self.check_permissions()
+
+    def check_storage_permission(self):
+        storage_permissions_ok = False
+        if android_api_version < 30:
+            if check_permission("android.permission.WRITE_EXTERNAL_STORAGE"):
+                storage_permissions_ok = True
+            else:
+                self.request_storage_permission()
+
+        else:
+            Environment = autoclass('android.os.Environment')
+
+            if Environment.isExternalStorageManager():
+                storage_permissions_ok = True
+            else:
+                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                dialog = MDDialog(
+                    title="Storage Permission",
+                    text="Sideband needs permission to write to external storage to export, share and print paper messages.\n\nOn this Android version, the Manage All Files permission is needed, since normal external storage permission is no longer supported.\n\nSideband will only ever read and write to files in the \"Sideband\" folder of your external storage, and does not read any other data from your system.",
+                    buttons=[ ok_button ],
+                )
+                def dl_ok(s):
+                    dialog.dismiss()
+                    self.request_storage_permission()
+                
+                ok_button.bind(on_release=dl_ok)
+                dialog.open()
+
+        return storage_permissions_ok
+
+    def request_storage_permission(self):
+        if RNS.vendor.platformutils.get_platform() == "android":
+            if android_api_version < 30:
+                if not check_permission("android.permission.WRITE_EXTERNAL_STORAGE"):
+                    RNS.log("Requesting storage write permission", RNS.LOG_DEBUG)
+                    request_permissions(["android.permission.WRITE_EXTERNAL_STORAGE"])
+                
+                if not check_permission("android.permission.READ_EXTERNAL_STORAGE"):
+                    RNS.log("Requesting storage read permission", RNS.LOG_DEBUG)
+                    request_permissions(["android.permission.READ_EXTERNAL_STORAGE"])
+            else:
+                Intent = autoclass('android.content.Intent')
+                Settings = autoclass('android.provider.Settings')
+                pIntent = Intent()
+                pIntent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                mActivity.startActivity(pIntent)
 
     def request_bluetooth_permissions(self):
         if RNS.vendor.platformutils.get_platform() == "android":

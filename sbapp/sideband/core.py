@@ -121,6 +121,7 @@ class SidebandCore():
         self.db_path       = self.app_dir+"/app_storage/sideband.db"
         self.lxmf_storage  = self.app_dir+"/app_storage/"
         self.tmp_dir       = self.app_dir+"/app_storage/tmp"
+        self.exports_dir   = self.app_dir+"/exports"
         
         self.first_run     = True
 
@@ -135,6 +136,9 @@ class SidebandCore():
                 os.makedirs(self.tmp_dir)
             else:
                 self.clear_tmp_dir()
+
+            if os.path.isdir(self.exports_dir):
+                self.clear_exports_dir()
                 
         except Exception as e:
             RNS.log("Error while configuring Sideband: "+str(e), RNS.LOG_ERROR)
@@ -175,6 +179,13 @@ class SidebandCore():
         if os.path.isdir(self.tmp_dir):
             for file in os.listdir(self.tmp_dir):
                 fpath = self.tmp_dir+"/"+file
+                os.unlink(fpath)
+
+    def clear_exports_dir(self):
+        if os.path.isdir(self.exports_dir):
+            for file in os.listdir(self.exports_dir):
+                fpath = self.exports_dir+"/"+file
+                RNS.log("Clearing "+str(fpath))
                 os.unlink(fpath)
 
     def __init_config(self):
