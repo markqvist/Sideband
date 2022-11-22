@@ -36,6 +36,7 @@ android.archs = arm64-v8a,armeabi-v7a
 services = sidebandservice:services/sidebandservice.py:foreground
 android.whitelist = lib-dynload/termios.so
 android.manifest.intent_filters = patches/intent-filter.xml
+android.add_aars = patches/support-compat-28.0.0.aar
 
 [buildozer]
 log_level = 2
