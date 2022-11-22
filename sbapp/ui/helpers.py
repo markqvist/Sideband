@@ -6,6 +6,7 @@ from kivymd.uix.list import OneLineIconListItem, MDList, IconLeftWidget, IconRig
 from kivy.properties import StringProperty
 
 ts_format = "%Y-%m-%d %H:%M:%S"
+file_ts_format = "%Y_%m_%d_%H_%M_%S"
 
 def mdc(color, hue=None):
     if hue == None:
@@ -14,6 +15,7 @@ def mdc(color, hue=None):
 
 color_received = "LightGreen"
 color_delivered = "Blue"
+color_paper = "Indigo"
 color_propagated = "Indigo"
 color_failed = "Red"
 color_unknown = "Gray"

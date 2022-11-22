@@ -88,6 +88,7 @@ MDNavigationLayout:
                         ]
                     right_action_items:
                         [
+                        ['qrcode', lambda x: root.ids.screen_manager.app.ingest_lxm_action(self)],
                         ['webhook', lambda x: root.ids.screen_manager.app.connectivity_status(self)],
                         ['access-point', lambda x: root.ids.screen_manager.app.announce_now_action(self)],
                         ['email-sync', lambda x: root.ids.screen_manager.app.lxmf_sync_action(self)],
@@ -96,7 +97,7 @@ MDNavigationLayout:
 
                 ScrollView:
                     id: conversations_scrollview
-        
+
 
         MDScreen:
             name: "messages_screen"
@@ -1002,6 +1003,14 @@ MDNavigationLayout:
                             MDTextField:
                                 id: settings_home_node_address
                                 hint_text: "Nomad Network Home Node"
+                                disabled: False
+                                text: ""
+                                max_text_length: 32
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: settings_print_command
+                                hint_text: "Print Command"
                                 disabled: False
                                 text: ""
                                 max_text_length: 32

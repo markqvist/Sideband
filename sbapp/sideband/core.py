@@ -120,6 +120,7 @@ class SidebandCore():
         self.identity_path = self.app_dir+"/app_storage/primary_identity"
         self.db_path       = self.app_dir+"/app_storage/sideband.db"
         self.lxmf_storage  = self.app_dir+"/app_storage/"
+        self.tmp_dir       = self.app_dir+"/app_storage/tmp"
         
         self.first_run     = True
 
@@ -129,6 +130,11 @@ class SidebandCore():
             else:
                 self.__load_config()
                 self.first_run = False
+
+            if not os.path.isdir(self.tmp_dir):
+                os.makedirs(self.tmp_dir)
+            else:
+                self.clear_tmp_dir()
                 
         except Exception as e:
             RNS.log("Error while configuring Sideband: "+str(e), RNS.LOG_ERROR)
@@ -165,6 +171,12 @@ class SidebandCore():
         RNS.Transport.register_announce_handler(self)
         RNS.Transport.register_announce_handler(self.propagation_detector)
 
+    def clear_tmp_dir(self):
+        if os.path.isdir(self.tmp_dir):
+            for file in os.listdir(self.tmp_dir):
+                fpath = self.tmp_dir+"/"+file
+                os.unlink(fpath)
+
     def __init_config(self):
         RNS.log("Creating new Sideband configuration...")
         if os.path.isfile(self.identity_path):
@@ -189,6 +201,8 @@ class SidebandCore():
         self.config["lxmf_sync_interval"] = 43200
         self.config["last_lxmf_propagation_node"] = None
         self.config["nn_home_node"] = None
+        self.config["print_command"] = "lp"
+
         # Connectivity
         self.config["connect_transport"] = False
         self.config["connect_local"] = True
@@ -277,6 +291,8 @@ class SidebandCore():
             self.config["lxmf_sync_interval"] = 43200
         if not "notifications_on" in self.config:
             self.config["notifications_on"] = True
+        if not "print_command" in self.config:
+            self.config["print_command"] = "lp"
 
         if not "connect_transport" in self.config:
             self.config["connect_transport"] = False
@@ -945,7 +961,20 @@ class SidebandCore():
             return None
         else:
             entry = result[0]
-            lxm = LXMF.LXMessage.unpack_from_bytes(entry[10])
+
+            lxm_method = entry[7]
+            if lxm_method == LXMF.LXMessage.PAPER:
+                lxm_data = msgpack.unpackb(entry[10])
+                packed_lxm = lxm_data[0]
+                paper_packed_lxm = lxm_data[1]
+            else:
+                packed_lxm = entry[10]
+
+            lxm = LXMF.LXMessage.unpack_from_bytes(packed_lxm, original_method = lxm_method)
+
+            if lxm.desired_method == LXMF.LXMessage.PAPER:
+                lxm.paper_packed = paper_packed_lxm
+
             message = {
                 "hash": lxm.hash,
                 "dest": lxm.destination_hash,
@@ -980,7 +1009,19 @@ class SidebandCore():
         else:
             messages = []
             for entry in result:
-                lxm = LXMF.LXMessage.unpack_from_bytes(entry[10])
+                lxm_method = entry[7]
+                if lxm_method == LXMF.LXMessage.PAPER:
+                    lxm_data = msgpack.unpackb(entry[10])
+                    packed_lxm = lxm_data[0]
+                    paper_packed_lxm = lxm_data[1]
+                else:
+                    packed_lxm = entry[10]
+
+                lxm = LXMF.LXMessage.unpack_from_bytes(packed_lxm, original_method = lxm_method)
+                
+                if lxm.desired_method == LXMF.LXMessage.PAPER:
+                    lxm.paper_packed = paper_packed_lxm
+                
                 message = {
                     "hash": lxm.hash,
                     "dest": lxm.destination_hash,
@@ -1006,6 +1047,11 @@ class SidebandCore():
         if not lxm.packed:
             lxm.pack()
 
+        if lxm.method == LXMF.LXMessage.PAPER:
+            packed_lxm = msgpack.packb([lxm.packed, lxm.paper_packed])
+        else:
+            packed_lxm = lxm.packed
+
         query = "INSERT INTO lxm (lxm_hash, dest, source, title, tx_ts, rx_ts, state, method, t_encrypted, t_encryption, data) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         data = (
             lxm.hash,
@@ -1018,7 +1064,7 @@ class SidebandCore():
             lxm.method,
             lxm.transport_encrypted,
             lxm.transport_encryption,
-            lxm.packed
+            packed_lxm,
         )
 
         dbc.execute(query, data)
@@ -1611,6 +1657,26 @@ class SidebandCore():
         else:
             self.lxm_ingest(message, originator=True)
 
+    def paper_message(self, content, destination_hash):
+        try:
+            if content == "":
+                raise ValueError("Message content cannot be empty")
+
+            dest_identity = RNS.Identity.recall(destination_hash)
+            dest = RNS.Destination(dest_identity, RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
+            source = self.lxmf_destination
+            
+            desired_method = LXMF.LXMessage.PAPER
+            lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method)
+
+            self.lxm_ingest(lxm, originator=True)
+
+            return True
+
+        except Exception as e:
+            RNS.log("Error while creating paper message: "+str(e), RNS.LOG_ERROR)
+            return False
+
     def send_message(self, content, destination_hash, propagation):
         try:
             if content == "":
@@ -1664,6 +1730,30 @@ class SidebandCore():
             return False
 
         return True
+
+    def lxm_ingest_uri(self, uri):
+        local_delivery_signal = "local_delivery_occurred"
+        duplicate_signal = "duplicate_lxm"
+        ingest_result = self.message_router.ingest_lxm_uri(
+            uri,
+            signal_local_delivery=local_delivery_signal,
+            signal_duplicate=duplicate_signal
+        )
+
+        if ingest_result == False:
+            response = "The URI contained no decodable messages"
+        
+        elif ingest_result == local_delivery_signal:
+            response = "Message was decoded, decrypted successfully, and added to your conversation list."
+
+        elif ingest_result == duplicate_signal:
+            response = "The decoded message has already been processed by the LXMF Router, and will not be ingested again."
+        
+        else:
+            # TODO: Add message to sneakernet queues
+            response = "The decoded message was not addressed to your LXMF address, and has been discarded."
+
+        self.setstate("lxm_uri_ingest.result", response)
 
     def lxm_ingest(self, message, originator = False):
         should_notify = False

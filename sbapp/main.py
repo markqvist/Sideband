@@ -1,6 +1,6 @@
 __debug_build__ = False
 __disable_shaders__ = True
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 __variant__ = "beta"
 
 import sys
@@ -382,6 +382,35 @@ class SidebandApp(MDApp):
 
         self.check_bluetooth_permissions()
 
+    def on_new_intent(self, intent):
+        RNS.log("Received intent", RNS.LOG_DEBUG)
+        intent_action = intent.getAction()
+        action = None
+        data = None
+
+        if intent_action == "android.intent.action.WEB_SEARCH":
+            SearchManager = autoclass('android.app.SearchManager')
+            data = intent.getStringExtra(SearchManager.QUERY)
+            
+            if data.lower().startswith(LXMF.LXMessage.URI_SCHEMA):
+                action = "lxm_uri"
+
+        if intent_action == "android.intent.action.VIEW":
+            data = intent.getData().toString()
+            if data.lower().startswith(LXMF.LXMessage.URI_SCHEMA):
+                action = "lxm_uri"
+
+        if action != None:
+            self.handle_action(action, data)
+
+    def handle_action(self, action, data):
+        if action == "lxm_uri":
+            self.ingest_lxm_uri(data)
+
+    def ingest_lxm_uri(self, lxm_uri):
+        RNS.log("Ingesting LXMF paper message from URI: "+str(lxm_uri), RNS.LOG_DEBUG)
+        self.sideband.lxm_ingest_uri(lxm_uri)
+        
     def build(self):
         FONT_PATH = self.sideband.asset_dir+"/fonts"
         if RNS.vendor.platformutils.is_darwin():
@@ -395,6 +424,9 @@ class SidebandApp(MDApp):
             ActivityInfo = autoclass('android.content.pm.ActivityInfo')
             activity = autoclass('org.kivy.android.PythonActivity').mActivity
             activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
+
+            from android import activity as a_activity
+            a_activity.bind(on_new_intent=self.on_new_intent)
 
         screen = Builder.load_string(root_layout)
 
@@ -434,6 +466,22 @@ class SidebandApp(MDApp):
         if self.sideband.getstate("wants.viewupdate.conversations"):
             if self.conversations_view != None:
                 self.conversations_view.update()
+
+        if self.sideband.getstate("lxm_uri_ingest.result"):
+            info_text = self.sideband.getstate("lxm_uri_ingest.result")
+            self.sideband.setstate("lxm_uri_ingest.result", False)
+            ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+            dialog = MDDialog(
+                title="Message Scan",
+                text=info_text,
+                buttons=[ ok_button ],
+                # elevation=0,
+            )
+            def dl_ok(s):
+                dialog.dismiss()
+            
+            ok_button.bind(on_release=dl_ok)
+            dialog.open()
 
     def on_start(self):
         self.last_exit_event = time.time()
@@ -597,6 +645,7 @@ class SidebandApp(MDApp):
         Clock.schedule_once(cb, 0.15)
 
     def open_conversation(self, context_dest):
+        self.outbound_mode_paper = False
         if self.sideband.config["propagation_by_default"]:
             self.outbound_mode_propagation = True
         else:
@@ -662,11 +711,17 @@ class SidebandApp(MDApp):
             else:
                 msg_content = self.root.ids.message_text.text
                 context_dest = self.root.ids.messages_scrollview.active_conversation
-                if self.sideband.send_message(msg_content, context_dest, self.outbound_mode_propagation):
+                if self.outbound_mode_paper:
+                    if self.sideband.paper_message(msg_content, context_dest):
+                        self.root.ids.message_text.text = ""
+                        self.root.ids.messages_scrollview.scroll_y = 0
+                        self.jobs(0)
+                
+                elif self.sideband.send_message(msg_content, context_dest, self.outbound_mode_propagation):
                     self.root.ids.message_text.text = ""
-                    
                     self.root.ids.messages_scrollview.scroll_y = 0
                     self.jobs(0)
+
                 else:
                     self.messages_view.send_error_dialog = MDDialog(
                         title="Error",
@@ -688,23 +743,34 @@ class SidebandApp(MDApp):
 
 
     def message_propagation_action(self, sender):
-        if self.outbound_mode_propagation:
+        if self.outbound_mode_paper:
+            self.outbound_mode_paper = False
             self.outbound_mode_propagation = False
         else:
-            self.outbound_mode_propagation = True
+            if self.outbound_mode_propagation:
+                self.outbound_mode_paper = True
+                self.outbound_mode_propagation = False
+            else:
+                self.outbound_mode_propagation = True
+                self.outbound_mode_paper = False
+
         self.update_message_widgets()
 
     def update_message_widgets(self):
         toolbar_items = self.root.ids.messages_toolbar.ids.right_actions.children
         mode_item = toolbar_items[1]
 
-        if not self.outbound_mode_propagation:
-            mode_item.icon = "lan-connect"
-            self.root.ids.message_text.hint_text = "Write message for direct delivery"
+        if self.outbound_mode_paper:
+            mode_item.icon = "qrcode"
+            self.root.ids.message_text.hint_text = "Paper message"
         else:
-            mode_item.icon = "upload-network"
-            self.root.ids.message_text.hint_text = "Write message for propagation"
-            # self.root.ids.message_text.hint_text = "Write message for delivery via propagation nodes"
+            if not self.outbound_mode_propagation:
+                mode_item.icon = "lan-connect"
+                self.root.ids.message_text.hint_text = "Message for direct delivery"
+            else:
+                mode_item.icon = "upload-network"
+                self.root.ids.message_text.hint_text = "Message for propagation"
+                # self.root.ids.message_text.hint_text = "Write message for delivery via propagation nodes"
     
     def key_query_action(self, sender):
         context_dest = self.root.ids.messages_scrollview.active_conversation
@@ -791,7 +857,51 @@ class SidebandApp(MDApp):
             self.connectivity_updater.cancel()
         self.connectivity_updater = Clock.schedule_interval(cs_updater, 1.0)
 
+    def ingest_lxm_action(self, sender):
+        def cb(dt):
+            self.open_ingest_lxm_dialog(sender)
+        Clock.schedule_once(cb, 0.15)
 
+    def open_ingest_lxm_dialog(self, sender=None):
+        try:
+            cancel_button = MDRectangleFlatButton(text="Cancel",font_size=dp(18))
+            ingest_button = MDRectangleFlatButton(text="Read LXM",font_size=dp(18), theme_text_color="Custom", line_color=self.color_accept, text_color=self.color_accept)
+            
+            dialog = MDDialog(
+                title="Ingest Paper Message",
+                text="You can read LXMF paper messages into this program by scanning a QR-code containing the message with your device camera or QR-scanner app, and then opening the resulting link in Sideband.\n\nAlternatively, you can copy an [b]lxm://[/b] link from any source to your clipboard, and ingest it using the [i]Read LXM[/i] button below.",
+                buttons=[ ingest_button, cancel_button ],
+            )
+            def dl_yes(s):
+                try:
+                    lxm_uri = Clipboard.paste()
+                    if not lxm_uri.lower().startswith(LXMF.LXMessage.URI_SCHEMA+"://"):
+                        lxm_uri = LXMF.LXMessage.URI_SCHEMA+"://"+lxm_uri
+
+                    self.ingest_lxm_uri(lxm_uri)
+                    dialog.dismiss()
+
+                except Exception as e:
+                    response = "Error ingesting message from URI: "+str(e)
+                    RNS.log(response, RNS.LOG_ERROR)
+                    self.sideband.setstate("lxm_uri_ingest.result", response)
+                    dialog.dismiss()
+
+            def dl_no(s):
+                dialog.dismiss()
+
+            def dl_ds(s):
+                self.dialog_open = False
+
+            ingest_button.bind(on_release=dl_yes)
+            cancel_button.bind(on_release=dl_no)
+
+            dialog.bind(on_dismiss=dl_ds)
+            dialog.open()
+            self.dialog_open = True
+
+        except Exception as e:
+            RNS.log("Error while creating ingest LXM dialog: "+str(e), RNS.LOG_ERROR)
 
     def lxmf_sync_action(self, sender):
         def cb(dt):
@@ -921,7 +1031,7 @@ class SidebandApp(MDApp):
         self.root.ids.information_scrollview.effect_cls = ScrollEffect
         self.root.ids.information_logo.icon = self.sideband.asset_dir+"/rns_256.png"
 
-        info = "This is Sideband v"+__version__+" "+__variant__+", on RNS v"+RNS.__version__+"\n\nHumbly build using the following open components:\n\n - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)\n - [b]Kivy[/b] (MIT License)\n - [b]Python[/b] (PSF License)"+"\n\nGo to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2022 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of Sideband v"+__version__+" "+__variant__+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - USE AT YOUR OWN RISK AND RESPONSIBILITY"
+        info = "This is Sideband v"+__version__+" "+__variant__+", on RNS v"+RNS.__version__+" and LXMF v"+LXMF.__version__+".\n\nHumbly build using the following open components:\n\n - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)\n - [b]Kivy[/b] (MIT License)\n - [b]Python[/b] (PSF License)"+"\n\nGo to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2022 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of Sideband v"+__version__+" "+__variant__+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - USE AT YOUR OWN RISK AND RESPONSIBILITY"
         self.root.ids.information_info.text = info
         self.root.ids.information_info.bind(on_ref_press=link_exec)
         self.root.ids.screen_manager.transition.direction = "left"
@@ -1003,6 +1113,17 @@ class SidebandApp(MDApp):
                 self.sideband.config["lxmf_sync_limit"] = self.root.ids.settings_lxmf_sync_limit.active
                 self.sideband.save_configuration()
 
+            def save_print_command(sender=None, event=None):
+                in_cmd = self.root.ids.settings_print_command.text
+                if in_cmd == "":
+                    new_cmd = "lp"
+                else:
+                    new_cmd = in_cmd
+
+                self.sideband.config["print_command"] = new_cmd.strip()
+                self.root.ids.settings_print_command.text = self.sideband.config["print_command"]
+                self.sideband.save_configuration()
+
             def save_lxmf_periodic_sync(sender=None, event=None, save=True):
                 if self.root.ids.settings_lxmf_periodic_sync.active:
                     self.widget_hide(self.root.ids.lxmf_syncslider_container, False)
@@ -1028,6 +1149,13 @@ class SidebandApp(MDApp):
             self.root.ids.settings_display_name.text = self.sideband.config["display_name"]
             self.root.ids.settings_display_name.bind(on_text_validate=save_disp_name)
             self.root.ids.settings_display_name.bind(focus=save_disp_name)
+
+            if RNS.vendor.platformutils.is_android():
+                self.widget_hide(self.root.ids.settings_print_command, True)
+            else:
+                self.root.ids.settings_print_command.text = self.sideband.config["print_command"]
+                self.root.ids.settings_print_command.bind(on_text_validate=save_print_command)
+                self.root.ids.settings_print_command.bind(focus=save_print_command)
 
             if self.sideband.config["lxmf_propagation_node"] == None:
                 prop_node_addr = ""

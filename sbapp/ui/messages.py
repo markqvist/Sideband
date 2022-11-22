@@ -16,13 +16,17 @@ from kivy.clock import Clock
 from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.dialog import MDDialog
 
+import os
+import plyer
+import subprocess
+import shlex
 
 if RNS.vendor.platformutils.get_platform() == "android":
-    from ui.helpers import ts_format, mdc
-    from ui.helpers import color_received, color_delivered, color_propagated, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
+    from ui.helpers import ts_format, file_ts_format, mdc
+    from ui.helpers import color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
 else:
-    from .helpers import ts_format, mdc
-    from .helpers import color_received, color_delivered, color_propagated, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
+    from .helpers import ts_format, file_ts_format, mdc
+    from .helpers import color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
 
 class ListLXMessageCard(MDCard):
 # class ListLXMessageCard(MDCard, FakeRectangularElevationBehavior):
@@ -85,6 +89,15 @@ class Messages():
                     w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Delivered"
                     m["state"] = msg["state"]
 
+                if msg["method"] == LXMF.LXMessage.PAPER:
+                    w.md_bg_color = msg_color = mdc(color_paper, intensity_msgs)
+                    txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
+                    titlestr = ""
+                    if msg["title"]:
+                        titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
+                    w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Paper Message"
+                    m["state"] = msg["state"]
+
                 if msg["method"] == LXMF.LXMessage.PROPAGATED and msg["state"] == LXMF.LXMessage.SENT:
                     w.md_bg_color = msg_color = mdc(color_propagated, intensity_msgs)
                     txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
@@ -129,6 +142,10 @@ class Messages():
                     elif m["method"] == LXMF.LXMessage.PROPAGATED and m["state"] == LXMF.LXMessage.SENT:
                         msg_color = mdc(color_propagated, intensity_msgs)
                         heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] On Propagation Net"
+
+                    elif m["method"] == LXMF.LXMessage.PAPER:
+                        msg_color = mdc(color_paper, intensity_msgs)
+                        heading_str = titlestr+"[b]Created[/b] "+txstr+"\n[b]State[/b] Paper Message"
 
                     elif m["state"] == LXMF.LXMessage.FAILED:
                         msg_color = mdc(color_failed, intensity_msgs)
@@ -189,25 +206,153 @@ class Messages():
                 def gen_copy(msg, item):
                     def x():
                         Clipboard.copy(msg)
-                        RNS.log(str(item))
                         item.dmenu.dismiss()
 
                     return x
 
-                dm_items = [
-                    {
-                        "viewclass": "OneLineListItem",
-                        "text": "Copy",
-                        "height": dp(40),
-                        "on_release": gen_copy(m["content"].decode("utf-8"), item)
-                    },
-                    {
-                        "text": "Delete",
-                        "viewclass": "OneLineListItem",
-                        "height": dp(40),
-                        "on_release": gen_del(m["hash"], item)
-                    }
-                ]
+                def gen_copy_lxm_uri(lxm, item):
+                    def x():
+                        Clipboard.copy(lxm.as_uri())
+                        item.dmenu.dismiss()
+
+                    return x
+
+                def gen_save_qr(lxm, item):
+                    if RNS.vendor.platformutils.is_android():
+                        def x():
+                            item.dmenu.dismiss()
+                        return x
+
+                    else:
+                        def x():
+                            try:
+                                qr_image = lxm.as_qr()
+                                hash_str = RNS.hexrep(lxm.hash[-2:], delimit=False)
+                                filename = "Paper_Message_"+time.strftime(file_ts_format, time.localtime(m["sent"]))+"_"+hash_str+".png"
+                                save_path = plyer.storagepath.get_downloads_dir()+"/"+filename
+                                qr_image.save(save_path)
+                                item.dmenu.dismiss()
+
+                                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                                dialog = MDDialog(
+                                    title="QR Code Saved",
+                                    text="The paper message has been saved to: "+save_path+"",
+                                    buttons=[ ok_button ],
+                                    # elevation=0,
+                                )
+                                def dl_ok(s):
+                                    dialog.dismiss()
+                                
+                                ok_button.bind(on_release=dl_ok)
+                                dialog.open()
+
+                            except Exception as e:
+                                item.dmenu.dismiss()
+                                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                                dialog = MDDialog(
+                                    title="Error",
+                                    text="Could not save the paper message QR-code to:\n\n"+save_path+"\n\n"+str(e),
+                                    buttons=[ ok_button ],
+                                    # elevation=0,
+                                )
+                                def dl_ok(s):
+                                    dialog.dismiss()
+                                
+                                ok_button.bind(on_release=dl_ok)
+                                dialog.open()
+
+                        return x
+
+                def gen_print_qr(lxm, item):
+                    if RNS.vendor.platformutils.is_android():
+                        def x():
+                            item.dmenu.dismiss()
+                        return x
+                    
+                    else:
+                        def x():
+                            try:
+                                qr_image = lxm.as_qr()
+                                qr_tmp_path = self.app.sideband.tmp_dir+"/"+str(RNS.hexrep(lxm.hash, delimit=False))
+                                qr_image.save(qr_tmp_path)
+
+                                print_command = self.app.sideband.config["print_command"]+" "+qr_tmp_path
+                                return_code = subprocess.call(shlex.split(print_command), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                                os.unlink(qr_tmp_path)
+
+                                item.dmenu.dismiss()
+
+                            except Exception as e:
+                                item.dmenu.dismiss()
+                                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                                dialog = MDDialog(
+                                    title="Error",
+                                    text="Could not print the paper message QR-code.\n\n"+str(e),
+                                    buttons=[ ok_button ],
+                                    # elevation=0,
+                                )
+                                def dl_ok(s):
+                                    dialog.dismiss()
+                                
+                                ok_button.bind(on_release=dl_ok)
+                                dialog.open()
+
+                        return x
+
+                if m["method"] == LXMF.LXMessage.PAPER:
+                    if RNS.vendor.platformutils.is_android():
+                        qr_save_text = "Share QR Code"
+                    else:
+                        qr_save_text = "Save QR Code"
+
+                    dm_items = [
+                        {
+                            "viewclass": "OneLineListItem",
+                            "text": "Print QR Code",
+                            "height": dp(40),
+                            "on_release": gen_print_qr(m["lxm"], item)
+                        },
+                        {
+                            "viewclass": "OneLineListItem",
+                            "text": qr_save_text,
+                            "height": dp(40),
+                            "on_release": gen_save_qr(m["lxm"], item)
+                        },
+                        {
+                            "viewclass": "OneLineListItem",
+                            "text": "Copy LXM URI",
+                            "height": dp(40),
+                            "on_release": gen_copy_lxm_uri(m["lxm"], item)
+                        },
+                        {
+                            "viewclass": "OneLineListItem",
+                            "text": "Copy message text",
+                            "height": dp(40),
+                            "on_release": gen_copy(m["content"].decode("utf-8"), item)
+                        },
+                        {
+                            "text": "Delete",
+                            "viewclass": "OneLineListItem",
+                            "height": dp(40),
+                            "on_release": gen_del(m["hash"], item)
+                        }
+                    ]
+                else:
+                    dm_items = [
+                        {
+                            "viewclass": "OneLineListItem",
+                            "text": "Copy",
+                            "height": dp(40),
+                            "on_release": gen_copy(m["content"].decode("utf-8"), item)
+                        },
+                        {
+                            "text": "Delete",
+                            "viewclass": "OneLineListItem",
+                            "height": dp(40),
+                            "on_release": gen_del(m["hash"], item)
+                        }
+                    ]
 
                 item.dmenu = MDDropdownMenu(
                     caller=item.ids.msg_submenu,
