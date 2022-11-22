@@ -73,6 +73,9 @@ console:
 getrns:
 	(cp -rv ../../Reticulum/RNS ./;rm ./RNS/Utilities/RNS)
 	-(rm ./RNS/__pycache__ -r)
+	(cp -rv ../../LXMF/LXMF ./;rm ./LXMF/Utilities/LXMF)
+	-(rm ./LXMF/__pycache__ -r)
 
 cleanrns:
 	-(rm ./RNS -r)
+	-(rm ./LXMF -r)
