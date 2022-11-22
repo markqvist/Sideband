@@ -34,6 +34,7 @@ injectxml:
 	mkdir -p .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/src/main/res/xml
 	mkdir -p .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/templates
 	cp patches/device_filter.xml .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/src/main/res/xml/
+	cp patches/file_paths.xml .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/src/main/res/xml/
 	cp patches/AndroidManifest.tmpl.xml .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/templates/
 	
 debug:
