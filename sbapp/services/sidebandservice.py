@@ -203,7 +203,8 @@ class SidebandService():
             ts = "Disabled"
             i2s = "Disabled"
 
-            stat = "[size=22dp][b]Connectivity Status[/b][/size]\n\n"
+            # stat = "[size=22dp][b]Connectivity Status[/b][/size]\n\n"
+            stat = ""
 
             if self.sideband.interface_local != None:
                 netdevs = self.sideband.interface_local.adopted_interfaces

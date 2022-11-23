@@ -18,16 +18,13 @@ from kivymd.uix.dialog import MDDialog
 class NewConv(BoxLayout):
     pass
 
-
 class MsgSync(BoxLayout):
     pass
-
 
 class ConvSettings(BoxLayout):
     disp_name = StringProperty()
     context_dest = StringProperty()
     trusted = BooleanProperty()
-
 
 class Conversations():
     def __init__(self, app):
@@ -35,7 +32,11 @@ class Conversations():
         self.context_dests = []
         self.added_item_dests = []
         self.list = None
+
         self.conversation_dropdown = None
+        self.delete_dialog = None
+        self.clear_dialog = None
+
         self.update()
 
     def reload(self):
@@ -50,8 +51,8 @@ class Conversations():
         self.added_item_dests = []
 
     def update(self):
-        if self.app.sideband.getstate("app.flags.unread_conversations"):
-            self.clear_list()
+        # if self.app.sideband.getstate("app.flags.unread_conversations"):
+        #     self.clear_list()
         
         self.context_dests = self.app.sideband.list_conversations()
         self.update_widget()
@@ -60,36 +61,57 @@ class Conversations():
         self.app.sideband.setstate("app.flags.new_conversations", False)
         self.app.sideband.setstate("wants.viewupdate.conversations", False)
 
+    def trust_icon(self, context_dest, unread):
+        trust_icon = "account-question"
+        if self.app.sideband.is_trusted(context_dest):
+            if unread:
+                trust_icon = "email-seal"
+            else:
+                trust_icon = "account-check"
+        else:
+            if unread:
+                trust_icon = "email"
+            else:
+                trust_icon = "account-question"
+
+        return trust_icon
+
     def update_widget(self):
         us = time.time()
         RNS.log("Updating conversation list widgets", RNS.LOG_DEBUG)
         if self.list == None:
             self.list = MDList()
+
+        remove_widgets = []
+        for w in self.list.children:
+            if not w.sb_uid in [e["dest"] for e in self.context_dests]:
+                RNS.log("Should remove "+RNS.prettyhexrep(w.sb_uid)+" from list")
+                remove_widgets.append(w)
+                self.added_item_dests.remove(w.sb_uid)
+
+        for w in remove_widgets:
+            RNS.log("Removing "+str(w))
+            self.list.remove_widget(w)
+
             
         for conv in self.context_dests:
             context_dest = conv["dest"]
             unread = conv["unread"]
 
             if not context_dest in self.added_item_dests:
-                if self.app.sideband.is_trusted(context_dest):
-                    if unread:
-                        trust_icon = "email-seal"
-                    else:
-                        trust_icon = "account-check"
-                else:
-                    if unread:
-                        trust_icon = "email"
-                    else:
-                        trust_icon = "account-question"
+                i_s = time.time()
 
-                iconl = IconLeftWidget(icon=trust_icon, on_release=self.app.conversation_action)
+                iconl = IconLeftWidget(icon=self.trust_icon(context_dest, unread), on_release=self.app.conversation_action)
                 item = OneLineAvatarIconListItem(text=self.app.sideband.peer_display_name(context_dest), on_release=self.app.conversation_action)
                 item.add_widget(iconl)
+                item.iconl = iconl
                 item.sb_uid = context_dest
+                item.sb_unread = unread
                 iconl.sb_uid = context_dest
 
-                def gen_edit(dest, item):
+                def gen_edit(item):
                     def x():
+                        t_s = time.time()
                         dest = self.conversation_dropdown.context_dest
                         try:
                             disp_name = self.app.sideband.raw_display_name(dest)
@@ -127,7 +149,7 @@ class Conversations():
                                 dialog.dismiss()
 
                                 def cb(dt):
-                                    self.reload()
+                                    self.update()
                                 Clock.schedule_once(cb, 0.2)
 
                             def dl_no(s):
@@ -137,61 +159,66 @@ class Conversations():
                             no_button.bind(on_release=dl_no)
                             item.dmenu.dismiss()
                             dialog.open()
+                            RNS.log("Generated edit dialog in "+str(RNS.prettytime(time.time()-t_s)))
+
                         except Exception as e:
                             RNS.log("Error while creating conversation settings: "+str(e), RNS.LOG_ERROR)
 
                     return x
 
-                def gen_clear(dest, item):
+                def gen_clear(item):
                     def x():
-                        dest = self.conversation_dropdown.context_dest
-                        yes_button = MDRectangleFlatButton(text="Yes",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
-                        no_button = MDRectangleFlatButton(text="No",font_size=dp(18))
+                        if self.clear_dialog == None:
+                            yes_button = MDRectangleFlatButton(text="Yes",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
+                            no_button = MDRectangleFlatButton(text="No",font_size=dp(18))
 
-                        dialog = MDDialog(
-                            title="Clear all messages in conversation?",
-                            buttons=[ yes_button, no_button ],
-                            # elevation=0,
-                        )
-                        def dl_yes(s):
-                            dialog.dismiss()
-                            self.app.sideband.clear_conversation(dest)
-                        def dl_no(s):
-                            dialog.dismiss()
+                            self.clear_dialog = MDDialog(
+                                title="Clear all messages in conversation?",
+                                buttons=[ yes_button, no_button ],
+                                # elevation=0,
+                            )
+                            def dl_yes(s):
+                                self.clear_dialog.dismiss()
+                                self.app.sideband.clear_conversation(self.conversation_dropdown.context_dest)
+                            def dl_no(s):
+                                self.clear_dialog.dismiss()
 
-                        yes_button.bind(on_release=dl_yes)
-                        no_button.bind(on_release=dl_no)
+                            yes_button.bind(on_release=dl_yes)
+                            no_button.bind(on_release=dl_no)
+
                         item.dmenu.dismiss()
-                        dialog.open()
+                        self.clear_dialog.open()
                     return x
 
-                def gen_del(dest, item):
+                def gen_del(item):
                     def x():
-                        yes_button = MDRectangleFlatButton(text="Yes",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
-                        no_button = MDRectangleFlatButton(text="No",font_size=dp(18))
-                        dialog = MDDialog(
-                            title="Delete conversation?",
-                            buttons=[ yes_button, no_button ],
-                            # elevation=0,
-                        )
-                        def dl_yes(s):
-                            dialog.dismiss()
-                            self.app.sideband.delete_conversation(self.conversation_dropdown.context_dest)
-                            def cb(dt):
-                                self.reload()
-                            Clock.schedule_once(cb, 0.2)
-                        def dl_no(s):
-                            dialog.dismiss()
+                        if self.delete_dialog == None:
+                            yes_button = MDRectangleFlatButton(text="Yes",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
+                            no_button = MDRectangleFlatButton(text="No",font_size=dp(18))
+                            self.delete_dialog = MDDialog(
+                                title="Delete conversation?",
+                                buttons=[ yes_button, no_button ],
+                                # elevation=0,
+                            )
+                            def dl_yes(s):
+                                self.delete_dialog.dismiss()
+                                self.app.sideband.delete_conversation(self.conversation_dropdown.context_dest)
+                                def cb(dt):
+                                    self.update()
+                                Clock.schedule_once(cb, 0.2)
+                            def dl_no(s):
+                                self.delete_dialog.dismiss()
 
-                        yes_button.bind(on_release=dl_yes)
-                        no_button.bind(on_release=dl_no)
+                            yes_button.bind(on_release=dl_yes)
+                            no_button.bind(on_release=dl_no)
+
                         item.dmenu.dismiss()
-                        dialog.open()
+                        self.delete_dialog.open()
                     return x
 
-                def gen_copy_addr(dest, item):
+                def gen_copy_addr(item):
                     def x():
-                        Clipboard.copy(RNS.hexrep(dest, delimit=False))
+                        Clipboard.copy(RNS.hexrep(self.conversation_dropdown.context_dest, delimit=False))
                         item.dmenu.dismiss()
                     return x
 
@@ -202,25 +229,25 @@ class Conversations():
                             "viewclass": "OneLineListItem",
                             "text": "Edit",
                             "height": dp(dmi_h),
-                            "on_release": gen_edit(context_dest, item)
+                            "on_release": gen_edit(item)
                         },
                         {
                             "text": "Copy Address",
                             "viewclass": "OneLineListItem",
                             "height": dp(dmi_h),
-                            "on_release": gen_copy_addr(context_dest, item)
+                            "on_release": gen_copy_addr(item)
                         },
                         {
                             "text": "Clear Messages",
                             "viewclass": "OneLineListItem",
                             "height": dp(dmi_h),
-                            "on_release": gen_clear(context_dest, item)
+                            "on_release": gen_clear(item)
                         },
                         {
                             "text": "Delete Conversation",
                             "viewclass": "OneLineListItem",
                             "height": dp(dmi_h),
-                            "on_release": gen_del(context_dest, item)
+                            "on_release": gen_del(item)
                         }
                     ]
 
@@ -252,6 +279,19 @@ class Conversations():
                 
                 self.added_item_dests.append(context_dest)
                 self.list.add_widget(item)
+
+                RNS.log("Created item in "+RNS.prettytime(time.time()-i_s), RNS.LOG_DEBUG)
+
+            else:
+                for w in self.list.children:
+                    if w.sb_uid == context_dest:
+                        disp_name = self.app.sideband.peer_display_name(context_dest)
+                        trust_icon = self.trust_icon(context_dest, unread)
+                        if w.iconl.icon != trust_icon:
+                            w.iconl.icon = trust_icon
+                            w.sb_unread = unread
+                        if w.text != disp_name:
+                            w.text = disp_name
 
         RNS.log("Updated conversation list widgets in "+RNS.prettytime(time.time()-us), RNS.LOG_DEBUG)
 

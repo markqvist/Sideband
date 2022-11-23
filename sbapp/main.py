@@ -724,11 +724,13 @@ class SidebandApp(MDApp):
 
         self.open_conversation(context_dest)
 
-
     def conversation_action(self, sender):
         def cb(dt):
             self.open_conversation(sender.sb_uid)
+        def cbu(dt):
+            self.conversations_view.update()
         Clock.schedule_once(cb, 0.15)
+        Clock.schedule_once(cbu, 0.15+0.25)
 
     def open_conversation(self, context_dest):
         self.outbound_mode_paper = False
@@ -915,9 +917,9 @@ class SidebandApp(MDApp):
 
         else:
             if self.sideband.reticulum.is_connected_to_shared_instance:
-                connectivity_status = "[size=22dp][b]Connectivity Status[/b][/size]\n\nSideband is connected via a shared Reticulum instance running on this system. Use the rnstatus utility to obtain full connectivity info."
+                connectivity_status = "Sideband is connected via a shared Reticulum instance running on this system. Use the rnstatus utility to obtain full connectivity info."
             else:
-                connectivity_status = "[size=22dp][b]Connectivity Status[/b][/size]\n\nSideband is currently running a standalone or master Reticulum instance on this system. Use the rnstatus utility to obtain full connectivity info."
+                connectivity_status = "Sideband is currently running a standalone or master Reticulum instance on this system. Use the rnstatus utility to obtain full connectivity info."
 
         return connectivity_status
     
@@ -927,6 +929,7 @@ class SidebandApp(MDApp):
         
         yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
         dialog = MDDialog(
+            title="Connectivity Status",
             text=self.get_connectivity_text(),
             buttons=[ yes_button ],
             # elevation=0,
