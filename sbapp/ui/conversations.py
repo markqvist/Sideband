@@ -99,8 +99,6 @@ class Conversations():
             unread = conv["unread"]
 
             if not context_dest in self.added_item_dests:
-                i_s = time.time()
-
                 iconl = IconLeftWidget(icon=self.trust_icon(context_dest, unread), on_release=self.app.conversation_action)
                 item = OneLineAvatarIconListItem(text=self.app.sideband.peer_display_name(context_dest), on_release=self.app.conversation_action)
                 item.add_widget(iconl)
@@ -279,8 +277,6 @@ class Conversations():
                 
                 self.added_item_dests.append(context_dest)
                 self.list.add_widget(item)
-
-                RNS.log("Created item in "+RNS.prettytime(time.time()-i_s), RNS.LOG_DEBUG)
 
             else:
                 for w in self.list.children:

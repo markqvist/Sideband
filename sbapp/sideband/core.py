@@ -22,35 +22,36 @@ class PropagationNodeDetector():
 
     def received_announce(self, destination_hash, announced_identity, app_data):
         try:
-            unpacked = msgpack.unpackb(app_data)
-            node_active = unpacked[0]
-            emitted = unpacked[1]
-            hops = RNS.Transport.hops_to(destination_hash)
+            if len(app_data) > 0:
+                unpacked = msgpack.unpackb(app_data)
+                node_active = unpacked[0]
+                emitted = unpacked[1]
+                hops = RNS.Transport.hops_to(destination_hash)
 
-            age = time.time() - emitted
-            if age < 0:
-                RNS.log("Warning, propagation node announce emitted in the future, possible timing inconsistency or tampering attempt.")
-                if age < -1*PropagationNodeDetector.EMITTED_DELTA_GRACE:
-                    raise ValueError("Announce timestamp too far in the future, discarding it")
+                age = time.time() - emitted
+                if age < 0:
+                    RNS.log("Warning, propagation node announce emitted in the future, possible timing inconsistency or tampering attempt.")
+                    if age < -1*PropagationNodeDetector.EMITTED_DELTA_GRACE:
+                        raise ValueError("Announce timestamp too far in the future, discarding it")
 
-            if age > -1*PropagationNodeDetector.EMITTED_DELTA_IGNORE:
-                # age = 0
-                pass
+                if age > -1*PropagationNodeDetector.EMITTED_DELTA_IGNORE:
+                    # age = 0
+                    pass
 
-            RNS.log("Detected active propagation node "+RNS.prettyhexrep(destination_hash)+" emission "+str(age)+" seconds ago, "+str(hops)+" hops away")
-            self.owner.log_announce(destination_hash, RNS.prettyhexrep(destination_hash).encode("utf-8"), dest_type=PropagationNodeDetector.aspect_filter)
+                RNS.log("Detected active propagation node "+RNS.prettyhexrep(destination_hash)+" emission "+str(age)+" seconds ago, "+str(hops)+" hops away")
+                self.owner.log_announce(destination_hash, RNS.prettyhexrep(destination_hash).encode("utf-8"), dest_type=PropagationNodeDetector.aspect_filter)
 
-            if self.owner.config["lxmf_propagation_node"] == None:
-                if self.owner.active_propagation_node == None:
-                    self.owner.set_active_propagation_node(destination_hash)
-                else:
-                    prev_hops = RNS.Transport.hops_to(self.owner.active_propagation_node)
-                    if hops <= prev_hops:
+                if self.owner.config["lxmf_propagation_node"] == None:
+                    if self.owner.active_propagation_node == None:
                         self.owner.set_active_propagation_node(destination_hash)
                     else:
-                        pass
-            else:
-                pass
+                        prev_hops = RNS.Transport.hops_to(self.owner.active_propagation_node)
+                        if hops <= prev_hops:
+                            self.owner.set_active_propagation_node(destination_hash)
+                        else:
+                            pass
+                else:
+                    pass
 
         except Exception as e:
             RNS.log("Error while processing received propagation node announce: "+str(e))
@@ -79,6 +80,7 @@ class SidebandCore():
     def __init__(self, owner_app, is_service=False, is_client=False, android_app_dir=None, verbose=False):
         self.is_service = is_service
         self.is_client = is_client
+        self.db = None
 
         if not self.is_service and not self.is_client:
             self.is_standalone = True
@@ -125,6 +127,8 @@ class SidebandCore():
         
         self.first_run     = True
         self.saving_configuration = False
+
+        self.getstate_cache = {}
 
         try:
             if not os.path.isfile(self.config_path):
@@ -399,6 +403,7 @@ class SidebandCore():
         else:
             self._db_initstate()
             self._db_initpersistent()
+            self.__db_indices()
 
     def __reload_config(self):
         RNS.log("Reloading Sideband configuration... "+str(self.config_path), RNS.LOG_DEBUG)
@@ -626,13 +631,54 @@ class SidebandCore():
         return self._db_getstate("app.active_conversation")
 
     def setstate(self, prop, val):
+        self.getstate_cache[prop] = val
         self._db_setstate(prop, val)
+        # def cb():
+        #     self._db_setstate(prop, val)
+        # threading.Thread(target=cb, daemon=True).start()
 
-    def getstate(self, prop):
-        return self._db_getstate(prop)
+    def getstate(self, prop, allow_cache=False):
+        if not RNS.vendor.platformutils.is_android():
+            return self._db_getstate(prop)
+
+        else:
+            db_timeout = 0.060
+            cached_value = None
+            has_cached_value = False
+            if prop in self.getstate_cache:
+                cached_value = self.getstate_cache[prop]
+                has_cached_value = True
+            
+            if not allow_cache or not has_cached_value:
+                self.getstate_cache[prop] = self._db_getstate(prop)
+                return self.getstate_cache[prop]
+            
+            else:
+                get_thread_running = True
+                def get_job():
+                    self.getstate_cache[prop] = self._db_getstate(prop)
+                    get_thread_running = False
+
+                get_thread = threading.Thread(target=get_job, daemon=True)
+                get_thread.timeout = time.time()+db_timeout
+                get_thread.start()
+
+                while get_thread.is_alive() and time.time() < get_thread.timeout:
+                    time.sleep(0.01)
+
+                if get_thread.is_alive():
+                    return self.getstate_cache[prop]
+                else:
+                    return self.getstate_cache[prop]
+
+
+
 
     def setpersistent(self, prop, val):
         self._db_setpersistent(prop, val)
+        # def cb():
+        #     self._db_setpersistent(prop, val)
+        # threading.Thread(target=cb, daemon=True).start()
 
     def getpersistent(self, prop):
         return self._db_getpersistent(prop)
@@ -643,8 +689,14 @@ class SidebandCore():
     def __event_conversation_changed(self, context_dest):
         pass
 
+    def __db_connect(self):
+        if self.db == None:
+            self.db = sqlite3.connect(self.db_path, check_same_thread=False)
+
+        return self.db
+
     def __db_init(self):
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
 
         dbc.execute("DROP TABLE IF EXISTS lxm")
@@ -663,105 +715,153 @@ class SidebandCore():
         dbc.execute("CREATE TABLE persistent (property BLOB PRIMARY KEY, value BLOB)")
 
         db.commit()
-        db.close()
+
+    def __db_indices(self):
+        db = self.__db_connect()
+        dbc = db.cursor()
+        dbc.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_persistent_property ON persistent(property)")
+        dbc.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_state_property ON state(property)")
+        dbc.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_conv_dest_context ON conv(dest_context)")
+        db.commit()
 
     def _db_initstate(self):
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
 
         dbc.execute("DROP TABLE IF EXISTS state")
         dbc.execute("CREATE TABLE state (property BLOB PRIMARY KEY, value BLOB)")
+        db.commit()
         self._db_setstate("database_ready", True)
 
     def _db_getstate(self, prop):
-        db = sqlite3.connect(self.db_path)
-        dbc = db.cursor()
-        
-        query = "select * from state where property=:uprop"
-        dbc.execute(query, {"uprop": prop.encode("utf-8")})
-        result = dbc.fetchall()
-        db.close()
+        try:
+            db = self.__db_connect()
+            dbc = db.cursor()
 
-        if len(result) < 1:
-            return None
-        else:
-            try:
-                entry = result[0]
-                val = msgpack.unpackb(entry[1])
-                return val
-            except Exception as e:
-                RNS.log("Could not unpack state value from database for property \""+str(prop)+"\". The contained exception was: "+str(e), RNS.LOG_ERROR)
+            query = "select * from state where property=:uprop"
+            dbc.execute(query, {"uprop": prop.encode("utf-8")})
+            
+            result = dbc.fetchall()
+
+            if len(result) < 1:
                 return None
+            else:
+                try:
+                    entry = result[0]
+                    val = msgpack.unpackb(entry[1])
+                    
+                    return val
+                except Exception as e:
+                    RNS.log("Could not unpack state value from database for property \""+str(prop)+"\". The contained exception was: "+str(e), RNS.LOG_ERROR)
+                    return None
+
+        except Exception as e:
+            RNS.log("An error occurred during getstate database operation: "+str(e), RNS.LOG_ERROR)
+            self.db = None
 
     def _db_setstate(self, prop, val):
-        db = sqlite3.connect(self.db_path)
-        dbc = db.cursor()
-        uprop = prop.encode("utf-8")
-        bval = msgpack.packb(val)
+        try:
+            uprop = prop.encode("utf-8")
+            bval = msgpack.packb(val)
 
-        if self._db_getstate(prop) == None:
-            query = "INSERT INTO state (property, value) values (?, ?)"
-            data = (uprop, bval)
-            dbc.execute(query, data)
-        else:
-            query = "UPDATE state set value=:bval where property=:uprop;"
-            dbc.execute(query, {"bval": bval, "uprop": uprop})
+            if self._db_getstate(prop) == None:
+                try:
+                    db = self.__db_connect()
+                    dbc = db.cursor()
+                    query = "INSERT INTO state (property, value) values (?, ?)"
+                    data = (uprop, bval)
+                    dbc.execute(query, data)
+                    db.commit()
 
-        db.commit()
-        db.close()
+                except Exception as e:
+                    RNS.log("Error while setting state property "+str(prop)+" in DB: "+str(e), RNS.LOG_ERROR)
+                    RNS.log("Retrying as update query...", RNS.LOG_ERROR)
+                    db = self.__db_connect()
+                    dbc = db.cursor()
+                    query = "UPDATE state set value=:bval where property=:uprop;"
+                    dbc.execute(query, {"bval": bval, "uprop": uprop})
+                    db.commit()
+
+            else:
+                db = self.__db_connect()
+                dbc = db.cursor()
+                query = "UPDATE state set value=:bval where property=:uprop;"
+                dbc.execute(query, {"bval": bval, "uprop": uprop})
+                db.commit()
+
+
+        except Exception as e:
+            RNS.log("An error occurred during setstate database operation: "+str(e), RNS.LOG_ERROR)
+            self.db = None
 
     def _db_initpersistent(self):
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
 
         dbc.execute("CREATE TABLE IF NOT EXISTS persistent (property BLOB PRIMARY KEY, value BLOB)")
+        db.commit()
 
     def _db_getpersistent(self, prop):
-        db = sqlite3.connect(self.db_path)
-        dbc = db.cursor()
-        
-        query = "select * from persistent where property=:uprop"
-        dbc.execute(query, {"uprop": prop.encode("utf-8")})
-        result = dbc.fetchall()
-        db.close()
+        try:
+            db = self.__db_connect()
+            dbc = db.cursor()
+            
+            query = "select * from persistent where property=:uprop"
+            dbc.execute(query, {"uprop": prop.encode("utf-8")})
+            result = dbc.fetchall()
 
-        if len(result) < 1:
-            return None
-        else:
-            try:
-                entry = result[0]
-                val = msgpack.unpackb(entry[1])
-                if val == None:
-                    db = sqlite3.connect(self.db_path)
-                    dbc = db.cursor()
-                    query = "delete from persistent where (property=:uprop);"
-                    dbc.execute(query, {"uprop": prop.encode("utf-8")})
-                    db.commit()
-
-                return val
-            except Exception as e:
-                RNS.log("Could not unpack persistent value from database for property \""+str(prop)+"\". The contained exception was: "+str(e), RNS.LOG_ERROR)
+            if len(result) < 1:
                 return None
+            else:
+                try:
+                    entry = result[0]
+                    val = msgpack.unpackb(entry[1])
+                    if val == None:
+                        query = "delete from persistent where (property=:uprop);"
+                        dbc.execute(query, {"uprop": prop.encode("utf-8")})
+                        db.commit()
+
+                    return val
+                except Exception as e:
+                    RNS.log("Could not unpack persistent value from database for property \""+str(prop)+"\". The contained exception was: "+str(e), RNS.LOG_ERROR)
+                    return None
+        
+        except Exception as e:
+            RNS.log("An error occurred during persistent getstate database operation: "+str(e), RNS.LOG_ERROR)
+            self.db = None
 
     def _db_setpersistent(self, prop, val):
-        db = sqlite3.connect(self.db_path)
-        dbc = db.cursor()
-        uprop = prop.encode("utf-8")
-        bval = msgpack.packb(val)
+        try:
+            db = self.__db_connect()
+            dbc = db.cursor()
+            uprop = prop.encode("utf-8")
+            bval = msgpack.packb(val)
 
-        if self._db_getpersistent(prop) == None:
-            query = "INSERT INTO persistent (property, value) values (?, ?)"
-            data = (uprop, bval)
-            dbc.execute(query, data)
-        else:
-            query = "UPDATE persistent set value=:bval where property=:uprop;"
-            dbc.execute(query, {"bval": bval, "uprop": uprop})
+            if self._db_getpersistent(prop) == None:
+                try:
+                    query = "INSERT INTO persistent (property, value) values (?, ?)"
+                    data = (uprop, bval)
+                    dbc.execute(query, data)
+                    db.commit()
+        
+                except Exception as e:
+                    RNS.log("Error while setting persistent state property "+str(prop)+" in DB: "+str(e), RNS.LOG_ERROR)
+                    RNS.log("Retrying as update query...")
+                    query = "UPDATE state set value=:bval where property=:uprop;"
+                    dbc.execute(query, {"bval": bval, "uprop": uprop})
+                    db.commit()
 
-        db.commit()
-        db.close()
+            else:
+                query = "UPDATE persistent set value=:bval where property=:uprop;"
+                dbc.execute(query, {"bval": bval, "uprop": uprop})
+                db.commit()
+        
+        except Exception as e:
+            RNS.log("An error occurred during persistent setstate database operation: "+str(e), RNS.LOG_ERROR)
+            self.db = None
 
     def _db_conversation_set_unread(self, context_dest, unread):
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
         
         query = "UPDATE conv set unread = ? where dest_context = ?"
@@ -770,10 +870,8 @@ class SidebandCore():
         result = dbc.fetchall()
         db.commit()
 
-        db.close()
-
     def _db_conversation_set_trusted(self, context_dest, trusted):
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
         
         query = "UPDATE conv set trust = ? where dest_context = ?"
@@ -782,10 +880,8 @@ class SidebandCore():
         result = dbc.fetchall()
         db.commit()
 
-        db.close()
-
     def _db_conversation_set_name(self, context_dest, name):
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
         
         query = "UPDATE conv set name=:name_data where dest_context=:ctx;"
@@ -793,16 +889,12 @@ class SidebandCore():
         result = dbc.fetchall()
         db.commit()
 
-        db.close()
-
     def _db_conversations(self):
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
         
         dbc.execute("select * from conv")
         result = dbc.fetchall()
-
-        db.close()
 
         if len(result) < 1:
             return None
@@ -818,13 +910,11 @@ class SidebandCore():
             return convs
 
     def _db_announces(self):
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
         
         dbc.execute("select * from announce order by received desc")
         result = dbc.fetchall()
-
-        db.close()
 
         if len(result) < 1:
             return None
@@ -849,14 +939,12 @@ class SidebandCore():
             return announces
 
     def _db_conversation(self, context_dest):
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
         
         query = "select * from conv where dest_context=:ctx"
         dbc.execute(query, {"ctx": context_dest})
         result = dbc.fetchall()
-
-        db.close()
 
         if len(result) < 1:
             return None
@@ -875,40 +963,35 @@ class SidebandCore():
 
     def _db_clear_conversation(self, context_dest):
         RNS.log("Clearing conversation with "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
 
         query = "delete from lxm where (dest=:ctx_dst or source=:ctx_dst);"
         dbc.execute(query, {"ctx_dst": context_dest})
         db.commit()
 
-        db.close()
-
     def _db_delete_conversation(self, context_dest):
         RNS.log("Deleting conversation with "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
 
         query = "delete from conv where (dest_context=:ctx_dst);"
         dbc.execute(query, {"ctx_dst": context_dest})
         db.commit()
 
-        db.close()
 
     def _db_delete_announce(self, context_dest):
         RNS.log("Deleting announce with "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
 
         query = "delete from announce where (source=:ctx_dst);"
         dbc.execute(query, {"ctx_dst": context_dest})
         db.commit()
 
-        db.close()
-
     def _db_create_conversation(self, context_dest, name = None, trust = False):
         RNS.log("Creating conversation for "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
 
         def_name = "".encode("utf-8")
@@ -916,9 +999,7 @@ class SidebandCore():
         data = (context_dest, 0, 0, 0, SidebandCore.CONV_P2P, 0, def_name, msgpack.packb(None))
 
         dbc.execute(query, data)
-
         db.commit()
-        db.close()
 
         if trust:
             self._db_conversation_set_trusted(context_dest, True)
@@ -930,28 +1011,24 @@ class SidebandCore():
 
     def _db_delete_message(self, msg_hash):
         RNS.log("Deleting message "+RNS.prettyhexrep(msg_hash))
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
 
         query = "delete from lxm where (lxm_hash=:mhash);"
         dbc.execute(query, {"mhash": msg_hash})
         db.commit()
 
-        db.close()
-
     def _db_clean_messages(self):
         RNS.log("Purging stale messages... "+str(self.db_path))
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
 
         query = "delete from lxm where (state=:outbound_state or state=:sending_state);"
         dbc.execute(query, {"outbound_state": LXMF.LXMessage.OUTBOUND, "sending_state": LXMF.LXMessage.SENDING})
         db.commit()
 
-        db.close()
-
     def _db_message_set_state(self, lxm_hash, state):
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
         
         query = "UPDATE lxm set state = ? where lxm_hash = ?"
@@ -960,10 +1037,8 @@ class SidebandCore():
         db.commit()
         result = dbc.fetchall()
 
-        db.close()
-
     def _db_message_set_method(self, lxm_hash, method):
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
         
         query = "UPDATE lxm set method = ? where lxm_hash = ?"
@@ -972,20 +1047,16 @@ class SidebandCore():
         db.commit()
         result = dbc.fetchall()
 
-        db.close()
-
     def message(self, msg_hash):
         return self._db_message(msg_hash)
 
     def _db_message(self, msg_hash):
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
         
         query = "select * from lxm where lxm_hash=:mhash"
         dbc.execute(query, {"mhash": msg_hash})
         result = dbc.fetchall()
-
-        db.close()
 
         if len(result) < 1:
             return None
@@ -1020,7 +1091,7 @@ class SidebandCore():
             return message
 
     def _db_message_count(self, context_dest):
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
         
         query = "select count(*) from lxm where dest=:context_dest or source=:context_dest"
@@ -1028,15 +1099,13 @@ class SidebandCore():
 
         result = dbc.fetchall()
 
-        db.close()
-
         if len(result) < 1:
             return None
         else:
             return result[0][0]
 
     def _db_messages(self, context_dest, after = None, before = None, limit = None):
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
         
         if after != None and before == None:
@@ -1053,8 +1122,6 @@ class SidebandCore():
             dbc.execute(query, {"context_dest": context_dest})
 
         result = dbc.fetchall()
-
-        db.close()
 
         if len(result) < 1:
             return None
@@ -1095,7 +1162,7 @@ class SidebandCore():
     def _db_save_lxm(self, lxm, context_dest):    
         state = lxm.state
 
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
 
         if not lxm.packed:
@@ -1124,12 +1191,11 @@ class SidebandCore():
         dbc.execute(query, data)
 
         db.commit()
-        db.close()
 
         self.__event_conversation_changed(context_dest)
 
     def _db_save_announce(self, destination_hash, app_data, dest_type="lxmf.delivery"):
-        db = sqlite3.connect(self.db_path)
+        db = self.__db_connect()
         dbc = db.cursor()
 
         query = "delete from announce where id is NULL or id not in (select id from announce order by received desc limit "+str(self.MAX_ANNOUNCES)+")"
@@ -1153,9 +1219,6 @@ class SidebandCore():
 
         dbc.execute(query, data)
         db.commit()
-
-        db.commit()
-        db.close()
 
     def lxmf_announce(self):
         if self.is_standalone or self.is_service:
