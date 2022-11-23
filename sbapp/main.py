@@ -521,40 +521,18 @@ class SidebandApp(MDApp):
         return screen
 
     def jobs(self, delta_time):
-        # TODO: Remove
-        js = time.time()
-        actions = []
-
         if self.root.ids.screen_manager.current == "messages_screen":
-            # TODO: Remove
-            actions.append("messages_screen")
-            
             self.messages_view.update()
 
             if not self.root.ids.messages_scrollview.dest_known:
-                # TODO: Remove
-                actions.append("messages_area_detect")
-                
                 self.message_area_detect()
 
         elif self.root.ids.screen_manager.current == "conversations_screen":
-            # TODO: Remove
-            actions.append("conversations_screen")
-            
             if self.sideband.getstate("app.flags.unread_conversations", allow_cache=True):
-                # TODO: Remove
-                actions.append("unread_conversations")
-                
                 if self.conversations_view != None:
-                    # TODO: Remove
-                    actions.append("conversations_view.update")
-
                     self.conversations_view.update()
 
             if self.sideband.getstate("app.flags.lxmf_sync_dialog_open", allow_cache=True) and self.sync_dialog != None:
-                # TODO: Remove
-                actions.append("lxmf_sync_dialog_open")
-                
                 self.sync_dialog.ids.sync_progress.value = self.sideband.get_sync_progress()*100
                 self.sync_dialog.ids.sync_status.text = self.sideband.get_sync_status()
 
@@ -565,38 +543,19 @@ class SidebandApp(MDApp):
                     self.widget_hide(self.sync_dialog.stop_button, True)
 
         elif self.root.ids.screen_manager.current == "announces_screen":
-            # TODO: Remove
-            actions.append("announces_screen")
-            
             if self.sideband.getstate("app.flags.new_announces", allow_cache=True):
-                # TODO: Remove
-                actions.append("new_announces")
-                
                 if self.announces_view != None:
-                    actions.append("announces_view.update")
                     self.announces_view.update()
 
         if self.sideband.getstate("app.flags.new_conversations", allow_cache=True):
-            # TODO: Remove
-            actions.append("new_conversations")
-            
             if self.conversations_view != None:
-                # TODO: Remove
-                actions.append("conversations_view.update")
-
                 self.conversations_view.update()
 
         if self.sideband.getstate("wants.viewupdate.conversations", allow_cache=True):
-            # TODO: Remove
-            actions.append("wants.viewupdate.conversations")
-
             if self.conversations_view != None:
                 self.conversations_view.update()
 
         if self.sideband.getstate("lxm_uri_ingest.result", allow_cache=True):
-            # TODO: Remove
-            actions.append("lxm_uri_ingest.result")
-            
             info_text = self.sideband.getstate("lxm_uri_ingest.result", allow_cache=True)
             self.sideband.setstate("lxm_uri_ingest.result", False)
             ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
@@ -611,12 +570,6 @@ class SidebandApp(MDApp):
             
             ok_button.bind(on_release=dl_ok)
             dialog.open()
-
-        # TODO: Remove Timing and Profiling
-        jd = time.time()-js
-        if jd > 0.25:
-            RNS.log("Jobs completed in "+RNS.prettytime(jd), RNS.LOG_DEBUG)
-            RNS.log(str(actions))
 
     def on_start(self):
         self.last_exit_event = time.time()
