@@ -1259,6 +1259,7 @@ class SidebandCore():
 
                 if self.getstate("wants.bt_on"):
                     self.setstate("wants.bt_on", False)
+                    self.owner_app.discover_usb_devices()
                     self.setstate("executing.bt_on", True)
                     if self.interface_rnode != None:
                         self.interface_rnode.enable_bluetooth()
@@ -1267,10 +1268,13 @@ class SidebandCore():
                             if len(self.owner_app.usb_devices) > 0:
                                 target_port = self.owner_app.usb_devices[0]["port"]
                                 RNS.Interfaces.Android.RNodeInterface.RNodeInterface.bluetooth_control(port=target_port, enable_bluetooth = True)
+                            else:
+                                RNS.log("Could not execute RNode Bluetooth control command, no USB devices available", RNS.LOG_ERROR)
                     self.setstate("executing.bt_on", False)
                 
                 if self.getstate("wants.bt_off"):
                     self.setstate("wants.bt_off", False)
+                    self.owner_app.discover_usb_devices()
                     self.setstate("executing.bt_off", True)
                     if self.interface_rnode != None:
                         self.interface_rnode.disable_bluetooth()
@@ -1279,10 +1283,13 @@ class SidebandCore():
                             if len(self.owner_app.usb_devices) > 0:
                                 target_port = self.owner_app.usb_devices[0]["port"]
                                 RNS.Interfaces.Android.RNodeInterface.RNodeInterface.bluetooth_control(port=target_port, disable_bluetooth = True)
+                            else:
+                                RNS.log("Could not execute RNode Bluetooth control command, no USB devices available", RNS.LOG_ERROR)
                     self.setstate("executing.bt_off", False)
                 
                 if self.getstate("wants.bt_pair"):
                     self.setstate("wants.bt_pair", False)
+                    self.owner_app.discover_usb_devices()
                     self.setstate("executing.bt_pair", True)
                     if self.interface_rnode != None:
                         self.interface_rnode.bluetooth_pair()
@@ -1291,6 +1298,8 @@ class SidebandCore():
                             if len(self.owner_app.usb_devices) > 0:
                                 target_port = self.owner_app.usb_devices[0]["port"]
                                 RNS.Interfaces.Android.RNodeInterface.RNodeInterface.bluetooth_control(port=target_port, pairing_mode = True)
+                            else:
+                                RNS.log("Could not execute RNode Bluetooth control command, no USB devices available", RNS.LOG_ERROR)
                     self.setstate("executing.bt_pair", False)
 
                 if (now - last_usb_discovery > 5):
