@@ -1555,19 +1555,16 @@ class SidebandCore():
                             rnode_allow_bluetooth = False
                             if self.getpersistent("permissions.bluetooth"):
                                 if self.config["hw_rnode_bluetooth"]:
-                                    # TODO: Remove
-                                    RNS.log("Allowing RNode bluetooth")
+                                    RNS.log("Allowing RNode bluetooth", RNS.LOG_DEBUG)
                                     rnode_allow_bluetooth = True
                                     if self.config["hw_rnode_bt_device"] != None:
                                         bt_device_name = self.config["hw_rnode_bt_device"]
 
                                 else:
-                                    # TODO: Remove
-                                    RNS.log("Disallowing RNode bluetooth since config is disabled")
+                                    RNS.log("Disallowing RNode bluetooth since config is disabled", RNS.LOG_DEBUG)
                                     rnode_allow_bluetooth = False
                             else:
-                                # TODO: Remove 
-                                RNS.log("Disallowing RNode bluetooth due to missing permission")
+                                RNS.log("Disallowing RNode bluetooth due to missing permission", RNS.LOG_DEBUG)
                                 rnode_allow_bluetooth = False
 
 
