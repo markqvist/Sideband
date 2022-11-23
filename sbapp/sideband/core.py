@@ -589,8 +589,15 @@ class SidebandCore():
     def named_conversation(self, name, context_dest):
         self._db_conversation_set_name(context_dest, name)
 
-    def list_messages(self, context_dest, after = None):
-        result = self._db_messages(context_dest, after)
+    def count_messages(self, context_dest):
+        result = self._db_message_count(context_dest)
+        if result != None:
+            return result
+        else:
+            return None
+
+    def list_messages(self, context_dest, after = None, before = None, limit = None):
+        result = self._db_messages(context_dest, after, before, limit)
         if result != None:
             return result
         else:
@@ -1012,16 +1019,38 @@ class SidebandCore():
             }
             return message
 
-    def _db_messages(self, context_dest, after = None):
+    def _db_message_count(self, context_dest):
         db = sqlite3.connect(self.db_path)
         dbc = db.cursor()
         
-        if after == None:
-            query = "select * from lxm where dest=:context_dest or source=:context_dest"
-            dbc.execute(query, {"context_dest": context_dest})
+        query = "select count(*) from lxm where dest=:context_dest or source=:context_dest"
+        dbc.execute(query, {"context_dest": context_dest})
+
+        result = dbc.fetchall()
+
+        db.close()
+
+        if len(result) < 1:
+            return None
         else:
+            return result[0][0]
+
+    def _db_messages(self, context_dest, after = None, before = None, limit = None):
+        db = sqlite3.connect(self.db_path)
+        dbc = db.cursor()
+        
+        if after != None and before == None:
             query = "select * from lxm where (dest=:context_dest or source=:context_dest) and rx_ts>:after_ts"
             dbc.execute(query, {"context_dest": context_dest, "after_ts": after})
+        elif after == None and before != None:
+            query = "select * from lxm where (dest=:context_dest or source=:context_dest) and rx_ts<:before_ts"
+            dbc.execute(query, {"context_dest": context_dest, "before_ts": before})
+        elif after != None and before != None:
+            query = "select * from lxm where (dest=:context_dest or source=:context_dest) and rx_ts<:before_ts and rx_ts>:after_ts"
+            dbc.execute(query, {"context_dest": context_dest, "before_ts": before, "after_ts": after})
+        else:
+            query = "select * from lxm where dest=:context_dest or source=:context_dest"
+            dbc.execute(query, {"context_dest": context_dest})
 
         result = dbc.fetchall()
 
@@ -1057,8 +1086,10 @@ class SidebandCore():
                     "method": entry[7],
                     "lxm": lxm
                 }
-                messages.append(message)
 
+                messages.append(message)
+            if len(messages) > limit:
+                messages = messages[-limit:]
             return messages
 
     def _db_save_lxm(self, lxm, context_dest):    

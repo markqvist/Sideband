@@ -13,7 +13,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
 
-from kivymd.uix.button import MDRectangleFlatButton
+from kivymd.uix.button import MDRectangleFlatButton, MDRectangleFlatIconButton
 from kivymd.uix.dialog import MDDialog
 
 import os
@@ -43,6 +43,7 @@ class Messages():
         self.list = None
         self.widgets = []
         self.send_error_dialog = None
+        self.load_more_button = None
         self.update()
 
     def reload(self):
@@ -56,21 +57,45 @@ class Messages():
 
         self.update()
 
-    def update(self):
-        self.messages = self.app.sideband.list_messages(self.context_dest, self.latest_message_timestamp)
+    def update(self, limit=8):
+        s_ts = time.time()
+        self.messages = self.app.sideband.list_messages(self.context_dest, after=self.latest_message_timestamp,limit=limit)
+
+        self.db_message_count = self.app.sideband.count_messages(self.context_dest)
+        RNS.log("Total messages in db: "+str(self.db_message_count))
+        RNS.log("Added items: "+str(len(self.added_item_hashes)))
+
+        if self.load_more_button == None:
+            self.load_more_button = MDRectangleFlatIconButton(
+                icon="message-text-clock-outline",
+                text="Load earlier messages",
+                font_size=dp(18),
+                theme_text_color="Custom",
+                size_hint=[1.0, None],
+            )
+
         if self.list == None:
             layout = GridLayout(cols=1, spacing=dp(16), padding=dp(16), size_hint_y=None)
             layout.bind(minimum_height=layout.setter('height'))
             self.list = layout
+        
+        if (len(self.added_item_hashes) < self.db_message_count) and not self.load_more_button in self.list.children:
+            # if self.load_more_button in self.list.children:
+            #     RNS.log("Removing for reinsertion")
+            #     self.list.remove_widget(self.load_more_button)
+            self.list.add_widget(self.load_more_button, len(self.list.children))
 
+        c_ts = time.time()
         if len(self.messages) > 0:
             self.update_widget()
+        RNS.log("Cards created in "+RNS.prettytime(time.time()-c_ts), RNS.LOG_DEBUG)
 
         if self.app.sideband.config["dark_ui"]:
             intensity_msgs = intensity_msgs_dark
         else:
             intensity_msgs = intensity_msgs_light
 
+        upd_ts = time.time()
         for w in self.widgets:
             m = w.m
             if self.app.sideband.config["dark_ui"]:
@@ -116,6 +141,8 @@ class Messages():
                     w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Failed"
                     m["state"] = msg["state"]
 
+        RNS.log("Updated message widgets in "+RNS.prettytime(time.time()-upd_ts), RNS.LOG_DEBUG)
+        RNS.log("Creating messages view took "+RNS.prettytime(time.time()-s_ts), RNS.LOG_DEBUG)
 
     def update_widget(self):
         if self.app.sideband.config["dark_ui"]:
@@ -126,6 +153,7 @@ class Messages():
             mt_color = [1.0, 1.0, 1.0, 0.95]
 
         for m in self.messages:
+            s_ts = time.time()
             if not m["hash"] in self.added_item_hashes:
                 txstr = time.strftime(ts_format, time.localtime(m["sent"]))
                 rxstr = time.strftime(ts_format, time.localtime(m["received"]))
@@ -410,6 +438,8 @@ class Messages():
 
                 if self.latest_message_timestamp == None or m["received"] > self.latest_message_timestamp:
                     self.latest_message_timestamp = m["received"]
+
+                RNS.log("Created message card in "+RNS.prettytime(time.time()-s_ts), RNS.LOG_DEBUG)
 
     def get_widget(self):
         return self.list

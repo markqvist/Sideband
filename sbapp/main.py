@@ -831,7 +831,6 @@ class SidebandApp(MDApp):
             self.root.ids.message_send_button.disabled = False
         Clock.schedule_once(cb, 0.5)
 
-
     def message_propagation_action(self, sender):
         if self.outbound_mode_paper:
             self.outbound_mode_paper = False
