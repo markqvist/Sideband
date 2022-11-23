@@ -751,7 +751,7 @@ class SidebandApp(MDApp):
         list_widget = self.messages_view.get_widget()
 
         self.root.ids.messages_scrollview.add_widget(list_widget)
-        self.root.ids.messages_scrollview.scroll_y = 0.001
+        self.root.ids.messages_scrollview.scroll_y = 0.0
 
         self.root.ids.messages_toolbar.title = self.sideband.peer_display_name(context_dest)
         self.root.ids.messages_scrollview.active_conversation = context_dest
@@ -768,6 +768,10 @@ class SidebandApp(MDApp):
     
         self.sideband.read_conversation(context_dest)
         self.sideband.setstate("app.flags.unread_conversations", True)
+
+        def scb(dt):
+            self.root.ids.messages_scrollview.scroll_y = 0.0
+        Clock.schedule_once(scb, 0.33)
 
     def close_messages_action(self, sender=None):
         self.open_conversations(direction="right")
