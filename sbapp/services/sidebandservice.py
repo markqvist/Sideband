@@ -1,4 +1,4 @@
-__debug_build__ = False
+__debug_build__ = True
 
 import time
 import RNS

@@ -377,7 +377,12 @@ class SidebandApp(MDApp):
             mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
             Context = autoclass('android.content.Context')
             
-            if check_permission("android.permission.BLUETOOTH_CONNECT"):
+            if android_api_version > 30:
+                bt_permission_name = "android.permission.BLUETOOTH_CONNECT"
+            else:
+                bt_permission_name = "android.permission.BLUETOOTH"
+
+            if check_permission(bt_permission_name):
                 RNS.log("Have bluetooth connect permissions", RNS.LOG_DEBUG)
                 self.sideband.setpersistent("permissions.bluetooth", True)
             else:
