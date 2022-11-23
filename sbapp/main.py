@@ -313,7 +313,6 @@ class SidebandApp(MDApp):
                 ok_button.bind(on_release=dl_ok)
                 dialog.open()
 
-
     def on_pause(self):
         if self.sideband:
             if self.sideband.getstate("flag.focusfix_pause"):
@@ -1149,40 +1148,43 @@ class SidebandApp(MDApp):
     def settings_init(self, sender=None):
         if not self.settings_ready:
             self.root.ids.settings_scrollview.effect_cls = ScrollEffect
-            def save_disp_name(sender=None, event=None):
-                in_name = self.root.ids.settings_display_name.text
-                if in_name == "":
-                    new_name = "Anonymous Peer"
-                else:
-                    new_name = in_name
 
-                self.sideband.config["display_name"] = new_name
-                self.sideband.save_configuration()
+            def save_disp_name(sender=None, event=None):
+                if not sender.focus:
+                    in_name = self.root.ids.settings_display_name.text
+                    if in_name == "":
+                        new_name = "Anonymous Peer"
+                    else:
+                        new_name = in_name
+
+                    self.sideband.config["display_name"] = new_name
+                    self.sideband.save_configuration()
 
             def save_prop_addr(sender=None, event=None):
-                in_addr = self.root.ids.settings_propagation_node_address.text
+                if not sender.focus:
+                    in_addr = self.root.ids.settings_propagation_node_address.text
 
-                new_addr = None
-                if in_addr == "":
                     new_addr = None
-                    self.root.ids.settings_propagation_node_address.error = False
-                else:
-                    if len(in_addr) != RNS.Reticulum.TRUNCATED_HASHLENGTH//8*2:
+                    if in_addr == "":
                         new_addr = None
-                    else:
-                        try:
-                            new_addr = bytes.fromhex(in_addr)
-                        except Exception as e:
-                            new_addr = None
-
-                    if new_addr == None:
-                        self.root.ids.settings_propagation_node_address.error = True
-                    else:
                         self.root.ids.settings_propagation_node_address.error = False
+                    else:
+                        if len(in_addr) != RNS.Reticulum.TRUNCATED_HASHLENGTH//8*2:
+                            new_addr = None
+                        else:
+                            try:
+                                new_addr = bytes.fromhex(in_addr)
+                            except Exception as e:
+                                new_addr = None
+
+                        if new_addr == None:
+                            self.root.ids.settings_propagation_node_address.error = True
+                        else:
+                            self.root.ids.settings_propagation_node_address.error = False
 
 
-                self.sideband.config["lxmf_propagation_node"] = new_addr
-                self.sideband.set_active_propagation_node(self.sideband.config["lxmf_propagation_node"])
+                    self.sideband.config["lxmf_propagation_node"] = new_addr
+                    self.sideband.set_active_propagation_node(self.sideband.config["lxmf_propagation_node"])
 
             def save_dark_ui(sender=None, event=None):
                 self.sideband.config["dark_ui"] = self.root.ids.settings_dark_ui.active
@@ -1206,15 +1208,16 @@ class SidebandApp(MDApp):
                 self.sideband.save_configuration()
 
             def save_print_command(sender=None, event=None):
-                in_cmd = self.root.ids.settings_print_command.text
-                if in_cmd == "":
-                    new_cmd = "lp"
-                else:
-                    new_cmd = in_cmd
+                if not sender.focus:
+                    in_cmd = self.root.ids.settings_print_command.text
+                    if in_cmd == "":
+                        new_cmd = "lp"
+                    else:
+                        new_cmd = in_cmd
 
-                self.sideband.config["print_command"] = new_cmd.strip()
-                self.root.ids.settings_print_command.text = self.sideband.config["print_command"]
-                self.sideband.save_configuration()
+                    self.sideband.config["print_command"] = new_cmd.strip()
+                    self.root.ids.settings_print_command.text = self.sideband.config["print_command"]
+                    self.sideband.save_configuration()
 
             def save_lxmf_periodic_sync(sender=None, event=None, save=True):
                 if self.root.ids.settings_lxmf_periodic_sync.active:
@@ -1239,14 +1242,12 @@ class SidebandApp(MDApp):
             self.root.ids.settings_identity_hash.text = RNS.hexrep(self.sideband.lxmf_destination.identity.hash, delimit=False)
 
             self.root.ids.settings_display_name.text = self.sideband.config["display_name"]
-            self.root.ids.settings_display_name.bind(on_text_validate=save_disp_name)
             self.root.ids.settings_display_name.bind(focus=save_disp_name)
 
             if RNS.vendor.platformutils.is_android():
                 self.widget_hide(self.root.ids.settings_print_command, True)
             else:
                 self.root.ids.settings_print_command.text = self.sideband.config["print_command"]
-                self.root.ids.settings_print_command.bind(on_text_validate=save_print_command)
                 self.root.ids.settings_print_command.bind(focus=save_print_command)
 
             if self.sideband.config["lxmf_propagation_node"] == None:
@@ -1255,7 +1256,6 @@ class SidebandApp(MDApp):
                 prop_node_addr = RNS.hexrep(self.sideband.config["lxmf_propagation_node"], delimit=False)
 
             self.root.ids.settings_propagation_node_address.text = prop_node_addr
-            self.root.ids.settings_propagation_node_address.bind(on_text_validate=save_prop_addr)
             self.root.ids.settings_propagation_node_address.bind(focus=save_prop_addr)
 
             if not RNS.vendor.platformutils.is_android() or android_api_version >= 26:

@@ -124,6 +124,7 @@ class SidebandCore():
         self.exports_dir   = self.app_dir+"/exports"
         
         self.first_run     = True
+        self.saving_configuration = False
 
         try:
             if not os.path.isfile(self.config_path):
@@ -409,9 +410,20 @@ class SidebandCore():
 
     def __save_config(self):
         RNS.log("Saving Sideband configuration...", RNS.LOG_DEBUG)
-        config_file = open(self.config_path, "wb")
-        config_file.write(msgpack.packb(self.config))
-        config_file.close()
+        def save_function():
+            while self.saving_configuration:
+                time.sleep(0.15)
+            try:
+                self.saving_configuration = True
+                config_file = open(self.config_path, "wb")
+                config_file.write(msgpack.packb(self.config))
+                config_file.close()
+                self.saving_configuration = False
+            except Exception as e:
+                self.saving_configuration = False
+                RNS.log("Error while saving Sideband configuration: "+str(e), RNS.LOG_ERROR)
+
+        threading.Thread(target=save_function, daemon=True).start()
 
         if self.is_client:
             self.setstate("wants.settings_reload", True)
