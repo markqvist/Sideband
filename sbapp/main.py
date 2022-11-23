@@ -67,6 +67,9 @@ else:
     from .ui.messages import Messages, ts_format
     from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
 
+    from kivy.config import Config
+    Config.set('input', 'mouse', 'mouse,disable_multitouch')
+
 from kivy.metrics import dp, sp
 from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.dialog import MDDialog
