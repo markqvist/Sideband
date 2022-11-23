@@ -1749,6 +1749,7 @@ MDNavigationLayout:
                         OneLineIconListItem:
                             text: "Conversations"
                             on_release: root.ids.screen_manager.app.conversations_action(self)
+                            # _no_ripple_effect: True
                         
                             IconLeftWidget:
                                 icon: "email"
@@ -1785,7 +1786,6 @@ MDNavigationLayout:
                         OneLineIconListItem:
                             text: "Preferences"
                             on_release: root.ids.screen_manager.app.settings_action(self)
-                            _no_ripple_effect: True
                         
                             IconLeftWidget:
                                 icon: "cog"
@@ -1795,7 +1795,6 @@ MDNavigationLayout:
                         OneLineIconListItem:
                             text: "Connectivity"
                             on_release: root.ids.screen_manager.app.connectivity_action(self)
-                            _no_ripple_effect: True
                         
                             IconLeftWidget:
                                 icon: "wifi"
@@ -1805,7 +1804,6 @@ MDNavigationLayout:
                         OneLineIconListItem:
                             text: "Hardware"
                             on_release: root.ids.screen_manager.app.hardware_action(self)
-                            _no_ripple_effect: True
                         
                             IconLeftWidget:
                                 icon: "router-wireless"
@@ -1815,7 +1813,6 @@ MDNavigationLayout:
                         OneLineIconListItem:
                             text: "Encryption Keys"
                             on_release: root.ids.screen_manager.app.keys_action(self)
-                            _no_ripple_effect: True
                         
                             IconLeftWidget:
                                 icon: "key-chain"
@@ -1825,7 +1822,6 @@ MDNavigationLayout:
                         OneLineIconListItem:
                             text: "Guide"
                             on_release: root.ids.screen_manager.app.guide_action(self)
-                            _no_ripple_effect: True
                         
                             IconLeftWidget:
                                 icon: "book-open"
@@ -1836,7 +1832,6 @@ MDNavigationLayout:
                             id: app_version_info
                             text: ""
                             on_release: root.ids.screen_manager.app.information_action(self)
-                            _no_ripple_effect: True
                         
                             IconLeftWidget:
                                 icon: "information"
@@ -1846,7 +1841,6 @@ MDNavigationLayout:
                         OneLineIconListItem:
                             text: "Shutdown"
                             on_release: root.ids.screen_manager.app.quit_action(self)
-                            _no_ripple_effect: True
                         
                             IconLeftWidget:
                                 icon: "power"
