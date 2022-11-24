@@ -62,7 +62,7 @@ class Messages():
         self.update()
 
     def load_more(self, dt):
-        for new_message in self.app.sideband.list_messages(self.context_dest, before=self.earliest_message_timestamp,limit=2):
+        for new_message in self.app.sideband.list_messages(self.context_dest, before=self.earliest_message_timestamp,limit=5):
             self.new_messages.append(new_message)
 
         if len(self.new_messages) > 0:
@@ -271,7 +271,11 @@ class Messages():
                                 qr_image = lxm.as_qr()
                                 hash_str = RNS.hexrep(lxm.hash[-2:], delimit=False)
                                 filename = "Paper_Message_"+time.strftime(file_ts_format, time.localtime(m["sent"]))+"_"+hash_str+".png"
-                                save_path = plyer.storagepath.get_downloads_dir()+"/"+filename
+                                if RNS.vendor.platformutils.is_darwin():
+                                    save_path = str(plyer.storagepath.get_downloads_dir()+filename).replace("file://", "")
+                                else:
+                                    save_path = plyer.storagepath.get_downloads_dir()+"/"+filename
+
                                 qr_image.save(save_path)
                                 item.dmenu.dismiss()
 
