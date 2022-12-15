@@ -1,4 +1,4 @@
-__debug_build__ = False
+__debug_build__ = True
 __disable_shaders__ = True
 __version__ = "0.4.0"
 __variant__ = "beta"
@@ -112,6 +112,8 @@ class SidebandApp(MDApp):
         self.hardware_modem_ready = False
         self.hardware_serial_ready = False
 
+        self.final_load_completed = False
+
         Window.softinput_mode = "below_target"
         self.icon = self.sideband.asset_dir+"/icon.png"
         self.notification_icon = self.sideband.asset_dir+"/notification_icon.png"
@@ -192,6 +194,7 @@ class SidebandApp(MDApp):
 
         self.app_state = SidebandApp.ACTIVE
         self.loading_updater.cancel()
+        self.final_load_completed = True
 
         def check_errors(dt):
             if self.sideband.getpersistent("startup.errors.rnode") != None:
@@ -525,6 +528,29 @@ class SidebandApp(MDApp):
         return screen
 
     def jobs(self, delta_time):
+        if self.final_load_completed:
+            if not self.sideband.service_available():
+                if self.app_state == SidebandApp.ACTIVE:
+                    info_text = "The Reticulum and LXMF service seem to have disappeared, and Sideband is no longer connected. This should not happen, and probably indicates a bug in the background service. Please restart Sideband to regain connectivity."
+                    ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                    dialog = MDDialog(
+                        title="Error",
+                        text=info_text,
+                        buttons=[ ok_button ],
+                        # elevation=0,
+                    )
+                    def dl_ok(s):
+                        dialog.dismiss()
+                        self.quit_action()
+                    
+                    ok_button.bind(on_release=dl_ok)
+                    self.final_load_completed = False
+                    dialog.open()
+
+                else:
+                    self.quit_action()
+
+
         if self.root.ids.screen_manager.current == "messages_screen":
             self.messages_view.update()
 
@@ -565,6 +591,22 @@ class SidebandApp(MDApp):
             ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
             dialog = MDDialog(
                 title="Message Scan",
+                text=info_text,
+                buttons=[ ok_button ],
+                # elevation=0,
+            )
+            def dl_ok(s):
+                dialog.dismiss()
+            
+            ok_button.bind(on_release=dl_ok)
+            dialog.open()
+
+        if self.sideband.getstate("hardware_operation.error", allow_cache=True):
+            info_text = self.sideband.getstate("hardware_operation.error", allow_cache=True)
+            self.sideband.setstate("hardware_operation.error", False)
+            ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+            dialog = MDDialog(
+                title="Error",
                 text=info_text,
                 buttons=[ ok_button ],
                 # elevation=0,
@@ -1150,6 +1192,8 @@ class SidebandApp(MDApp):
         self.settings_init()
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.nav_drawer.set_state("closed")
+        if self.sideband.active_propagation_node != None:
+            self.root.ids.settings_propagation_node_address.text = RNS.hexrep(self.sideband.active_propagation_node, delimit=False)
         self.root.ids.screen_manager.current = "settings_screen"
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
