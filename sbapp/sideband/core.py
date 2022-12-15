@@ -260,6 +260,7 @@ class SidebandCore():
         self.config["hw_rnode_beaconinterval"] = None
         self.config["hw_rnode_beacondata"] = None
         self.config["hw_rnode_bt_device"] = None
+        self.config["hw_rnode_bluetooth"] = False
         self.config["hw_modem_baudrate"] = 57600
         self.config["hw_modem_databits"] = 8
         self.config["hw_modem_stopbits"] = 1
