@@ -449,9 +449,6 @@ class SidebandCore():
                 self.config["last_lxmf_propagation_node"] = dest
                 self.message_router.set_outbound_propagation_node(dest)
                 
-                if not self.is_service:
-                    self.owner_app.root.ids.settings_propagation_node_address.text = RNS.hexrep(dest, delimit=False)
-
                 RNS.log("Active propagation node set to: "+RNS.prettyhexrep(dest))
                 self.__save_config()
             except Exception as e:
@@ -1297,8 +1294,11 @@ class SidebandCore():
                     else:
                         if hasattr(self.owner_app, "usb_devices") and self.owner_app.usb_devices != None:
                             if len(self.owner_app.usb_devices) > 0:
-                                target_port = self.owner_app.usb_devices[0]["port"]
-                                RNS.Interfaces.Android.RNodeInterface.RNodeInterface.bluetooth_control(port=target_port, pairing_mode = True)
+                                try:
+                                    target_port = self.owner_app.usb_devices[0]["port"]
+                                    RNS.Interfaces.Android.RNodeInterface.RNodeInterface.bluetooth_control(port=target_port, pairing_mode = True)
+                                except Exception as e:
+                                    self.setstate("hardware_operation.error", "An error ocurred while trying to communicate with the device. Please make sure that Sideband has been granted permissions to access the device.\n\nThe reported error was:\n\n[i]"+str(e)+"[/i]")                
                             else:
                                 RNS.log("Could not execute RNode Bluetooth control command, no USB devices available", RNS.LOG_ERROR)
                     self.setstate("executing.bt_pair", False)
@@ -1630,6 +1630,8 @@ class SidebandCore():
                             if self.interface_rnode.online:
                                 self.interface_rnode.display_image(sideband_fb_data)
                                 self.interface_rnode.enable_external_framebuffer()
+                            else:
+                                self.interface_rnode.last_imagedata = sideband_fb_data
 
                     except Exception as e:
                         RNS.log("Error while adding RNode Interface. The contained exception was: "+str(e))
