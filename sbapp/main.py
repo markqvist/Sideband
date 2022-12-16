@@ -88,6 +88,8 @@ class SidebandApp(MDApp):
 
     PKGNAME  = "io.unsigned.sideband"
 
+    SERVICE_TIMEOUT = 15
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.title = "Sideband"
@@ -113,6 +115,7 @@ class SidebandApp(MDApp):
         self.hardware_serial_ready = False
 
         self.final_load_completed = False
+        self.service_last_available = 0
 
         Window.softinput_mode = "below_target"
         self.icon = self.sideband.asset_dir+"/icon.png"
@@ -134,6 +137,7 @@ class SidebandApp(MDApp):
     def update_init_status(self, dt):
         self.update_loading_text()
         if not RNS.vendor.platformutils.is_android() or self.sideband.service_available():
+            self.service_last_available = time.time()
             self.start_final()
             self.loading_updater.cancel()
 
@@ -529,26 +533,30 @@ class SidebandApp(MDApp):
 
     def jobs(self, delta_time):
         if self.final_load_completed:
-            if not self.sideband.service_available():
-                if self.app_state == SidebandApp.ACTIVE:
-                    info_text = "The Reticulum and LXMF service seem to have disappeared, and Sideband is no longer connected. This should not happen, and probably indicates a bug in the background service. Please restart Sideband to regain connectivity."
-                    ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
-                    dialog = MDDialog(
-                        title="Error",
-                        text=info_text,
-                        buttons=[ ok_button ],
-                        # elevation=0,
-                    )
-                    def dl_ok(s):
-                        dialog.dismiss()
-                        self.quit_action()
-                    
-                    ok_button.bind(on_release=dl_ok)
-                    self.final_load_completed = False
-                    dialog.open()
+            if RNS.vendor.platformutils.is_android() and not self.sideband.service_available():
+                if time.time() - self.service_last_available > SidebandApp.SERVICE_TIMEOUT:
+                    if self.app_state == SidebandApp.ACTIVE:
+                        info_text = "The Reticulum and LXMF service seem to have disappeared, and Sideband is no longer connected. This should not happen, and probably indicates a bug in the background service. Please restart Sideband to regain connectivity."
+                        ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                        dialog = MDDialog(
+                            title="Error",
+                            text=info_text,
+                            buttons=[ ok_button ],
+                            # elevation=0,
+                        )
+                        def dl_ok(s):
+                            dialog.dismiss()
+                            self.quit_action()
+                        
+                        ok_button.bind(on_release=dl_ok)
+                        self.final_load_completed = False
+                        dialog.open()
 
-                else:
-                    self.quit_action()
+                    else:
+                        self.quit_action()
+
+            else:
+                self.service_last_available = time.time()
 
 
         if self.root.ids.screen_manager.current == "messages_screen":
