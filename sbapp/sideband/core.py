@@ -1396,12 +1396,14 @@ class SidebandCore():
         self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=selected_level)
 
         if RNS.vendor.platformutils.get_platform() == "android":
-            if self.config["debug"]:
-                self.reticulum.logdest = RNS.LOG_FILE
-                if not self.reticulum.is_connected_to_shared_instance:
-                    self.reticulum.logfile = self.log_dir+"sideband_service.log"
-                else:
-                    self.reticulum.logfile = self.log_dir+"sideband_core.log"
+            # TODO: Just log to console for, but add option to export log
+            # files at some point.
+            # if self.config["debug"]:
+            #     self.reticulum.logdest = RNS.LOG_FILE
+            #     if not self.reticulum.is_connected_to_shared_instance:
+            #         self.reticulum.logfile = self.log_dir+"sideband_service.log"
+            #     else:
+            #         self.reticulum.logfile = self.log_dir+"sideband_core.log"
 
             if not self.reticulum.is_connected_to_shared_instance:
                 RNS.log("Running as master or standalone instance, adding interfaces")
