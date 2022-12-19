@@ -122,6 +122,7 @@ class SidebandCore():
         self.identity_path = self.app_dir+"/app_storage/primary_identity"
         self.db_path       = self.app_dir+"/app_storage/sideband.db"
         self.lxmf_storage  = self.app_dir+"/app_storage/"
+        self.log_dir       = self.app_dir+"/app_storage/"
         self.tmp_dir       = self.app_dir+"/app_storage/tmp"
         self.exports_dir   = self.app_dir+"/exports"
         
@@ -136,6 +137,9 @@ class SidebandCore():
             else:
                 self.__load_config()
                 self.first_run = False
+
+            if self.config["debug"]:
+                self.log_verbose = True
 
             if not os.path.isdir(self.tmp_dir):
                 os.makedirs(self.tmp_dir)
@@ -203,6 +207,7 @@ class SidebandCore():
 
         self.config = {}
         # Settings
+        self.config["debug"] = False
         self.config["display_name"] = "Anonymous Peer"
         self.config["notifications_on"] = True
         self.config["dark_ui"] = False
@@ -300,6 +305,8 @@ class SidebandCore():
         config_file.close()
 
         # Migration actions from earlier config formats
+        if not "debug" in self.config:
+            self.config["debug"] = False
         if not "dark_ui" in self.config:
             self.config["dark_ui"] = True
         if not "lxmf_periodic_sync" in self.config:
@@ -1389,6 +1396,13 @@ class SidebandCore():
         self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=selected_level)
 
         if RNS.vendor.platformutils.get_platform() == "android":
+            if self.config["debug"]:
+                self.reticulum.logdest = RNS.LOG_FILE
+                if not self.reticulum.is_connected_to_shared_instance:
+                    self.reticulum.logfile = self.log_dir+"sideband_service.log"
+                else:
+                    self.reticulum.logfile = self.log_dir+"sideband_core.log"
+
             if not self.reticulum.is_connected_to_shared_instance:
                 RNS.log("Running as master or standalone instance, adding interfaces")
                 

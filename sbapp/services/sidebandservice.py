@@ -128,6 +128,10 @@ class SidebandService():
         self.sideband = SidebandCore(self, is_service=True, android_app_dir=self.app_dir, verbose=__debug_build__)
         self.sideband.service_context = self.android_service
         self.sideband.owner_service = self
+
+        if self.sideband.config["debug"]:
+            Logger.setLevel(LOG_LEVELS["debug"])
+
         self.sideband.start()
         self.update_connectivity_type()
         

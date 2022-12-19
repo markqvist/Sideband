@@ -1267,6 +1267,10 @@ class SidebandApp(MDApp):
                 self.sideband.config["lxmf_sync_limit"] = self.root.ids.settings_lxmf_sync_limit.active
                 self.sideband.save_configuration()
 
+            def save_debug(sender=None, event=None):
+                self.sideband.config["debug"] = self.root.ids.settings_debug.active
+                self.sideband.save_configuration()
+
             def save_print_command(sender=None, event=None):
                 if not sender.focus:
                     in_cmd = self.root.ids.settings_print_command.text
@@ -1345,7 +1349,6 @@ class SidebandApp(MDApp):
             self.root.ids.settings_lxmf_sync_interval.value = self.sideband.config["lxmf_sync_interval"]
             sync_interval_change(save=False)
 
-
             if self.sideband.config["lxmf_sync_limit"] == None or self.sideband.config["lxmf_sync_limit"] == False:
                 sync_limit = False
             else:
@@ -1353,6 +1356,10 @@ class SidebandApp(MDApp):
 
             self.root.ids.settings_lxmf_sync_limit.active = sync_limit
             self.root.ids.settings_lxmf_sync_limit.bind(active=save_lxmf_sync_limit)
+
+            self.root.ids.settings_debug.active = self.sideband.config["debug"]
+            self.root.ids.settings_debug.bind(active=save_debug)
+
             self.settings_ready = True
 
     def close_settings_action(self, sender=None):

@@ -1085,7 +1085,7 @@ MDNavigationLayout:
                                 height: dp(48)
                                 
                                 MDLabel:
-                                    text: "Announce At App Startup"
+                                    text: "Announce Automatically"
                                     font_style: "H6"
 
                                 MDSwitch:
@@ -1187,6 +1187,22 @@ MDNavigationLayout:
                                     id: settings_telemetry_to_home_node
                                     pos_hint: {"center_y": 0.3}
                                     disabled: True
+                                    active: False
+
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                size_hint_y: None
+                                padding: [0,0,dp(24),dp(0)]
+                                height: dp(48)
+                                
+                                MDLabel:
+                                    text: "Debug Logging"
+                                    font_style: "H6"
+
+                                MDSwitch:
+                                    id: settings_debug
+                                    pos_hint: {"center_y": 0.3}
+                                    disabled: False
                                     active: False
 
         MDScreen:
