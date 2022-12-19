@@ -1,6 +1,6 @@
 __debug_build__ = False
 __disable_shaders__ = True
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 __variant__ = "beta"
 
 import sys
