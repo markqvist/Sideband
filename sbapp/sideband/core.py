@@ -1259,6 +1259,13 @@ class SidebandCore():
             while True:
                 time.sleep(SidebandCore.SERVICE_JOB_INTERVAL)
                 now = time.time()
+
+                if hasattr(self, "interface_rnode") and self.interface_rnode != None:
+                    if self.config["hw_rnode_bluetooth"]:
+                        self.interface_rnode.allow_bluetooth = True
+                    else:
+                        self.interface_rnode.allow_bluetooth = False
+
                 if self.getstate("wants.announce"):
                     self.lxmf_announce()
 
