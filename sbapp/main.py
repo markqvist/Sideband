@@ -332,9 +332,6 @@ class SidebandApp(MDApp):
                 self.sideband.should_persist_data()
                 if self.conversations_view != None:
                     self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
-                    # TODO: Check if we actually need this now that the bouncy
-                    # scrolling bug has been eliminated
-                    # self.sideband.setstate("wants.viewupdate.conversations", True)
                     self.root.ids.conversations_scrollview.scroll = 1
 
                 RNS.log("App paused", RNS.LOG_DEBUG)
@@ -355,9 +352,6 @@ class SidebandApp(MDApp):
                 self.app_state = SidebandApp.ACTIVE
                 if self.conversations_view != None:
                     self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
-                    # TODO: Check if we actually need this now that the bouncy
-                    # scrolling bug has been eliminated
-                    # self.sideband.setstate("wants.viewupdate.conversations", True)
                     self.root.ids.conversations_scrollview.scroll = 1
                     
                 else:
