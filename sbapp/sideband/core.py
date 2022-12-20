@@ -5,6 +5,7 @@ import plyer
 import os.path
 import time
 import sqlite3
+import random
 
 import RNS.vendor.umsgpack as msgpack
 import RNS.Interfaces.Interface as Interface
@@ -71,6 +72,10 @@ class SidebandCore():
     PERIODIC_JOBS_INTERVAL = 60
     PERIODIC_SYNC_RETRY = 360
 
+    IF_CHANGE_ANNOUNCE_MIN_INTERVAL = 15   # In seconds
+    AUTO_ANNOUNCE_RANDOM_MIN        = 90   # In minutes
+    AUTO_ANNOUNCE_RANDOM_MAX        = 480  # In minutes
+
     aspect_filter = "lxmf.delivery"
     def received_announce(self, destination_hash, announced_identity, app_data):
         # Add the announce to the directory announce
@@ -128,6 +133,9 @@ class SidebandCore():
         
         self.first_run     = True
         self.saving_configuration = False
+        self.last_lxmf_announce = 0
+        self.last_if_change_announce = 0
+        self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN))
 
         self.getstate_cache = {}
 
@@ -1228,6 +1236,9 @@ class SidebandCore():
     def lxmf_announce(self):
         if self.is_standalone or self.is_service:
             self.lxmf_destination.announce()
+            self.last_lxmf_announce = time.time()
+            self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN))
+            RNS.log("Next auto announce in "+RNS.prettytime(self.next_auto_announce-time.time()), RNS.LOG_DEBUG)
             self.setstate("wants.announce", False)
         else:
             self.setstate("wants.announce", True)
@@ -1260,13 +1271,31 @@ class SidebandCore():
                 time.sleep(SidebandCore.SERVICE_JOB_INTERVAL)
                 now = time.time()
 
+                announce_wanted = self.getstate("wants.announce")
+                if self.config["start_announce"] == True:
+                    needs_if_change_announce = False
+                    for interface in RNS.Transport.interfaces:
+                        if hasattr(interface, "was_online"):
+                            if not interface.was_online and interface.online:
+                                RNS.log("The interface "+str(interface)+" became available", RNS.LOG_DEBUG)
+                                needs_if_change_announce = True
+
+                        interface.was_online = interface.online
+
+                    if needs_if_change_announce and time.time() > self.last_if_change_announce+SidebandCore.IF_CHANGE_ANNOUNCE_MIN_INTERVAL:
+                        announce_wanted = True
+                        self.last_if_change_announce = time.time()
+
+                    if time.time() > self.next_auto_announce:
+                        announce_wanted = True
+
                 if hasattr(self, "interface_rnode") and self.interface_rnode != None:
                     if self.config["hw_rnode_bluetooth"]:
                         self.interface_rnode.allow_bluetooth = True
                     else:
                         self.interface_rnode.allow_bluetooth = False
 
-                if self.getstate("wants.announce"):
+                if announce_wanted:
                     self.lxmf_announce()
 
                 if self.getstate("wants.bt_on"):
