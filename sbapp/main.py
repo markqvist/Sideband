@@ -88,7 +88,7 @@ class SidebandApp(MDApp):
 
     PKGNAME  = "io.unsigned.sideband"
 
-    SERVICE_TIMEOUT = 15
+    SERVICE_TIMEOUT = 30
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
