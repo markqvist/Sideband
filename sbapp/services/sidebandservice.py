@@ -136,12 +136,12 @@ class SidebandService():
         self.update_connectivity_type()
         
         if RNS.vendor.platformutils.is_android():
-            RNS.log("Discovered USB devices: "+str(self.usb_devices), RNS.LOG_DEBUG)
+            RNS.log("Discovered USB devices: "+str(self.usb_devices), RNS.LOG_EXTREME)
 
 
     def discover_usb_devices(self):
         self.usb_devices = []
-        RNS.log("Discovering attached USB devices...", RNS.LOG_DEBUG)
+        RNS.log("Discovering attached USB devices...", RNS.LOG_EXTREME)
         try:
             devices = usb.get_usb_device_list()
             for device in devices:
@@ -165,21 +165,25 @@ class SidebandService():
     def stop(self):
         self.should_run = False
 
-    def take_locks(self):
+    def take_locks(self, force_multicast=False):
         if RNS.vendor.platformutils.get_platform() == "android":
-            if self.multicast_lock == None:
+            if self.multicast_lock == None or force_multicast:
                 self.multicast_lock = self.wifi_manager.createMulticastLock("sideband_service")
 
             if not self.multicast_lock.isHeld():
-                RNS.log("Taking multicast lock")
+                RNS.log("Taking multicast lock", RNS.LOG_DEBUG)
                 self.multicast_lock.acquire()
+            else:
+                RNS.log("Multicast lock already held", RNS.LOG_DEBUG)
 
             if self.wake_lock == None:
                 self.wake_lock = self.power_manager.newWakeLock(self.power_manager.PARTIAL_WAKE_LOCK, "sideband_service")
 
             if not self.wake_lock.isHeld():
-                RNS.log("Taking wake lock")
+                RNS.log("Taking wake lock", RNS.LOG_DEBUG)
                 self.wake_lock.acquire()
+            else:
+                RNS.log("Wake lock already held", RNS.LOG_DEBUG)
 
     def release_locks(self):
         if RNS.vendor.platformutils.get_platform() == "android":

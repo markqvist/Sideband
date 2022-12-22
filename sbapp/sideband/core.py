@@ -1282,6 +1282,11 @@ class SidebandCore():
 
                     if hasattr(self, "interface_local") and self.interface_local != None:
                         have_peers = len(self.interface_local.peers) > 0
+                        if self.interface_local.carrier_changed:
+                            RNS.log("AutoInterface carrier change detected, retaking wake locks", RNS.LOG_DEBUG)
+                            self.owner_service.take_locks(force_multicast=True)
+                            self.interface_local.carrier_changed = False
+
                         if hasattr(self.interface_local, "had_peers"):
                             if not self.interface_local.had_peers and have_peers:
                                 RNS.log("Peers became reachable on the interface "+str(self.interface_local), RNS.LOG_DEBUG)
