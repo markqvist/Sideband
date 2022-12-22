@@ -1272,6 +1272,9 @@ class SidebandCore():
                 now = time.time()
 
                 announce_wanted = self.getstate("wants.announce")
+                # TODO: The "start_announce" config entry should be
+                # renamed to "auto_announce", which is its current
+                # meaning.
                 if self.config["start_announce"] == True:
                     needs_if_change_announce = False
                     for interface in RNS.Transport.interfaces:
@@ -1411,14 +1414,15 @@ class SidebandCore():
                                     self.setpersistent("lxmf.syncretrying", False)
 
     def __start_jobs_deferred(self):
-        if self.config["start_announce"]:
-            self.lxmf_announce()
-
         if self.is_service:
             self.service_thread = threading.Thread(target=self._service_jobs, daemon=True)
             self.service_thread.start()
 
-        if self.is_standalone or self.is_service:
+        if self.is_standalone or self.is_service:            
+            if self.config["start_announce"]:
+                self.lxmf_announce()
+                self.last_if_change_announce = time.time()
+
             self.periodic_thread = threading.Thread(target=self._periodic_jobs, daemon=True)
             self.periodic_thread.start()
         
