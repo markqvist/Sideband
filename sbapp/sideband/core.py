@@ -72,7 +72,7 @@ class SidebandCore():
     PERIODIC_JOBS_INTERVAL = 60
     PERIODIC_SYNC_RETRY = 360
 
-    IF_CHANGE_ANNOUNCE_MIN_INTERVAL = 15   # In seconds
+    IF_CHANGE_ANNOUNCE_MIN_INTERVAL = 6    # In seconds
     AUTO_ANNOUNCE_RANDOM_MIN        = 90   # In minutes
     AUTO_ANNOUNCE_RANDOM_MAX        = 480  # In minutes
 
@@ -1233,9 +1233,9 @@ class SidebandCore():
         dbc.execute(query, data)
         db.commit()
 
-    def lxmf_announce(self):
+    def lxmf_announce(self, attached_interface=None):
         if self.is_standalone or self.is_service:
-            self.lxmf_destination.announce()
+            self.lxmf_destination.announce(attached_interface=attached_interface)
             self.last_lxmf_announce = time.time()
             self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN))
             RNS.log("Next auto announce in "+RNS.prettytime(self.next_auto_announce-time.time()), RNS.LOG_DEBUG)
@@ -1272,18 +1272,41 @@ class SidebandCore():
                 now = time.time()
 
                 announce_wanted = self.getstate("wants.announce")
+                announce_attached_interface = None
+                announce_delay = 0
                 # TODO: The "start_announce" config entry should be
                 # renamed to "auto_announce", which is its current
                 # meaning.
                 if self.config["start_announce"] == True:
                     needs_if_change_announce = False
-                    for interface in RNS.Transport.interfaces:
-                        if hasattr(interface, "was_online"):
-                            if not interface.was_online and interface.online:
-                                RNS.log("The interface "+str(interface)+" became available", RNS.LOG_DEBUG)
+
+                    if hasattr(self, "interface_local") and self.interface_local != None:
+                        have_peers = len(self.interface_local.peers) > 0
+                        if hasattr(self.interface_local, "had_peers"):
+                            if not self.interface_local.had_peers and have_peers:
+                                RNS.log("Peers became reachable on the interface "+str(self.interface_local), RNS.LOG_DEBUG)
+                                needs_if_change_announce = True
+                                announce_attached_interface = self.interface_local
+                                announce_delay = 10
+
+                            if self.interface_local.had_peers and not have_peers:
+                                RNS.log("No peers reachable on the interface "+str(self.interface_local), RNS.LOG_DEBUG)
                                 needs_if_change_announce = True
 
-                        interface.was_online = interface.online
+                        self.interface_local.had_peers = have_peers
+
+                    for interface in RNS.Transport.interfaces:
+                        if not hasattr(self, "interface_local") or interface != self.interface_local:
+                            if hasattr(interface, "was_online"):
+                                if not interface.was_online and interface.online:
+                                    RNS.log("The interface "+str(interface)+" became available", RNS.LOG_DEBUG)
+                                    needs_if_change_announce = True
+
+                                if interface.was_online and not interface.online:
+                                    RNS.log("The interface "+str(interface)+" became unavailable", RNS.LOG_DEBUG)
+                                    needs_if_change_announce = True
+
+                            interface.was_online = interface.online
 
                     if needs_if_change_announce and time.time() > self.last_if_change_announce+SidebandCore.IF_CHANGE_ANNOUNCE_MIN_INTERVAL:
                         announce_wanted = True
@@ -1299,7 +1322,14 @@ class SidebandCore():
                         self.interface_rnode.allow_bluetooth = False
 
                 if announce_wanted:
-                    self.lxmf_announce()
+                    def gen_announce_job(delay, attached_interface):
+                        def x():
+                            aif = announce_attached_interface
+                            time.sleep(delay)
+                            self.lxmf_announce(attached_interface=aif)
+                        return x
+
+                    threading.Thread(target=gen_announce_job(announce_delay, announce_attached_interface), daemon=True).start()
 
                 if self.getstate("wants.bt_on"):
                     self.setstate("wants.bt_on", False)
