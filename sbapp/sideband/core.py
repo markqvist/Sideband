@@ -23,7 +23,7 @@ class PropagationNodeDetector():
 
     def received_announce(self, destination_hash, announced_identity, app_data):
         try:
-            if len(app_data) > 0:
+            if app_data != None and len(app_data) > 0:
                 unpacked = msgpack.unpackb(app_data)
                 node_active = unpacked[0]
                 emitted = unpacked[1]
