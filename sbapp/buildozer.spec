@@ -20,7 +20,8 @@ icon.filename = %(source.dir)s/assets/icon.png
 presplash.filename = %(source.dir)s/assets/presplash_small.png
 android.presplash_color = #00000000
 
-orientation = all
+# TODO: Fix
+orientation = portrait
 fullscreen = 0
 
 android.permissions = INTERNET,POST_NOTIFICATIONS,WAKE_LOCK,FOREGROUND_SERVICE,CHANGE_WIFI_MULTICAST_STATE,BLUETOOTH_CONNECT
