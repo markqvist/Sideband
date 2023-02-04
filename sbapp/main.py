@@ -1,4 +1,4 @@
-__debug_build__ = False
+__debug_build__ = True
 __disable_shaders__ = True
 __version__ = "0.5.2"
 __variant__ = "beta"
@@ -294,7 +294,7 @@ class SidebandApp(MDApp):
                 Intent = autoclass("android.content.Intent")
                 Uri = autoclass("android.net.Uri")
                 File = autoclass("java.io.File")
-                FileProvider = autoclass("android.support.v4.content.FileProvider")
+                FileProvider = autoclass("androidx.core.content.FileProvider")
 
                 image.save(file_path)
                 i_file = File(file_path)

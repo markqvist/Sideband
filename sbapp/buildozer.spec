@@ -12,7 +12,7 @@ version.regex = __version__ = ['"](.*)['"]
 version.filename = %(source.dir)s/main.py
 android.numeric_version = 20221223
 
-requirements = python3==3.9.5,hostpython3==3.9.5,cryptography,cffi,pycparser,kivy==2.1.0,pygments,sdl2,sdl2_ttf==2.0.15,pillow,netifaces,libbz2,pydenticon,usb4a,usbserial4a,qrcode
+requirements = python3==3.9.5,hostpython3==3.9.5,cryptography,cffi,pycparser,kivy==2.1.0,pygments,sdl2,sdl2_ttf==2.0.15,pillow,qrcode==7.3.1,netifaces,libbz2,pydenticon,usb4a,usbserial4a
 p4a.local_recipes = ../Others/python-for-android/pythonforandroid/recipes
 requirements.source.kivymd = ../../Others/KivyMD-master
 
