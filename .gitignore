@@ -15,7 +15,7 @@ sbapp/sideband*.egg-info
 sbapp/sbapp*.egg-info
 
 
-.buildozer
+.buildozer*
 requirements.txt
 venv
 bin
