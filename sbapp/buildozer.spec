@@ -10,7 +10,7 @@ source.exclude_patterns = app_storage/*,venv/*,Makefile,./Makefil*,requirements,
 
 version.regex = __version__ = ['"](.*)['"]
 version.filename = %(source.dir)s/main.py
-android.numeric_version = 20221223
+android.numeric_version = 20230204
 
 requirements = python3==3.9.5,hostpython3==3.9.5,cryptography,cffi,pycparser,kivy==2.1.0,pygments,sdl2,sdl2_ttf==2.0.15,pillow,qrcode==7.3.1,netifaces,libbz2,pydenticon,usb4a,usbserial4a
 p4a.local_recipes = ../Others/python-for-android/pythonforandroid/recipes
