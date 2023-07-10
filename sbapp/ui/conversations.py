@@ -255,15 +255,9 @@ class Conversations():
                         caller=item.iconr,
                         items=dm_items,
                         position="auto",
-                        #border_margin=dp(24),
-                        #width=dp(256),
-                        #elevation=0,
-                        #radius=dp(3),
-                        show_transition="linear",
-                        hide_transition="linear",
-                        #show_duration=0.1,
-                        #hide_duration=0.1,
-
+                        width=dp(256),
+                        elevation=0,
+                        radius=dp(3),
                     )
                     self.conversation_dropdown.effect_cls = ScrollEffect
 

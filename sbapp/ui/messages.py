@@ -429,12 +429,10 @@ class Messages():
                 item.dmenu = MDDropdownMenu(
                     caller=item.ids.msg_submenu,
                     items=dm_items,
-                    #position="center",
-                    #width_mult=4,
-                    #elevation=1,
-                    #radius=dp(3),
-                    #opening_transition="linear",
-                    #opening_time=0.0,
+                    position="auto",
+                    width=dp(256),
+                    elevation=0,
+                    radius=dp(3),
                 )
 
                 def callback_factory(ref):
