@@ -606,12 +606,15 @@ class ThemeManager(EventDispatcher):
     readonly.
     """
 
-    material_style = OptionProperty("M2", options=["M2", "M3"])
+    material_style = OptionProperty("M3", options=["M2", "M3"])
     """
     Material design style.
     Available options are: 'M2', 'M3'.
 
     .. versionadded:: 1.0.0
+
+    .. versionchanged:: 1.2.0
+        By default now `'M3'`.
 
     .. seealso::
 
@@ -620,7 +623,7 @@ class ThemeManager(EventDispatcher):
 
 
     :attr:`material_style` is an :class:`~kivy.properties.OptionProperty`
-    and defaults to `'M2'`.
+    and defaults to `'M3'`.
     """
 
     theme_style_switch_animation = BooleanProperty(False)
@@ -647,9 +650,8 @@ class ThemeManager(EventDispatcher):
                         padding: 0, 0, 0 , "36dp"
                         size_hint: .5, .5
                         pos_hint: {"center_x": .5, "center_y": .5}
-                        elevation: 4
-                        shadow_radius: 6
-                        shadow_offset: 0, 2
+                        elevation: 2
+                        shadow_offset: 0, -2
 
                         MDLabel:
                             text: "Theme style - {}".format(app.theme_cls.theme_style)
@@ -720,9 +722,8 @@ class ThemeManager(EventDispatcher):
                                     padding=(0, 0, 0, "36dp"),
                                     size_hint=(0.5, 0.5),
                                     pos_hint={"center_x": 0.5, "center_y": 0.5},
-                                    elevation=4,
-                                    shadow_radius=6,
-                                    shadow_offset=(0, 2),
+                                    elevation=2,
+                                    shadow_offset=(0, -2),
                                 )
                             )
                         )
@@ -1665,25 +1666,60 @@ class ThemableBehavior(EventDispatcher):
                     "https://github.com/kivymd/KivyMD/wiki/Modules-Material-App#exceptions"
                 )
             self.theme_cls = App.get_running_app().theme_cls
+
         super().__init__(**kwargs)
 
-    # def dec_disabled(self, *args, **kwargs) -> None:
-    #     callabacks = self.theme_cls.get_property_observers("theme_style")
+        # Fix circular imports.
+        from kivymd.uix.behaviors import CommonElevationBehavior
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.textfield import MDTextField
 
-    #     for callaback in callabacks:
-    #         try:
-    #             if hasattr(callaback, "proxy") and hasattr(
-    #                 callaback.proxy, "theme_cls"
-    #             ):
-    #                 for property_name in self.unbind_properties:
-    #                     self.theme_cls.unbind(
-    #                         **{
-    #                             property_name: getattr(
-    #                                 callaback.proxy, callaback.method_name
-    #                             )
-    #                         }
-    #                     )
-    #         except ReferenceError:
-    #             pass
+        self.common_elevation_behavior = CommonElevationBehavior
+        self.md_label = MDLabel
+        self.md_textfield = MDTextField
 
-    #     super().dec_disabled(*args, **kwargs)
+    def remove_widget(self, widget) -> None:
+        if not hasattr(widget, "theme_cls"):
+            super().remove_widget(widget)
+            return
+
+        callbacks = widget.theme_cls.get_property_observers("theme_style")
+
+        for callback in callbacks:
+            try:
+                if hasattr(callback, "proxy") and hasattr(
+                    callback.proxy, "theme_cls"
+                ):
+                    if issubclass(widget.__class__, self.md_textfield):
+                        widget.theme_cls.unbind(
+                            **{
+                                "theme_style": getattr(
+                                    callback.proxy, callback.method_name
+                                )
+                            }
+                        )
+                    for property_name in self.unbind_properties:
+                        if widget == callback.proxy:
+                            widget.theme_cls.unbind(
+                                **{
+                                    property_name: getattr(
+                                        callback.proxy, callback.method_name
+                                    )
+                                }
+                            )
+                            # KivyMD widgets may contain other MD widgets.
+                            for children in widget.children:
+                                if hasattr(children, "theme_cls"):
+                                    self.remove_widget(children)
+            except ReferenceError:
+                pass
+
+        # Canceling a scheduled method call on_window_touch for MDLabel
+        # objects.
+        if (
+            issubclass(widget.__class__, self.md_label)
+            and self.md_label.allow_selection
+        ):
+            Window.unbind(on_touch_down=widget.on_window_touch)
+
+        super().remove_widget(widget)

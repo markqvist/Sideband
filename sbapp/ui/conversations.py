@@ -220,6 +220,8 @@ class Conversations():
                         item.dmenu.dismiss()
                     return x
 
+                item.iconr = IconRightWidget(icon="dots-vertical");
+
                 if self.conversation_dropdown == None:
                     dmi_h = 40
                     dm_items = [
@@ -250,18 +252,21 @@ class Conversations():
                     ]
 
                     self.conversation_dropdown = MDDropdownMenu(
-                        caller=None,
+                        caller=item.iconr,
                         items=dm_items,
                         position="auto",
-                        width_mult=4,
-                        elevation=1,
-                        radius=dp(3),
-                        opening_transition="linear",
-                        opening_time=0.0,
+                        #border_margin=dp(24),
+                        #width=dp(256),
+                        #elevation=0,
+                        #radius=dp(3),
+                        show_transition="linear",
+                        hide_transition="linear",
+                        #show_duration=0.1,
+                        #hide_duration=0.1,
+
                     )
                     self.conversation_dropdown.effect_cls = ScrollEffect
 
-                item.iconr = IconRightWidget(icon="dots-vertical");
                 item.dmenu = self.conversation_dropdown
 
                 def callback_factory(ref, dest):

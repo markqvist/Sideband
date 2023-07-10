@@ -158,7 +158,6 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.modalview import ModalView
 
 from kivymd import images_path, uix_path
-from kivymd.theming import ThemableBehavior
 from kivymd.uix.behaviors import CircularRippleBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDFloatingActionButton
@@ -197,7 +196,7 @@ class ModifiedOneLineIconListItem(BaseListItem):
         self.height = dp(48)
 
 
-class MDFileManager(MDRelativeLayout, ThemableBehavior):
+class MDFileManager(MDRelativeLayout):
     """
     Implements a modal dialog with a file manager.
 
@@ -248,7 +247,8 @@ class MDFileManager(MDRelativeLayout, ThemableBehavior):
 
     background_color_selection_button = ColorProperty(None)
     """
-    Background color of the current directory/path selection button.
+    Background color in (r, g, b, a) or string format of the current
+    directory/path selection button.
 
     .. versionadded:: 1.1.0
 
@@ -268,7 +268,7 @@ class MDFileManager(MDRelativeLayout, ThemableBehavior):
 
     background_color_toolbar = ColorProperty(None)
     """
-    Background color of the file manager toolbar.
+    Background color in (r, g, b, a) or string format of the file manager toolbar.
 
     .. versionadded:: 1.1.0
 
@@ -307,7 +307,8 @@ class MDFileManager(MDRelativeLayout, ThemableBehavior):
 
     icon_color = ColorProperty(None)
     """
-    Color of the folder icon when the :attr:`preview` property is set to False.
+    Color in (r, g, b, a) or string format of the folder icon when the
+    :attr:`preview` property is set to False.
 
     .. versionadded:: 1.1.0
 

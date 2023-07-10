@@ -145,6 +145,7 @@ from kivy.properties import (
     NumericProperty,
     OptionProperty,
     StringProperty,
+    VariableListProperty,
 )
 from kivy.uix.progressbar import ProgressBar
 
@@ -158,6 +159,25 @@ with open(
 
 
 class MDProgressBar(ThemableBehavior, ProgressBar):
+    """
+    Progressbar class.
+
+    For more information, see in the
+    :class:`~kivymd.theming.ThemableBehavior` and
+    :class:`~kivy.uix.progressbar.ProgressBar`
+    classes documentation.
+    """
+
+    radius = VariableListProperty([0], length=4)
+    """
+    Progress line radius.
+
+    .. versionadded:: 1.2.0
+
+    :attr:`radius` is an :class:`~kivy.properties.VariableListProperty`
+    and defaults to `[0, 0, 0, 0]`.
+    """
+
     reversed = BooleanProperty(False)
     """
     Reverse the direction the progressbar moves.
@@ -179,7 +199,7 @@ class MDProgressBar(ThemableBehavior, ProgressBar):
 
     color = ColorProperty(None)
     """
-    Progress bar color in ``rgba`` format.
+    Progress bar color in (r, g, b, a) or string format.
 
     :attr:`color` is an :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -187,7 +207,7 @@ class MDProgressBar(ThemableBehavior, ProgressBar):
 
     back_color = ColorProperty(None)
     """
-    Progress bar back color in ``rgba`` format.
+    Progress bar back color in (r, g, b, a) or string format.
 
     .. versionadded:: 1.0.0
 

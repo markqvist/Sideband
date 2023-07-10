@@ -274,12 +274,19 @@ with open(
     Builder.load_string(kv_file.read())
 
 
-class MDBottomNavigationHeader(
-    ThemableBehavior, ButtonBehavior, MDAnchorLayout
-):
+class MDBottomNavigationHeader(ButtonBehavior, MDAnchorLayout):
+    """
+    Bottom navigation header class.
+
+    For more information, see in the
+    :class:`~kivy.uix.behaviors.ButtonBehavior` and
+    :class:`~kivymd.uix.anchorlayout.MDAnchorLayout`
+    classes documentation.
+    """
+
     panel_color = ColorProperty([1, 1, 1, 0])
     """
-    Panel color of bottom navigation.
+    Panel color of bottom navigation in (r, g, b, a) or string format.
 
     :attr:`panel_color` is an :class:`~kivy.properties.ColorProperty`
     and defaults to `[1, 1, 1, 0]`.
@@ -307,7 +314,8 @@ class MDBottomNavigationHeader(
 
     text_color_normal = ColorProperty([1, 1, 1, 1])
     """
-    Text color of the label when it is not selected.
+    Text color in (r, g, b, a) or string format of the label when it is not
+    selected.
 
     :attr:`text_color_normal` is an :class:`~kivy.properties.ColorProperty`
     and defaults to `[1, 1, 1, 1]`.
@@ -315,7 +323,7 @@ class MDBottomNavigationHeader(
 
     text_color_active = ColorProperty([1, 1, 1, 1])
     """
-    Text color of the label when it is selected.
+    Text color in (r, g, b, a) or string format of the label when it is selected.
 
     :attr:`text_color_active` is an :class:`~kivy.properties.ColorProperty`
     and defaults to `[1, 1, 1, 1]`.
@@ -323,7 +331,8 @@ class MDBottomNavigationHeader(
 
     selected_color_background = ColorProperty(None)
     """
-    The background color of the highlighted item when using Material Design v3.
+    The background color in (r, g, b, a) or string format of the highlighted
+    item when using Material Design v3.
 
     .. versionadded:: 1.0.0
 
@@ -384,10 +393,13 @@ class MDBottomNavigationHeader(
             )
 
 
-class MDTab(MDScreen, ThemableBehavior):
+class MDTab(MDScreen):
     """
     A tab is simply a screen with meta information that defines the content
     that goes in the tab header.
+
+    For more information, see in the
+    :class:`~kivymd.uix.screen.MDScreen` class documentation.
     """
 
     __events__ = (
@@ -524,6 +536,10 @@ class TabbedPanelBase(
     A class that contains all variables a :class:`~kivy.properties.TabPannel`
     must have. It is here so I (zingballyhoo) don't get mad about
     the :class:`~kivy.properties.TabbedPannels` not being DRY.
+
+    For more information, see in the :class:`~kivymd.theming.ThemableBehavior`
+    and :class:`~kivymd.uix.behaviors.SpecificBackgroundColorBehavior`
+    and :class:`~kivy.uix.boxlayout.BoxLayout` classes documentation.
     """
 
     current = StringProperty(None)
@@ -554,6 +570,10 @@ class MDBottomNavigation(DeclarativeBehavior, TabbedPanelBase):
     """
     A bottom navigation that is implemented by delegating all items to a
     :class:`~kivy.uix.screenmanager.ScreenManager`.
+
+    For more information, see in the
+    :class:`~kivymd.uix.behaviors.DeclarativeBehavior` and
+    :class:`~TabbedPanelBase` classes documentation.
 
     :Events:
         :attr:`on_switch_tabs`
@@ -856,7 +876,5 @@ class MDBottomNavigation(DeclarativeBehavior, TabbedPanelBase):
         return bottom_navigation_item
 
 
-class MDBottomNavigationBar(
-    ThemableBehavior, CommonElevationBehavior, MDFloatLayout
-):
+class MDBottomNavigationBar(CommonElevationBehavior, MDFloatLayout):
     pass

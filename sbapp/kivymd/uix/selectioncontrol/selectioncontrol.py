@@ -4,12 +4,11 @@ Components/SelectionControls
 
 .. seealso::
 
-    `Material Design spec, Selection controls <https://material.io/components/selection-controls>`_
+    `Material Design spec, Checkbox <https://m3.material.io/components/checkbox/overview>`_
+
+    `Material Design spec, Switch <https://m3.material.io/components/switch/overview>`_
 
 .. rubric:: Selection controls allow the user to select options.
-
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/selection-controll.png
-    :align: center
 
 `KivyMD` provides the following selection controls classes for use:
 
@@ -19,6 +18,12 @@ Components/SelectionControls
 .. MDCheckbox:
 MDCheckbox
 ----------
+
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/checkbox.png
+    :align: center
+
+Usage
+-----
 
 .. code-block:: python
 
@@ -37,18 +42,20 @@ MDCheckbox
     '''
 
 
-    class Test(MDApp):
+    class Example(MDApp):
         def build(self):
+            self.theme_cls.primary_palette = "Green"
+            self.theme_cls.theme_style = "Dark"
             return Builder.load_string(KV)
 
 
-    Test().run()
+    Example().run()
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/checkbox.gif
     :align: center
 
 .. Note:: Be sure to specify the size of the checkbox. By default, it is
-    ``(dp(48), dp(48))``, but the ripple effect takes up all the available
+    `(dp(48), dp(48))`, but the ripple effect takes up all the available
     space.
 
 Control state
@@ -94,19 +101,137 @@ MDCheckbox with group
     '''
 
 
-    class Test(MDApp):
+    class Example(MDApp):
         def build(self):
+            self.theme_cls.primary_palette = "Green"
+            self.theme_cls.theme_style = "Dark"
             return Builder.load_string(KV)
 
 
-    Test().run()
+    Example().run()
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/checkbox-group.gif
+    :align: center
+
+Parent and child checkboxes
+---------------------------
+
+Checkboxes can have a parent-child relationship with other checkboxes. When
+the parent checkbox is checked, all child checkboxes are checked. If a parent
+checkbox is unchecked, all child checkboxes are unchecked. If some, but not all,
+child checkboxes are checked, the parent checkbox becomes an indeterminate
+checkbox.
+
+Usage
+-----
+
+.. code-block:: kv
+
+    MDCheckbox:
+        group: "root"  # this is a required name for the parent checkbox group
+
+    MDCheckbox:
+        group: "child"  # this is a required name for a group of child checkboxes
+
+    MDCheckbox:
+        group: "child"  # this is a required name for a group of child checkboxes
+
+Example
+-------
+
+.. code-block:: python
+
+    from kivy.lang import Builder
+    from kivy.properties import StringProperty
+
+    from kivymd.app import MDApp
+    from kivymd.uix.boxlayout import MDBoxLayout
+
+    KV = '''
+    <CheckItem>
+        adaptive_height: True
+
+        MDCheckbox:
+            size_hint: None, None
+            size: "48dp", "48dp"
+            group: root.group
+
+        MDLabel:
+            text: root.text
+            adaptive_height: True
+            theme_text_color: "Custom"
+            text_color: "#B2B6AE"
+            pos_hint: {"center_y": .5}
+
+
+    MDBoxLayout:
+        orientation: "vertical"
+        md_bg_color: "#141612"
+
+        MDTopAppBar:
+            md_bg_color: "#21271F"
+            specific_text_color: "#B2B6AE"
+            elevation: 0
+            title: "Meal options"
+            left_action_items: [["arrow-left", lambda x: x]]
+            anchor_title: "left"
+
+        MDBoxLayout:
+            orientation: "vertical"
+            adaptive_height: True
+            padding: "12dp", "36dp", 0, 0
+
+            CheckItem:
+                text: "Recieve emails"
+                group: "root"
+
+            MDBoxLayout:
+                orientation: "vertical"
+                adaptive_height: True
+                padding: "24dp", 0, 0, 0
+
+                CheckItem:
+                    text: "Daily"
+                    group: "child"
+
+                CheckItem:
+                    text: "Weekly"
+                    group: "child"
+
+                CheckItem:
+                    text: "Monthly"
+                    group: "child"
+
+        MDWidget:
+    '''
+
+
+    class CheckItem(MDBoxLayout):
+        text = StringProperty()
+        group = StringProperty()
+
+
+    class Example(MDApp):
+        def build(self):
+            self.theme_cls.theme_style = "Dark"
+            self.theme_cls.primary_palette = "Teal"
+            return Builder.load_string(KV)
+
+
+    Example().run()
+
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/checkbox-parent-child.gif
     :align: center
 
 .. MDSwitch:
 MDSwitch
 --------
+
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/switch.png
+    :align: center
+
+Usage
+-----
 
 .. code-block:: python
 
@@ -122,58 +247,20 @@ MDSwitch
     '''
 
 
-    class Test(MDApp):
+    class Example(MDApp):
         def build(self):
+            self.theme_cls.primary_palette = "Green"
+            self.theme_cls.theme_style = "Dark"
             return Builder.load_string(KV)
 
 
-    Test().run()
+    Example().run()
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-switch.gif
     :align: center
 
-.. Note:: For :class:`~MDSwitch` size is not required. By default it is
-    ``(dp(36), dp(48))``, but you can increase the width if you want.
-
-.. code-block:: kv
-
-    MDSwitch:
-        width: dp(64)
-
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/md-switch_width.png
-    :align: center
-
 .. Note:: Control state of :class:`~MDSwitch` same way as in
     :class:`~MDCheckbox`.
-
-MDSwitch in M3 style
---------------------
-
-.. code-block:: python
-
-    from kivy.lang import Builder
-
-    from kivymd.app import MDApp
-
-    KV = '''
-    MDScreen:
-
-        MDSwitch:
-            pos_hint: {'center_x': .5, 'center_y': .5}
-            active: True
-    '''
-
-
-    class Test(MDApp):
-        def build(self):
-            self.theme_cls.material_style = "M3"
-            return Builder.load_string(KV)
-
-
-    Test().run()
-
-.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/checkbox-m3.gif
-    :align: center
 """
 
 __all__ = ("MDCheckbox", "MDSwitch")
@@ -195,9 +282,14 @@ from kivy.uix.floatlayout import FloatLayout
 
 from kivymd import uix_path
 from kivymd.theming import ThemableBehavior
-from kivymd.uix.behaviors import CircularRippleBehavior, CommonElevationBehavior
+from kivymd.uix.behaviors import (
+    CircularRippleBehavior,
+    CommonElevationBehavior,
+    ScaleBehavior,
+)
 from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.uix.label import MDIcon
+from kivymd.utils import asynckivy
 
 with open(
     os.path.join(uix_path, "selectioncontrol", "selectioncontrol.kv"),
@@ -206,7 +298,22 @@ with open(
     Builder.load_string(kv_file.read())
 
 
-class MDCheckbox(CircularRippleBehavior, ToggleButtonBehavior, MDIcon):
+class MDCheckbox(
+    CircularRippleBehavior, ScaleBehavior, ToggleButtonBehavior, MDIcon
+):
+    """
+    Checkbox class.
+
+    For more information, see in the
+    :class:`~kivymd.uix.behaviors.CircularRippleBehavior` and
+    :class:`~kivy.uix.behaviors.ToggleButtonBehavior` and
+    :class:`~kivymd.uix.label.MDIcon`
+    classes documentation.
+    """
+
+    __allow_child_checkboxes_active = True
+    __allow_root_checkbox_active = True
+
     active = BooleanProperty(False)
     """
     Indicates if the checkbox is active or inactive.
@@ -235,7 +342,7 @@ class MDCheckbox(CircularRippleBehavior, ToggleButtonBehavior, MDIcon):
 
     radio_icon_normal = StringProperty("checkbox-blank-circle-outline")
     """
-    Background icon (when using the ``group`` option) of the checkbox used for
+    Background icon (when using the `group` option) of the checkbox used for
     the default graphical representation when the checkbox is not pressed.
 
     :attr:`radio_icon_normal` is a :class:`~kivy.properties.StringProperty`
@@ -244,7 +351,7 @@ class MDCheckbox(CircularRippleBehavior, ToggleButtonBehavior, MDIcon):
 
     radio_icon_down = StringProperty("checkbox-marked-circle")
     """
-    Background icon (when using the ``group`` option) of the checkbox used for
+    Background icon (when using the `group` option) of the checkbox used for
     the default graphical representation when the checkbox is pressed.
 
     :attr:`radio_icon_down` is a :class:`~kivy.properties.StringProperty`
@@ -253,7 +360,7 @@ class MDCheckbox(CircularRippleBehavior, ToggleButtonBehavior, MDIcon):
 
     color_active = ColorProperty(None)
     """
-    Color when the checkbox is in the active state.
+    Color in (r, g, b, a) or string format when the checkbox is in the active state.
 
     .. versionadded:: 1.0.0
 
@@ -271,7 +378,7 @@ class MDCheckbox(CircularRippleBehavior, ToggleButtonBehavior, MDIcon):
 
     color_inactive = ColorProperty(None)
     """
-    Color when the checkbox is in the inactive state.
+    Color in (r, g, b, a) or string format when the checkbox is in the inactive state.
 
     .. versionadded:: 1.0.0
 
@@ -289,7 +396,7 @@ class MDCheckbox(CircularRippleBehavior, ToggleButtonBehavior, MDIcon):
 
     disabled_color = ColorProperty(None)
     """
-    Color when the checkbox is in the disabled state.
+    Color in (r, g, b, a) or string format when the checkbox is in the disabled state.
 
     .. code-block:: kv
 
@@ -309,7 +416,7 @@ class MDCheckbox(CircularRippleBehavior, ToggleButtonBehavior, MDIcon):
 
     selected_color = ColorProperty(None, deprecated=True)
     """
-    Color when the checkbox is in the active state.
+    Color in (r, g, b, a) or string format when the checkbox is in the active state.
 
     .. deprecated:: 1.0.0
         Use :attr:`color_active` instead.
@@ -320,7 +427,7 @@ class MDCheckbox(CircularRippleBehavior, ToggleButtonBehavior, MDIcon):
 
     unselected_color = ColorProperty(None, deprecated=True)
     """
-    Color when the checkbox is in the inactive state.
+    Color in (r, g, b, a) or string format when the checkbox is in the inactive state.
 
     .. deprecated:: 1.0.0
         Use :attr:`color_inactive` instead.
@@ -332,9 +439,11 @@ class MDCheckbox(CircularRippleBehavior, ToggleButtonBehavior, MDIcon):
     _current_color = ColorProperty([0.0, 0.0, 0.0, 0.0])
 
     def __init__(self, **kwargs):
-        self.check_anim_out = Animation(font_size=0, duration=0.1, t="out_quad")
+        self.check_anim_out = Animation(
+            scale_value_x=0, scale_value_y=0, duration=0.1, t="out_quad"
+        )
         self.check_anim_in = Animation(
-            font_size=sp(24), duration=0.1, t="out_quad"
+            scale_value_x=1, scale_value_y=1, duration=0.1, t="out_quad"
         )
         super().__init__(**kwargs)
         self.color_active = self.theme_cls.primary_color
@@ -364,6 +473,13 @@ class MDCheckbox(CircularRippleBehavior, ToggleButtonBehavior, MDIcon):
         self.update_color()
 
     def update_primary_color(self, instance, value) -> None:
+        """
+        Called when the values of
+        :attr:`kivymd.theming.ThemableBehavior.theme_cls.theme_style` and
+        :attr:`kivymd.theming.ThemableBehavior.theme_cls.primary_color`
+        change.
+        """
+
         if value in ("Dark", "Light"):
             if not self.disabled:
                 self.color = self.theme_cls.primary_color
@@ -373,18 +489,41 @@ class MDCheckbox(CircularRippleBehavior, ToggleButtonBehavior, MDIcon):
             self.color_active = value
 
     def update_icon(self, *args) -> None:
+        """
+        Called when the values of
+        :attr:`checkbox_icon_normal` and
+        :attr:`checkbox_icon_down` and
+        :attr:`radio_icon_normal` and
+        :attr:`group`
+        change.
+        """
+
         if self.state == "down":
             self.icon = (
-                self.radio_icon_down if self.group else self.checkbox_icon_down
+                self.radio_icon_down
+                if self.group and self.group not in ["root", "child"]
+                else self.checkbox_icon_down
+                if self.group != "root"
+                else "minus-box"
             )
         else:
             self.icon = (
                 self.radio_icon_normal
-                if self.group
+                if self.group and self.group not in ["root", "child"]
                 else self.checkbox_icon_normal
             )
 
     def update_color(self, *args) -> None:
+        """
+        Called when the values of
+        :attr:`color_active` and
+        :attr:`color_inactive` and
+        :attr:`disabled_color` and
+        :attr:`disabled` and
+        :attr:`state`
+        change.
+        """
+
         if self.disabled:
             self._current_color = self.disabled_color
         elif self.state == "down":
@@ -393,6 +532,8 @@ class MDCheckbox(CircularRippleBehavior, ToggleButtonBehavior, MDIcon):
             self._current_color = self.color_inactive
 
     def on_state(self, *args) -> None:
+        """Called when the values of :attr:`state` change."""
+
         if self.state == "down":
             self.check_anim_in.cancel(self)
             self.check_anim_out.start(self)
@@ -408,7 +549,44 @@ class MDCheckbox(CircularRippleBehavior, ToggleButtonBehavior, MDIcon):
             self.active = False
 
     def on_active(self, *args) -> None:
+        """Called when the values of :attr:`active` change."""
+
         self.state = "down" if self.active else "normal"
+
+        if (
+            self.group
+            and self.group == "root"
+            and MDCheckbox.__allow_root_checkbox_active
+        ):
+            self.set_child_active(self.active)
+        elif self.group and self.group == "child":
+            if MDCheckbox.__allow_child_checkboxes_active:
+                self.set_root_active()
+
+    def set_root_active(self) -> None:
+        root_checkbox = self.get_widgets("root")
+        if root_checkbox:
+            MDCheckbox.__allow_root_checkbox_active = False
+            root_checkbox[0].active = True in [
+                child.active for child in self.get_widgets("child")
+            ]
+            MDCheckbox.__allow_root_checkbox_active = True
+
+    def set_child_active(self, active: bool):
+        for child in self.get_widgets("child"):
+            child.active = active
+        MDCheckbox.__allow_child_checkboxes_active = True
+
+    def on_touch_down(self, touch):
+        if self.collide_point(touch.x, touch.y):
+            if self.group and self.group == "root":
+                MDCheckbox.__allow_child_checkboxes_active = False
+        return super().on_touch_down(touch)
+
+    def _release_group(self, current):
+        if self.group and self.group in ["root", "child"]:
+            return
+        super()._release_group(current)
 
 
 class ThumbIcon(MDIcon):
@@ -419,14 +597,8 @@ class ThumbIcon(MDIcon):
     """
 
 
-class Thumb(
-    CommonElevationBehavior,
-    CircularRippleBehavior,
-    MDFloatLayout,
-):
-    """
-    Implements a thumb for the :class:`~MDSwitch` widget.
-    """
+class Thumb(CommonElevationBehavior, CircularRippleBehavior, MDFloatLayout):
+    """Implements a thumb for the :class:`~MDSwitch` widget."""
 
     def _set_ellipse(self, instance, value):
         self.ellipse.size = (self._ripple_rad, self._ripple_rad)
@@ -443,6 +615,14 @@ class Thumb(
 
 
 class MDSwitch(ThemableBehavior, FloatLayout):
+    """
+    Switch class.
+
+    For more information, see in the
+    :class:`~kivymd.theming.ThemableBehavior` and
+    :class:`~kivy.uix.floatlayout.FloatLayout` classes documentation.
+    """
+
     active = BooleanProperty(False)
     """
     Indicates if the switch is active or inactive.
@@ -490,7 +670,8 @@ class MDSwitch(ThemableBehavior, FloatLayout):
 
     icon_active_color = ColorProperty(None)
     """
-    Thumb icon color when the switch is in the active state (only M3 style).
+    Thumb icon color in (r, g, b, a) or string format when the switch is in the
+    active state (only M3 style).
 
     .. versionadded:: 1.0.0
 
@@ -510,7 +691,8 @@ class MDSwitch(ThemableBehavior, FloatLayout):
 
     icon_inactive_color = ColorProperty(None)
     """
-    Thumb icon color when the switch is in an inactive state (only M3 style).
+    Thumb icon color in (r, g, b, a) or string format when the switch is in an
+    inactive state (only M3 style).
 
     .. versionadded:: 1.0.0
 
@@ -529,7 +711,7 @@ class MDSwitch(ThemableBehavior, FloatLayout):
 
     thumb_color_active = ColorProperty(None)
     """
-    The color of the thumb when the switch is active.
+    The color in (r, g, b, a) or string format of the thumb when the switch is active.
 
     .. versionadded:: 1.0.0
 
@@ -548,7 +730,7 @@ class MDSwitch(ThemableBehavior, FloatLayout):
 
     thumb_color_inactive = ColorProperty(None)
     """
-    The color of the thumb when the switch is inactive.
+    The color in (r, g, b, a) or string format of the thumb when the switch is inactive.
 
     .. versionadded:: 1.0.0
 
@@ -566,7 +748,8 @@ class MDSwitch(ThemableBehavior, FloatLayout):
 
     thumb_color_disabled = ColorProperty(None)
     """
-    The color of the thumb when the switch is in the disabled state.
+    The color in (r, g, b, a) or string format of the thumb when the switch is
+    in the disabled state.
 
     .. code-block:: kv
 
@@ -584,7 +767,7 @@ class MDSwitch(ThemableBehavior, FloatLayout):
 
     track_color_active = ColorProperty(None)
     """
-    The color of the track when the switch is active.
+    The color in (r, g, b, a) or string format of the track when the switch is active.
 
     .. code-block:: kv
 
@@ -601,7 +784,7 @@ class MDSwitch(ThemableBehavior, FloatLayout):
 
     track_color_inactive = ColorProperty(None)
     """
-    The color of the track when the switch is inactive.
+    The color in (r, g, b, a) or string format of the track when the switch is inactive.
 
     .. versionadded:: 1.0.0
 
@@ -619,7 +802,8 @@ class MDSwitch(ThemableBehavior, FloatLayout):
 
     track_color_disabled = ColorProperty(None)
     """
-    The color of the track when the switch is in the disabled state.
+    The color in (r, g, b, a) or string format of the track when the switch is
+    in the disabled state.
 
     .. code-block:: kv
 
@@ -646,6 +830,11 @@ class MDSwitch(ThemableBehavior, FloatLayout):
         Clock.schedule_once(lambda x: self.on_active(self, self.active))
 
     def set_icon(self, instance_switch, icon_value: str) -> None:
+        """
+        Called when the values of
+        :attr:`icon_active` and :attr:`icon_inactive` change.
+        """
+
         def set_icon(*args):
             icon = icon_value if icon_value else "blank"
             self.ids.thumb.ids.icon.icon = icon
@@ -653,6 +842,8 @@ class MDSwitch(ThemableBehavior, FloatLayout):
         Clock.schedule_once(set_icon, 0.2)
 
     def on_active(self, instance_switch, active_value: bool) -> None:
+        """Called when the values of :attr:`active` change."""
+
         if self.theme_cls.material_style == "M3" and self.widget_style != "ios":
             size = (
                 (

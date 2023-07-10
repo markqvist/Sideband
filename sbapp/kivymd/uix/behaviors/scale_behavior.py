@@ -105,12 +105,16 @@ KivyMD
 
 
     Test().run()
+
+.. warning:: Do not use `ScaleBehavior` class with classes that inherited`
+    from `CommonElevationBehavior` class. `CommonElevationBehavior` classes
+    by default contains attributes for scale widget.
 """
 
 __all__ = ("ScaleBehavior",)
 
 from kivy.lang import Builder
-from kivy.properties import NumericProperty
+from kivy.properties import ListProperty, NumericProperty
 
 Builder.load_string(
     """
@@ -120,8 +124,11 @@ Builder.load_string(
         Scale:
             x: self.scale_value_x
             y: self.scale_value_y
-            z: self.scale_value_x
-            origin: self.center
+            z: self.scale_value_z
+            origin:
+                self.center \
+                if not self.scale_value_center else \
+                self.scale_value_center
     canvas.after:
         PopMatrix
 """
@@ -153,4 +160,16 @@ class ScaleBehavior:
 
     :attr:`scale_value_z` is an :class:`~kivy.properties.NumericProperty`
     and defaults to `1`.
+    """
+
+    scale_value_center = ListProperty()
+    """
+    Origin of the scale.
+
+    .. versionadded:: 1.2.0
+
+    The format of the origin can be either (x, y) or (x, y, z).
+
+    :attr:`scale_value_center` is an :class:`~kivy.properties.NumericProperty`
+    and defaults to `[]`.
     """

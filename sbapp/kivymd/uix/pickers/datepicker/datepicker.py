@@ -203,7 +203,6 @@ from datetime import date
 from itertools import zip_longest
 from typing import Union
 
-from kivy import Logger
 from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.metrics import dp
@@ -252,6 +251,12 @@ class BaseDialogPicker(
     """
     Base class for :class:`~kivymd.uix.picker.MDDatePicker` and
     :class:`~kivymd.uix.picker.MDTimePicker` classes.
+
+    For more information, see in the
+    :class:`~kivymd.uix.dialog.BaseDialog` and
+    :class:`~kivymd.uix.behaviors.CommonElevationBehavior` and
+    :class:`~kivymd.uix.behaviors.SpecificBackgroundColorBehavior`
+    classes documentation.
 
     :Events:
         `on_save`
@@ -644,10 +649,29 @@ class DatePickerTypeDateError(Exception):
 
 
 class DatePickerInputField(MDTextField):
-    """Implements date input in dd/mm/yyyy format."""
+    """
+    Implements date input in dd/mm/yyyy format.
+
+    For more information, see in the
+    :class:`~kivymd.uix.textfield.MDTextField` class documentation.
+    """
 
     helper_text_mode = StringProperty("on_error")
     owner = ObjectProperty()  # MDDatePicker object
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.bind(text=self._on_text_check_errors)
+
+    def _on_text_check_errors(self, widget, text):
+        if text == "":
+            self.error = False
+            return
+        try:
+            datetime.datetime.strptime(text, "%d/%m/%Y")
+            self.error = False
+        except ValueError:
+            self.error = True
 
     def set_error(self):
         """Sets a text field to an error state."""
@@ -699,54 +723,14 @@ class DatePickerDaySelectableItem(
     owner = ObjectProperty()
     is_today = BooleanProperty(False)
     is_selected = BooleanProperty(False)
-    current_month = NumericProperty()
-    current_year = NumericProperty()
-    index = NumericProperty(0)
-
-    def check_date(self, year: int, month: int, day: int):
-        try:
-            return date(year, month, day) in self.owner._date_range
-        except ValueError as error:
-            if str(error) == "day is out of range for month":
-                return False
+    is_in_range = BooleanProperty(False)
+    is_range_start = BooleanProperty(False)
+    is_range_end = BooleanProperty(False)
+    is_month_end = BooleanProperty(False)
+    is_week_end = BooleanProperty(False)
 
     def on_release(self):
-        if (
-            self.owner.mode == "range"
-            and self.owner._end_range_date
-            and self.owner._start_range_date
-        ):
-            return
-        if (
-            not self.owner._input_date_dialog_open
-            and not self.owner._select_year_dialog_open
-        ):
-            if self.owner.mode == "range" and not self.owner._start_range_date:
-                self.owner._start_range_date = date(
-                    self.current_year, self.current_month, int(self.text)
-                )
-                self.owner.min_date = self.owner._start_range_date
-            elif (
-                self.owner.mode == "range"
-                and not self.owner._end_range_date
-                and self.owner._start_range_date
-            ):
-                self.owner._end_range_date = date(
-                    self.current_year, self.current_month, int(self.text)
-                )
-                if self.owner._end_range_date <= self.owner.min_date:
-                    toast(self.owner.date_range_text_error)
-                    Logger.error(
-                        "`Data Picker: max_date` value cannot be less than "
-                        "or equal to 'min_date' value."
-                    )
-                    self.owner._start_range_date = 0
-                    self.owner._end_range_date = 0
-                    return
-                self.owner.max_date = self.owner._end_range_date
-                self.owner.update_calendar_for_date_range()
-
-            self.owner.set_selected_widget(self)
+        self.owner.set_selected_widget(self)
 
     def on_touch_down(self, touch):
         # If year_layout is active don't dispatch on_touch_down events,
@@ -760,7 +744,7 @@ class DatePickerYearSelectableItem(RecycleDataViewBehavior, MDLabel):
     """Implements an item for a pick list of the year."""
 
     index = None
-    selected_color = ColorProperty([0, 0, 0, 0])
+    selected = BooleanProperty(False)
     owner = ObjectProperty()
 
     def refresh_view_attrs(self, rv, index, data):
@@ -772,32 +756,10 @@ class DatePickerYearSelectableItem(RecycleDataViewBehavior, MDLabel):
             return True
         if self.collide_point(*touch.pos):
             self.owner.year = int(self.text)
-            # self.owner.sel_year = self.owner.year
-            self.owner.ids.label_full_date.text = self.owner.set_text_full_date(
-                self.owner.sel_year,
-                self.owner.sel_month,
-                self.owner.sel_day,
-                self.owner.theme_cls.device_orientation,
-            )
             return self.parent.select_with_touch(self.index, touch)
 
     def apply_selection(self, table_data, index, is_selected):
-        if is_selected:
-            self.selected_color = (
-                self.owner.selector_color
-                if self.owner.selector_color
-                else self.theme_cls.primary_color
-            )
-            self.text_color = (1, 1, 1, 1)
-        else:
-            if int(self.text) == self.owner.sel_year:
-                self.text_color = (
-                    self.theme_cls.primary_color
-                    if not self.owner.text_current_color
-                    else self.owner.text_current_color
-                )
-            self.selected_color = [0, 0, 0, 0]
-            self.text_color = (0, 0, 0, 1)
+        self.selected = is_selected
 
 
 # TODO: Add the feature to embed the `MDDatePicker` class in other layouts
@@ -889,7 +851,7 @@ class MDDatePicker(BaseDialogPicker):
     and defaults to `picker`.
     """
 
-    min_date = ObjectProperty()
+    min_date = ObjectProperty(allownone=True)
     """
     The minimum value of the date range for the `'mode`' parameter.
     Must be an object <class 'datetime.date'>.
@@ -900,7 +862,7 @@ class MDDatePicker(BaseDialogPicker):
     and defaults to `None`.
     """
 
-    max_date = ObjectProperty()
+    max_date = ObjectProperty(allownone=True)
     """
     The minimum value of the date range for the `'mode`' parameter.
     Must be an object <class 'datetime.date'>.
@@ -955,17 +917,13 @@ class MDDatePicker(BaseDialogPicker):
 
     _calendar_layout = ObjectProperty()
     _calendar_list = None
-    _enter_data_field = None
-    _enter_data_field_two = None
-    _enter_data_field_container = None
-    _date_range = []
+    _fields_container = None
     _scale_calendar_layout = NumericProperty(1)
     _scale_year_layout = NumericProperty(0)
     _shift_dialog_height = NumericProperty(0)
     _input_date_dialog_open = BooleanProperty(False)
     _select_year_dialog_open = False
-    _start_range_date = 0
-    _end_range_date = 0
+    _date_label_text = StringProperty()
 
     def __init__(
         self,
@@ -996,7 +954,6 @@ class MDDatePicker(BaseDialogPicker):
                     "'max_date' must be of class <class 'datetime.date'>"
                 )
             self.compare_date_range()
-            self._date_range = self.get_date_range()
 
         self.generate_list_widgets_days()
         self.update_calendar(self.sel_year, self.sel_month)
@@ -1006,6 +963,8 @@ class MDDatePicker(BaseDialogPicker):
     ) -> None:
         """Called when the device's screen orientation changes."""
 
+        # Separators of the label text depend on the orientation.
+        self._update_date_label_text()
         if self._input_date_dialog_open:
             if orientation_value == "portrait":
                 self._shift_dialog_height = dp(250)
@@ -1017,21 +976,12 @@ class MDDatePicker(BaseDialogPicker):
         Called when the 'OK' button is pressed to confirm the date entered.
         """
 
-        if self._enter_data_field and not self.is_date_valaid(
-            self._enter_data_field.text
-        ):
-            self._enter_data_field.set_error()
+        if self._input_date_dialog_open and not self._try_apply_input():
             return
-        if self._enter_data_field_two and not self.is_date_valaid(
-            self._enter_data_field_two.text
-        ):
-            self._enter_data_field_two.set_error()
-            return
-
         self.dispatch(
             "on_save",
             date(self.sel_year, self.sel_month, self.sel_day),
-            self._date_range,
+            self.get_date_range(),
         )
 
     def is_date_valaid(self, date: str) -> bool:
@@ -1085,55 +1035,24 @@ class MDDatePicker(BaseDialogPicker):
             self.ids._year_layout.children[0].clear_selection()
 
     def transformation_to_dialog_input_date(self) -> None:
-        def set_date_to_input_field():
-            if not self._enter_data_field_two:
-                # Date of current day.
-                self._enter_data_field.text = (
-                    f"{'' if self.sel_day >= 10 else '0'}"
-                    f"{self.sel_day}/"
-                    f"{'' if self.sel_month >= 10 else '0'}"
-                    f"{self.sel_month}/{self.sel_year}"
-                )
-            else:
-                # Range start date.
-                self._enter_data_field.text = (
-                    f"{'' if self.min_date.day >= 10 else '0'}"
-                    f"{self.min_date.day}/"
-                    f"{'' if self.min_date.month >= 10 else '0'}"
-                    f"{self.min_date.month}/{self.min_date.year}"
-                )
-
-        def set_date_to_input_field_two() -> None:
-            # Range end date.
-            self._enter_data_field_two.text = (
-                f"{'' if self.max_date.day >= 10 else '0'}"
-                f"{self.max_date.day}/"
-                f"{'' if self.max_date.month >= 10 else '0'}"
-                f"{self.max_date.month}/{self.max_date.year}"
-            )
-
         self.ids.triangle.disabled = True
         if self._select_year_dialog_open:
             self.transformation_from_dialog_select_year()
         self._input_date_dialog_open = True
-
-        self._enter_data_field_container = DatePickerInputFieldContainer(
-            owner=self
-        )
-        self._enter_data_field = self.get_field()
-        if self.min_date and self.max_date:
-            self._enter_data_field_two = self.get_field()
-            set_date_to_input_field_two()
-        set_date_to_input_field()
-        self._enter_data_field_container.add_widget(self._enter_data_field)
-        if self._enter_data_field_two:
-            self._enter_data_field_container.add_widget(
-                self._enter_data_field_two
-            )
-
-        self.ids.container.add_widget(self._enter_data_field_container)
         self.ids.edit_icon.icon = "calendar"
         self.ids.label_title.text = self.title_input
+
+        self._fields_container = DatePickerInputFieldContainer(owner=self)
+        if self.mode == "picker":
+            selected_date = date(self.sel_year, self.sel_month, self.sel_day)
+            selected_dates = [selected_date]
+        else:
+            selected_dates = [self.min_date, self.max_date]
+        for selected_date in selected_dates:
+            field = self.get_field(selected_date)
+            field.bind(text=self._on_date_field_text_changes)
+            self._fields_container.add_widget(field)
+        self.ids.container.add_widget(self._fields_container)
 
         Animation(
             _shift_dialog_height=dp(250)
@@ -1152,28 +1071,22 @@ class MDDatePicker(BaseDialogPicker):
         ).start(self.ids.chevron_right)
         Animation(opacity=0, d=0.15).start(self.ids.label_month_selector)
         Animation(opacity=0, d=0.15).start(self.ids.triangle)
-        Animation(opacity=1, d=0.15).start(self._enter_data_field)
-        if self._enter_data_field_two:
-            Animation(opacity=1, d=0.15).start(self._enter_data_field_two)
-        self.ids.label_full_date.text = self.set_text_full_date(
-            self.sel_year,
-            self.sel_month,
-            self.sel_day,
-            self.theme_cls.device_orientation,
-        )
+        Animation(opacity=1, d=0.15).start(self._fields_container)
+        # The label text separator in landscape orientation depends on the
+        # open dialog.
+        self._update_date_label_text()
 
     def transformation_from_dialog_input_date(
         self, interval: Union[int, float]
     ) -> None:
+        if not self._try_apply_input():
+            return
         self._input_date_dialog_open = False
-        self.ids.label_full_date.text = self.set_text_full_date(
-            self.sel_year,
-            self.sel_month,
-            self.sel_day,
-            self.theme_cls.device_orientation,
-        )
         self.ids.triangle.disabled = False
-        self.ids.container.remove_widget(self._enter_data_field_container)
+        self.ids.edit_icon.icon = "pencil"
+        self.ids.label_title.text = self.title
+        self.ids.container.remove_widget(self._fields_container)
+        self._fields_container = None
         Animation(
             _shift_dialog_height=dp(0), _scale_calendar_layout=1, d=0.15
         ).start(self)
@@ -1187,41 +1100,67 @@ class MDDatePicker(BaseDialogPicker):
         ).start(self.ids.chevron_right)
         Animation(opacity=1, d=0.15).start(self.ids.label_month_selector)
         Animation(opacity=1, d=0.15).start(self.ids.triangle)
-        Animation(opacity=0, d=0.15).start(self._enter_data_field)
-        self.ids.edit_icon.icon = "pencil"
-        self.ids.label_title.text = self.title
+        # The label text separator in landscape orientation depends on the
+        # open dialog.
+        self._update_date_label_text()
 
-        if not self.min_date and not self.max_date:
-            list_date = self._enter_data_field.get_list_date()
-            if len(list_date) == 3 and len(list_date[2]) == 4:
-                self.sel_day = int(list_date[0])
-                self.sel_month = int(list_date[1])
-                self.sel_year = int(list_date[2])
-                self.update_calendar(self.sel_year, self.sel_month)
-        elif self.min_date and self.max_date:
-            list_min_date = self._enter_data_field.get_list_date()
-            list_max_date = self._enter_data_field_two.get_list_date()
+    def _get_dates_from_fields(self):
+        """
+        Return a list of dates entered by the user in the input fields.
 
-            if len(list_min_date) == 3 and len(list_min_date[2]) == 4:
-                self.min_date = date(
-                    int(list_min_date[2]),
-                    int(list_min_date[1]),
-                    int(list_min_date[0]),
-                )
-            if len(list_max_date) == 3 and len(list_max_date[2]) == 4:
-                self.max_date = date(
-                    int(list_max_date[2]),
-                    int(list_max_date[1]),
-                    int(list_max_date[0]),
-                )
+        If there is an error in the field or the field is empty, None will be
+        in its place in the list. The length of the list will be 0 if the input
+        dialog is closed, otherwise 1 in picker mode or 2 in range mode.
+        """
 
-            self.update_calendar_for_date_range()
-            self.ids.label_full_date.text = self.set_text_full_date(
-                int(list_max_date[2]),
-                int(list_max_date[1]),
-                int(list_max_date[0]),
-                self.theme_cls.device_orientation,
-            )
+        if not self._fields_container:
+            return []
+
+        dates = []
+        # Widgets are arranged in the reverse order of their addition.
+        for field in reversed(self._fields_container.children):
+            try:
+                date = datetime.datetime.strptime(field.text, "%d/%m/%Y").date()
+            except ValueError:
+                date = None
+            dates.append(date)
+
+        return dates
+
+    def _try_apply_input(self) -> bool:
+        """
+        Apply the dates entered by the user, update the calendar and return
+        True. If there are errors in the fields, do nothing and return False.
+        """
+
+        dates = self._get_dates_from_fields()
+        if not dates:
+            return True
+
+        # Widgets are arranged in the reverse order of their addition.
+        fields = reversed(self._fields_container.children)
+        if any(d is None and f.text for f, d in zip(fields, dates)):
+            return False
+
+        if self.mode == "picker":
+            selected_date = date(self.sel_year, self.sel_month, self.sel_day)
+            selected_date = dates[0] or selected_date
+            self.sel_year = selected_date.year
+            self.sel_month = selected_date.month
+            self.sel_day = selected_date.day
+            self.update_calendar(self.sel_year, self.sel_month)
+        elif self.mode == "range":
+            date1, date2 = dates[0] or self.min_date, dates[1] or self.max_date
+            ends = list(filter(bool, [date1, date2]))
+            if ends:
+                self.min_date = min(ends)
+                self.max_date = max(ends)
+                self.update_calendar(self.year, self.month)
+
+        return True
+
+    def _on_date_field_text_changes(self, *args):
+        self._update_date_label_text()
 
     def compare_date_range(self) -> None:
         # TODO: Add behavior if the minimum date range exceeds the maximum
@@ -1233,8 +1172,7 @@ class MDDatePicker(BaseDialogPicker):
             )
 
     def update_calendar_for_date_range(self) -> None:
-        # self.compare_date_range()
-        self._date_range = self.get_date_range()
+        # This method is no longer used, use update_calendar instead.
         self.update_calendar(self.year, self.month)
 
     def update_text_full_date(self, list_date) -> None:
@@ -1243,27 +1181,13 @@ class MDDatePicker(BaseDialogPicker):
         in an open date input dialog.
         """
 
-        if len(list_date) == 1 and len(list_date[0]) == 2:
-            self.ids.label_full_date.text = self.set_text_full_date(
-                self.sel_year,
-                self.sel_month,
-                list_date[0],
-                self.theme_cls.device_orientation,
-            )
-        if len(list_date) == 2 and len(list_date[1]) == 2:
-            self.ids.label_full_date.text = self.set_text_full_date(
-                self.sel_year,
-                int(list_date[1]),
-                int(list_date[0]),
-                self.theme_cls.device_orientation,
-            )
-        if len(list_date) == 3 and len(list_date[2]) == 4:
-            self.ids.label_full_date.text = self.set_text_full_date(
-                int(list_date[2]),
-                int(list_date[1]),
-                int(list_date[0]),
-                self.theme_cls.device_orientation,
-            )
+        # This method no longer used, use update_calendar instead.
+        year = int(list_date[2]) if len(list_date) > 2 else self.sel_year
+        month = int(list_date[1]) if len(list_date) > 1 else self.sel_month
+        day = int(list_date[0]) if len(list_date) > 0 else self.sel_day
+        day = min(day, calendar.monthrange(year, month)[1])
+        self.sel_year, self.sel_month, self.sel_day = year, month, day
+        self.update_calendar(year, month)
 
     def update_calendar(self, year, month) -> None:
         self.year, self.month = year, month
@@ -1271,7 +1195,10 @@ class MDDatePicker(BaseDialogPicker):
             selected_date = date(self.sel_year, self.sel_month, self.sel_day)
             selected_dates = {selected_date}
         else:
-            selected_dates = {self._start_range_date, self._end_range_date}
+            selected_dates = {self.min_date, self.max_date}
+        # The label text depends on the selected date or date range.
+        self._update_date_label_text()
+        month_end = date(year, month, calendar.monthrange(year, month)[1])
         dates = self.calendar.itermonthdates(year, month)
         for widget, widget_date in zip_longest(self._calendar_list, dates):
             # Only widgets whose dates are in the displayed month are visible.
@@ -1281,21 +1208,31 @@ class MDDatePicker(BaseDialogPicker):
                 and widget_date.year == year
             )
             widget.text = str(widget_date.day) if visible else ""
-            widget.current_year = year
-            widget.current_month = month
             widget.is_today = visible and widget_date == self.today
             widget.is_selected = visible and widget_date in selected_dates
             # I don't understand why, but this line is important. Without this
             # line, some widgets that we are trying to disable remain enabled.
             widget.disabled = False
-            widget.disabled = (
-                not visible
-                or self.mode == "range"
-                and self._date_range
-                and widget_date not in self._date_range
+            widget.disabled = not visible
+            widget.is_in_range = (
+                visible
+                and self.min_date is not None
+                and self.max_date is not None
+                and self.min_date <= widget_date <= self.max_date
             )
+            widget.is_range_start = (
+                visible
+                and self.min_date is not None
+                and widget_date == self.min_date
+            )
+            widget.is_range_end = (
+                visible
+                and self.max_date is not None
+                and widget_date == self.max_date
+            )
+            widget.is_month_end = widget_date == month_end
 
-    def get_field(self) -> MDTextField:
+    def get_field(self, date=None) -> MDTextField:
         """Creates and returns a text field object used to enter dates."""
 
         if issubclass(self.input_field_cls, MDTextField):
@@ -1322,6 +1259,7 @@ class MDDatePicker(BaseDialogPicker):
 
             field = self.input_field_cls(
                 owner=self,
+                text=date.strftime("%d/%m/%Y") if date else "",
                 helper_text=self.helper_text,
                 fill_color_normal=fill_color_normal,
                 fill_color_focus=fill_color_focus,
@@ -1340,6 +1278,8 @@ class MDDatePicker(BaseDialogPicker):
             )
 
     def get_date_range(self) -> list:
+        if not self.min_date or not self.max_date:
+            return []
         date_range = [
             self.min_date + datetime.timedelta(days=x)
             for x in range((self.max_date - self.min_date).days + 1)
@@ -1353,118 +1293,73 @@ class MDDatePicker(BaseDialogPicker):
         a date range.
         """
 
-        if 12 < int(month) < 0:
-            raise ValueError(
-                "set_text_full_date:\n\t" f"Month [{month}] out of range."
-            )
-        if int(day) > calendar.monthrange(int(year), (month))[1]:
-            return ""
-        date = datetime.date(int(year), int(month), int(day))
-        separator = (
-            "\n"
-            if (orientation == "landscape" and not self._input_date_dialog_open)
-            else " "
+        # In portrait orientation, the label is stretched in width, so we
+        # should not insert line breaks. When the input dialog is open, the
+        # label moves to the right and also stretches in width.
+        horizontal = orientation == "portrait" or self._input_date_dialog_open
+
+        def date_repr(date):
+            return date.strftime("%b").capitalize() + " " + str(date.day)
+
+        input_dates = self._get_dates_from_fields()
+        if self.mode == "picker":
+            selected_date = date(self.sel_year, self.sel_month, self.sel_day)
+            if input_dates:
+                selected_date = input_dates[0] or selected_date
+            weekday_repr = selected_date.strftime("%a").capitalize()
+            separator = ", " if horizontal else ",\n"
+            return weekday_repr + separator + date_repr(selected_date)
+        elif self.mode == "range":
+            start, end = self.min_date, self.max_date
+            if input_dates:
+                start, end = input_dates[0] or start, input_dates[1] or end
+            ends = [end for end in (start, end) if end]
+            if len(ends) == 0:
+                start_repr, end_repr = "Start", "End"
+            else:
+                start, end = min(ends), max(ends)
+                start_repr, end_repr = date_repr(start), date_repr(end)
+            separator = " — " if horizontal else ",\n"
+            return start_repr + separator + end_repr
+
+    def _update_date_label_text(self):
+        self._date_label_text = self.set_text_full_date(
+            self.sel_year,
+            self.sel_month,
+            self.sel_day,
+            self.theme_cls.device_orientation,
         )
 
-        if self.mode == "picker":
-            if not self.min_date and not self.max_date:
-                return (
-                    date.strftime("%a,").capitalize()
-                    + separator
-                    + date.strftime("%b ").capitalize()
-                    + str(day).lstrip("0")
-                )
-            else:
-                return (
-                    self.min_date.strftime("%b ").capitalize()
-                    + str(self.min_date.day).lstrip("0")
-                    + (
-                        " - "
-                        if orientation == "portrait"
-                        else (
-                            ",\n" if not self._input_date_dialog_open else ", "
-                        )
-                    )
-                    + self.max_date.strftime("%b ").capitalize()
-                    + str(self.max_date.day).lstrip("0")
-                )
-        elif self.mode == "range":
-            if self._start_range_date and self._end_range_date:
-                if (
-                    orientation == "landscape"
-                    and "-" in self.ids.label_full_date.text
-                ):
-                    return (
-                        self.ids.label_full_date.text.split("-")[0].strip()
-                        + (",\n" if not self._input_date_dialog_open else " - ")
-                        + date.strftime("%b ").capitalize()
-                        + str(day).lstrip("0")
-                    )
-                else:
-                    if (
-                        orientation == "landscape"
-                        and "," in self.ids.label_full_date.text
-                    ):
-                        return (
-                            self.ids.label_full_date.text.split(",")[0].strip()
-                            + (
-                                ",\n"
-                                if not self._input_date_dialog_open
-                                else "-"
-                            )
-                            + date.strftime("%b ").capitalize()
-                            + str(day).lstrip("0")
-                        )
-                    if (
-                        orientation == "portrait"
-                        and "," in self.ids.label_full_date.text
-                    ):
-                        return (
-                            self.ids.label_full_date.text.split(",")[0].strip()
-                            + "-"
-                            + date.strftime("%b ").capitalize()
-                            + str(day).lstrip("0")
-                        )
-                    if (
-                        orientation == "portrait"
-                        and "-" in self.ids.label_full_date.text
-                    ):
-                        return (
-                            self.ids.label_full_date.text.split("-")[0].strip()
-                            + " - "
-                            + date.strftime("%b ").capitalize()
-                            + str(day).lstrip("0")
-                        )
-            elif self._start_range_date and not self._end_range_date:
-                return (
-                    (
-                        date.strftime("%b ").capitalize()
-                        + str(day).lstrip("0")
-                        + " - End"
-                    )
-                    if orientation != "landscape"
-                    else (
-                        date.strftime("%b ").capitalize()
-                        + str(day).lstrip("0")
-                        + "{}End".format(
-                            ",\n" if not self._input_date_dialog_open else " - "
-                        )
-                    )
-                )
-            elif not self._start_range_date and not self._end_range_date:
-                return (
-                    "Start - End"
-                    if orientation != "landscape"
-                    else "Start{}End".format(
-                        ",\n" if not self._input_date_dialog_open else " - "
-                    )
-                )
-
     def set_selected_widget(self, widget) -> None:
-        self.sel_year = self.year
-        self.sel_month = self.month
-        self.sel_day = int(widget.text)
-        self.update_calendar(self.sel_year, self.sel_month)
+        if self._select_year_dialog_open or self._input_date_dialog_open:
+            return
+        try:
+            widget_date = date(self.year, self.month, int(widget.text))
+        except ValueError:
+            return
+        if self.mode == "picker":
+            self.sel_year = widget_date.year
+            self.sel_month = widget_date.month
+            self.sel_day = widget_date.day
+            self.update_calendar(self.sel_year, self.sel_month)
+        elif self.mode == "range":
+            ends = [end for end in (self.min_date, self.max_date) if end]
+            if widget_date in ends:
+                ends = [end for end in ends if end != widget_date]
+            elif len(ends) < 2:
+                ends.append(widget_date)
+            else:
+                start, end = min(ends), max(ends)
+                if abs(widget_date - start).days < abs(widget_date - end).days:
+                    start = widget_date
+                else:
+                    end = widget_date
+                ends = [start, end]
+            if len(ends) == 0:
+                self.min_date, self.max_date = None, None
+            else:
+                self.min_date, self.max_date = min(ends), max(ends)
+            self.update_calendar(self.year, self.month)
 
     def set_month_day(self, day) -> None:
         # This method is no longer used. The code bellow repeats the behavior
@@ -1525,12 +1420,10 @@ class MDDatePicker(BaseDialogPicker):
             )
             weekday_label.font_name = self.font_name
             self._calendar_layout.add_widget(weekday_label)
-        for i, j in enumerate(range(6 * 7)):  # 6 weeks, 7 days a week
+        for i in range(6 * 7):  # 6 weeks, 7 days a week
             day_selectable_item = DatePickerDaySelectableItem(
-                index=i,
+                is_week_end=i % 7 == 6,
                 owner=self,
-                current_month=int(self.month),
-                current_year=int(self.year),
             )
             calendar_list.append(day_selectable_item)
             self._calendar_layout.add_widget(day_selectable_item)
@@ -1541,9 +1434,11 @@ class MDDatePicker(BaseDialogPicker):
         Called when "chevron-left" and "chevron-right" buttons are pressed.
         Switches the calendar to the previous/next month.
         """
+
         month_delta = 1 if operation == "next" else -1
         year = self.year + (self.month - 1 + month_delta) // 12
         month = (self.month - 1 + month_delta) % 12 + 1
+
         if year <= 0:
             year, month = 1, 1
         self.update_calendar(year, month)

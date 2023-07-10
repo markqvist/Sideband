@@ -276,7 +276,6 @@ from kivy.properties import (
 )
 
 from kivymd import uix_path
-from kivymd.theming import ThemableBehavior
 from kivymd.uix.behaviors import TouchBehavior
 from kivymd.uix.button import MDIconButton
 from kivymd.uix.list import MDList
@@ -295,7 +294,7 @@ class SelectionIconCheck(MDIconButton):
     icon_check_color = ColorProperty([0, 0, 0, 1])
 
 
-class SelectionItem(ThemableBehavior, MDRelativeLayout, TouchBehavior):
+class SelectionItem(MDRelativeLayout, TouchBehavior):
     selected = BooleanProperty(False)
     """
     Whether or not an item is checked.
@@ -514,6 +513,11 @@ class SelectionItem(ThemableBehavior, MDRelativeLayout, TouchBehavior):
 
 class MDSelectionList(MDList):
     """
+    Selection list class.
+
+    For more information, see in the
+    :class:`~kivymd.uix.list.MDList` classes documentation.
+
     :Events:
         `on_selected`
             Called when a list item is selected.
@@ -548,7 +552,8 @@ class MDSelectionList(MDList):
 
     icon_bg_color = ColorProperty([1, 1, 1, 1])
     """
-    Background color of the icon that will mark the selected list item.
+    Background color in (r, g, b, a) or string format of the icon that will
+    mark the selected list item.
 
     :attr:`icon_bg_color` is an :class:`~kivy.properties.ColorProperty`
     and defaults to `[1, 1, 1, 1]`.
@@ -556,7 +561,8 @@ class MDSelectionList(MDList):
 
     icon_check_color = ColorProperty([0, 0, 0, 1])
     """
-    Color of the icon that will mark the selected list item.
+    Color in (r, g, b, a) or string format of the icon that will mark the
+    selected list item.
 
     :attr:`icon_check_color` is an :class:`~kivy.properties.ColorProperty`
     and defaults to `[1, 1, 1, 1]`.
@@ -564,7 +570,7 @@ class MDSelectionList(MDList):
 
     overlay_color = ColorProperty([0, 0, 0, 0.2])
     """
-    The overlay color of the selected list item..
+    The overlay color in (r, g, b, a) or string format of the selected list item.
 
     :attr:`overlay_color` is an :class:`~kivy.properties.ColorProperty`
     and defaults to `[0, 0, 0, 0.2]]`.
@@ -580,7 +586,8 @@ class MDSelectionList(MDList):
 
     progress_round_color = ColorProperty(None)
     """
-    Color of the spinner for switching of `selected_mode` mode.
+    Color in (r, g, b, a) or string format of the spinner for switching of
+    `selected_mode` mode.
 
     :attr:`progress_round_color` is an :class:`~kivy.properties.NumericProperty`
     and defaults to `None`.

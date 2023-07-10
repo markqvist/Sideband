@@ -100,7 +100,6 @@ from PIL import ImageDraw
 from kivymd import uix_path
 from kivymd.color_definitions import colors as _colors
 from kivymd.color_definitions import text_colors
-from kivymd.theming import ThemableBehavior
 from kivymd.uix.behaviors import RectangularRippleBehavior
 from kivymd.uix.behaviors.toggle_behavior import MDToggleButton
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -123,9 +122,11 @@ class TypeColorButton(MDRaisedButton, MDToggleButton):
     'RGBA', 'HEX', 'RGB'.
     """
 
-    theme_text_color = "Custom"
-    text_color = (0, 0, 0, 1)
-    elevation = 0
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.theme_text_color = "Custom"
+        self.text_color = (0, 0, 0, 1)
+        self.elevation = 0
 
 
 class SelectAlphaChannelWidget(MDBoxLayout):
@@ -186,7 +187,7 @@ class SliderTab(MDBoxLayout):
         """Basic event handler for changing the slider value."""
 
 
-class GradientTab(ThemableBehavior, MDBoxLayout):
+class GradientTab(MDBoxLayout):
     """
     The class implements a tab with a gradient, a color selection scale and
     a scale for setting the transparency value of the selected color.
@@ -398,8 +399,8 @@ class MDColorPicker(BaseDialog):
 
     default_color = ColorProperty(None, allownone=True)
     """
-    Default color value The set color value will be used when you open the
-    dialog.
+    Default color value in (r, g, b, a) or string format. The set color value
+    will be used when you open the dialog.
 
     :attr:`default_color` is an :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -416,7 +417,8 @@ class MDColorPicker(BaseDialog):
 
     background_down_button_selected_type_color = ColorProperty([1, 1, 1, 0.3])
     """
-    Button background for choosing a color type ('RGBA', 'HEX', 'HSL', 'RGB').
+    Button background for choosing a color type ('RGBA', 'HEX', 'HSL', 'RGB')
+    in (r, g, b, a) or string format.
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/color-picker-background-down-button-selected-type-color.png
         :align: center

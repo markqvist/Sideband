@@ -3,12 +3,10 @@
 
 <MDLabel>
     disabled_color: self.theme_cls.disabled_hint_text_color
-    # FIXME: Overriding the values of this property greatly affects application
-    #  performance. Especially when the application window is resized and a
-    #  custom font is used. Performance is especially slow when you are using
-    # `PIL` as your text processing provider - os.environ ['KIVY_TEXT'] = 'pil'.
-    #  Priority - CRITICAL.
-    text_size: self.width, None
+    text_size:
+        (self.width if not self.adaptive_width else None) \
+        if not self.adaptive_size else None, \
+        None
 
 
 <MDIcon>:
@@ -16,6 +14,7 @@
         Color:
             rgba: (1, 1, 1, 1) if self.source else (0, 0, 0, 0)
         Rectangle:
+            group: "rectangle"
             source: self.source if self.source else None
             pos:
                 self.pos \
@@ -32,6 +31,7 @@
 
     # Badge icon.
     MDLabel:
+        id: badge
         font_style: "Icon"
         adaptive_size: True
         opposite_icon_color: True
@@ -62,6 +62,7 @@
                     if root.badge_icon else \
                     (0, 0, 0, 0)
             RoundedRectangle:
+                group: "badge"
                 radius: [self.width / 2,]
                 pos: self.pos
                 size: self.size

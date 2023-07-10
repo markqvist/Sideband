@@ -41,8 +41,9 @@ For example, let's create a button with a rectangular elevation effect:
                 # With elevation effect
                 RectangularElevationButton:
                     pos_hint: {"center_x": .5, "center_y": .6}
-                    elevation: 4.5
-                    shadow_offset: 0, 6
+                    elevation: 4
+                    shadow_offset: 0, -6
+                    shadow_softness: 4
 
                 # Without elevation effect
                 RectangularElevationButton:
@@ -102,8 +103,9 @@ For example, let's create a button with a rectangular elevation effect:
                         MDScreen(
                             RectangularElevationButton(
                                 pos_hint={"center_x": .5, "center_y": .6},
-                                elevation=4.5,
-                                shadow_offset=(0, 6),
+                                elevation=4,
+                                shadow_softness=4,
+                                shadow_offset=(0, -6),
                             ),
                             RectangularElevationButton(
                                 pos_hint={"center_x": .5, "center_y": .4},
@@ -164,6 +166,7 @@ Similarly, create a circular button:
                 CircularElevationButton:
                     pos_hint: {"center_x": .5, "center_y": .6}
                     elevation: 4
+                    shadow_softness: 4
             '''
 
 
@@ -231,6 +234,7 @@ Similarly, create a circular button:
                             CircularElevationButton(
                                 pos_hint={"center_x": .5, "center_y": .5},
                                 elevation=4,
+                                shadow_softness=4,
                             )
                         )
                     )
@@ -266,7 +270,7 @@ Animating the elevation
                     size_hint: None, None
                     size: 100, 100
                     md_bg_color: 0, 0, 1, 1
-                    elevation: 4
+                    elevation: 2
                     radius: 18
             '''
 
@@ -336,7 +340,7 @@ Animating the elevation
                                 size_hint=(None, None),
                                 size=(100, 100),
                                 md_bg_color="blue",
-                                elevation=4,
+                                elevation=2,
                                 radius=18,
                             )
                         )
@@ -360,32 +364,62 @@ __all__ = (
     "FakeCircularElevationBehavior",
 )
 
-import os
-
 from kivy import Logger
-from kivy.clock import Clock
-from kivy.core.window import Window
-from kivy.graphics import RenderContext, RoundedRectangle
+from kivy.lang import Builder
 from kivy.properties import (
-    AliasProperty,
-    BooleanProperty,
     BoundedNumericProperty,
     ColorProperty,
     ListProperty,
     NumericProperty,
-    ObjectProperty,
     VariableListProperty,
 )
 from kivy.uix.widget import Widget
 
-from kivymd import glsl_path
-from kivymd.app import MDApp
+Builder.load_string(
+    """
+<CommonElevationBehavior>
+    canvas.before:
+        PushMatrix
+        Scale:
+            x: self.scale_value_x
+            y: self.scale_value_y
+            z: self.scale_value_x
+            origin:
+                self.center \
+                if not self.scale_value_center else \
+                self.scale_value_center
+        Rotate:
+            angle: self.rotate_value_angle
+            axis: tuple(self.rotate_value_axis)
+            origin: self.center
+        Color:
+            rgba:
+                (0, 0, 0, 0) \
+                if self.disabled or not self.elevation else \
+                root.shadow_color
+        BoxShadow:
+            pos: self.pos
+            size: self.size
+            offset: root.shadow_offset
+            spread_radius: -(root.shadow_softness), -(root.shadow_softness)
+            blur_radius: root.elevation * 10
+            border_radius:
+                (root.radius if hasattr(self, "radius") else [0, 0, 0, 0]) \
+                if root.shadow_radius == [0.0, 0.0, 0.0, 0.0] else \
+                root.shadow_radius
+    canvas.after:
+        PopMatrix
+"""
+)
 
 
-# FIXME: Add shadow manipulation with canvas instructions such as
-#  PushMatrix and PopMatrix.
 class CommonElevationBehavior(Widget):
-    """Common base class for rectangular and circular elevation behavior."""
+    """
+    Common base class for rectangular and circular elevation behavior.
+
+    For more information, see in the :class:`~kivy.uix.widget.Widget`
+    class documentation.
+    """
 
     elevation = BoundedNumericProperty(0, min=0, errorvalue=0)
     """
@@ -418,9 +452,9 @@ class CommonElevationBehavior(Widget):
                 radius: 12, 46, 12, 46
                 size_hint: .5, .3
                 pos_hint: {"center_x": .5, "center_y": .5}
-                elevation: 4
-                shadow_softness: 8
-                shadow_offset: (-2, 2)
+                elevation: 2
+                shadow_softness: 4
+                shadow_offset: (2, -2)
         '''
 
 
@@ -434,21 +468,11 @@ class CommonElevationBehavior(Widget):
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/shadow-radius.png
         :align: center
 
-    .. note::
-        However, if you want to use this parameter, remember that the angle
-        values for the radius of the Kivy widgets and the radius for the shader
-        are different.
-
-    .. code-block:: python
-
-        shadow_radius = ['top-right', 'bot-right', 'top-left', 'bot-left']
-        kivy_radius = ['top-left', 'top-right', 'bottom-right', 'bottom-left']
-
     :attr:`shadow_radius` is an :class:`~kivy.properties.VariableListProperty`
     and defaults to `[0, 0, 0, 0]`.
     """
 
-    shadow_softness = NumericProperty(12)
+    shadow_softness = NumericProperty(0.0)
     """
     Softness of the shadow.
 
@@ -482,7 +506,9 @@ class CommonElevationBehavior(Widget):
 
 
         class RectangularElevationButton(CommonElevationBehavior, BackgroundColorBehavior):
-            md_bg_color = [0, 0, 1, 1]
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+                self.md_bg_color = "blue"
 
 
         class Example(MDApp):
@@ -499,7 +525,19 @@ class CommonElevationBehavior(Widget):
     and defaults to `12`.
     """
 
-    shadow_offset = ListProperty((0, 2))
+    shadow_softness_size = BoundedNumericProperty(2, min=2, deprecated=True)
+    """
+    The value of the softness of the shadow.
+
+    .. versionadded:: 1.1.0
+
+    .. deprecated:: 1.2.0
+
+    :attr:`shadow_softness_size` is an :class:`~kivy.properties.NumericProperty`
+    and defaults to `2`.
+    """
+
+    shadow_offset = ListProperty((0, 0))
     """
     Offset of the shadow.
 
@@ -523,14 +561,16 @@ class CommonElevationBehavior(Widget):
             RectangularElevationButton:
                 pos_hint: {"center_x": .5, "center_y": .5}
                 elevation: 6
-                shadow_radius: 18
-                shadow_softness: 24
-                shadow_offset: 12, 12
+                shadow_radius: 6
+                shadow_softness: 12
+                shadow_offset: -12, -12
         '''
 
 
         class RectangularElevationButton(CommonElevationBehavior, BackgroundColorBehavior):
-            md_bg_color = [0, 0, 1, 1]
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+                self.md_bg_color = "blue"
 
 
         class Example(MDApp):
@@ -546,7 +586,7 @@ class CommonElevationBehavior(Widget):
     .. code-block:: kv
 
         RectangularElevationButton:
-            shadow_offset: -12, 12
+            shadow_offset: 12, -12
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/shadow-offset-2.png
         :align: center
@@ -554,7 +594,7 @@ class CommonElevationBehavior(Widget):
     .. code-block:: kv
 
         RectangularElevationButton:
-            shadow_offset: -12, -12
+            shadow_offset: 12, 12
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/shadow-offset-3.png
         :align: center
@@ -562,13 +602,13 @@ class CommonElevationBehavior(Widget):
     .. code-block:: kv
 
         RectangularElevationButton:
-            shadow_offset: 12, -12
+            shadow_offset: -12, 12
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/shadow-offset-4.png
         :align: center
 
     :attr:`shadow_offset` is an :class:`~kivy.properties.ListProperty`
-    and defaults to `(0, 2)`.
+    and defaults to `(0, 0)`.
     """
 
     shadow_color = ColorProperty([0, 0, 0, 0.6])
@@ -586,252 +626,75 @@ class CommonElevationBehavior(Widget):
         :align: center
 
     :attr:`shadow_color` is an :class:`~kivy.properties.ColorProperty`
-    and defaults to `[0.4, 0.4, 0.4, 0.8]`.
+    and defaults to `[0, 0, 0, 0.6]`.
     """
 
-    _transition_ref = ObjectProperty()
-    _has_relative_position = BooleanProperty(defaultvalue=False)
+    scale_value_x = NumericProperty(1)
+    """
+    X-axis value.
+
+    .. versionadded:: 1.2.0
+
+    :attr:`scale_value_x` is an :class:`~kivy.properties.NumericProperty`
+    and defaults to `1`.
+    """
+
+    scale_value_y = NumericProperty(1)
+    """
+    Y-axis value.
+
+    .. versionadded:: 1.2.0
+
+    :attr:`scale_value_y` is an :class:`~kivy.properties.NumericProperty`
+    and defaults to `1`.
+    """
+
+    scale_value_z = NumericProperty(1)
+    """
+    Z-axis value.
+
+    .. versionadded:: 1.2.0
+
+    :attr:`scale_value_z` is an :class:`~kivy.properties.NumericProperty`
+    and defaults to `1`.
+    """
+
+    scale_value_center = ListProperty()
+    """
+    Origin of the scale.
+
+    .. versionadded:: 1.2.0
+
+    The format of the origin can be either (x, y) or (x, y, z).
+
+    :attr:`scale_value_center` is an :class:`~kivy.properties.NumericProperty`
+    and defaults to `[]`.
+    """
+
+    rotate_value_angle = NumericProperty(0)
+    """
+    Property for getting/setting the angle of the rotation.
+
+    .. versionadded:: 1.2.0
+
+    :attr:`rotate_value_angle` is an :class:`~kivy.properties.NumericProperty`
+    and defaults to `0`.
+    """
+
+    rotate_value_axis = ListProperty((0, 0, 1))
+    """
+    Property for getting/setting the axis of the rotation.
+
+    .. versionadded:: 1.2.0
+
+    :attr:`rotate_value_axis` is an :class:`~kivy.properties.ListProperty`
+    and defaults to `(0, 0, 1)`.
+    """
+
     _elevation = 0
-    _shadow_color = [0.0, 0.0, 0.0, 0.0]
-
-    def _get_window_pos(self, *args):
-        window_pos = self.to_window(*self.pos)
-        # To list, so it can be compared to self.pos directly.
-        return [window_pos[0], window_pos[1]]
-
-    def _set_window_pos(self, value):
-        self.window_pos = value
-
-    window_pos = AliasProperty(_get_window_pos, _set_window_pos)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        if hasattr(MDApp.get_running_app(), "shaders_disabled") and MDApp.get_running_app().shaders_disabled:
-            self.shaders_disabled = True
-        else:
-            self.shaders_disabled = False
-
-        with self.canvas.before:
-            self.context = RenderContext(use_parent_projection=True)
-        with self.context:
-            if self.shaders_disabled:
-                self.rect = None
-                del self.rect
-            else:
-                self.rect = RoundedRectangle(pos=self.pos, size=self.size)
-
-        self.after_init()
-
-    def after_init(self, *args):
-        Clock.schedule_once(self.check_for_relative_behavior)
-        if not self.shaders_disabled:
-            Clock.schedule_once(self.set_shader_string)
-        Clock.schedule_once(lambda x: self.on_elevation(self, self.elevation))
-        self.on_pos()
-
-    def check_for_relative_behavior(self, *args) -> None:
-        """
-        Checks if the widget has relative properties and if necessary
-        binds Window.on_draw and screen events to fix behavior
-        """
-
-        if self.pos != self.window_pos:
-            self._has_relative_position = True
-
-        # Loops to check if its inside screenmanager or bottom_navigation.
-        widget = self
-        while True:
-            # Checks if has screen event function
-            # works for Screen and MDTab objects.
-            if hasattr(widget, "on_pre_enter"):
-                widget.bind(on_pre_enter=self.apply_correction)
-                widget.bind(on_pre_leave=self.apply_correction)
-                widget.bind(on_enter=self.reset_correction)
-                widget.bind(on_leave=self.reset_correction)
-                self._has_relative_position = True
-
-                # Save refs to objects with transition property.
-                if hasattr(widget, "header"):  # specific to bottom_nav
-                    self._transition_ref = widget.header.panel
-                elif hasattr(widget, "manager"):  # specific to screen
-                    if widget.manager:  # manager cant be None
-                        self._transition_ref = widget.manager
-                break
-
-            elif widget.parent and str(widget) != str(widget.parent):
-                widget = widget.parent
-            else:
-                break
-
-        if self._has_relative_position:
-            Window.bind(on_draw=self.update_window_position)
-
-    def apply_correction(self, *args):
-        if self._transition_ref:
-            transition = str(self._transition_ref.transition)
-            # Slide and Card transitions only need _has_relative_pos to be
-            # always on.
-            if (
-                "SlideTransition" in transition
-                or "CardTransition" in transition
-            ):
-                self.context.use_parent_modelview = False
-            else:
-                self.context.use_parent_modelview = True
-
-    def reset_correction(self, *args):
-        self.context.use_parent_modelview = False
-        self.update_window_position()
-
-    def get_shader_string(self) -> str:
-        shader_string = ""
-        for name_file in ["header.frag", "elevation.frag", "main.frag"]:
-            with open(
-                os.path.join(glsl_path, "elevation", name_file),
-                encoding="utf-8",
-            ) as file:
-                shader_string += f"{file.read()}\n\n"
-
-        return shader_string
-
-    def set_shader_string(self, *args) -> None:
-        self.context["shadow_radius"] = list(map(float, self.shadow_radius))
-        self.context["shadow_softness"] = float(self.shadow_softness)
-        self.context["shadow_color"] = list(map(float, self.shadow_color))[
-            :-1
-        ] + [float(self.opacity)]
-        self.context["pos"] = list(map(float, self.rect.pos))
-        self.context.shader.fs = self.get_shader_string()
-
-    def update_resolution(self) -> None:
-        self.context["resolution"] = (*self.rect.size, *self.rect.pos)
-
-    def on_shadow_color(self, instance, value) -> None:
-        def on_shadow_color(*args):
-            self._shadow_color = list(map(float, value))[:-1] + [
-                float(self.opacity) if not self.disabled else 0
-            ]
-            self.context["shadow_color"] = self._shadow_color
-
-        Clock.schedule_once(on_shadow_color)
-
-    def on_shadow_radius(self, instance, value) -> None:
-        def on_shadow_radius(*args):
-            if hasattr(self, "context"):
-                self.context["shadow_radius"] = list(map(float, value))
-
-        Clock.schedule_once(on_shadow_radius)
-
-    def on_shadow_softness(self, instance, value) -> None:
-        def on_shadow_softness(*args):
-            if hasattr(self, "context"):
-                self.context["shadow_softness"] = float(value)
-
-        Clock.schedule_once(on_shadow_softness)
 
     def on_elevation(self, instance, value) -> None:
-        def on_elevation(*args):
-            if hasattr(self, "context"):
-                self._elevation = value
-                self.hide_elevation(
-                    True if (value <= 0 or self.disabled) else False
-                )
-
-        Clock.schedule_once(on_elevation)
-
-    def on_shadow_offset(self, instance, value) -> None:
-        self.on_size()
-        self.on_pos()
-
-    def update_window_position(self, *args) -> None:
-        """
-        This function is used only when the widget has relative position
-        properties.
-        """
-
-        self.on_pos()
-
-    def on_pos(self, *args) -> None:
-        if not hasattr(self, "rect"):
-            return
-
-        if (
-            self._has_relative_position
-            and not self.context.use_parent_modelview
-        ):
-            pos = self.window_pos
-        else:
-            pos = self.pos
-
-        self.rect.pos = [
-            pos[0]
-            - ((self.rect.size[0] - self.width) / 2)
-            - self.shadow_offset[0],
-            pos[1]
-            - ((self.rect.size[1] - self.height) / 2)
-            - self.shadow_offset[1],
-        ]
-
-        self.context["mouse"] = [self.rect.pos[0], 0.0, 0.0, 0.0]
-        self.context["pos"] = list(map(float, self.rect.pos))
-        self.update_resolution()
-
-    def on_size(self, *args) -> None:
-        if not hasattr(self, "rect"):
-            return
-
-        # If the elevation value is 0, set the canvas size to zero.
-        # Because even with a zero elevation value, the shadow is displayed
-        # under the widget. This is visible if we change the scale
-        # of the widget.
-        width = self.size[0] if self.elevation else 0
-        height = self.size[1] if self.elevation else 0
-        self.rect.size = (
-            width + (self._elevation * self.shadow_softness / 2),
-            height + (self._elevation * self.shadow_softness / 2),
-        )
-
-        self.context["mouse"] = [self.rect.pos[0], 0.0, 0.0, 0.0]
-        self.context["size"] = list(map(float, self.rect.size))
-        self.update_resolution()
-
-    def on_opacity(self, instance, value: int | float) -> None:
-        """
-        Adjusts the transparency of the shadow according to the transparency
-        of the widget.
-        """
-
-        def on_opacity(*args):
-            self._shadow_color = list(map(float, self._shadow_color))[:-1] + [
-                float(value)
-            ]
-            self.context["shadow_color"] = self._shadow_color
-
-        super().on_opacity(instance, value)
-        Clock.schedule_once(on_opacity)
-
-    def on_radius(self, instance, value) -> None:
-        self.shadow_radius = [value[1], value[2], value[0], value[3]]
-
-    def on_disabled(self, instance, value) -> None:
-        if value:
-            self._elevation = 0
-            self.hide_elevation(True)
-        else:
-            self.hide_elevation(False)
-
-    def hide_elevation(self, hide: bool) -> None:
-        if hide:
-            self._elevation = -self.elevation
-            self._shadow_color = [0.0, 0.0, 0.0, 0.0]
-        else:
-            self._elevation = self.elevation
-            self._shadow_color = self.shadow_color[:-1] + [float(self.opacity)]
-
-        self.on_shadow_color(self, self._shadow_color)
-        self.on_size()
-        self.on_pos()
+        self._elevation = value
 
 
 class RectangularElevationBehavior(CommonElevationBehavior):

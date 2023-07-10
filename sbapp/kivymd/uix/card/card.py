@@ -94,6 +94,7 @@ An example of the implementation of a card in the style of material design versi
                                 style=style,
                                 text=style.capitalize(),
                                 md_bg_color=styles[style],
+                                shadow_offset=(0, -1),
                             )
                         )
 
@@ -152,10 +153,9 @@ An example of the implementation of a card in the style of material design versi
                                 ),
                                 line_color=(0.2, 0.2, 0.2, 0.8),
                                 style=style,
-                                padding="4dp",
-                                size_hint=(None, None),
-                                size=("200dp", "100dp"),
+                                text=style.capitalize(),
                                 md_bg_color=styles[style],
+                                shadow_offset=(0, -1),
                             )
                         )
 
@@ -699,7 +699,12 @@ from kivy.utils import get_color_from_hex
 
 from kivymd import uix_path
 from kivymd.color_definitions import colors
+from kivymd.material_resources import (
+    CARD_STYLE_ELEVATED_M3_ELEVATION,
+    CARD_STYLE_OUTLINED_FILLED_M3_ELEVATION,
+)
 from kivymd.theming import ThemableBehavior
+from kivymd.uix import MDAdaptiveWidget
 from kivymd.uix.behaviors import (
     BackgroundColorBehavior,
     CommonElevationBehavior,
@@ -716,12 +721,17 @@ with open(
     Builder.load_string(kv_file.read())
 
 
-class MDSeparator(ThemableBehavior, MDBoxLayout):
-    """A separator line."""
+class MDSeparator(MDBoxLayout):
+    """
+    A separator line.
+
+    For more information, see in the
+    :class:`~kivymd.uix.boxlayout.MDBoxLayout` class documentation.
+    """
 
     color = ColorProperty(None)
     """
-    Separator color.
+    Separator color in (r, g, b, a) or string format.
 
     :attr:`color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -743,6 +753,7 @@ class MDSeparator(ThemableBehavior, MDBoxLayout):
 
 class MDCard(
     DeclarativeBehavior,
+    MDAdaptiveWidget,
     ThemableBehavior,
     BackgroundColorBehavior,
     RectangularRippleBehavior,
@@ -750,6 +761,21 @@ class MDCard(
     FocusBehavior,
     BoxLayout,
 ):
+    """
+    Card class.
+
+    For more information, see in the
+    :class:`~kivymd.uix.behaviors.DeclarativeBehavior` and
+    :class:`~kivymd.uix.MDAdaptiveWidget` and
+    :class:`~kivymd.theming.ThemableBehavior` and
+    :class:`~kivymd.uix.behaviors.BackgroundColorBehavior` and
+    :class:`~kivymd.uix.behaviors.RectangularRippleBehavior` and
+    :class:`~kivymd.uix.behaviors.CommonElevationBehavior` and
+    :class:`~kivymd.uix.behaviors.FocusBehavior` and
+    :class:`~kivy.uix.boxlayout.BoxLayout` and
+    classes documentation.
+    """
+
     focus_behavior = BooleanProperty(False)
     """
     Using focus when hovering over a card.
@@ -824,9 +850,9 @@ class MDCard(
     def set_elevation(self) -> None:
         if self.theme_cls.material_style == "M3":
             if self.style == "outlined" or self.style == "filled":
-                self.elevation = 0
+                self.elevation = CARD_STYLE_OUTLINED_FILLED_M3_ELEVATION
             elif self.style == "elevated":
-                self.elevation = 2
+                self.elevation = CARD_STYLE_ELEVATED_M3_ELEVATION
 
     def set_radius(self) -> None:
         if (
@@ -848,6 +874,11 @@ class MDCard(
 
 class MDCardSwipe(MDRelativeLayout):
     """
+    Card swipe class.
+
+    For more information, see in the
+    :class:`~kivymd.uix.relativelayout.MDRelativeLayout` class documentation.
+
     :Events:
         :attr:`on_swipe_complete`
             Called when a swipe of card is completed.
@@ -1065,7 +1096,11 @@ class MDCardSwipe(MDRelativeLayout):
 
 
 class MDCardSwipeFrontBox(MDCard):
-    pass
+    """
+    Card swipe front box.
+
+    For more information, see in the :class:`~MDCard` class documentation.
+    """
 
 
 class MDCardSwipeLayerBox(MDBoxLayout):

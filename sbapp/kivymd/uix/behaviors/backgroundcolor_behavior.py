@@ -5,9 +5,9 @@ Behaviors/Background Color
 .. note:: The following classes are intended for in-house use of the library.
 """
 
-__all__ = ("BackgroundColorBehavior", "SpecificBackgroundColorBehavior")
+from __future__ import annotations
 
-from typing import List, Union
+__all__ = ("BackgroundColorBehavior", "SpecificBackgroundColorBehavior")
 
 from kivy.animation import Animation
 from kivy.lang import Builder
@@ -49,6 +49,8 @@ Builder.load_string(
             source: root.background
         Color:
             rgba: self.line_color if self.line_color else (0, 0, 0, 0)
+        # TODO: maybe we should use SmoothLine,
+        #  but this should be tested on all widgets.
         Line:
             width: root.line_width
             rounded_rectangle:
@@ -58,7 +60,6 @@ Builder.load_string(
                 self.width, \
                 self.height, \
                 *self.radius, \
-                100, \
                 ]
         PopMatrix
 """,
@@ -90,6 +91,8 @@ class BackgroundColorBehavior:
     and defaults to `[0, 0, 0, 0]`.
     """
 
+    # FIXME: in this case, we will not be able to animate this property
+    #  using the `Animation` class.
     md_bg_color = ColorProperty([1, 1, 1, 0])
     """
     The background color of the widget (:class:`~kivy.uix.widget.Widget`)
@@ -154,12 +157,34 @@ class BackgroundColorBehavior:
     _background_y = NumericProperty(0)
     _background_origin = ReferenceListProperty(_background_x, _background_y)
     _md_bg_color = ColorProperty([0, 0, 0, 0])
+    _origin_line_color = ColorProperty(None)
+    _origin_md_bg_color = ColorProperty(None)
 
     def __init__(self, **kwarg):
         super().__init__(**kwarg)
-        self.bind(pos=self.update_background_origin)
+        self.bind(
+            pos=self.update_background_origin,
+            disabled=self.restore_color_origin,
+        )
 
-    def on_md_bg_color(self, instance_md_widget, color: Union[list, str]):
+    def restore_color_origin(self, instance_md_widget, value: bool) -> None:
+        """Called when the values of :attr:`disabled` change."""
+
+        if not value:
+            if self._origin_line_color:
+                self.line_color = self._origin_line_color
+            if self._origin_md_bg_color:
+                self.md_bg_color = self._origin_md_bg_color
+
+    def on_line_color(self, instance_md_widget, value: list | str) -> None:
+        """Called when the values of :attr:`line_color` change."""
+
+        if not self.disabled:
+            self._origin_line_color = value
+
+    def on_md_bg_color(self, instance_md_widget, color: list | str):
+        """Called when the values of :attr:`md_bg_color` change."""
+
         if (
             hasattr(self, "theme_cls")
             and self.theme_cls.theme_style_switch_animation
@@ -172,9 +197,12 @@ class BackgroundColorBehavior:
         else:
             self._md_bg_color = color
 
-    def update_background_origin(
-        self, instance_md_widget, pos: List[float]
-    ) -> None:
+        if not self.disabled:
+            self._origin_md_bg_color = color
+
+    def update_background_origin(self, instance_md_widget, pos: list) -> None:
+        """Called when the values of :attr:`pos` change."""
+
         if self.background_origin:
             self._background_origin = self.background_origin
         else:

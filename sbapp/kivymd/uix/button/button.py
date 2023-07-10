@@ -679,6 +679,15 @@ from kivy.weakproxy import WeakProxy
 from kivymd import uix_path
 from kivymd.color_definitions import text_colors
 from kivymd.font_definitions import theme_font_styles
+from kivymd.material_resources import (
+    FLOATING_ACTION_BUTTON_M2_ELEVATION,
+    FLOATING_ACTION_BUTTON_M2_OFFSET,
+    FLOATING_ACTION_BUTTON_M3_ELEVATION,
+    FLOATING_ACTION_BUTTON_M3_OFFSET,
+    FLOATING_ACTION_BUTTON_M3_SOFTNESS,
+    RAISED_BUTTON_OFFSET,
+    RAISED_BUTTON_SOFTNESS,
+)
 from kivymd.theming import ThemableBehavior
 from kivymd.uix.behaviors import (
     CommonElevationBehavior,
@@ -704,62 +713,6 @@ theme_text_color_options = (
     "ContrastParentBackground",
 )
 
-# FIXME: If you set a new elevation value for the button
-#  (press the "Set elevation" button), then disable the button
-#  (press the "Disabled" button), and then enable the button
-#  (press the "Undisabled" button), then the previously set elevation value is
-#  reset to zero.
-#  In addition, if you set a new elevation value
-#  (press the "Set elevation" button) and click on the button for which we set
-#  the elevation value, then the new elevation value will receive the previous
-#  elevation value. This problem is only related to the buttons.
-#  For example, there is no such problem for the MDCard widget.
-
-"""
-from kivy.lang import Builder
-
-from kivymd.app import MDApp
-
-KV = '''
-MDScreen:
-
-    MDRaisedButton:
-        size_hint: .5, .5
-        id: button
-        pos_hint: {"center_x": .5, "center_y": .5}
-        elevation: 0
-
-    MDBoxLayout:
-        adaptive_size: True
-        pos_hint: {"center_x": .5}
-        spacing: 12
-        padding: 12
-
-        MDRaisedButton:
-            text: "Set elevation"
-            pos_hint: {"center_x": .5, "bottom": 1}
-            on_release: button.elevation = 4
-
-        MDRaisedButton:
-            text: "Disabled"
-            pos_hint: {"center_x": .5, "bottom": 1}
-            on_release: button.disabled = True
-
-        MDRaisedButton:
-            text: "Undisabled"
-            pos_hint: {"center_x": .5, "bottom": 1}
-            on_release: button.disabled = False
-'''
-
-
-class Test(MDApp):
-    def build(self):
-        return Builder.load_string(KV)
-
-
-Test().run()
-"""
-
 
 class BaseButton(
     DeclarativeBehavior,
@@ -772,7 +725,12 @@ class BaseButton(
     Base class for all buttons.
 
     For more information, see in the
-    :class:`~kivy.uix.anchorlayout.AnchorLayout` class documentation.
+    :class:`~kivymd.uix.behaviors.DeclarativeBehavior` and
+    :class:`~kivymd.uix.behaviors.RectangularRippleBehavior` and
+    :class:`~kivymd.theming.ThemableBehavior` and
+    :class:`~kivy.uix.behaviors.ButtonBehavior` and
+    :class:`~kivy.uix.anchorlayout.AnchorLayout`
+    classes documentation.
     """
 
     padding = VariableListProperty([dp(16), dp(8), dp(16), dp(8)])
@@ -1208,7 +1166,7 @@ class ButtonElevationBehaviour(CommonElevationBehavior):
 
     _elevation_raised = NumericProperty()
     _anim_raised = ObjectProperty(None, allownone=True)
-    _default_elevation = 3
+    _default_elevation = 2
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1220,8 +1178,9 @@ class ButtonElevationBehaviour(CommonElevationBehavior):
         self.on_disabled(self, self.disabled)
 
     def create_anim_raised(self, *args) -> None:
-        self._elevation_raised = self.elevation + 1.2
-        self._anim_raised = Animation(elevation=self.elevation + 1, d=0.15)
+        if self.elevation:
+            self._elevation_raised = self.elevation
+            self._anim_raised = Animation(elevation=self.elevation + 1, d=0.15)
 
     def on_touch_down(self, touch):
         if not self.disabled:
@@ -1231,21 +1190,21 @@ class ButtonElevationBehaviour(CommonElevationBehavior):
                 return False
             if self in touch.ud:
                 return False
-            if self._anim_raised:
+            if self._anim_raised and self.elevation:
                 self._anim_raised.start(self)
         return super().on_touch_down(touch)
 
     def on_touch_up(self, touch):
         if not self.disabled:
-            if touch.grab_current is not self:
+            if self in touch.ud:
                 self.stop_elevation_anim()
                 return super().on_touch_up(touch)
-            self.stop_elevation_anim()
         return super().on_touch_up(touch)
 
     def stop_elevation_anim(self):
         Animation.cancel_all(self, "elevation")
-        self.elevation = self._elevation_raised - 1
+        if self._anim_raised and self.elevation:
+            self.elevation = self._elevation_raised
 
 
 class ButtonContentsText:
@@ -1313,6 +1272,10 @@ class MDFlatButton(BaseButton, ButtonContentsText):
     """
     A flat rectangular button with (by default) no border or background.
     Text is the default text color.
+
+    For more information, see in the
+    :class:`~BaseButton` and :class:`~ButtonContentsText`
+    classes documentation.
     """
 
     padding = VariableListProperty([dp(8), dp(8), dp(8), dp(8)])
@@ -1334,6 +1297,12 @@ class MDRaisedButton(BaseButton, ButtonElevationBehaviour, ButtonContentsText):
     """
     A flat button with (by default) a primary color fill and matching
     color text.
+
+    For more information, see in the
+    :class:`~BaseButton` and
+    :class:`~ButtonElevationBehaviour` and
+    :class:`~ButtonContentsText`
+    classes documentation.
     """
 
     # FIXME: Move the underlying attributes to the :class:`~BaseButton` class.
@@ -1345,15 +1314,19 @@ class MDRaisedButton(BaseButton, ButtonElevationBehaviour, ButtonContentsText):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.shadow_softness = 8
-        self.shadow_offset = (0, 2)
-        self.shadow_radius = self._radius * 2
+        self.shadow_softness = RAISED_BUTTON_SOFTNESS
+        self.shadow_offset = RAISED_BUTTON_OFFSET
+        # self.shadow_radius = self._radius * 2
 
 
 class MDRectangleFlatButton(BaseButton, ButtonContentsText):
     """
     A flat button with (by default) a primary color border and primary
     color text.
+
+    For more information, see in the
+    :class:`~BaseButton` and :class:`~ButtonContentsText`
+    classes documentation.
     """
 
     _default_line_color = None
@@ -1368,6 +1341,12 @@ class MDRectangleFlatIconButton(
     """
     A flat button with (by default) a primary color border, primary color text
     and a primary color icon on the left.
+
+    For more information, see in the
+    :class:`~BaseButton` and
+    :class:`~OldButtonIconMixin` and
+    :class:`~ButtonContentsIconText`
+    classes documentation.
     """
 
     _default_line_color = None
@@ -1382,6 +1361,10 @@ class MDRoundFlatButton(BaseButton, ButtonContentsText):
     """
     A flat button with (by default) fully rounded corners, a primary
     color border and primary color text.
+
+    For more information, see in the
+    :class:`~BaseButton` and :class:`~ButtonContentsText`
+    classes documentation.
     """
 
     _default_line_color = None
@@ -1400,6 +1383,12 @@ class MDRoundFlatIconButton(
     """
     A flat button with (by default) rounded corners, a primary color border,
     primary color text and a primary color icon on the left.
+
+    For more information, see in the
+    :class:`~BaseButton` and
+    :class:`~OldButtonIconMixin` and
+    :class:`~ButtonContentsIconText`
+    classes documentation.
     """
 
     _default_line_color = None
@@ -1418,6 +1407,10 @@ class MDFillRoundFlatButton(BaseButton, ButtonContentsText):
     """
     A flat button with (by default) rounded corners, a primary color fill
     and primary color text.
+
+    For more information, see in the
+    :class:`~BaseButton` and :class:`~ButtonContentsText`
+    classes documentation.
     """
 
     _default_md_bg_color = None
@@ -1436,6 +1429,12 @@ class MDFillRoundFlatIconButton(
     """
     A flat button with (by default) rounded corners, a primary color fill,
     primary color text and a primary color icon on the left.
+
+    For more information, see in the
+    :class:`~BaseButton` and
+    :class:`~OldButtonIconMixin` and
+    :class:`~ButtonContentsIconText`
+    classes documentation.
     """
 
     _default_md_bg_color = None
@@ -1451,7 +1450,14 @@ class MDFillRoundFlatIconButton(
 
 
 class MDIconButton(BaseButton, OldButtonIconMixin, ButtonContentsIcon):
-    """A simple rounded icon button."""
+    """
+    A simple rounded icon button.
+
+    For more information, see in the
+    :class:`~BaseButton` and
+    :class:`~OldButtonIconMixin` and
+    :class:`~ButtonContentsIcon` classes documentation.
+    """
 
     icon = StringProperty("checkbox-blank-circle")
     """
@@ -1489,6 +1495,12 @@ class MDFloatingActionButton(
     Implementation
     `FAB <https://m3.material.io/components/floating-action-button/overview>`_
     button.
+
+    For more information, see in the
+    :class:`~BaseButton` and
+    :class:`~OldButtonIconMixin` and
+    :class:`~ButtonElevationBehaviour` and
+    :class:`~ButtonContentsIcon` classes documentation.
     """
 
     type = OptionProperty("standard", options=["small", "large", "standard"])
@@ -1530,10 +1542,13 @@ class MDFloatingActionButton(
     def set__radius(self, *args) -> None:
         if self.theme_cls.material_style == "M2":
             self.shadow_radius = self.height / 2
+            self.elevation = FLOATING_ACTION_BUTTON_M2_ELEVATION
+            self.shadow_offset = FLOATING_ACTION_BUTTON_M2_OFFSET
             self.rounded_button = True
         else:
-            self.shadow_softness = 8
-            self.shadow_offset = (0, 2)
+            self.shadow_softness = FLOATING_ACTION_BUTTON_M3_SOFTNESS
+            self.shadow_offset = FLOATING_ACTION_BUTTON_M3_OFFSET
+            self.elevation = FLOATING_ACTION_BUTTON_M3_ELEVATION
             self.rounded_button = False
 
             if self.type == "small":
@@ -1566,6 +1581,14 @@ class MDFloatingActionButton(
 
 
 class MDTextButton(ButtonBehavior, MDLabel):
+    """
+    Text button class.
+
+    For more information, see in the
+    :class:`~kivy.uix.behaviors.ButtonBehavior` and
+    :class:`~kivymd.uix.label.MDLabel` classes documentation.
+    """
+
     color = ColorProperty(None)
     """
     Button color in (r, g, b, a) or string format.
@@ -1637,6 +1660,12 @@ class MDFloatingActionButtonSpeedDial(
     """
     For more information, see in the
     :class:`~kivy.uix.floatlayout.FloatLayout` class documentation.
+
+    For more information, see in the
+    :class:`~kivymd.uix.behaviors.DeclarativeBehavior` and
+    :class:`~kivymd.theming.ThemableBehavior` and
+    :class:`~kivy.uix.floatlayout.FloatLayout`
+    lasses documentation.
 
     :Events:
         :attr:`on_open`
@@ -1868,7 +1897,7 @@ class MDFloatingActionButtonSpeedDial(
     """
     Background color of root button in (r, g, b, a) or string format.
 
-    .. code-clock:: kv
+    .. code-block:: kv
 
         MDFloatingActionButtonSpeedDial:
             bg_color_root_button: "red"
@@ -1884,7 +1913,7 @@ class MDFloatingActionButtonSpeedDial(
     """
     Background color of the stack buttons in (r, g, b, a) or string format.
 
-    .. code-clock:: kv
+    .. code-block:: kv
 
         MDFloatingActionButtonSpeedDial:
             bg_color_root_button: "red"
@@ -1901,7 +1930,7 @@ class MDFloatingActionButtonSpeedDial(
     """
     The color icon of the stack buttons in (r, g, b, a) or string format.
 
-    .. code-clock:: kv
+    .. code-block:: kv
 
         MDFloatingActionButtonSpeedDial:
             bg_color_root_button: "red"
@@ -1919,7 +1948,7 @@ class MDFloatingActionButtonSpeedDial(
     """
     The color icon of the root button in (r, g, b, a) or string format.
 
-    .. code-clock:: kv
+    .. code-block:: kv
 
         MDFloatingActionButtonSpeedDial:
             bg_color_root_button: "red"
@@ -1939,7 +1968,7 @@ class MDFloatingActionButtonSpeedDial(
     Background color for the floating text of the buttons in (r, g, b, a)
     or string format.
 
-    .. code-clock:: kv
+    .. code-block:: kv
 
         MDFloatingActionButtonSpeedDial:
             bg_hint_color: "red"

@@ -12,9 +12,10 @@ version.regex = __version__ = ['"](.*)['"]
 version.filename = %(source.dir)s/main.py
 android.numeric_version = 20230204
 
-requirements = python3==3.9.5,hostpython3==3.9.5,cryptography,cffi,pycparser,kivy==2.1.0,pygments,sdl2,sdl2_ttf==2.0.15,pillow,qrcode==7.3.1,netifaces,libbz2,pydenticon,usb4a,usbserial4a
+#requirements = python3==3.9.5,hostpython3==3.9.5,cryptography,cffi,pycparser,kivy==2.2.1,pygments,sdl2,sdl2_ttf==2.0.15,pillow,qrcode==7.3.1,netifaces,libbz2,pydenticon,usb4a,usbserial4a
+requirements = kivy==2.2.1,libbz2,pillow,qrcode==7.3.1,usb4a,usbserial4a
+
 p4a.local_recipes = ../Others/python-for-android/pythonforandroid/recipes
-requirements.source.kivymd = ../../Others/KivyMD-master
 
 icon.filename = %(source.dir)s/assets/icon.png
 presplash.filename = %(source.dir)s/assets/presplash_small.png
@@ -27,7 +28,7 @@ fullscreen = 0
 android.permissions = INTERNET,POST_NOTIFICATIONS,WAKE_LOCK,FOREGROUND_SERVICE,CHANGE_WIFI_MULTICAST_STATE,BLUETOOTH_CONNECT
 android.api = 30
 android.minapi = 24
-android.ndk = 23b
+android.ndk = 25b
 android.skip_update = False
 android.accept_sdk_license = True
 android.release_artifact = apk

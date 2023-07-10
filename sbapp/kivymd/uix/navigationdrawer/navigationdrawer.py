@@ -575,8 +575,8 @@ class NavigationDrawerContentError(Exception):
 
 class MDNavigationLayout(MDFloatLayout):
     """
-    For more information, see in the :class:`~kivymd.uix.floatlayout.MDFloatLayout`
-    class documentation.
+    For more information, see in the
+    :class:`~kivymd.uix.floatlayout.MDFloatLayout` class documentation.
     """
 
     _scrim_color = ObjectProperty(None)
@@ -737,7 +737,7 @@ class MDNavigationDrawerDivider(MDBoxLayout):
 
     color = ColorProperty(None)
     """
-    Divider color in ``rgba`` format.
+    Divider color in (r, g, b, a) or string format.
 
     :attr:`color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -811,7 +811,7 @@ class MDNavigationDrawerHeader(MDBoxLayout):
 
     title_color = ColorProperty(None)
     """
-    Title text color.
+    Title text color in (r, g, b, a) or string format.
 
     :attr:`title_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -851,7 +851,7 @@ class MDNavigationDrawerHeader(MDBoxLayout):
 
     text_color = ColorProperty(None)
     """
-    Title text color.
+    Title text color in (r, g, b, a) or string format.
 
     :attr:`text_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -893,7 +893,9 @@ class MDNavigationDrawerItem(OneLineAvatarIconListItem, FocusBehavior):
     Implements an item for the :class:`~MDNavigationDrawer` menu list.
 
     For more information, see in the
-    :class:`~kivymd.uix.list.OneLineAvatarIconListItem` class documentation.
+    :class:`~kivymd.uix.list.OneLineAvatarIconListItem` and
+    :class:`~kivymd.uix.behaviors.FocusBehavior`
+    class documentation.
 
     .. versionadded:: 1.0.0
 
@@ -936,7 +938,7 @@ class MDNavigationDrawerItem(OneLineAvatarIconListItem, FocusBehavior):
 
     icon_color = ColorProperty(None)
     """
-    Icon color item.
+    Icon color in (r, g, b, a) or string format item.
 
     :attr:`icon_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -944,7 +946,8 @@ class MDNavigationDrawerItem(OneLineAvatarIconListItem, FocusBehavior):
 
     selected_color = ColorProperty([0, 0, 0, 1])
     """
-    The color of the icon and text of the selected item.
+    The color in (r, g, b, a) or string format of the icon and text of the
+    selected item.
 
     :attr:`selected_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `[0, 0, 0, 1]`.
@@ -960,7 +963,7 @@ class MDNavigationDrawerItem(OneLineAvatarIconListItem, FocusBehavior):
 
     text_right_color = ColorProperty(None)
     """
-    Right text color item.
+    Right text color item in (r, g, b, a) or string format.
 
     :attr:`text_right_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to `None`.
@@ -1095,9 +1098,9 @@ class MDNavigationDrawer(MDCard):
     # FIXME: Doesn't work in Kivy v2.1.0.
     scrim_color = ColorProperty([0, 0, 0, 0.5])
     """
-    Color for scrim. Alpha channel will be multiplied with
-    :attr:`_scrim_alpha`. Set fourth channel to 0 if you want to disable
-    scrim.
+    Color for scrim in (r, g, b, a) or string format. Alpha channel will be
+    multiplied with :attr:`_scrim_alpha`. Set fourth channel to 0 if you want
+    to disable scrim.
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/navigation-drawer-scrim-color.png
         :align: center

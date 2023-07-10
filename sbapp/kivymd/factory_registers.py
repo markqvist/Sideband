@@ -5,6 +5,8 @@ Register KivyMD widgets to use without import.
 from kivy.factory import Factory
 
 register = Factory.register
+register("MDSegmentedButton", module="kivymd.uix.segmentedbutton")
+register("MDSegmentedButtonItem", module="kivymd.uix.segmentedbutton")
 register("MDScrollView", module="kivymd.uix.scrollview")
 register("MDRecycleView", module="kivymd.uix.recycleview")
 register("MDResponsiveLayout", module="kivymd.uix.responsivelayout")
@@ -37,6 +39,7 @@ register("FitImage", module="kivymd.uix.fitimage")
 register("MDBackdrop", module="kivymd.uix.backdrop")
 register("MDBanner", module="kivymd.uix.banner")
 register("MDTooltip", module="kivymd.uix.tooltip")
+register("MDBottomSheet", module="kivymd.uix.bottomsheet")
 register("MDBottomNavigation", module="kivymd.uix.bottomnavigation")
 register("MDBottomNavigationItem", module="kivymd.uix.bottomnavigation")
 register("MDToggleButton", module="kivymd.uix.behaviors.toggle_behavior")

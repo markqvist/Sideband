@@ -201,7 +201,6 @@ from kivy.properties import (
 from kivy.uix.boxlayout import BoxLayout
 
 from kivymd import uix_path
-from kivymd.theming import ThemableBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
 from kivymd.uix.floatlayout import MDFloatLayout
@@ -214,8 +213,11 @@ with open(
     Builder.load_string(kv_file.read())
 
 
-class MDBackdrop(MDFloatLayout, ThemableBehavior):
+class MDBackdrop(MDFloatLayout):
     """
+    For more information, see in the
+    :class:`~kivymd.uix.floatlayout.MDFloatLayout` class documentation.
+
     :Events:
         :attr:`on_open`
             When the front layer drops.
@@ -277,7 +279,7 @@ class MDBackdrop(MDFloatLayout, ThemableBehavior):
 
     back_layer_color = ColorProperty(None)
     """
-    Background color of back layer.
+    Background color of back layer in (r, g, b, a) or string format.
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/backdrop-back-layer-color.png
         :align: center
@@ -288,7 +290,7 @@ class MDBackdrop(MDFloatLayout, ThemableBehavior):
 
     front_layer_color = ColorProperty(None)
     """
-    Background color of front layer.
+    Background color of front layer in (r, g, b, a) or string format.
 
     .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/backdrop-front-layer-color.png
         :align: center
@@ -512,15 +514,30 @@ class MDBackdrop(MDFloatLayout, ThemableBehavior):
 
 
 class MDBackdropToolbar(MDTopAppBar):
-    """Implements a toolbar for back content."""
+    """
+    Implements a toolbar for back content.
+
+    For more information, see in the
+    :class:`~kivymd.uix.toolbar.toolbar.MDTopAppBar` classes documentation.
+    """
 
 
 class MDBackdropFrontLayer(MDBoxLayout):
-    """Container for front content."""
+    """
+    Container for front content.
+
+    For more information, see in the
+    :class:`~kivymd.uix.boxlayout.MDBoxLayout` classes documentation.
+    """
 
 
 class MDBackdropBackLayer(MDBoxLayout):
-    """Container for back content."""
+    """
+    Container for back content.
+
+    For more information, see in the
+    :class:`~kivymd.uix.boxlayout.MDBoxLayout` class documentation.
+    """
 
 
 class _BackLayer(BoxLayout):

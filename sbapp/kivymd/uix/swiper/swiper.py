@@ -250,8 +250,10 @@ class _ItemsBox(AnchorLayout):
 
 class MDSwiperItem(MDBoxLayout):
     """
-    :class:`MDSwiperItem` is a :class:`BoxLayout` but it's size is adjusted
-    automatically.
+    Swiper item class.
+
+    For more information, see in the
+    :class:`~kivymd.uix.boxlayout.MDBoxLayout` class documentation.
     """
 
     _root = ObjectProperty()
@@ -293,6 +295,13 @@ class MDSwiperItem(MDBoxLayout):
 
 
 class MDSwiper(MDScrollView):
+    """
+    Swiper class.
+
+    For more information, see in the
+    :class:`~kivymd.uix.scrollview.MDScrollView` class documentation.
+    """
+
     items_spacing = NumericProperty("20dp")
     """
     The space between each :class:`MDSwiperItem`.
@@ -506,7 +515,6 @@ class MDSwiper(MDScrollView):
             self.dispatch("on_swipe_right")
 
     def on_scroll_start(self, touch, check_children=True):
-
         if platform in ["ios", "android"]:
             return super().on_scroll_start(touch)
 

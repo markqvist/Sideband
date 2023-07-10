@@ -1,34 +1,28 @@
-#:import window kivy.core.window
+#:import SNACK_BAR_ELEVATION kivymd.material_resources.SNACK_BAR_ELEVATION
+#:import SNACK_BAR_OFFSET kivymd.material_resources.SNACK_BAR_OFFSET
 
 
-<BaseSnackbar>
+<MDSnackbar>
+    padding: 0, 0, "8dp", 0
     size_hint_y: None
-    height: "58dp"
-    spacing: "10dp"
-    padding: "10dp", "10dp", "10dp", "10dp"
-    md_bg_color: "323232" if not root.bg_color else root.bg_color
-    radius: root.radius
-    elevation: 4 if root.padding else 0
+    height: self.minimum_height
+    md_bg_color: "#323232"
+    elevation: SNACK_BAR_ELEVATION
+    shadow_offset: SNACK_BAR_OFFSET
 
-    canvas:
-        Color:
-            rgba: self.md_bg_color
-        RoundedRectangle:
-            size: self.size
-            pos: self.pos
-            radius: self.radius
-
-<Snackbar>
-
-    MDLabel:
-        id: text_bar
-        size_hint_y: None
-        height: self.texture_size[1]
-        text: root.text
-        font_size: root.font_size
-        theme_text_color: "Custom"
-        text_color: "ffffff"
-        shorten: True
-        shorten_from: "right"
-        markup: True
+    SnackbarLabelContainer:
+        id: label_container
+        padding: "16dp", "15dp", 0, "15dp"
+        orientation: "vertical"
+        adaptive_height: True
         pos_hint: {"center_y": .5}
+        spacing: "4dp"
+
+    SnackbarActionButtonContainer:
+        id: action_container
+        size_hint_x: None
+
+    SnackbarCloseButtonContainer:
+        id: close_container
+        size_hint_x: None
+        width: "38dp"

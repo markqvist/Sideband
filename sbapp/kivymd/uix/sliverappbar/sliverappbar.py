@@ -97,7 +97,7 @@ Example
     class CardItem(MDCard):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            self.elevation = 3
+            self.elevation = 1
 
 
     class Example(MDApp):
@@ -130,7 +130,6 @@ from kivy.properties import (
 )
 
 from kivymd import uix_path
-from kivymd.theming import ThemableBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.toolbar import MDTopAppBar
 
@@ -144,8 +143,13 @@ class MDSliverAppbarException(Exception):
     pass
 
 
-class MDSliverAppbarContent(ThemableBehavior, MDBoxLayout):
-    """Implements a box for a scrollable list of custom items."""
+class MDSliverAppbarContent(MDBoxLayout):
+    """
+    Implements a box for a scrollable list of custom items.
+
+    For more information, see in the
+    :class:`~kivymd.uix.boxlayout.MDBoxLayout` class documentation.
+    """
 
     md_bg_color = ColorProperty([0, 0, 0, 0])
     """
@@ -165,13 +169,20 @@ class MDSliverAppbarContent(ThemableBehavior, MDBoxLayout):
 
 
 class MDSliverAppbarHeader(MDBoxLayout):
-    pass
-
-
-class MDSliverAppbar(MDBoxLayout, ThemableBehavior):
     """
-    MDSliverAppbar class.
-    See module documentation for more information.
+    Sliver app bar header class.
+
+    For more information, see in the
+    :class:`~kivymd.uix.boxlayout.MDBoxLayout` class documentation.
+    """
+
+
+class MDSliverAppbar(MDBoxLayout):
+    """
+    Sliver app bar class.
+
+    For more information, see in the
+    :class:`~kivymd.uix.boxlayout.MDBoxLayout` class documentation.
 
     :Events:
         :attr:`on_scroll_content`
@@ -254,7 +265,7 @@ class MDSliverAppbar(MDBoxLayout, ThemableBehavior):
         class CardItem(MDCard):
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
-                self.elevation = 3
+                self.elevation = 1
 
 
         class SliverToolbar(MDTopAppBar):
@@ -292,7 +303,7 @@ class MDSliverAppbar(MDBoxLayout, ThemableBehavior):
 
     background_color = ColorProperty(None)
     """
-    Background color of toolbar in (r, g, b, a) format.
+    Background color of toolbar in (r, g, b, a) or string format.
 
     .. code-block:: kv
 

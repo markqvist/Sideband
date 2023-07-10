@@ -71,6 +71,7 @@ __all__ = [
 
 import os
 
+from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.properties import (
     BooleanProperty,
@@ -82,7 +83,6 @@ from kivy.properties import (
 from kivy.uix.behaviors import ButtonBehavior
 
 from kivymd import uix_path
-from kivymd.theming import ThemableBehavior
 from kivymd.uix.behaviors import RectangularRippleBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.fitimage import FitImage
@@ -103,9 +103,12 @@ class SmartTileOverlayBox(MDBoxLayout):
     """Implements a container for custom widgets to be added to the tile."""
 
 
-class MDSmartTile(MDRelativeLayout, ThemableBehavior):
+class MDSmartTile(MDRelativeLayout):
     """
     A tile for more complex needs.
+
+    For more information, see in the
+    :class:`~kivymd.uix.relativelayout.MDRelativeLayout` class documentation.
 
     Includes an image, a container to place overlays and a box that can act
     as a header or a footer, as described in the Material Design specs.
@@ -139,7 +142,8 @@ class MDSmartTile(MDRelativeLayout, ThemableBehavior):
 
     box_color = ColorProperty((0, 0, 0, 0.5))
     """
-    Sets the color and opacity for the information box.
+    Sets the color in (r, g, b, a) or string format and opacity for the
+    information box.
 
     .. code-block:: kv
 
@@ -249,6 +253,8 @@ class MDSmartTile(MDRelativeLayout, ThemableBehavior):
     and defaults to `False`.
     """
 
+    _no_ripple_effect = BooleanProperty(False)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.register_event_type("on_release")
@@ -270,4 +276,4 @@ class MDSmartTile(MDRelativeLayout, ThemableBehavior):
             if isinstance(widget, MDLabel):
                 widget.shorten = True
                 widget.shorten_from = "right"
-            self.ids.box.add_widget(widget)
+            Clock.schedule_once(lambda x: self.ids.box.add_widget(widget))

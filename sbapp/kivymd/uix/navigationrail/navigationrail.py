@@ -8,26 +8,14 @@ Components/NavigationRail
 
     `Material Design spec, Navigation rail <https://m3.material.io/components/navigation-rail/specs>`_
 
-.. rubric::
-
-    Navigation rails provide access to primary destinations in apps when using
-    tablet and desktop screens.
+.. rubric:: Navigation rails provide access to primary destinations in apps
+    when using tablet and desktop screens.
 
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/navigation-rail.png
     :align: center
 
 Usage
-=====
-
-.. code-block:: kv
-
-    MDNavigationRail:
-
-        MDNavigationRailItem:
-
-        MDNavigationRailItem:
-
-        MDNavigationRailItem:
+-----
 
 .. tabs::
 
@@ -113,6 +101,21 @@ Usage
 .. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/navigation-rail-usage.png
     :align: center
 
+Anatomy
+-------
+
+.. image:: https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/kivymddoc/navigation-rail-anatomy.png
+    :align: center
+
+1. Container
+2. Label text (optional)
+3. Icon
+4. Active indicator
+5. Badge (optional)
+6. Large badge (optional)
+7. Large badge label (optional)
+8. Menu icon (optional)
+
 Example
 =======
 
@@ -137,9 +140,8 @@ Example
 
 
             <ExtendedButton>
-                elevation: 3.5
+                elevation: 1
                 shadow_radius: 12
-                shadow_softness: 4
                 -height: "56dp"
 
 
@@ -207,9 +209,9 @@ Example
 
                 MDNavigationDrawer:
                     id: nav_drawer
-                    radius: (0, 16, 16, 0)
+                    radius: 0, 16, 16, 0
                     md_bg_color: "#fffcf4"
-                    elevation: 4
+                    elevation: 2
                     width: "240dp"
 
                     MDNavigationDrawerMenu:
@@ -218,14 +220,18 @@ Example
                             orientation: "vertical"
                             adaptive_height: True
                             spacing: "12dp"
-                            padding: "3dp", 0, 0, "12dp"
+                            padding: 0, 0, 0, "12dp"
 
                             MDIconButton:
                                 icon: "menu"
 
-                            ExtendedButton:
-                                text: "Compose"
-                                icon: "pencil"
+                            MDBoxLayout:
+                                adaptive_height: True
+                                padding: "12dp", 0, 0, 0
+
+                                ExtendedButton:
+                                    text: "Compose"
+                                    icon: "pencil"
 
                         DrawerClickableItem:
                             text: "Python"
@@ -269,7 +275,9 @@ Example
 
                 def set_radius(self, *args):
                     if self.rounded_button:
-                        self._radius = self.radius = self.height / 4
+                        value = self.height / 4
+                        self.radius = [value, value, value, value]
+                        self._radius = value
 
 
             class Example(MDApp):
@@ -357,9 +365,8 @@ Example
                 def __init__(self, *args, **kwargs):
                     super().__init__(*args, **kwargs)
                     self.padding = "16dp"
-                    self.elevation = 3.5
+                    self.elevation = 1
                     self.shadow_radius = 12
-                    self.shadow_softness = 4
                     self.height = dp(56)
                     Clock.schedule_once(self.set_spacing)
 
@@ -439,9 +446,13 @@ Example
                                     MDIconButton(
                                         icon="menu",
                                     ),
-                                    ExtendedButton(
-                                        text="Compose",
-                                        icon="pencil",
+                                    MDBoxLayout(
+                                        ExtendedButton(
+                                            text="Compose",
+                                            icon="pencil",
+                                        ),
+                                        adaptive_height=True,
+                                        padding=["12dp", 0, 0, 0],
                                     ),
                                     orientation="vertical",
                                     adaptive_height=True,
@@ -540,6 +551,7 @@ from typing import Union
 
 from kivy.animation import Animation
 from kivy.clock import Clock
+from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.metrics import dp
@@ -556,7 +568,6 @@ from kivy.properties import (
 from kivy.uix.behaviors import ButtonBehavior
 
 from kivymd import uix_path
-from kivymd.theming import ThemableBehavior
 from kivymd.uix.behaviors import ScaleBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDFloatingActionButton, MDIconButton
@@ -591,7 +602,12 @@ class RippleWidget(MDWidget, ScaleBehavior):
 
 
 class MDNavigationRailFabButton(MDFloatingActionButton):
-    """Implements an optional floating action button (FAB)."""
+    """
+    Implements an optional floating action button (FAB).
+
+    For more information, see in the
+    :class:`~kivymd.uix.button.MDFloatingActionButton` class documentation.
+    """
 
     icon = StringProperty("pencil")
     """
@@ -613,7 +629,12 @@ class MDNavigationRailFabButton(MDFloatingActionButton):
 
 
 class MDNavigationRailMenuButton(MDIconButton):
-    """Implements a menu button."""
+    """
+    Implements a menu button.
+
+    For more information, see in the
+    :class:`~kivymd.uix.button.MDIconButton` classes documentation.
+    """
 
     icon = StringProperty("menu")
     """
@@ -634,8 +655,15 @@ class MDNavigationRailMenuButton(MDIconButton):
     """
 
 
-class MDNavigationRailItem(ThemableBehavior, ButtonBehavior, MDBoxLayout):
-    """Implements a menu item with an icon and text."""
+class MDNavigationRailItem(ButtonBehavior, MDBoxLayout):
+    """
+    Implements a menu item with an icon and text.
+
+    For more information, see in the
+    :class:`~kivy.uix.behaviors.ButtonBehavior` and
+    :class:`~kivymd.uix.boxlayout.MDBoxLayout`
+    classes documentation.
+    """
 
     navigation_rail = ObjectProperty()
     """
@@ -814,6 +842,11 @@ class MDNavigationRailItem(ThemableBehavior, ButtonBehavior, MDBoxLayout):
 
 class MDNavigationRail(MDCard):
     """
+    Navigation rail class.
+
+    For more information, see in the
+    :class:`~kivymd.uix.card.MDCard` class documentation.
+
     :Events:
         :attr:`on_item_press`
             Called on the `on_press` event of menu item -
@@ -941,7 +974,8 @@ class MDNavigationRail(MDCard):
 
     text_color_item_normal = ColorProperty(None)
     """
-    The text color of the normal menu item (:class:`~MDNavigationRailItem`).
+    The text color in (r, g, b, a) or string format of the normal menu item
+    (:class:`~MDNavigationRailItem`).
 
     .. code-block:: kv
 
@@ -960,7 +994,8 @@ class MDNavigationRail(MDCard):
 
     text_color_item_active = ColorProperty(None)
     """
-    The text color of the active menu item (:class:`~MDNavigationRailItem`).
+    The text color in (r, g, b, a) or string format of the active menu item
+    (:class:`~MDNavigationRailItem`).
 
     .. code-block:: kv
 
@@ -979,7 +1014,8 @@ class MDNavigationRail(MDCard):
 
     icon_color_item_normal = ColorProperty(None)
     """
-    The icon color of the normal menu item (:class:`~MDNavigationRailItem`).
+    The icon color in (r, g, b, a) or string format of the normal menu item
+    (:class:`~MDNavigationRailItem`).
 
     .. code-block:: kv
 
@@ -998,7 +1034,8 @@ class MDNavigationRail(MDCard):
 
     icon_color_item_active = ColorProperty(None)
     """
-    The icon color of the active menu item (:class:`~MDNavigationRailItem`).
+    The icon color in (r, g, b, a) or string format of the active menu item
+    (:class:`~MDNavigationRailItem`).
 
     .. code-block:: kv
 
@@ -1110,6 +1147,9 @@ class MDNavigationRail(MDCard):
         self.register_event_type("on_item_press")
         self.register_event_type("on_item_release")
 
+    def on_size(self, *args):
+        Clock.schedule_once(self.set_pos_menu_fab_buttons)
+
     def on_item_press(self, *args) -> None:
         """
         Called on the `on_press` event of menu item -
@@ -1188,7 +1228,7 @@ class MDNavigationRail(MDCard):
             items[index].dispatch("on_press")
             items[index].dispatch("on_release")
 
-    def set_pos_menu_fab_buttons(self, interval: Union[int, float]) -> None:
+    def set_pos_menu_fab_buttons(self, *args) -> None:
         """
         Sets the position of the :class:`~MDNavigationRailFabButton` and
         :class:`~MDNavigationRailMenuButton` buttons on the panel.

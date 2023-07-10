@@ -25,7 +25,7 @@ intensity_msgs_light = "500"
 class ContentNavigationDrawer(Screen):
     pass
 
-class DrawerList(ThemableBehavior, MDList):
+class DrawerList(MDList):
     pass
 
 class IconListItem(OneLineIconListItem):

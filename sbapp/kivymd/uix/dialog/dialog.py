@@ -89,7 +89,7 @@ from kivy.uix.modalview import ModalView
 from kivymd import uix_path
 from kivymd.material_resources import DEVICE_TYPE
 from kivymd.theming import ThemableBehavior
-from kivymd.uix.behaviors import CommonElevationBehavior
+from kivymd.uix.behaviors import CommonElevationBehavior, MotionDialogBehavior
 from kivymd.uix.button import BaseButton
 from kivymd.uix.card import MDSeparator
 from kivymd.uix.list import BaseListItem
@@ -100,7 +100,9 @@ with open(
     Builder.load_string(kv_file.read())
 
 
-class BaseDialog(ThemableBehavior, ModalView, CommonElevationBehavior):
+class BaseDialog(
+    ThemableBehavior, MotionDialogBehavior, ModalView, CommonElevationBehavior
+):
     elevation = NumericProperty(3)
     """
     See :attr:`kivymd.uix.behaviors.elevation.CommonElevationBehavior.elevation`
@@ -159,6 +161,16 @@ class BaseDialog(ThemableBehavior, ModalView, CommonElevationBehavior):
 
 
 class MDDialog(BaseDialog):
+    """
+    Dialog class.
+
+    For more information, see in the
+    :class:`~kivymd.theming.ThemableBehavior` and
+    :class:`~kivy.uix.modalview.ModalView` and
+    :class:`~kivymd.uix.behaviors.CommonElevationBehavior`
+    classes documentation.
+    """
+
     title = StringProperty()
     """
     Title dialog.
@@ -286,22 +298,22 @@ class MDDialog(BaseDialog):
         class Example(MDApp):
             dialog = None
 
-        def build(self):
-            self.theme_cls.theme_style = "Dark"
-            self.theme_cls.primary_palette = "Orange"
-            return Builder.load_string(KV)
+            def build(self):
+                self.theme_cls.theme_style = "Dark"
+                self.theme_cls.primary_palette = "Orange"
+                return Builder.load_string(KV)
 
-        def show_simple_dialog(self):
-            if not self.dialog:
-                self.dialog = MDDialog(
-                    title="Set backup account",
-                    type="simple",
-                    items=[
-                        Item(text="user01@gmail.com", source="kivymd/images/logo/kivymd-icon-128.png"),
-                        Item(text="user02@gmail.com", source="data/logo/kivy-icon-128.png"),
-                    ],
-                )
-            self.dialog.open()
+            def show_simple_dialog(self):
+                if not self.dialog:
+                    self.dialog = MDDialog(
+                        title="Set backup account",
+                        type="simple",
+                        items=[
+                            Item(text="user01@gmail.com", source="kivymd/images/logo/kivymd-icon-128.png"),
+                            Item(text="user02@gmail.com", source="data/logo/kivy-icon-128.png"),
+                        ],
+                    )
+                self.dialog.open()
 
 
         Example().run()
@@ -422,7 +434,8 @@ class MDDialog(BaseDialog):
 
     content_cls = ObjectProperty()
     """
-    Custom content class.
+    Custom content class. This attribute is only available when :attr:`type` is
+    set to `'custom'`.
 
     .. tabs::
 
@@ -637,6 +650,7 @@ class MDDialog(BaseDialog):
     def on_open(self) -> None:
         # TODO: Add scrolling text.
         self.height = self.ids.container.height
+        super().on_open()
 
     def get_normal_height(self) -> float:
         return (
