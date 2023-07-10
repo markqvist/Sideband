@@ -12,8 +12,10 @@ version.regex = __version__ = ['"](.*)['"]
 version.filename = %(source.dir)s/main.py
 android.numeric_version = 20230204
 
-#requirements = python3==3.9.5,hostpython3==3.9.5,cryptography,cffi,pycparser,kivy==2.2.1,pygments,sdl2,sdl2_ttf==2.0.15,pillow,qrcode==7.3.1,netifaces,libbz2,pydenticon,usb4a,usbserial4a
 requirements = kivy==2.2.1,libbz2,pillow,qrcode==7.3.1,usb4a,usbserial4a
+
+# Cryptography recipe is currently broken, using RNS-internal crypto for now
+#,cryptography
 
 p4a.local_recipes = ../Others/python-for-android/pythonforandroid/recipes
 
