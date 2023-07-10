@@ -81,7 +81,7 @@ MDNavigationLayout:
                 MDTopAppBar:
                     title: "Conversations"
                     anchor_title: "left"
-                    elevation: 2
+                    elevation: 0
                     left_action_items:
                         [
                         ['menu', lambda x: nav_drawer.set_state("open")],
@@ -109,7 +109,7 @@ MDNavigationLayout:
                     id: messages_toolbar
                     anchor_title: "left"
                     title: "Messages"
-                    elevation: 2
+                    elevation: 0
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -174,7 +174,7 @@ MDNavigationLayout:
                 MDTopAppBar:
                     title: "Local Broadcasts"
                     anchor_title: "left"
-                    elevation: 2
+                    elevation: 0
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -210,7 +210,7 @@ MDNavigationLayout:
                 MDTopAppBar:
                     title: "Connectivity"
                     anchor_title: "left"
-                    elevation: 2
+                    elevation: 0
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -635,7 +635,7 @@ MDNavigationLayout:
                 MDTopAppBar:
                     title: "Guide"
                     anchor_title: "left"
-                    elevation: 2
+                    elevation: 0
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -734,7 +734,7 @@ MDNavigationLayout:
                 MDTopAppBar:
                     title: "App & Version Information"
                     anchor_title: "left"
-                    elevation: 2
+                    elevation: 0
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -786,7 +786,7 @@ MDNavigationLayout:
                 MDTopAppBar:
                     title: "Local Area Map"
                     anchor_title: "left"
-                    elevation: 2
+                    elevation: 0
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -823,7 +823,7 @@ MDNavigationLayout:
                 MDTopAppBar:
                     title: "Encryption Keys"
                     anchor_title: "left"
-                    elevation: 2
+                    elevation: 0
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -914,7 +914,7 @@ MDNavigationLayout:
                 MDTopAppBar:
                     title: "Announce Stream"
                     anchor_title: "left"
-                    elevation: 2
+                    elevation: 0
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -951,7 +951,7 @@ MDNavigationLayout:
                 MDTopAppBar:
                     title: "Preferences"
                     anchor_title: "left"
-                    elevation: 2
+                    elevation: 0
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -1214,7 +1214,7 @@ MDNavigationLayout:
                 MDTopAppBar:
                     title: "Hardware"
                     anchor_title: "left"
-                    elevation: 2
+                    elevation: 0
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -1293,7 +1293,7 @@ MDNavigationLayout:
                 MDTopAppBar:
                     title: "RNode"
                     anchor_title: "left"
-                    elevation: 2
+                    elevation: 0
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -1505,7 +1505,7 @@ MDNavigationLayout:
                 MDTopAppBar:
                     title: "Radio Modem"
                     anchor_title: "left"
-                    elevation: 2
+                    elevation: 0
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
@@ -1651,7 +1651,7 @@ MDNavigationLayout:
                 MDTopAppBar:
                     title: "Serial Port"
                     anchor_title: "left"
-                    elevation: 2
+                    elevation: 0
                     left_action_items:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
