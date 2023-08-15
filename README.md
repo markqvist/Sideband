@@ -101,7 +101,7 @@ You can help support the continued development of open, free and private communi
 - Adding a Linux .desktop file
 - Message sorting mechanism
 - Fix I2P status not being displayed correctly when the I2P router disappears unexpectedly
-- Adding LXMF sneakernet and paper message functionality
+- Adding LXMF sneakernet functionality
 
 ## License
 Unless otherwise noted, this work is licensed under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License][cc-by-nc-sa].
