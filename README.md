@@ -35,6 +35,22 @@ sideband
 
 ```
 
+If you are using an operating system that blocks user installation of packages via `pip`, you can use the `pipx` tool instead:
+
+```bash
+# Install Sideband on Linux
+pipx install sbapp
+
+# Install Sideband on macOS
+pip install "sbapp[macos]"
+
+# Optionally install Reticulum utilities
+pipx install rns
+
+# Optionally install standalone LXMF utilities
+pipx install lxmf
+```
+
 ## Example Paper Message
 
 You can try out the paper messaging functionality by using the following QR-code. It is a paper message sent to the LXMF address `6b3362bd2c1dbf87b66a85f79a8d8c75`. To be able to decrypt and read the message, you will need to import the following base32-encoded Reticulum Identity into the app:
