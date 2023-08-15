@@ -2001,6 +2001,7 @@ class SidebandCore():
                 self.setstate("app.flags.unread_conversations", True)
             else:
                 if self.gui_foreground():
+                    RNS.log("Squelching notification since GUI is in foreground", RNS.LOG_DEBUG)
                     should_notify = False
         else:
             self.unread_conversation(context_dest)

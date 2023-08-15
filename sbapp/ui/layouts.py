@@ -150,6 +150,8 @@ MDNavigationLayout:
 
                     MDTextField:
                         id: message_text
+                        input_type: "text"
+                        keyboard_suggestions: True
                         multiline: True
                         hint_text: "Write message"
                         mode: "rectangle"
