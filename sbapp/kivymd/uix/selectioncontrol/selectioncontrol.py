@@ -829,6 +829,23 @@ class MDSwitch(ThemableBehavior, FloatLayout):
         Clock.schedule_once(lambda x: self._update_thumb_pos(animation=False))
         Clock.schedule_once(lambda x: self.on_active(self, self.active))
 
+    # Hack to increase switch hit zone
+    def tnn(self, pa):
+        try:
+            ex = pa.pos[0]
+            ey = pa.pos[1]
+            xs = self.center[0]-self.width/2 - (self.width)
+            xe = self.center[0]+self.width/2 + (self.width)
+            ys = self.center[1]-self.height/2
+            ye = self.center[1]+self.height/2
+
+            # print(str(xs)+" < "+str(ex)+" < "+str(xe)+"   "+str(ys)+" < "+str(ey)+" < "+str(ye))
+            if xs < ex < xe and ys < ey < ye:
+                self.active = not self.active
+
+        except Exception as e:
+            pass
+
     def set_icon(self, instance_switch, icon_value: str) -> None:
         """
         Called when the values of

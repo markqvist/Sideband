@@ -137,9 +137,11 @@
             ) \
             ) \
             )
+
         on_touch_down:
             if self.collide_point(*args[1].pos) and not root.disabled: \
             root.on_thumb_down()
         on_touch_up:
-            if self.collide_point(*args[1].pos) and not root.disabled: \
-            setattr(root, "active", not root.active)
+            if self.collide_point(*args[1].pos) and not root.disabled: setattr(root, "active", not root.active)
+            elif root.collide_point(*args[1].pos) and not root.disabled: setattr(root, "active", not root.active)
+            else: root.tnn(args[1])
