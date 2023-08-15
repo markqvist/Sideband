@@ -81,7 +81,7 @@ setuptools.setup(
             'sideband=sbapp:main.run',
         ]
     },
-    install_requires=["rns>=0.5.6", "lxmf>=0.3.1", "kivy>=2.2.1", "plyer", "pillow", "qrcode", "materialyoucolor"],
+    install_requires=["rns>=0.5.7", "lxmf>=0.3.2", "kivy>=2.2.1", "plyer", "pillow", "qrcode", "materialyoucolor"],
     extras_require={
         "macos": ["pyobjus"],
     },
