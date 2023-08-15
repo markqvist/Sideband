@@ -35,7 +35,14 @@ sideband
 
 ```
 
-If you are using an operating system that blocks user installation of packages via `pip`, you can use the `pipx` tool instead:
+If you are using an operating system that blocks normal user package installation via `pip`, you can return `pip` to normal behaviour by editing the `~/.config/pip/pip.conf` file, and adding the following directive in the `[global]` section:
+
+```text
+[global]
+break-system-packages = true
+```
+
+Alternatively, you can use the `pipx` tool to install Sideband in an isolated environment instead:
 
 ```bash
 # Install Sideband on Linux
