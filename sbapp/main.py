@@ -1,6 +1,6 @@
 __debug_build__ = False
 __disable_shaders__ = False
-__version__ = "0.5.4"
+__version__ = "0.5.5"
 __variant__ = "beta"
 
 import sys
@@ -1745,11 +1745,40 @@ class SidebandApp(MDApp):
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
     def hardware_rnode_save(self):
-        self.sideband.config["hw_rnode_frequency"] = int(float(self.root.ids.hardware_rnode_frequency.text)*1000000)
-        self.sideband.config["hw_rnode_bandwidth"] = int(float(self.root.ids.hardware_rnode_bandwidth.text)*1000)
-        self.sideband.config["hw_rnode_tx_power"] = int(self.root.ids.hardware_rnode_txpower.text)
-        self.sideband.config["hw_rnode_spreading_factor"] = int(self.root.ids.hardware_rnode_spreadingfactor.text)
-        self.sideband.config["hw_rnode_coding_rate"] = int(self.root.ids.hardware_rnode_codingrate.text)
+        try:
+            self.sideband.config["hw_rnode_frequency"] = int(float(self.root.ids.hardware_rnode_frequency.text)*1000000)
+        except:
+            pass
+
+        try:
+            self.sideband.config["hw_rnode_bandwidth"] = int(float(self.root.ids.hardware_rnode_bandwidth.text)*1000)
+        except:
+            pass
+
+        try:
+            self.sideband.config["hw_rnode_tx_power"] = int(self.root.ids.hardware_rnode_txpower.text)
+        except:
+            pass
+
+        try:
+            self.sideband.config["hw_rnode_spreading_factor"] = int(self.root.ids.hardware_rnode_spreadingfactor.text)
+        except:
+            pass
+        
+        try:
+            self.sideband.config["hw_rnode_coding_rate"] = int(self.root.ids.hardware_rnode_codingrate.text)
+        except:
+            pass
+        
+        try:
+            self.sideband.config["hw_rnode_atl_short"] = float(self.root.ids.hardware_rnode_atl_short.text)
+        except:
+            self.sideband.config["hw_rnode_atl_short"] = None
+
+        try:
+            self.sideband.config["hw_rnode_atl_long"] = float(self.root.ids.hardware_rnode_atl_long.text)
+        except:
+            self.sideband.config["hw_rnode_atl_long"] = None
         
         if self.root.ids.hardware_rnode_beaconinterval.text == "":
             self.sideband.config["hw_rnode_beaconinterval"] = None
@@ -1820,6 +1849,15 @@ class SidebandApp(MDApp):
         self.sideband.save_configuration()
 
     
+    def hardware_rnode_framebuffer_toggle_action(self, sender=None, event=None):
+        if sender.active:
+            self.sideband.config["hw_rnode_enable_framebuffer"] = True
+        else:
+            self.sideband.config["hw_rnode_enable_framebuffer"] = False
+
+        self.sideband.save_configuration()
+
+    
     def hardware_rnode_init(self, sender=None):
         if not self.hardware_rnode_ready:
             self.root.ids.hardware_rnode_scrollview.effect_cls = ScrollEffect
@@ -1864,8 +1902,17 @@ class SidebandApp(MDApp):
                 t_btd = str(self.sideband.config["hw_rnode_bt_device"])
             else:
                 t_btd = ""
+            if self.sideband.config["hw_rnode_atl_short"] != None:
+                t_ats = str(self.sideband.config["hw_rnode_atl_short"])
+            else:
+                t_ats = ""
+            if self.sideband.config["hw_rnode_atl_long"] != None:
+                t_atl = str(self.sideband.config["hw_rnode_atl_long"])
+            else:
+                t_atl = ""
 
             self.root.ids.hardware_rnode_bluetooth.active = self.sideband.config["hw_rnode_bluetooth"]
+            self.root.ids.hardware_rnode_framebuffer.active = self.sideband.config["hw_rnode_enable_framebuffer"]
             self.root.ids.hardware_rnode_frequency.text = t_freq
             self.root.ids.hardware_rnode_bandwidth.text = t_bw
             self.root.ids.hardware_rnode_txpower.text = t_p
@@ -1874,6 +1921,8 @@ class SidebandApp(MDApp):
             self.root.ids.hardware_rnode_beaconinterval.text = t_bi
             self.root.ids.hardware_rnode_beacondata.text = t_bd
             self.root.ids.hardware_rnode_bt_device.text = t_btd
+            self.root.ids.hardware_rnode_atl_short.text = t_ats
+            self.root.ids.hardware_rnode_atl_long.text = t_atl
             self.root.ids.hardware_rnode_frequency.bind(focus=focus_save)
             self.root.ids.hardware_rnode_bandwidth.bind(focus=focus_save)
             self.root.ids.hardware_rnode_txpower.bind(focus=focus_save)
@@ -1889,7 +1938,10 @@ class SidebandApp(MDApp):
             self.root.ids.hardware_rnode_codingrate.bind(on_text_validate=save_connectivity)
             self.root.ids.hardware_rnode_beaconinterval.bind(on_text_validate=save_connectivity)
             self.root.ids.hardware_rnode_beacondata.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_rnode_atl_short.bind(on_text_validate=save_connectivity)
+            self.root.ids.hardware_rnode_atl_long.bind(on_text_validate=save_connectivity)
             self.root.ids.hardware_rnode_bluetooth.bind(active=self.hardware_rnode_bt_toggle_action)
+            self.root.ids.hardware_rnode_framebuffer.bind(active=self.hardware_rnode_framebuffer_toggle_action)
 
 
     def hardware_rnode_validate(self, sender=None):

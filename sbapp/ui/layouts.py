@@ -1432,6 +1432,40 @@ MDNavigationLayout:
 
                         MDBoxLayout:
                             orientation: "horizontal"
+                            spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                            MDTextField:
+                                id: hardware_rnode_atl_short
+                                hint_text: "Airime Limit % (15s)"
+                                text: ""
+                                font_size: dp(24)
+
+                            MDTextField:
+                                id: hardware_rnode_atl_long
+                                hint_text: "Airime Limit % (1h)"
+                                text: ""
+                                font_size: dp(24)
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Control RNode Display"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: hardware_rnode_framebuffer
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
                             size_hint_y: None
                             padding: [0,0,dp(24),dp(0)]
                             height: dp(48)

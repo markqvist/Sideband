@@ -380,8 +380,14 @@ class SidebandCore():
             self.config["hw_rnode_beacondata"] = None
         if not "hw_rnode_bluetooth" in self.config:
             self.config["hw_rnode_bluetooth"] = False
+        if not "hw_rnode_enable_framebuffer" in self.config:
+            self.config["hw_rnode_enable_framebuffer"] = False
         if not "hw_rnode_bt_device" in self.config:
             self.config["hw_rnode_bt_device"] = None
+        if not "hw_rnode_atl_short" in self.config:
+            self.config["hw_rnode_atl_short"] = None
+        if not "hw_rnode_atl_long" in self.config:
+            self.config["hw_rnode_atl_long"] = None
 
         if not "hw_modem_baudrate" in self.config:
             self.config["hw_modem_baudrate"] = 115200
@@ -1678,6 +1684,16 @@ class SidebandCore():
                         else:
                             ifac_netkey = self.config["connect_rnode_ifac_passphrase"]
 
+                        if self.config["hw_rnode_atl_short"] == "":
+                            atl_short = None
+                        else:
+                            atl_short = self.config["hw_rnode_atl_short"]
+
+                        if self.config["hw_rnode_atl_long"] == "":
+                            atl_long = None
+                        else:
+                            atl_long = self.config["hw_rnode_atl_long"]
+
                         rnodeinterface = RNS.Interfaces.Android.RNodeInterface.RNodeInterface(
                                 RNS.Transport,
                                 "RNodeInterface",
@@ -1692,6 +1708,8 @@ class SidebandCore():
                                 id_callsign = self.config["hw_rnode_beacondata"],
                                 allow_bluetooth = rnode_allow_bluetooth,
                                 target_device_name = bt_device_name,
+                                st_alock = atl_short,
+                                lt_alock = atl_long,
                             )
 
                         rnodeinterface.OUT = True
@@ -1716,11 +1734,15 @@ class SidebandCore():
                             if len(rnodeinterface.hw_errors) > 0:
                                 self.setpersistent("startup.errors.rnode", rnodeinterface.hw_errors[0])
 
-                        if self.interface_rnode.online:
-                            self.interface_rnode.display_image(sideband_fb_data)
-                            self.interface_rnode.enable_external_framebuffer()
+                        if self.config["hw_rnode_enable_framebuffer"] == True:
+                            if self.interface_rnode.online:
+                                self.interface_rnode.display_image(sideband_fb_data)
+                                self.interface_rnode.enable_external_framebuffer()
+                            else:
+                                self.interface_rnode.last_imagedata = sideband_fb_data
                         else:
-                            self.interface_rnode.last_imagedata = sideband_fb_data
+                            if self.interface_rnode.online:
+                                self.interface_rnode.disable_external_framebuffer()
 
                     except Exception as e:
                         RNS.log("Error while adding RNode Interface. The contained exception was: "+str(e))
