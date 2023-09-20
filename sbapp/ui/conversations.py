@@ -114,7 +114,7 @@ class Conversations():
                         t_s = time.time()
                         dest = self.conversation_dropdown.context_dest
                         try:
-                            disp_name = self.app.sideband.raw_display_name(dest)+" "+str(conv["last_activity"])
+                            disp_name = self.app.sideband.raw_display_name(dest)
                             is_trusted = self.app.sideband.is_trusted(dest)
 
                             yes_button = MDRectangleFlatButton(text="Save",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_accept, text_color=self.app.color_accept)
