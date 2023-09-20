@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="css/water.css">
+<link rel="shortcut icon" type="image/x-icon" href="gfx/icon.png">
+<meta charset="utf-8"/>
+<title>Sideband Repository</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<span class="logo">Software</span>
+<p><center><span class="menu"><a href="index.html">Start</a> | <a href="pkgs.html">Software</a> | <a href="guides.html">Guides</a></span></center></p><hr>
+Welcome to the <b>Software Library</b>!<br/><br/>From here, you can download installable Python Wheel packages of Reticulum and various other auxillary programs and utilities.
+<ul id="filelist">
+</ul>
+<hr>
+<p><center></p>
+</body></html>
+
+<script type="text/javascript">
+
+var getJSON = function(url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'json';
+    xhr.onload = function() {
+      var status = xhr.status;
+      if (status === 200) {
+        callback(null, xhr.response);
+      } else {
+        callback(status, xhr.response);
+      }
+    };
+    xhr.send();
+};
+
+var got_data = function(err, data) {
+  if (err !== null) {
+    alert('Could not load filelist: ' + err);
+  } else {
+    console.log(data);
+    for (e in data) {
+      url = "/pkg/"+data[e];
+      name = data[e];
+      
+      // create a new div element
+      const listitem = document.createElement("li");
+      const anc = document.createElement("a")
+      const content = document.createTextNode(name);
+      listitem.appendChild(anc)
+      anc.href = url;
+      anc.appendChild(content)
+
+      const flist = document.getElementById("filelist");
+      flist.appendChild(listitem);
+    }
+  }
+}
+
+getJSON("/pkglist", got_data);
+//got_data(null, test_json);
+
+</script>
