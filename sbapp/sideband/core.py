@@ -229,6 +229,7 @@ class SidebandCore():
         self.config["lxmf_sync_limit"] = None
         self.config["lxmf_sync_max"] = 3
         self.config["lxmf_periodic_sync"] = False
+        self.config["lxmf_ignore_unknown"] = False
         self.config["lxmf_sync_interval"] = 43200
         self.config["last_lxmf_propagation_node"] = None
         self.config["nn_home_node"] = None
