@@ -6,6 +6,8 @@ clean:
 	@echo Cleaning...
 	-(rm ./__pycache__ -r)
 	-(rm ./app_storage -r)
+	-(rm ./share/pkg/* -r)
+	-(rm ./share/mirrors/* -r)
 	-(rm ./bin -r)
 
 cleanlibs:
@@ -53,15 +55,26 @@ else
 	@(sleep 2)
 endif
 
+fetchshare:
+	cp ../../dist_archive/rns-*-py3-none-any.whl ./share/pkg/
+	cp ../../dist_archive/rnspure-*-py3-none-any.whl ./share/pkg/
+	cp ../../dist_archive/lxmf-*-py3-none-any.whl ./share/pkg/
+	cp ../../dist_archive/nomadnet-*-py3-none-any.whl ./share/pkg/
+	cp ../../dist_archive/rnsh-*-py3-none-any.whl ./share/pkg/
+	cp ../../dist_archive/RNode_Firmware_1.64_Source.zip ./share/pkg/
+	cp -r ../../dist_archive/reticulum.network ./share/mirrors/
+	cp ../../dist_archive/Reticulum\ Manual.pdf ./share/mirrors/Reticulum_Manual.pdf
+	cp ../../dist_archive/Reticulum\ Manual.epub ./share/mirrors/Reticulum_Manual.epub
+
 release:
 	buildozer android release
 
 postbuild:
 	$(MAKE) cleanrns
 
-apk: prepare prebake pacthfiles release postbuild
+apk: prepare prebake pacthfiles fetchshare release postbuild
 
-devapk: prepare prebake pacthfiles debug postbuild
+devapk: prepare prebake pacthfiles fetchshare debug postbuild
 
 version:
 	@(echo $$(python ./gv.py))

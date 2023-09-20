@@ -95,6 +95,7 @@ class SidebandCore():
         self.log_verbose = verbose
         self.owner_app = owner_app
         self.reticulum = None
+        self.webshare_server = None
 
         self.app_dir       = plyer.storagepath.get_home_dir()+"/.config/sideband"
         if self.app_dir.startswith("file://"):
@@ -130,6 +131,7 @@ class SidebandCore():
         self.log_dir       = self.app_dir+"/app_storage/"
         self.tmp_dir       = self.app_dir+"/app_storage/tmp"
         self.exports_dir   = self.app_dir+"/exports"
+        self.webshare_dir  = "./share/"
         
         self.first_run     = True
         self.saving_configuration = False
@@ -2055,6 +2057,67 @@ class SidebandCore():
 
         self._db_setstate("core.started", True)
         RNS.log("Sideband Core "+str(self)+" started")
+
+    def stop_webshare(self):
+        if self.webshare_server != None:
+            self.webshare_server.shutdown()
+            self.webshare_server = None
+
+    def start_webshare(self):
+        if self.webshare_server == None:
+            def webshare_job():
+                from http import server
+                import socketserver
+                import json
+
+                webshare_dir = self.webshare_dir
+                port = 4444
+                class RequestHandler(server.SimpleHTTPRequestHandler):
+                    def do_GET(self):
+                        serve_root = webshare_dir
+                        if "?" in self.path:
+                            self.path = self.path.split("?")[0]
+                        path = serve_root + self.path
+                        if self.path == "/":
+                            path = serve_root + "/index.html"
+                        if "/.." in self.path:
+                            self.send_response(403)
+                            self.end_headers()
+                            self.write("Forbidden".encode("utf-8"))
+                        elif self.path == "/pkglist":
+                            try:
+                                self.send_response(200)
+                                self.send_header("Content-type", "text/json")
+                                self.end_headers()
+                                json_result = json.dumps(os.listdir(serve_root+"/pkg"))
+                                self.wfile.write(json_result.encode("utf-8"))
+                            except Exception as e:
+                                self.send_response(500)
+                                self.end_headers()
+                                RNS.log("Error listing directory "+str(path)+": "+str(e), RNS.LOG_ERROR)
+                                es = "Error"
+                                self.wfile.write(es.encode("utf-8"))
+                        else:
+                            try:
+                                with open(path, 'rb') as f:
+                                    data = f.read()
+                                self.send_response(200)
+                                self.end_headers()
+                                self.wfile.write(data)
+                            except Exception as e:
+                                self.send_response(500)
+                                self.end_headers()
+                                RNS.log("Error serving file "+str(path)+": "+str(e), RNS.LOG_ERROR)
+                                es = "Error"
+                                self.wfile.write(es.encode("utf-8"))
+
+                with socketserver.TCPServer(("", port), RequestHandler) as webserver:
+                    self.webshare_server = webserver
+                    webserver.serve_forever()
+                    self.webshare_server = None
+                    RNS.log("Webshare server closed", RNS.LOG_DEBUG)
+
+            threading.Thread(target=webshare_job, daemon=True).start()
 
     def request_lxmf_sync(self, limit = None):
         if self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_IDLE or self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_COMPLETE:

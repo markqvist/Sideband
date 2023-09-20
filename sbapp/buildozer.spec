@@ -4,13 +4,13 @@ package.name = sideband
 package.domain = io.unsigned
 
 source.dir = .
-source.include_exts = py,png,jpg,jpeg,ttf,kv,pyi,typed,so,0,1,2,3,atlas,frag
-source.include_patterns = assets/*
+source.include_exts = py,png,jpg,jpeg,webp,ttf,kv,pyi,typed,so,0,1,2,3,atlas,frag,html,css,js,whl,zip,gz,woff2,pdf,epub
+source.include_patterns = assets/*,share/*
 source.exclude_patterns = app_storage/*,venv/*,Makefile,./Makefil*,requirements,precompiled/*,parked/*,./setup.py,Makef*,./Makefile,Makefile
 
 version.regex = __version__ = ['"](.*)['"]
 version.filename = %(source.dir)s/main.py
-android.numeric_version = 20230912
+android.numeric_version = 20230920
 
 # Cryptography recipe is currently broken, using RNS-internal crypto for now
 requirements = kivy==2.2.1,libbz2,pillow,qrcode==7.3.1,usb4a,usbserial4a
@@ -25,7 +25,7 @@ android.presplash_color = #00000000
 orientation = portrait
 fullscreen = 0
 
-android.permissions = INTERNET,POST_NOTIFICATIONS,WAKE_LOCK,FOREGROUND_SERVICE,CHANGE_WIFI_MULTICAST_STATE,BLUETOOTH_CONNECT
+android.permissions = INTERNET,POST_NOTIFICATIONS,WAKE_LOCK,FOREGROUND_SERVICE,CHANGE_WIFI_MULTICAST_STATE,BLUETOOTH_CONNECT,ACCESS_NETWORK_STATE
 android.api = 30
 android.minapi = 24
 android.ndk = 25b

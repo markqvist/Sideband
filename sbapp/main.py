@@ -110,6 +110,7 @@ class SidebandApp(MDApp):
         self.settings_ready = False
         self.connectivity_ready = False
         self.hardware_ready = False
+        self.repository_ready = False
         self.hardware_rnode_ready = False
         self.hardware_modem_ready = False
         self.hardware_serial_ready = False
@@ -1671,6 +1672,139 @@ class SidebandApp(MDApp):
         self.connectivity_ready = True
 
     def close_connectivity_action(self, sender=None):
+        self.open_conversations(direction="right")
+
+    ### Repository screen
+    ######################################
+    def repository_action(self, sender=None, direction="left"):
+        self.repository_init()
+        self.root.ids.screen_manager.transition.direction = direction
+        self.root.ids.screen_manager.current = "repository_screen"
+        self.root.ids.nav_drawer.set_state("closed")
+        if not RNS.vendor.platformutils.is_android():
+            self.widget_hide(self.root.ids.repository_enable_button)
+            self.widget_hide(self.root.ids.repository_disable_button)
+            self.widget_hide(self.root.ids.repository_download_button)
+            self.root.ids.repository_info.text = "\nThe [b]Repository Webserver[/b] feature is currently only available on mobile devices."
+
+
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+    def repository_update_info(self, sender=None):
+        info =  "Sideband includes a small repository of useful software and guides related to the Sideband and Reticulum ecosystem. You can start this repository to allow other people on your local network to download software and information directly from this device, without needing an Internet connection.\n\n"
+        info += "If you want to share the Sideband application itself via the repository server, you must first download it into the local repository, using the \"Update Content\" button below.\n\n"
+        info += "To make the repository available on your local network, simply start it below, and it will become browsable on a local IP address for anyone connected to the same WiFi or wired network.\n\n"
+        if self.sideband.webshare_server != None:
+            if RNS.vendor.platformutils.is_android():                    
+                def getIP():
+                    adrs = []
+                    try:
+                        from jnius import autoclass
+                        import ipaddress
+                        mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+                        SystemProperties = autoclass('android.os.SystemProperties')
+                        Context = autoclass('android.content.Context')
+                        connectivity_manager = mActivity.getSystemService(Context.CONNECTIVITY_SERVICE)
+                        ns = connectivity_manager.getAllNetworks()
+                        if not ns == None and len(ns) > 0:
+                            for n in ns:
+                                lps = connectivity_manager.getLinkProperties(n)
+                                las = lps.getLinkAddresses()
+                                for la in las:
+                                    ina = la.getAddress()
+                                    ha = ina.getHostAddress()
+                                    if not ina.isLinkLocalAddress():
+                                        adrs.append(ha)
+
+                    except Exception as e:
+                        RNS.log("Error while getting repository IP address: "+str(e), RNS.LOG_ERROR)
+                        return None
+
+                    return adrs
+
+                ips = getIP()
+                if ips == None or len(ips) == 0:
+                    info += "The repository server is running, but the local device IP address could not be determined.\n\nYou can access the repository by pointing a browser to: http://DEVICE_IP:4444/"
+                else:
+                    ipstr = ""
+                    for ip in ips:
+                        ipstr += "http://"+str(ip)+":4444/\n"
+                    ms = "" if len(ips) == 1 else "es"
+                    info += "The repository server is running at the following address"+ms+":\n"+ipstr
+
+            self.root.ids.repository_enable_button.disabled = True
+            self.root.ids.repository_disable_button.disabled = False
+
+        else:
+            self.root.ids.repository_enable_button.disabled = False
+            self.root.ids.repository_disable_button.disabled = True
+
+        info += "\n"
+        self.root.ids.repository_info.text = info
+
+    def repository_start_action(self, sender=None):
+        self.sideband.start_webshare()
+        Clock.schedule_once(self.repository_update_info, 1.0)
+
+    def repository_stop_action(self, sender=None):
+        self.sideband.stop_webshare() 
+        Clock.schedule_once(self.repository_update_info, 0.75)
+
+    def repository_download_action(self, sender=None):
+        def update_job(sender=None):
+            try:
+                import requests
+
+                # Get release info
+                apk_version = None
+                apk_url = None
+                pkgname = None
+                try:
+                    release_url = "https://api.github.com/repos/markqvist/sideband/releases"
+                    with requests.get(release_url) as response:
+                        releases = response.json()
+                        release = releases[0]
+                        assets = release["assets"]
+                        for asset in assets:
+                            if asset["name"].lower().endswith(".apk"):
+                                apk_url = asset["browser_download_url"]
+                                pkgname = asset["name"]
+                                apk_version = release["tag_name"]
+                                RNS.log(f"Found version {apk_version} artefact {pkgname} at {apk_url}")
+                except Exception as e:
+                    self.root.ids.repository_update.text = f"Downloading release info failed with the error:\n"+str(e)
+                    return
+
+                self.root.ids.repository_update.text = "Downloading: "+str(apk_url)
+                with requests.get(apk_url, stream=True) as response:
+                    with open("./dl_tmp", "wb") as tmp_file:
+                        cs = 32*1024
+                        tds = 0
+                        for chunk in response.iter_content(chunk_size=cs):
+                            tmp_file.write(chunk)
+                            tds += cs
+                            self.root.ids.repository_update.text = "Downloaded "+RNS.prettysize(tds)+" of "+str(pkgname)
+
+                    os.rename("./dl_tmp", f"./share/pkg/{pkgname}")
+                    self.root.ids.repository_update.text = f"Added {pkgname} to the repository!"
+            except Exception as e:
+                self.root.ids.repository_update.text = f"Downloading contents failed with the error:\n"+str(e)
+
+        self.root.ids.repository_update.text = "Starting package download..."
+        def start_update_job(sender=None):
+            threading.Thread(target=update_job, daemon=True).start()
+        Clock.schedule_once(start_update_job, 0.5)
+
+    def repository_init(self, sender=None):
+        if not self.repository_ready:
+            self.root.ids.hardware_scrollview.effect_cls = ScrollEffect
+                                
+            self.repository_update_info()
+
+        self.root.ids.repository_update.text = ""
+        self.repository_ready = True
+
+    def close_repository_action(self, sender=None):
         self.open_conversations(direction="right")
 
     ### Hardware screen

@@ -1208,6 +1208,93 @@ MDNavigationLayout:
                                     active: False
 
         MDScreen:
+            name: "repository_screen"
+            
+            BoxLayout:
+                orientation: "vertical"
+
+                MDTopAppBar:
+                    title: "Share Software & Guides"
+                    anchor_title: "left"
+                    elevation: 0
+                    left_action_items:
+                        [['menu', lambda x: nav_drawer.set_state("open")]]
+                    right_action_items:
+                        [
+                        ['close', lambda x: root.ids.screen_manager.app.close_repository_action(self)],
+                        ]
+
+                ScrollView:
+                    id: repository_scrollview
+
+                    MDBoxLayout:
+                        orientation: "vertical"
+                        spacing: "8dp"
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: [dp(28), dp(48), dp(28), dp(16)]
+
+                        MDLabel:
+                            text: "Repository Server\\n"
+                            font_style: "H6"
+
+                        MDLabel:
+                            id: repository_info
+                            markup: True
+                            text: ""
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+
+                        MDBoxLayout:
+                            orientation: "vertical"
+                            spacing: "24dp"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [dp(0), dp(35), dp(0), dp(35)]
+
+                            MDRectangleFlatIconButton:
+                                id: repository_enable_button
+                                icon: "wifi"
+                                text: "Start Repository Server"
+                                padding: [dp(0), dp(14), dp(0), dp(14)]
+                                icon_size: dp(24)
+                                font_size: dp(16)
+                                size_hint: [1.0, None]
+                                on_release: root.ids.screen_manager.app.repository_start_action(self)
+
+                            MDRectangleFlatIconButton:
+                                id: repository_disable_button
+                                icon: "wifi-off"
+                                text: "Stop Repository Server"
+                                padding: [dp(0), dp(14), dp(0), dp(14)]
+                                icon_size: dp(24)
+                                font_size: dp(16)
+                                size_hint: [1.0, None]
+                                on_release: root.ids.screen_manager.app.repository_stop_action(self)
+                                disabled: True
+
+                            MDRectangleFlatIconButton:
+                                id: repository_download_button
+                                icon: "download-multiple"
+                                text: "Update Contents"
+                                padding: [dp(0), dp(14), dp(0), dp(14)]
+                                icon_size: dp(24)
+                                font_size: dp(16)
+                                size_hint: [1.0, None]
+                                on_release: root.ids.screen_manager.app.repository_download_action(self)
+                                disabled: False
+
+                            MDLabel:
+                                id: repository_update
+                                markup: True
+                                text: ""
+                                size_hint_y: None
+                                text_size: self.width, None
+                                height: self.texture_size[1]
+
+        MDScreen:
             name: "hardware_screen"
             
             BoxLayout:
@@ -1877,6 +1964,15 @@ MDNavigationLayout:
                         
                             IconLeftWidget:
                                 icon: "book-open"
+                                on_release: root.ids.screen_manager.app.guide_action(self)
+
+                                                       
+                        OneLineIconListItem:
+                            text: "Repository"
+                            on_release: root.ids.screen_manager.app.repository_action(self)
+                        
+                            IconLeftWidget:
+                                icon: "book-multiple"
                                 on_release: root.ids.screen_manager.app.guide_action(self)
 
                                                        
