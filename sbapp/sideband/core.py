@@ -2139,6 +2139,8 @@ class SidebandCore():
                                 with open(path, 'rb') as f:
                                     data = f.read()
                                 self.send_response(200)
+                                if path.lower().endswith(".apk"):
+                                    self.send_header("Content-type", "application/vnd.android.package-archive")
                                 self.end_headers()
                                 self.wfile.write(data)
                             except Exception as e:
