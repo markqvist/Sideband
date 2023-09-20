@@ -97,11 +97,13 @@ class Conversations():
         for conv in self.context_dests:
             context_dest = conv["dest"]
             unread = conv["unread"]
+            last_activity = conv["last_activity"]
 
             if not context_dest in self.added_item_dests:
                 iconl = IconLeftWidget(icon=self.trust_icon(context_dest, unread), on_release=self.app.conversation_action)
                 item = OneLineAvatarIconListItem(text=self.app.sideband.peer_display_name(context_dest), on_release=self.app.conversation_action)
                 item.add_widget(iconl)
+                item.last_activity = last_activity
                 item.iconl = iconl
                 item.sb_uid = context_dest
                 item.sb_unread = unread
@@ -112,7 +114,7 @@ class Conversations():
                         t_s = time.time()
                         dest = self.conversation_dropdown.context_dest
                         try:
-                            disp_name = self.app.sideband.raw_display_name(dest)
+                            disp_name = self.app.sideband.raw_display_name(dest)+" "+str(conv["last_activity"])
                             is_trusted = self.app.sideband.is_trusted(dest)
 
                             yes_button = MDRectangleFlatButton(text="Save",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_accept, text_color=self.app.color_accept)
@@ -282,11 +284,14 @@ class Conversations():
                     if w.sb_uid == context_dest:
                         disp_name = self.app.sideband.peer_display_name(context_dest)
                         trust_icon = self.trust_icon(context_dest, unread)
+                        w.last_activity = last_activity
                         if w.iconl.icon != trust_icon:
                             w.iconl.icon = trust_icon
                             w.sb_unread = unread
                         if w.text != disp_name:
                             w.text = disp_name
+
+        self.list.children.sort(key=lambda w: w.last_activity)
 
         RNS.log("Updated conversation list widgets in "+RNS.prettytime(time.time()-us), RNS.LOG_DEBUG)
 

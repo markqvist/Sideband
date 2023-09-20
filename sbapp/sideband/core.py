@@ -605,8 +605,11 @@ class SidebandCore():
     def read_conversation(self, context_dest):
         self._db_conversation_set_unread(context_dest, False)
 
-    def unread_conversation(self, context_dest):
-        self._db_conversation_set_unread(context_dest, True)
+    def unread_conversation(self, context_dest, tx=False):
+        self._db_conversation_set_unread(context_dest, True, tx=tx)
+
+    def txtime_conversation(self, context_dest):
+        self._db_conversation_update_txtime(context_dest)
 
     def trusted_conversation(self, context_dest):
         self._db_conversation_set_trusted(context_dest, True)
@@ -883,12 +886,32 @@ class SidebandCore():
             RNS.log("An error occurred during persistent setstate database operation: "+str(e), RNS.LOG_ERROR)
             self.db = None
 
-    def _db_conversation_set_unread(self, context_dest, unread):
+    def _db_conversation_update_txtime(self, context_dest):
+        db = self.__db_connect()
+        dbc = db.cursor()
+
+        query = "UPDATE conv set last_tx = ? where dest_context = ?"
+        data = (time.time(), context_dest)
+
+        dbc.execute(query, data)
+        result = dbc.fetchall()
+        db.commit()
+
+    def _db_conversation_set_unread(self, context_dest, unread, tx = False):
         db = self.__db_connect()
         dbc = db.cursor()
         
-        query = "UPDATE conv set unread = ? where dest_context = ?"
-        data = (unread, context_dest)
+        if unread:
+            if tx:
+                query = "UPDATE conv set unread = ?, last_tx = ? where dest_context = ?"
+                data = (unread, time.time(), context_dest)
+            else:
+                query = "UPDATE conv set unread = ?, last_rx = ? where dest_context = ?"
+                data = (unread, time.time(), context_dest)
+        else:
+            query = "UPDATE conv set unread = ? where dest_context = ?"
+            data = (unread, context_dest)
+
         dbc.execute(query, data)
         result = dbc.fetchall()
         db.commit()
@@ -924,13 +947,20 @@ class SidebandCore():
         else:
             convs = []
             for entry in result:
+                last_rx = entry[1]
+                last_tx = entry[2]
+                last_activity = max(last_rx, last_tx)
+
                 conv = {
                     "dest": entry[0],
                     "unread": entry[3],
+                    "last_rx": last_rx,
+                    "last_tx": last_tx,
+                    "last_activity": last_activity,
                 }
                 convs.append(conv)
 
-            return convs
+            return sorted(convs, key=lambda c: c["last_activity"], reverse=True)
 
     def _db_announces(self):
         db = self.__db_connect()
@@ -982,6 +1012,7 @@ class SidebandCore():
             conv["trust"] = c[5]
             conv["name"] = c[6].decode("utf-8")
             conv["data"] = msgpack.unpackb(c[7])
+            conv["last_activity"] = max(c[1], c[2])
             return conv
 
     def _db_clear_conversation(self, context_dest):
@@ -1019,7 +1050,7 @@ class SidebandCore():
 
         def_name = "".encode("utf-8")
         query = "INSERT INTO conv (dest_context, last_tx, last_rx, unread, type, trust, name, data) values (?, ?, ?, ?, ?, ?, ?, ?)"
-        data = (context_dest, 0, 0, 0, SidebandCore.CONV_P2P, 0, def_name, msgpack.packb(None))
+        data = (context_dest, 0, time.time(), 0, SidebandCore.CONV_P2P, 0, def_name, msgpack.packb(None))
 
         dbc.execute(query, data)
         db.commit()
@@ -2000,9 +2031,11 @@ class SidebandCore():
     def lxm_ingest(self, message, originator = False):
         should_notify = False
         is_trusted = False
+        unread_reason_tx = False
 
         if originator:
             context_dest = message.destination_hash
+            unread_reason_tx = True
         else:
             context_dest = message.source_hash
             is_trusted = self.is_trusted(context_dest)
@@ -2023,14 +2056,16 @@ class SidebandCore():
 
         if self.gui_display() == "messages_screen":
             if self.gui_conversation() != context_dest:
-                self.unread_conversation(context_dest)
+                self.unread_conversation(context_dest, tx=unread_reason_tx)
                 self.setstate("app.flags.unread_conversations", True)
             else:
+                self.txtime_conversation(context_dest)
+                self.setstate("wants.viewupdate.conversations", True)
                 if self.gui_foreground():
                     RNS.log("Squelching notification since GUI is in foreground", RNS.LOG_DEBUG)
                     should_notify = False
         else:
-            self.unread_conversation(context_dest)
+            self.unread_conversation(context_dest, tx=unread_reason_tx)
             self.setstate("app.flags.unread_conversations", True)
 
             if RNS.vendor.platformutils.is_android():
