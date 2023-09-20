@@ -321,6 +321,8 @@ class SidebandCore():
             self.config["dark_ui"] = True
         if not "lxmf_periodic_sync" in self.config:
             self.config["lxmf_periodic_sync"] = False
+        if not "lxmf_ignore_unknown" in self.config:
+            self.config["lxmf_ignore_unknown"] = False
         if not "lxmf_sync_interval" in self.config:
             self.config["lxmf_sync_interval"] = 43200
         if not "notifications_on" in self.config:
@@ -2148,6 +2150,12 @@ class SidebandCore():
         RNS.log("LXMF delivery "+str(time_string)+". "+str(signature_string)+".")
 
         try:
+            if self.config["lxmf_ignore_unknown"] == True:
+                context_dest = message.source_hash
+                if self._db_conversation(context_dest) == None:
+                    RNS.log("Dropping message from unknown sender "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
+                    return
+
             self.lxm_ingest(message)
         except Exception as e:
             RNS.log("Error while ingesting LXMF message "+RNS.prettyhexrep(message.hash)+" to database: "+str(e))

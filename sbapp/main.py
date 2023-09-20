@@ -1258,6 +1258,10 @@ class SidebandApp(MDApp):
                 self.sideband.config["propagation_by_default"] = self.root.ids.settings_lxmf_delivery_by_default.active
                 self.sideband.save_configuration()
 
+            def save_lxmf_ignore_unknown(sender=None, event=None):
+                self.sideband.config["lxmf_ignore_unknown"] = self.root.ids.settings_lxmf_ignore_unknown.active
+                self.sideband.save_configuration()
+
             def save_lxmf_sync_limit(sender=None, event=None):
                 self.sideband.config["lxmf_sync_limit"] = self.root.ids.settings_lxmf_sync_limit.active
                 self.sideband.save_configuration()
@@ -1332,6 +1336,9 @@ class SidebandApp(MDApp):
 
             self.root.ids.settings_lxmf_delivery_by_default.active = self.sideband.config["propagation_by_default"]
             self.root.ids.settings_lxmf_delivery_by_default.bind(active=save_lxmf_delivery_by_default)
+
+            self.root.ids.settings_lxmf_ignore_unknown.active = self.sideband.config["lxmf_ignore_unknown"]
+            self.root.ids.settings_lxmf_ignore_unknown.bind(active=save_lxmf_ignore_unknown)
 
             self.root.ids.settings_lxmf_periodic_sync.active = self.sideband.config["lxmf_periodic_sync"]
             self.root.ids.settings_lxmf_periodic_sync.bind(active=save_lxmf_periodic_sync)
