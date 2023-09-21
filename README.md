@@ -60,7 +60,7 @@ pipx install lxmf
 
 ## Installation On Windows
 
-It is possible to install and run Sideband on Windows, although not all functionality is fully functional. If you don't already have Python installed, [download and install](https://www.python.org/downloads/) the latest version of Python.
+It is possible to install and run Sideband on Windows, although some features are not fully functional. If you don't already have Python installed, [download and install](https://www.python.org/downloads/) the latest version of Python.
 
 **Important!** When asked by the installer, make sure to add the Python program to your PATH environment variables. If you don't do this, you will not be able to use the `pip` installer, or run the `sideband` command.
 
