@@ -15,9 +15,9 @@ Sideband works well with the terminal-based LXMF client [Nomad Network](https://
 
 If you want to help develop this program, get in touch.
 
-## Installation
+## Installation On Linux, Android and MacOS
 
-For your Android devices, download an [APK on the latest release](https://github.com/markqvist/Sideband/releases/latest) page. If you prefer to install via F-Droid, you can add the [IzzyOnDroid Repository](https://android.izzysoft.de/repo/info) to your F-Droid client, which includes Sideband.
+For your Android devices, download an [APK on the latest release](https://github.com/markqvist/Sideband/releases/latest) page.
 
 A DMG file containing a macOS app bundle is also available on the  [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
 
@@ -57,6 +57,24 @@ pipx install rns
 # Optionally install standalone LXMF utilities
 pipx install lxmf
 ```
+
+## Installation On Windows
+
+It is possible to install and run Sideband on Windows, although not all functionality is fully functional. If you don't already have Python installed, [download and install](https://www.python.org/downloads/) the latest version of Python.
+
+**Important!** When asked by the installer, make sure to add the Python program to your PATH environment variables. If you don't do this, you will not be able to use the `pip` installer, or run the `sideband` command.
+
+When Python has been installed, you can open a command prompt and install sideband via `pip`:
+
+```bash
+pip install sbapp
+```
+
+The Sideband application can now be launched by running the command `sideband` in the command prompt.
+
+**Most importantly**, the `AutoInterface` in Reticulum is not yet supported on Windows. This means that on the first run, Sideband will not be able to automatically find any peers or potential Reticulum Transport Nodes you have on your local network.
+
+When running Sideband for the first time, a default Reticulum configuration file will be created, if you don't already have on. You will have to edit this file, located at `C:\Users\USERNAME\.reticulum\config` and manually add an interface that provides connectivity to a wider network. If you just want to connect over the Internet, you can add one of the public hubs on the [Reticulum Testnet](https://reticulum.network/connect.html).
 
 ## Example Paper Message
 
