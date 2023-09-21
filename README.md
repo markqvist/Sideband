@@ -74,7 +74,7 @@ The Sideband application can now be launched by running the command `sideband` i
 
 **Most importantly**, the `AutoInterface` in Reticulum is not yet supported on Windows. This means that on the first run, Sideband will not be able to automatically find any peers or potential Reticulum Transport Nodes you have on your local network.
 
-When running Sideband for the first time, a default Reticulum configuration file will be created, if you don't already have on. You will have to edit this file, located at `C:\Users\USERNAME\.reticulum\config` and manually add an interface that provides connectivity to a wider network. If you just want to connect over the Internet, you can add one of the public hubs on the [Reticulum Testnet](https://reticulum.network/connect.html).
+When running Sideband for the first time, a default Reticulum configuration file will be created, if you don't already have one. You will have to edit this file, located at `C:\Users\USERNAME\.reticulum\config` and manually add an interface that provides connectivity to a wider network. If you just want to connect over the Internet, you can add one of the public hubs on the [Reticulum Testnet](https://reticulum.network/connect.html).
 
 ## Example Paper Message
 
