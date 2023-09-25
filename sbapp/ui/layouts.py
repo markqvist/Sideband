@@ -1015,7 +1015,6 @@ MDNavigationLayout:
                                 hint_text: "Print Command"
                                 disabled: False
                                 text: ""
-                                max_text_length: 32
                                 font_size: dp(24)
 
                             MDLabel:
