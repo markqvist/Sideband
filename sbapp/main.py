@@ -90,6 +90,9 @@ class SidebandApp(MDApp):
 
     SERVICE_TIMEOUT = 30
 
+    EINK_BG_STR = "1,0,0,1"
+    EINK_BG_ARR = [1,0,0,1]
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.title = "Sideband"
@@ -247,17 +250,26 @@ class SidebandApp(MDApp):
         else:
             self.color_reject = colors["DeepOrange"]["800"]
             self.color_accept = colors["LightGreen"]["700"]
+        
+        self.apply_eink_mods()
 
     def update_ui_theme(self):
         if self.sideband.config["dark_ui"]:
             self.theme_cls.theme_style = "Dark"
         else:
             self.theme_cls.theme_style = "Light"
+            self.apply_eink_mods()
 
         self.update_ui_colors()
 
-        # for wid in self.root.ids:
-        #     RNS.log("Found: "+str(wid)+str(self.root.ids[wid]))
+    def apply_eink_mods(self):
+        if self.sideband.config["eink_mode"]:
+            if self.root != None:
+                self.root.md_bg_color = self.theme_cls.bg_light
+
+        else:
+            if self.root != None:
+                self.root.md_bg_color = self.theme_cls.bg_darkest
 
     def set_bars_colors(self):
         if RNS.vendor.platformutils.get_platform() == "android":
@@ -522,7 +534,10 @@ class SidebandApp(MDApp):
             from android import activity as a_activity
             a_activity.bind(on_new_intent=self.on_new_intent)
 
-        screen = Builder.load_string(root_layout)
+        if self.sideband.config["eink_mode"] == True:
+            screen = Builder.load_string(root_layout.replace("app.theme_cls.bg_darkest", "app.theme_cls.bg_light"))
+        else:
+            screen = Builder.load_string(root_layout)
 
         return screen
 
@@ -541,14 +556,14 @@ class SidebandApp(MDApp):
                         )
                         def dl_ok(s):
                             dialog.dismiss()
-                            self.quit_action()
+                            self.quit_action(s)
                         
                         ok_button.bind(on_release=dl_ok)
                         self.final_load_completed = False
                         dialog.open()
 
                     else:
-                        self.quit_action()
+                        self.quit_action(s)
 
             else:
                 self.service_last_available = time.time()
@@ -1246,6 +1261,11 @@ class SidebandApp(MDApp):
                 self.sideband.save_configuration()
                 self.update_ui_theme()
 
+            def save_eink_mode(sender=None, event=None):
+                self.sideband.config["eink_mode"] = self.root.ids.settings_eink_mode.active
+                self.sideband.save_configuration()
+                self.update_ui_theme()
+
             def save_notifications_on(sender=None, event=None):
                 self.sideband.config["notifications_on"] = self.root.ids.settings_notifications_on.active
                 self.sideband.save_configuration()
@@ -1330,6 +1350,9 @@ class SidebandApp(MDApp):
 
             self.root.ids.settings_dark_ui.active = self.sideband.config["dark_ui"]
             self.root.ids.settings_dark_ui.bind(active=save_dark_ui)
+
+            self.root.ids.settings_eink_mode.active = self.sideband.config["eink_mode"]
+            self.root.ids.settings_eink_mode.bind(active=save_eink_mode)
 
             self.root.ids.settings_start_announce.active = self.sideband.config["start_announce"]
             self.root.ids.settings_start_announce.bind(active=save_start_announce)

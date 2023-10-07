@@ -1100,11 +1100,26 @@ MDNavigationLayout:
                                 height: dp(48)
                                 
                                 MDLabel:
-                                    text: "Dark Mode UI"
+                                    text: "Dark Mode"
                                     font_style: "H6"
 
                                 MDSwitch:
                                     id: settings_dark_ui
+                                    pos_hint: {"center_y": 0.3}
+                                    active: False
+
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                size_hint_y: None
+                                padding: [0,0,dp(24),dp(0)]
+                                height: dp(48)
+                                
+                                MDLabel:
+                                    text: "E-Ink Mode"
+                                    font_style: "H6"
+
+                                MDSwitch:
+                                    id: settings_eink_mode
                                     pos_hint: {"center_y": 0.3}
                                     active: False
 

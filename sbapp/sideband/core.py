@@ -234,6 +234,7 @@ class SidebandCore():
         self.config["last_lxmf_propagation_node"] = None
         self.config["nn_home_node"] = None
         self.config["print_command"] = "lp"
+        self.config["eink_mode"] = False
 
         # Connectivity
         self.config["connect_transport"] = False
@@ -330,6 +331,8 @@ class SidebandCore():
             self.config["notifications_on"] = True
         if not "print_command" in self.config:
             self.config["print_command"] = "lp"
+        if not "eink_mode" in self.config:
+            self.config["eink_mode"] = False
 
         if not "connect_transport" in self.config:
             self.config["connect_transport"] = False
