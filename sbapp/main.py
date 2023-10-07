@@ -1680,6 +1680,29 @@ class SidebandApp(MDApp):
 
     def close_connectivity_action(self, sender=None):
         self.open_conversations(direction="right")
+    
+    def rpc_copy_action(self, sender=None):
+        c_yes_button = MDRectangleFlatButton(text="Yes",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
+        c_no_button = MDRectangleFlatButton(text="No, go back",font_size=dp(18))
+        c_dialog = MDDialog(text="[b]Caution![/b]\n\nA configuration line containing your Reticulum RPC key will be copied to the system clipboard.\n\nWhile the key can only be used by other programs running locally on this system, it is still recommended to take care in not exposing it to unwanted programs.\n\nAre you sure that you wish to proceed?", buttons=[ c_no_button, c_yes_button ])
+        def c_dl_no(s):
+            c_dialog.dismiss()
+        def c_dl_yes(s):
+            c_dialog.dismiss()
+            yes_button = MDRectangleFlatButton(text="OK")
+            dialog = MDDialog(text="The RPC configuration was copied to the system clipboard. Paste in into the [b][reticulum][/b] section of the relevant Reticulum configuration file to allow access to this instance.", buttons=[ yes_button ])
+            def dl_yes(s):
+                dialog.dismiss()
+            yes_button.bind(on_release=dl_yes)
+
+            rpc_string = "rpc_key = "+RNS.hexrep(self.sideband.reticulum.rpc_key, delimit=False)
+            Clipboard.copy(rpc_string)
+            dialog.open()
+        
+        c_yes_button.bind(on_release=c_dl_yes)
+        c_no_button.bind(on_release=c_dl_no)
+
+        c_dialog.open()
 
     ### Repository screen
     ######################################

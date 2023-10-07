@@ -523,6 +523,35 @@ MDNavigationLayout:
                         #         font_size: dp(24)
                         #         # disabled: True
 
+                        MDLabel:
+                            text: "Shared Instance Access\\n"
+                            font_style: "H6"
+
+                        MDLabel:
+                            id: connectivity_shared_access
+                            markup: True
+                            text: "The Reticulum instance launched by Sideband will be available for other programs on this system. By default, this grants connectivity to other local Reticulum-based programs, but no access to management, interface status and path information.\\n\\nIf you want to allow full functionality and ability to manage the running instance, you will need to configure other programs to use the correct RPC key for this instance.\\n\\nThis can be very useful for using other tools related to Reticulum, for example via command-line programs running in Termux. To do this, use the button below to copy the RPC key configuration line, and paste it into the Reticulum configuration file within the Termux environment, or other program.\\n\\n"
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDBoxLayout:
+                            id: connectivity_serial_fields
+                            orientation: "vertical"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [0, 0, 0, dp(32)]
+
+                            MDRectangleFlatIconButton:
+                                id: rpc_keys_copy
+                                icon: "file-key"
+                                text: "Copy RPC Config To Clipboard"
+                                padding: [dp(0), dp(14), dp(0), dp(14)]
+                                icon_size: dp(24)
+                                font_size: dp(16)
+                                size_hint: [1.0, None]
+                                on_release: root.ids.screen_manager.app.rpc_copy_action(self)
+
                         MDBoxLayout:
                             orientation: "horizontal"
                             padding: [0,0,dp(24),0]
