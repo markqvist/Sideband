@@ -1436,6 +1436,9 @@ class SidebandApp(MDApp):
                 self.widget_hide(self.root.ids.connectivity_use_serial)
                 self.widget_hide(self.root.ids.connectivity_serial_fields)
                 
+                self.widget_hide(self.root.ids.connectivity_shared_access)
+                self.widget_hide(self.root.ids.connectivity_shared_access_label)
+                self.widget_hide(self.root.ids.connectivity_shared_access_fields)
                 self.widget_hide(self.root.ids.connectivity_transport_label)
                 self.widget_hide(self.root.ids.connectivity_enable_transport)
                 self.widget_hide(self.root.ids.connectivity_transport_info)

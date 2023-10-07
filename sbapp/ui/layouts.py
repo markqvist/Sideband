@@ -525,6 +525,7 @@ MDNavigationLayout:
 
                         MDLabel:
                             text: "Shared Instance Access\\n"
+                            id: connectivity_shared_access_label
                             font_style: "H6"
 
                         MDLabel:
@@ -536,7 +537,7 @@ MDNavigationLayout:
                             height: self.texture_size[1]
 
                         MDBoxLayout:
-                            id: connectivity_serial_fields
+                            id: connectivity_shared_access_fields
                             orientation: "vertical"
                             size_hint_y: None
                             height: self.minimum_height
