@@ -37,6 +37,14 @@ else:
     from sbapp.sideband.core import SidebandCore
 
 class SidebandService():
+    usb_device_filter = {
+        0x0403: [0x6001, 0x6010, 0x6011, 0x6014, 0x6015], # FTDI
+        0x10C4: [0xea60, 0xea70, 0xea71], # SiLabs
+        0x067B: [0x2303, 0x23a3, 0x23b3, 0x23c3, 0x23d3, 0x23e3, 0x23f3], # Prolific
+        0x1a86: [0x5523, 0x7523, 0x55D4], # Qinheng
+        0x0483: [0x5740], # ST CDC
+        0x2E8A: [0x0005, 0x000A], # Raspberry Pi Pico
+    }
     def android_notification(self, title="", content="", ticker="", group=None, context_id=None):
         if android_api_version < 26:
             return
@@ -110,6 +118,7 @@ class SidebandService():
         self.wifi_manager = None
         self.power_manager = None
         self.usb_devices = []
+        self.usb_device_filter = SidebandService.usb_device_filter
 
         self.notification_service = None
         self.notification_channel = None
@@ -152,7 +161,9 @@ class SidebandService():
                     "manufacturer": device.getManufacturerName(),
                     "productname": device.getProductName(),
                 }
-                self.usb_devices.append(device_entry)
+                if device_entry["vid"] in self.usb_device_filter:
+                    if device_entry["pid"] in self.usb_device_filter[device_entry["vid"]]:
+                        self.usb_devices.append(device_entry)
 
         except Exception as e:
             RNS.log("Could not list USB devices. The contained exception was: "+str(e), RNS.LOG_ERROR)
