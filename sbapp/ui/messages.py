@@ -149,6 +149,7 @@ class Messages():
                         titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
                     w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Failed"
                     m["state"] = msg["state"]
+                    w.dmenu.items.append(w.dmenu.retry_item)
 
 
     def update_widget(self):
@@ -238,6 +239,18 @@ class Messages():
                         no_button.bind(on_release=dl_no)
                         item.dmenu.dismiss()
                         dialog.open()
+                    return x
+
+                def gen_retry(mhash, mcontent, item):
+                    def x():
+                        self.app.root.ids.message_text.text = mcontent.decode("utf-8")
+                        self.app.sideband.delete_message(mhash)
+                        self.app.message_send_action()
+                        item.dmenu.dismiss()
+                        def cb(dt):
+                            self.reload()
+                        Clock.schedule_once(cb, 0.2)
+
                     return x
 
                 def gen_copy(msg, item):
@@ -346,6 +359,12 @@ class Messages():
 
                         return x
 
+                retry_item = {
+                    "viewclass": "OneLineListItem",
+                    "text": "Retry",
+                    "height": dp(40),
+                    "on_release": gen_retry(m["hash"], m["content"], item)
+                }
                 if m["method"] == LXMF.LXMessage.PAPER:
                     if RNS.vendor.platformutils.is_android():
                         qr_save_text = "Share QR Code"
@@ -411,20 +430,38 @@ class Messages():
                         ]
 
                 else:
-                    dm_items = [
-                        {
-                            "viewclass": "OneLineListItem",
-                            "text": "Copy",
-                            "height": dp(40),
-                            "on_release": gen_copy(m["content"].decode("utf-8"), item)
-                        },
-                        {
-                            "text": "Delete",
-                            "viewclass": "OneLineListItem",
-                            "height": dp(40),
-                            "on_release": gen_del(m["hash"], item)
-                        }
-                    ]
+                    if m["state"] == LXMF.LXMessage.FAILED:
+                        dm_items = [
+                            retry_item,
+                            {
+                                "viewclass": "OneLineListItem",
+                                "text": "Copy",
+                                "height": dp(40),
+                                "on_release": gen_copy(m["content"].decode("utf-8"), item)
+                            },
+                            {
+                                "text": "Delete",
+                                "viewclass": "OneLineListItem",
+                                "height": dp(40),
+                                "on_release": gen_del(m["hash"], item)
+                            }
+                        ]
+                    else:
+                        dm_items = [
+                            {
+                                "viewclass": "OneLineListItem",
+                                "text": "Copy",
+                                "height": dp(40),
+                                "on_release": gen_copy(m["content"].decode("utf-8"), item)
+                            },
+                            {
+                                "text": "Delete",
+                                "viewclass": "OneLineListItem",
+                                "height": dp(40),
+                                "on_release": gen_del(m["hash"], item)
+                            }
+                            
+                        ]
 
                 item.dmenu = MDDropdownMenu(
                     caller=item.ids.msg_submenu,
@@ -434,6 +471,7 @@ class Messages():
                     elevation=0,
                     radius=dp(3),
                 )
+                item.dmenu.retry_item = retry_item
 
                 def callback_factory(ref):
                     def x(sender):
