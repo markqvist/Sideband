@@ -61,7 +61,7 @@ fetchshare:
 	cp ../../dist_archive/lxmf-*-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/nomadnet-*-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/rnsh-*-py3-none-any.whl ./share/pkg/
-	cp ../../dist_archive/RNode_Firmware_1.64_Source.zip ./share/pkg/
+	cp ../../dist_archive/RNode_Firmware_*_Source.zip ./share/pkg/
 	cp -r ../../dist_archive/reticulum.network ./share/mirrors/
 	cp ../../dist_archive/Reticulum\ Manual.pdf ./share/mirrors/Reticulum_Manual.pdf
 	cp ../../dist_archive/Reticulum\ Manual.epub ./share/mirrors/Reticulum_Manual.epub
