@@ -280,6 +280,8 @@ class Conversations():
                 item.iconr.bind(on_release=callback_factory(item, context_dest))
 
                 item.add_widget(item.iconr)
+
+                item.trusted = self.app.sideband.is_trusted(context_dest)
                 
                 self.added_item_dests.append(context_dest)
                 self.list.add_widget(item)
@@ -296,7 +298,7 @@ class Conversations():
                         if w.text != disp_name:
                             w.text = disp_name
 
-        self.list.children.sort(key=lambda w: w.last_activity)
+        self.list.children.sort(key=lambda w: (w.trusted, w.last_activity))
 
         RNS.log("Updated conversation list widgets in "+RNS.prettytime(time.time()-us), RNS.LOG_DEBUG)
 
