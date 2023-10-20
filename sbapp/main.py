@@ -2833,7 +2833,7 @@ class SidebandApp(MDApp):
             self.root.ids.telemetry_send_to_trusted.bind(active=self.telemetry_save)
 
             self.root.ids.telemetry_s_location.active = self.sideband.config["telemetry_s_location"]
-            self.root.ids.telemetry_s_location.bind(active=self.telemetry_save)
+            self.root.ids.telemetry_s_location.bind(active=self.telemetry_location_toggle)
 
             self.root.ids.telemetry_s_orientation.active = self.sideband.config["telemetry_s_orientation"]
             self.root.ids.telemetry_s_orientation.bind(active=self.telemetry_save)
@@ -2880,6 +2880,14 @@ class SidebandApp(MDApp):
         self.sideband.save_configuration()
 
 
+    def telemetry_location_toggle(self, sender=None, event=None):
+        if self.root.ids.telemetry_s_location.active:
+            if not check_permission("android.permission.ACCESS_COARSE_LOCATION") or not check_permission("android.permission.ACCESS_FINE_LOCATION"):
+                RNS.log("Requesting location permission", RNS.LOG_DEBUG)
+                request_permissions(["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"])
+
+        self.telemetry_save()
+
     def telemetry_save(self, sender=None, event=None):
         if len(self.root.ids.telemetry_collector.text) != 32:
             self.root.ids.telemetry_collector.text = ""
@@ -2913,7 +2921,7 @@ class SidebandApp(MDApp):
     def telemetry_action(self, sender=None, direction="left"):
         self.telemetry_init()
         self.root.ids.telemetry_scrollview.effect_cls = ScrollEffect
-        info  = "\nSideband allows you to securely share telemetry, such as location and sensor data, with people, custom programs, machines or other system over LXMF. You have complete control over what kind of telemetry to send, and who you share it with. Telemetry data is never sent to, via or processed by any external services or servers, but is carried exclusively within encrypted LXMF messages over Reticulum.\n\nWhen telemetry is enabled, it is possible to embed telemetry data in normal messages on a per-peer basis. You can control this from the [b]Conversations[/b] list, by selecting the [b]Edit[/b] option for the relevant peer.\n\nYou can also define a [b]Telemetry Collector[/b], that Sideband will automatically send telemetry to on a periodic basis - for example your Nomad Network home node.\n"
+        info  = "\nSideband allows you to securely share telemetry, such as location and sensor data, with people, custom programs, machines or other system over LXMF. You have complete control over what kind of telemetry to send, and who you share it with.\n\nTelemetry data is never sent to, via or processed by any external services or servers, but is carried exclusively within encrypted LXMF messages over Reticulum.\n\nWhen telemetry is enabled, it is possible to embed telemetry data in normal messages on a per-peer basis. You can control this from the [b]Conversations[/b] list, by selecting the [b]Edit[/b] option for the relevant peer.\n\nYou can also define a [b]Telemetry Collector[/b], that Sideband will automatically send telemetry to on a periodic basis - for example your Nomad Network home node.\n"
         info3 = "\nTo include a specific type of telemetry data while sending, it must be enabled below. Please note that some sensor types are not supported on all devices. Sideband will only be able to read a specific type of sensor if your device actually includes hardware for it.\n"
         if self.theme_cls.theme_style == "Dark":
             info = "[color=#"+dark_theme_text_color+"]"+info+"[/color]"
@@ -2927,6 +2935,13 @@ class SidebandApp(MDApp):
         self.root.ids.screen_manager.current = "telemetry_screen"
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+    def telemetry_copy(self, sender=None):
+        Clipboard.copy(str(self.sideband.get_telemetry()))
+
+    def telemetry_update(self, sender=None):
+        # TODO: Implement
+        pass
 
     def telemetry_fg_color(self, sender=None):
         color_picker = MDColorPicker(size_hint=(0.85, 0.85))
