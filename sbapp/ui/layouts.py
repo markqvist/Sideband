@@ -868,12 +868,48 @@ MDNavigationLayout:
                             text_size: self.width, None
                             height: self.texture_size[1]
 
+                        MDLabel:
+                            markup: True
+                            text: "\\n\\n"
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDBoxLayout:
+                            orientation: "vertical"
+                            spacing: dp(24)
+                            size_hint_y: None
+                            padding: [dp(0),dp(24),dp(0),dp(0)]
+                            height: dp(74)
+
+                            MDRectangleFlatIconButton:
+                                id: telemetry_icons_button
+                                icon: "update"
+                                text: "Send Telemetry Update Now"
+                                padding: [dp(0), dp(14), dp(0), dp(14)]
+                                icon_size: dp(24)
+                                font_size: dp(16)
+                                size_hint: [1.0, None]
+                                on_release: root.ids.screen_manager.app.telemetry_update(self)
+                                disabled: False
+
+                            MDRectangleFlatIconButton:
+                                id: telemetry_icons_button
+                                icon: "content-copy"
+                                text: "Copy Telemetry Data To Clipboard"
+                                padding: [dp(0), dp(14), dp(0), dp(14)]
+                                icon_size: dp(24)
+                                font_size: dp(16)
+                                size_hint: [1.0, None]
+                                on_release: root.ids.screen_manager.app.telemetry_copy(self)
+                                disabled: False
+
                         MDBoxLayout:
                             id: telemetry_enabled_fields
                             orientation: "vertical"
                             size_hint_y: None
                             height: self.minimum_height
-                            padding: [0, 0, 0, dp(0)]
+                            padding: [0, dp(16), 0, dp(0)]
 
                             MDTextField:
                                 id: telemetry_collector
@@ -942,7 +978,7 @@ MDNavigationLayout:
                         MDLabel:
                             id: telemetry_info4
                             markup: True
-                            text: "\\nYou can customise the display style of your telemetry data when viewed by others, by setting an icon and color options. This is usually used by clients to display your telemetry entry on a map or in lists and overviews. If left unset, the receiver will decide how to display the data.\\n\\n"
+                            text: "\\nYou can customise the display style of your telemetry data when viewed by others, by setting an icon and color options. This is usually used by clients to display your telemetry entry on a map or in lists and overviews. If left unset, the receiver will decide how to display the data.\\n"
                             size_hint_y: None
                             text_size: self.width, None
                             height: self.texture_size[1]
@@ -950,15 +986,12 @@ MDNavigationLayout:
                         MDBoxLayout:
                             orientation: "vertical"
                             size_hint_y: None
-                            size_hint_x: None
-                            # height: dp(96)
-                            # width: dp(64)
-                            spacing: dp(0)
+                            height: dp(112)
                             padding: [dp(0), dp(24), dp(0), dp(24)]
                             pos_hint: {"center_x": .5}
 
                             MDIconButton:
-                                pos_hint: {"center_x": .5, "center_y": .5}
+                                pos_hint: {"center_x": .5}
                                 id: telemetry_icon_preview
                                 icon: "alpha-p-circle-outline"
                                 type: "large"
@@ -966,8 +999,9 @@ MDNavigationLayout:
                                 icon_color: [0, 0, 0, 1]
                                 md_bg_color: [1, 1, 1, 1]
                                 icon_size: dp(64)
+                                size_hint_y: None
                                 # width: dp(64)
-                                # height: dp(64)
+                                height: dp(80)
 
 
                         MDRectangleFlatIconButton:
@@ -2386,7 +2420,7 @@ MDNavigationLayout:
                             on_release: root.ids.screen_manager.app.telemetry_action(self)
                         
                             IconLeftWidget:
-                                icon: "axis-arrow-lock"
+                                icon: "map-marker-path"
                                 on_release: root.ids.screen_manager.app.telemetry_action(self)
 
                                                        

@@ -1378,6 +1378,22 @@ class SidebandCore():
         else:
             self.setstate("wants.announce", True)
 
+    def update_telemetry(self):
+        if self.config["telemetry_enabled"] == True:
+            if self.telemeter == None:
+                self.telemeter = Telemeter()
+
+            sensors = ["location", "orientation", "battery", "barometer", "temperature", "humidity", "compass", "light", "gravity", "gyroscope", "accelerometer", "proximity"]
+            for sensor in sensors:
+                if self.config["telemetry_s_"+sensor]:
+                    self.telemeter.enable(sensor)
+                else:
+                    self.telemeter.disable(sensor)
+
+    def get_telemetry(self):
+        self.update_telemetry()
+        return self.telemeter.read_all()
+
     def is_known(self, dest_hash):
         try:
             source_identity = RNS.Identity.recall(dest_hash)
@@ -1412,9 +1428,6 @@ class SidebandCore():
                 # TODO: The "start_announce" config entry should be
                 # renamed to "auto_announce", which is its current
                 # meaning.
-                if self.config["telemetry_enabled"] == True:
-                    pass
-
                 if self.config["start_announce"] == True:
                     needs_if_change_announce = False
 
