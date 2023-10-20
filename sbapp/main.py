@@ -3081,10 +3081,20 @@ class SidebandApp(MDApp):
         earliest = time.time() - self.sideband.config["map_history_limit"]
         telemetry_entries = self.sideband.list_telemetry(after=earliest)
         changes = False
+
+        # Add own marker if available
+        
         for telemetry_source in telemetry_entries:
             skip = False
             
-            if telemetry_source in self.map_markers:
+            # TODO: Remove
+            RNS.log("Processing telemetry for "+RNS.prettyhexrep(telemetry_source), RNS.LOG_WARNING)
+
+            if telemetry_source == self.sideband.lxmf_destination.hash:
+                # TODO: Remove
+                RNS.log("Skipping own telemetry", RNS.LOG_WARNING)
+                skip = True
+            elif telemetry_source in self.map_markers:
                 marker = self.map_markers[telemetry_source]
                 newest_timestamp = telemetry_entries[telemetry_source][0][0]
                 if newest_timestamp <= marker.latest_timestamp:
