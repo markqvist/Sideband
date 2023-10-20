@@ -22,9 +22,11 @@ import subprocess
 import shlex
 
 if RNS.vendor.platformutils.get_platform() == "android":
+    from sideband.sense import Telemeter
     from ui.helpers import ts_format, file_ts_format, mdc
     from ui.helpers import color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
 else:
+    from sbapp.sideband.sense import Telemeter
     from .helpers import ts_format, file_ts_format, mdc
     from .helpers import color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
 
@@ -260,6 +262,18 @@ class Messages():
 
                     return x
 
+                def gen_copy_telemetry(packed_telemetry, item):
+                    def x():
+                        try:
+                            telemeter = Telemeter.from_packed(packed_telemetry)
+                            Clipboard.copy(str(telemeter.read_all()))
+                            item.dmenu.dismiss()
+                        except Exception as e:
+                            RNS.log("An error occurred while decoding telemetry. The contained exception was: "+str(e), RNS.LOG_ERROR)
+                            Clipboard.copy("Could not decode telemetry")
+
+                    return x
+
                 def gen_copy_lxm_uri(lxm, item):
                     def x():
                         Clipboard.copy(lxm.as_uri())
@@ -447,21 +461,44 @@ class Messages():
                             }
                         ]
                     else:
-                        dm_items = [
-                            {
-                                "viewclass": "OneLineListItem",
-                                "text": "Copy",
-                                "height": dp(40),
-                                "on_release": gen_copy(m["content"].decode("utf-8"), item)
-                            },
-                            {
-                                "text": "Delete",
-                                "viewclass": "OneLineListItem",
-                                "height": dp(40),
-                                "on_release": gen_del(m["hash"], item)
-                            }
-                            
-                        ]
+                        if "lxm" in m and m["lxm"] and m["lxm"].fields != None and LXMF.FIELD_TELEMETRY in m["lxm"].fields:
+                            packed_telemetry = m["lxm"].fields[LXMF.FIELD_TELEMETRY]
+                            dm_items = [
+                                {
+                                    "viewclass": "OneLineListItem",
+                                    "text": "Copy",
+                                    "height": dp(40),
+                                    "on_release": gen_copy(m["content"].decode("utf-8"), item)
+                                },
+                                {
+                                    "viewclass": "OneLineListItem",
+                                    "text": "Copy telemetry",
+                                    "height": dp(40),
+                                    "on_release": gen_copy_telemetry(packed_telemetry, item)
+                                },
+                                {
+                                    "text": "Delete",
+                                    "viewclass": "OneLineListItem",
+                                    "height": dp(40),
+                                    "on_release": gen_del(m["hash"], item)
+                                }
+                            ]
+
+                        else:
+                            dm_items = [
+                                {
+                                    "viewclass": "OneLineListItem",
+                                    "text": "Copy",
+                                    "height": dp(40),
+                                    "on_release": gen_copy(m["content"].decode("utf-8"), item)
+                                },
+                                {
+                                    "text": "Delete",
+                                    "viewclass": "OneLineListItem",
+                                    "height": dp(40),
+                                    "on_release": gen_del(m["hash"], item)
+                                }
+                            ]
 
                 item.dmenu = MDDropdownMenu(
                     caller=item.ids.msg_submenu,

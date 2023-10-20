@@ -964,6 +964,22 @@ MDNavigationLayout:
                                 pos_hint: {"center_y": 0.3}
                                 active: False
 
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Always send custom display style"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_send_appearance
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+
                         MDLabel:
                             markup: True
                             text: "\\n\\n"

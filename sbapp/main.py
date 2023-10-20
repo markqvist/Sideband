@@ -1,4 +1,4 @@
-__debug_build__ = False
+__debug_build__ = True
 __disable_shaders__ = False
 __version__ = "0.6.3"
 __variant__ = "beta"
@@ -44,6 +44,8 @@ from kivy.uix.screenmanager import FadeTransition, NoTransition
 from kivymd.uix.list import OneLineIconListItem
 from kivy.properties import StringProperty
 from kivymd.uix.pickers import MDColorPicker
+from sideband.sense import Telemeter
+from mapview import MapMarker
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from sideband.core import SidebandCore
@@ -132,6 +134,8 @@ class SidebandApp(MDApp):
         self.notification_icon = self.sideband.asset_dir+"/notification_icon.png"
 
         self.connectivity_updater = None
+        self.last_map_update = 0
+        self.last_telemetry_received = 0
 
 
     #################################################
@@ -601,6 +605,16 @@ class SidebandApp(MDApp):
                 if self.announces_view != None:
                     self.announces_view.update()
 
+        elif self.root.ids.screen_manager.current == "map_screen":
+            if hasattr(self.root.ids.map_layout, "map") and self.root.ids.map_layout.map != None:
+                self.sideband.config["map_lat"] = self.root.ids.map_layout.map.lat
+                self.sideband.config["map_lon"] = self.root.ids.map_layout.map.lon
+                self.sideband.config["map_zoom"] = self.root.ids.map_layout.map.zoom
+
+            self.last_telemetry_received = self.sideband.getstate("app.flags.last_telemetry", allow_cache=True) or 0
+            if self.last_telemetry_received > self.last_map_update:
+                self.map_update_markers()
+
         if self.sideband.getstate("app.flags.new_conversations", allow_cache=True):
             if self.conversations_view != None:
                 self.conversations_view.update()
@@ -695,6 +709,10 @@ class SidebandApp(MDApp):
                 self.message_send_action()
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "l"):
             self.announces_action(self)
+        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "m"):
+            self.map_action(self)
+        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "t"):
+            self.telemetry_action(self)
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "r"):
             self.conversations_action(self)
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "g"):
@@ -897,7 +915,6 @@ class SidebandApp(MDApp):
                                 on_release=self.messages_view.close_send_error_dialog
                             )
                         ],
-                        # elevation=0,
                     )
                     self.messages_view.send_error_dialog.open()
         
@@ -1198,7 +1215,7 @@ class SidebandApp(MDApp):
         self.root.ids.information_scrollview.effect_cls = ScrollEffect
         self.root.ids.information_logo.icon = self.sideband.asset_dir+"/rns_256.png"
 
-        info = "This is Sideband v"+__version__+" "+__variant__+", on RNS v"+RNS.__version__+" and LXMF v"+LXMF.__version__+".\n\nHumbly build using the following open components:\n\n - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)\n - [b]Kivy[/b] (MIT License)\n - [b]Python[/b] (PSF License)"+"\n\nGo to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2022 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of Sideband v"+__version__+" "+__variant__+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - USE AT YOUR OWN RISK AND RESPONSIBILITY"
+        info = "This is Sideband v"+__version__+" "+__variant__+", on RNS v"+RNS.__version__+" and LXMF v"+LXMF.__version__+".\n\nHumbly build using the following open components:\n\n - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)\n - [b]Kivy[/b] (MIT License)\n - [b]Python[/b] (PSF License)"+"\n\nGo to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2022 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of Sideband v"+__version__+" "+__variant__+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - SIDEBAND COMES WITH ABSOLUTELY NO WARRANTY - USE AT YOUR OWN RISK AND RESPONSIBILITY"
         self.root.ids.information_info.text = info
         self.root.ids.information_info.bind(on_ref_press=link_exec)
         self.root.ids.screen_manager.transition.direction = "left"
@@ -2832,6 +2849,9 @@ class SidebandApp(MDApp):
             self.root.ids.telemetry_send_to_trusted.active = self.sideband.config["telemetry_send_to_trusted"]
             self.root.ids.telemetry_send_to_trusted.bind(active=self.telemetry_save)
 
+            self.root.ids.telemetry_send_appearance.active = self.sideband.config["telemetry_send_appearance"]
+            self.root.ids.telemetry_send_appearance.bind(active=self.telemetry_save)
+
             self.root.ids.telemetry_s_location.active = self.sideband.config["telemetry_s_location"]
             self.root.ids.telemetry_s_location.bind(active=self.telemetry_location_toggle)
 
@@ -2909,6 +2929,7 @@ class SidebandApp(MDApp):
         self.sideband.config["telemetry_enabled"] = self.root.ids.telemetry_enabled.active
         self.sideband.config["telemetry_send_to_collector"] = self.root.ids.telemetry_send_to_collector.active
         self.sideband.config["telemetry_send_to_trusted"] = self.root.ids.telemetry_send_to_trusted.active
+        self.sideband.config["telemetry_send_appearance"] = self.root.ids.telemetry_send_appearance.active
         
         self.sideband.config["telemetry_s_location"] = self.root.ids.telemetry_s_location.active
         self.sideband.config["telemetry_s_orientation"] = self.root.ids.telemetry_s_orientation.active
@@ -3034,7 +3055,7 @@ class SidebandApp(MDApp):
     def map_action(self, sender=None):
         if not hasattr(self.root.ids.map_layout, "map") or self.root.ids.map_layout.map == None:
             from mapview import MapView
-            mapview = MapView(zoom=11, lat=50.6394, lon=3.057)
+            mapview = MapView(zoom=self.sideband.config["map_zoom"], lat=self.sideband.config["map_lat"], lon=self.sideband.config["map_lon"])
             mapview.snap_to_zoom = False
             mapview.double_tap_zoom = False
             self.root.ids.map_layout.map = mapview
@@ -3044,6 +3065,73 @@ class SidebandApp(MDApp):
         self.root.ids.screen_manager.current = "map_screen"
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if not hasattr(self, "map_markers") or self.map_markers == None:
+            self.map_markers = {}
+
+        def am_job(dt):
+            self.map_update_markers()
+        Clock.schedule_once(am_job, 0.6)
+
+
+    def map_update_markers(self, sender=None):
+        # TODO: Remove
+        # time_s = time.time()
+        # RNS.log("Update map markers", RNS.LOG_WARNING)
+        earliest = time.time() - self.sideband.config["map_history_limit"]
+        telemetry_entries = self.sideband.list_telemetry(after=earliest)
+        changes = False
+        for telemetry_source in telemetry_entries:
+            skip = False
+            
+            if telemetry_source in self.map_markers:
+                marker = self.map_markers[telemetry_source]
+                newest_timestamp = telemetry_entries[telemetry_source][0][0]
+                if newest_timestamp <= marker.latest_timestamp:
+                    skip = True
+
+            latest_viewable = None
+            if not skip:
+                for telemetry_entry in telemetry_entries[telemetry_source]:
+                    telemetry_timestamp = telemetry_entry[0]
+                    telemetry_data = telemetry_entry[1]
+                    t = Telemeter.from_packed(telemetry_data)
+                    if t != None:
+                        telemetry = t.read_all()
+                        # TODO: Remove
+                        # RNS.log(str(telemetry)+" "+str(t), RNS.LOG_WARNING)
+                        if "location" in telemetry and telemetry["location"]["latitude"] != None and telemetry["location"]["longtitude"] != None:
+                            latest_viewable = telemetry
+                            break
+
+                if latest_viewable != None:
+                    l = latest_viewable["location"]
+                    if not telemetry_source in self.map_markers:
+                        marker = MapMarker(lat=l["latitude"], lon=l["longtitude"])
+                        marker.source_dest = telemetry_source
+                        marker.latest_timestamp = latest_viewable["time"]["utc"]
+                        self.map_markers[telemetry_source] = marker
+                        self.root.ids.map_layout.map.add_widget(marker)
+                        changes = True
+                    else:
+                        marker = self.map_markers[telemetry_source]
+                        marker.latest_timestamp = latest_viewable["time"]["utc"]
+                        marker.lat = l["latitude"]
+                        marker.lon = l["longtitude"]
+                        changes = True
+
+        self.last_map_update = time.time()
+        if changes:
+            mv = self.root.ids.map_layout.map
+            mv.trigger_update(True)
+
+        # TODO: Remove
+        # RNS.log("Updated map markers in "+RNS.prettytime(time.time()-time_s), RNS.LOG_WARNING)
+
+
+    def map_add_marker(self, marker):
+        marker = MapMarker(lat=0.0, lon=0.0)
+        self.root.ids.map_layout.map.add_widget(marker)
 
     ### Guide screen
     ######################################
@@ -3090,6 +3178,8 @@ If you use Reticulum and LXMF on hardware that does not carry any identifiers ti
  - Ctrl-D or Ctrl-S Send message
  - Ctrl-R Show Conversations
  - Ctrl-L Show Announce Stream
+ - Ctrl-M Show Situation Map
+ - Ctrl-T Show Telemetry Setup
  - Ctrl-N New conversation
  - Ctrl-G Show guide"""
         

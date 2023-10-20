@@ -18,6 +18,7 @@ from mapview.constants import CACHE_DIR
 
 # if "MAPVIEW_DEBUG_DOWNLOADER" in environ:
 #     Logger.setLevel(LOG_LEVELS['debug'])
+Logger.setLevel(LOG_LEVELS['error'])
 
 # user agent is needed because since may 2019 OSM gives me a 429 or 403 server error
 # I tried it with a simpler one (just Mozilla/5.0) this also gets rejected
@@ -56,21 +57,21 @@ class Downloader:
         self._futures.append(future)
 
     def download_tile(self, tile):
-        Logger.debug(
-            "Downloader: queue(tile) zoom={} x={} y={}".format(
-                tile.zoom, tile.tile_x, tile.tile_y
-            )
-        )
+        # Logger.debug(
+        #     "Downloader: queue(tile) zoom={} x={} y={}".format(
+        #         tile.zoom, tile.tile_x, tile.tile_y
+        #     )
+        # )
         future = self.executor.submit(self._load_tile, tile)
         self._futures.append(future)
 
     def download(self, url, callback, **kwargs):
-        Logger.debug("Downloader: queue(url) {}".format(url))
+        # Logger.debug("Downloader: queue(url) {}".format(url))
         future = self.executor.submit(self._download_url, url, callback, kwargs)
         self._futures.append(future)
 
     def _download_url(self, url, callback, kwargs):
-        Logger.debug("Downloader: download(url) {}".format(url))
+        # Logger.debug("Downloader: download(url) {}".format(url))
         response = requests.get(url, **kwargs)
         response.raise_for_status()
         return callback, (url, response)
@@ -80,20 +81,20 @@ class Downloader:
             return
         cache_fn = tile.cache_fn
         if exists(cache_fn):
-            Logger.debug("Downloader: use cache {}".format(cache_fn))
+            # Logger.debug("Downloader: use cache {}".format(cache_fn))
             return tile.set_source, (cache_fn,)
         tile_y = tile.map_source.get_row_count(tile.zoom) - tile.tile_y - 1
         uri = tile.map_source.url.format(
             z=tile.zoom, x=tile.tile_x, y=tile_y, s=choice(tile.map_source.subdomains)
         )
-        Logger.debug("Downloader: download(tile) {}".format(uri))
+        # Logger.debug("Downloader: download(tile) {}".format(uri))
         response = requests.get(uri, headers={'User-agent': USER_AGENT}, timeout=5)
         try:
             response.raise_for_status()
             data = response.content
             with open(cache_fn, "wb") as fd:
                 fd.write(data)
-            Logger.debug("Downloaded {} bytes: {}".format(len(data), uri))
+            # Logger.debug("Downloaded {} bytes: {}".format(len(data), uri))
             return tile.set_source, (cache_fn,)
         except Exception as e:
             print("Downloader error: {!r}".format(e))

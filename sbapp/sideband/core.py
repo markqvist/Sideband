@@ -4,6 +4,7 @@ import threading
 import plyer
 import os.path
 import time
+import struct
 import sqlite3
 import random
 
@@ -313,6 +314,7 @@ class SidebandCore():
         else:
             self._db_initstate()
             self._db_initpersistent()
+            self._db_inittelemetry()
 
         self.__save_config()
 
@@ -457,6 +459,8 @@ class SidebandCore():
             self.config["telemetry_fg"] = [0,0,0,1]
         if not "telemetry_bg" in self.config:
             self.config["telemetry_bg"] = [1,1,1,1]
+        if not "telemetry_send_appearance" in self.config:
+            self.config["telemetry_send_appearance"] = False
 
         if not "telemetry_s_location" in self.config:
             self.config["telemetry_s_location"] = False
@@ -483,12 +487,22 @@ class SidebandCore():
         if not "telemetry_s_proximity" in self.config:
             self.config["telemetry_s_proximity"] = False
 
+        if not "map_history_limit" in self.config:
+            self.config["map_history_limit"] = 7*24*60*60
+        if not "map_lat" in self.config:
+            self.config["map_lat"] = 0.0
+        if not "map_lon" in self.config:
+            self.config["map_lon"] = 0.0
+        if not "map_zoom" in self.config:
+            self.config["map_zoom"] = 3
+
         # Make sure we have a database
         if not os.path.isfile(self.db_path):
             self.__db_init()
         else:
             self._db_initstate()
             self._db_initpersistent()
+            self._db_inittelemetry()
             self.__db_indices()
 
     def __reload_config(self):
@@ -709,6 +723,9 @@ class SidebandCore():
         else:
             return None
 
+    def list_telemetry(self, context_dest = None, after = None, before = None, limit = None):
+        return self._db_telemetry(context_dest = context_dest, after = after, before = before, limit = limit)
+
     def list_messages(self, context_dest, after = None, before = None, limit = None):
         result = self._db_messages(context_dest, after, before, limit)
         if result != None:
@@ -909,6 +926,13 @@ class SidebandCore():
         dbc.execute("CREATE TABLE IF NOT EXISTS persistent (property BLOB PRIMARY KEY, value BLOB)")
         db.commit()
 
+    def _db_inittelemetry(self):
+        db = self.__db_connect()
+        dbc = db.cursor()
+
+        dbc.execute("CREATE TABLE IF NOT EXISTS telemetry (id INTEGER PRIMARY KEY, dest_context BLOB, ts INTEGER, data BLOB)")
+        db.commit()
+
     def _db_getpersistent(self, prop):
         try:
             db = self.__db_connect()
@@ -994,6 +1018,110 @@ class SidebandCore():
             query = "UPDATE conv set unread = ? where dest_context = ?"
             data = (unread, context_dest)
 
+        dbc.execute(query, data)
+        result = dbc.fetchall()
+        db.commit()
+
+    def _db_telemetry(self, context_dest = None, after = None, before = None, limit = None):
+        db = self.__db_connect()
+        dbc = db.cursor()
+
+        # TODO: Implement limit
+
+        order_part = " order by ts DESC"
+        if context_dest == None:
+            if after != None and before == None:
+                query = "select * from telemetry where ts>:after_ts"+order_part
+                dbc.execute(query, {"after_ts": after})
+            elif after == None and before != None:
+                query = "select * from telemetry where ts<:before_ts"+order_part
+                dbc.execute(query, {"before_ts": before})
+            elif after != None and before != None:
+                query = "select * from telemetry where ts<:before_ts and ts>:after_ts"+order_part
+                dbc.execute(query, {"before_ts": before, "after_ts": after})
+            else:
+                query = query = "select * from telemetry"
+                dbc.execute(query, {})
+
+        else:        
+            if after != None and before == None:
+                query = "select * from telemetry where dest_context=:context_dest and ts>:after_ts"+order_part
+                dbc.execute(query, {"context_dest": context_dest, "after_ts": after})
+            elif after == None and before != None:
+                query = "select * from telemetry where dest_context=:context_dest and ts<:before_ts"+order_part
+                dbc.execute(query, {"context_dest": context_dest, "before_ts": before})
+            elif after != None and before != None:
+                query = "select * from telemetry where dest_context=:context_dest and ts<:before_ts and ts>:after_ts"+order_part
+                dbc.execute(query, {"context_dest": context_dest, "before_ts": before, "after_ts": after})
+            else:
+                query = query = "select * from telemetry where dest_context=:context_dest"+order_part
+                dbc.execute(query, {"context_dest": context_dest})
+
+        result = dbc.fetchall()
+
+        if len(result) < 1:
+            return None
+        else:
+            results = {}
+            for entry in result:
+                telemetry_source = entry[1]
+                telemetry_timestamp = entry[2]
+                telemetry_data = entry[3]
+                
+                if not telemetry_source in results:
+                    results[telemetry_source] = []
+
+                results[telemetry_source].append([telemetry_timestamp, telemetry_data])
+            
+            return results
+
+    def _db_save_telemetry(self, context_dest, telemetry):
+        # TODO: Remove
+        # RNS.log("Saving telemetry for "+RNS.prettyhexrep(context_dest), RNS.LOG_WARNING)
+
+        try:
+            remote_telemeter = Telemeter.from_packed(telemetry)
+            telemetry_timestamp = remote_telemeter.read_all()["time"]["utc"]
+
+            db = self.__db_connect()
+            dbc = db.cursor()
+
+            query = "select * from telemetry where dest_context=:ctx and ts=:tts"
+            dbc.execute(query, {"ctx": context_dest, "tts": telemetry_timestamp})
+            result = dbc.fetchall()
+
+            if len(result) != 0:
+                # TODO: Remove
+                # RNS.log("Telemetry entry already exists, ignoring", RNS.LOG_WARNING)
+                return
+            
+            query = "INSERT INTO telemetry (dest_context, ts, data) values (?, ?, ?)"
+            data = (context_dest, telemetry_timestamp, telemetry)
+            dbc.execute(query, data)
+            db.commit()
+            self.setstate("app.flags.last_telemetry", time.time())
+
+        except Exception as e:
+            RNS.log("An error occurred while saving telemetry to database: "+str(e), RNS.LOG_ERROR)
+            self.db = None
+
+    def _db_update_appearance(self, context_dest, timestamp, appearance):
+        # TODO: Remove
+        # RNS.log("Updating appearance for "+RNS.prettyhexrep(context_dest), RNS.LOG_WARNING)
+
+        conv = self._db_conversation(context_dest)
+        data_dict = conv["data"]
+        if data_dict == None:
+            data_dict = {}
+
+        data_dict["appearance"] = appearance
+        packed_dict = msgpack.packb(data_dict)
+        
+        db = self.__db_connect()
+        dbc = db.cursor()
+        
+        query = "UPDATE conv set data = ? where dest_context = ?"
+        data = (packed_dict, context_dest)
         dbc.execute(query, data)
         result = dbc.fetchall()
         db.commit()
@@ -1346,6 +1474,13 @@ class SidebandCore():
 
         db.commit()
 
+        if lxm.fields != None:
+            if LXMF.FIELD_ICON_APPEARANCE in lxm.fields:
+                self._db_update_appearance(context_dest, lxm.timestamp, lxm.fields[LXMF.FIELD_ICON_APPEARANCE])
+
+            if LXMF.FIELD_TELEMETRY in lxm.fields:
+                self._db_save_telemetry(context_dest, lxm.fields[LXMF.FIELD_TELEMETRY])
+
         self.__event_conversation_changed(context_dest)
 
     def _db_save_announce(self, destination_hash, app_data, dest_type="lxmf.delivery"):
@@ -1442,8 +1577,6 @@ class SidebandCore():
     def get_packed_telemetry(self):
         self.update_telemeter_config()
         packed = self.telemeter.packed()
-        # TODO: Remove
-        RNS.log("Packed telemetry: "+str(packed), RNS.LOG_WARNING)
         return packed
 
     def is_known(self, dest_hash):
@@ -2096,6 +2229,34 @@ class SidebandCore():
         else:
             self.lxm_ingest(message, originator=True)
 
+    def get_message_fields(self, context_dest):
+        fields = None
+        send_telemetry = self.should_send_telemetry(context_dest)
+        send_appearance = self.config["telemetry_send_appearance"] or send_telemetry
+        if send_telemetry or send_appearance:
+            fields = {}
+            if send_appearance:
+                # TODO: REMOVE
+                # RNS.log("Sending appearance", RNS.LOG_WARNING)
+                def fth(c):
+                    r = c[0]; g = c[1]; b = c[2]
+                    r = min(max(0, r), 1); g = min(max(0, g), 1); b = min(max(0, b), 1)
+                    d = 1.0/255.0
+                    return struct.pack("!BBB", int(r/d), int(g/d), int(b/d))
+
+                icon = self.config["telemetry_icon"]
+                fg = fth(self.config["telemetry_fg"][:-1])
+                bg = fth(self.config["telemetry_bg"][:-1])
+
+                fields[LXMF.FIELD_ICON_APPEARANCE] = [icon, fg, bg]
+
+            if send_telemetry:
+                # TODO: REMOVE
+                # RNS.log("Sending telemetry", RNS.LOG_WARNING)
+                fields[LXMF.FIELD_TELEMETRY] = self.latest_packed_telemetry
+
+        return fields
+
     def paper_message(self, content, destination_hash):
         try:
             if content == "":
@@ -2106,7 +2267,7 @@ class SidebandCore():
             source = self.lxmf_destination
             
             desired_method = LXMF.LXMessage.PAPER
-            lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method)
+            lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = self.get_message_fields(destination_hash))
 
             self.lxm_ingest(lxm, originator=True)
 
@@ -2130,7 +2291,7 @@ class SidebandCore():
             else:
                 desired_method = LXMF.LXMessage.DIRECT
 
-            lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method)
+            lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = self.get_message_fields(destination_hash))
             lxm.register_delivery_callback(self.message_notification)
             lxm.register_failed_callback(self.message_notification)
 
@@ -2195,6 +2356,9 @@ class SidebandCore():
         self.setstate("lxm_uri_ingest.result", response)
 
     def lxm_ingest(self, message, originator = False):
+        # TODO: Remove
+        RNS.log("MESSAGE FIELDS: "+str(message.fields), RNS.LOG_WARNING)
+
         should_notify = False
         is_trusted = False
         unread_reason_tx = False
