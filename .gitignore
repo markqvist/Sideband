@@ -16,7 +16,7 @@ sbapp/sideband*.egg-info
 sbapp/sbapp*.egg-info
 sbapp/share/mirrors/*
 sbapp/share/pkg/*
-
+cache
 .buildozer*
 requirements.txt
 venv
