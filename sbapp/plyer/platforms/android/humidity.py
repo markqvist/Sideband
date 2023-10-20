@@ -82,6 +82,9 @@ class AndroidHumidity(Humidity):
             Tc = self.listener_a.value
             A = 6.112
             K = 273.15
+            if Rh == None or Tc == None:
+                return None
+
             humidity = (Ta * (Rh / 100) * A * exp(m * Tc / (Tn + Tc))
                         / (K + Tc))
             return humidity
