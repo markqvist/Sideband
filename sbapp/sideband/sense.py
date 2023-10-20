@@ -277,8 +277,8 @@ class Barometer(Sensor):
 class Location(Sensor):
   SID = Sensor.SID_LOCATION
   
-  STALE_TIME = 60*5
-  MIN_DISTANCE = 5
+  STALE_TIME = 15
+  MIN_DISTANCE = 4
   ACCURACY_TARGET = 250
 
   def __init__(self):

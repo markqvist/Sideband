@@ -72,7 +72,9 @@ class SidebandCore():
     SERVICE_JOB_INTERVAL   = 1
     PERIODIC_JOBS_INTERVAL = 60
     PERIODIC_SYNC_RETRY = 360
-    TELEMETRY_INTERVAL = 60
+    # TODO: Reset
+    # TELEMETRY_INTERVAL = 60
+    TELEMETRY_INTERVAL = 10
 
     IF_CHANGE_ANNOUNCE_MIN_INTERVAL = 6    # In seconds
     AUTO_ANNOUNCE_RANDOM_MIN        = 90   # In minutes
@@ -101,6 +103,7 @@ class SidebandCore():
         self.telemeter = None
         self.telemetry_running = False
         self.latest_telemetry = None
+        self.telemetry_changes = 0
 
         self.app_dir       = plyer.storagepath.get_home_dir()+"/.config/sideband"
         if self.app_dir.startswith("file://"):
@@ -1396,7 +1399,29 @@ class SidebandCore():
         self.telemeter.stop_all()
 
     def update_telemetry(self):
-        self.latest_telemetry = self.get_telemetry()
+        telemetry = self.get_telemetry()
+        packed_telemetry = self.get_packed_telemetry()
+        telemetry_changed = False
+
+        if telemetry != None and packed_telemetry != None:
+            if self.latest_telemetry == None or len(telemetry) != len(self.latest_telemetry):
+                telemetry_changed = True
+
+            for sn in telemetry:
+                if telemetry_changed:
+                    break
+
+                if sn != "time":
+                    if sn in self.latest_telemetry:
+                        if telemetry[sn] != self.latest_telemetry[sn]:
+                            telemetry_changed = True
+                    else:
+                        telemetry_changed = True
+
+            if telemetry_changed:
+                self.telemetry_changes += 1
+                self.latest_telemetry = telemetry
+                self.latest_packed_telemetry = packed_telemetry
 
     def update_telemeter_config(self):
         if self.config["telemetry_enabled"] == True:
@@ -1418,7 +1443,7 @@ class SidebandCore():
         self.update_telemeter_config()
         packed = self.telemeter.packed()
         # TODO: Remove
-        RNS.log(str(packed), RNS.LOG_WARNING)
+        RNS.log("Packed telemetry: "+str(packed), RNS.LOG_WARNING)
         return packed
 
     def is_known(self, dest_hash):
@@ -1636,11 +1661,12 @@ class SidebandCore():
                 self.lxmf_announce()
                 self.last_if_change_announce = time.time()
 
-            if self.config["telemetry_enabled"]:
-                self.latest_telemetry = self.run_telemetry()
-
             self.periodic_thread = threading.Thread(target=self._periodic_jobs, daemon=True)
             self.periodic_thread.start()
+
+        if self.is_standalone or self.is_client:
+            if self.config["telemetry_enabled"]:
+                self.latest_telemetry = self.run_telemetry()
         
     def __start_jobs_immediate(self):
         if self.log_verbose:
