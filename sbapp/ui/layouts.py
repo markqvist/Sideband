@@ -1,6 +1,7 @@
 root_layout = """
 #: import NoTransition kivy.uix.screenmanager.NoTransition
 #: import SlideTransition kivy.uix.screenmanager.SlideTransition
+#:import images_path kivymd.images_path
 
 MDNavigationLayout:
     md_bg_color: app.theme_cls.bg_darkest
@@ -816,7 +817,27 @@ MDNavigationLayout:
                 orientation: "vertical"
 
                 MDTopAppBar:
-                    title: "Local Area Map"
+                    title: "Situation Map"
+                    anchor_title: "left"
+                    elevation: 0
+                    left_action_items:
+                        [['menu', lambda x: nav_drawer.set_state("open")]]
+                    right_action_items:
+                        [
+                        ['close', lambda x: root.ids.screen_manager.app.close_any_action(self)],
+                        ]
+
+                MDBoxLayout:
+                    id: map_layout
+
+        MDScreen:
+            name: "telemetry_screen"
+            
+            BoxLayout:
+                orientation: "vertical"
+
+                MDTopAppBar:
+                    title: "Telemetry"
                     anchor_title: "left"
                     elevation: 0
                     left_action_items:
@@ -827,24 +848,426 @@ MDNavigationLayout:
                         ]
 
                 ScrollView:
-                    id:map_scrollview
+                    id: telemetry_scrollview
 
                     MDBoxLayout:
                         orientation: "vertical"
-                        spacing: "24dp"
                         size_hint_y: None
                         height: self.minimum_height
-                        padding: [dp(35), dp(35), dp(35), dp(35)]
-
+                        padding: [dp(28), dp(48), dp(28), dp(16)]
 
                         MDLabel:
-                            id: map_info
+                            text: "Telemetry Over LXMF"
+                            font_style: "H6"
+
+                        MDLabel:
+                            id: telemetry_info
                             markup: True
                             text: ""
                             size_hint_y: None
                             text_size: self.width, None
                             height: self.texture_size[1]
-        
+
+                        MDBoxLayout:
+                            id: telemetry_enabled_fields
+                            orientation: "vertical"
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: [0, 0, 0, dp(0)]
+
+                            MDTextField:
+                                id: telemetry_collector
+                                max_text_length: 32
+                                hint_text: "Telemetry Collector Address"
+                                text: ""
+                                font_size: dp(24)
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            padding: [0,0,dp(24),0]
+                            size_hint_y: None
+                            height: dp(48)
+                            
+                            MDLabel:
+                                id: telemetry_enabled_label
+                                text: "Enable Telemetry"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_enabled
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Automatically send to collector"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_send_to_collector
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Send to all trusted peers"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_send_to_trusted
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDLabel:
+                            markup: True
+                            text: "\\n\\n"
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDLabel:
+                            text: "Display Options"
+                            font_style: "H6"
+
+                        MDLabel:
+                            id: telemetry_info4
+                            markup: True
+                            text: "\\nYou can customise the display style of your telemetry data when viewed by others, by setting an icon and color options. This is usually used by clients to display your telemetry entry on a map or in lists and overviews. If left unset, the receiver will decide how to display the data.\\n\\n"
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDBoxLayout:
+                            orientation: "vertical"
+                            size_hint_y: None
+                            size_hint_x: None
+                            # height: dp(96)
+                            # width: dp(64)
+                            spacing: dp(0)
+                            padding: [dp(0), dp(24), dp(0), dp(24)]
+                            pos_hint: {"center_x": .5}
+
+                            MDIconButton:
+                                pos_hint: {"center_x": .5, "center_y": .5}
+                                id: telemetry_icon_preview
+                                icon: "alpha-p-circle-outline"
+                                type: "large"
+                                theme_icon_color: "Custom"
+                                icon_color: [0, 0, 0, 1]
+                                md_bg_color: [1, 1, 1, 1]
+                                icon_size: dp(64)
+                                # width: dp(64)
+                                # height: dp(64)
+
+
+                        MDRectangleFlatIconButton:
+                            id: telemetry_icons_button
+                            icon: "list-box-outline"
+                            text: "Select From Available Icons"
+                            padding: [dp(0), dp(14), dp(0), dp(14)]
+                            icon_size: dp(24)
+                            font_size: dp(16)
+                            size_hint: [1.0, None]
+                            on_release: root.ids.screen_manager.app.icons_action(self)
+                            disabled: False
+
+                        MDBoxLayout:
+                            orientation: "vertical"
+                            size_hint_y: None
+                            padding: [dp(0),dp(24),dp(0),dp(0)]
+                            height: dp(74)
+
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                #size_hint_y: None
+                                spacing: dp(24)
+                                # padding: [0,0,dp(24),dp(0)]
+                                # height: dp(48)
+
+                                MDRectangleFlatIconButton:
+                                    id: telemetry_icons_button
+                                    icon: "list-box-outline"
+                                    text: "Set Foreground Color"
+                                    padding: [dp(0), dp(14), dp(0), dp(14)]
+                                    icon_size: dp(24)
+                                    font_size: dp(16)
+                                    size_hint: [1.0, None]
+                                    on_release: root.ids.screen_manager.app.telemetry_fg_color(self)
+                                    disabled: False
+
+                                MDRectangleFlatIconButton:
+                                    id: telemetry_icons_button
+                                    icon: "list-box-outline"
+                                    text: "Set Background Color"
+                                    padding: [dp(0), dp(14), dp(0), dp(14)]
+                                    icon_size: dp(24)
+                                    font_size: dp(16)
+                                    size_hint: [1.0, None]
+                                    on_release: root.ids.screen_manager.app.telemetry_bg_color(self)
+                                    disabled: False
+
+                        MDLabel:
+                            markup: True
+                            text: "\\n\\n\\n"
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDLabel:
+                            text: "Sensor Types"
+                            font_style: "H6"
+
+                        MDLabel:
+                            id: telemetry_info3
+                            markup: True
+                            text: ""
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Location"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_s_location
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Orientation"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_s_orientation
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Battery State"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_s_battery
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Barometer"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_s_barometer
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Temperature"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_s_temperature
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Humidity"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_s_humidity
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Compass"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_s_compass
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Ambient Light"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_s_light
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Gravity"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_s_gravity
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Gyroscope"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_s_gyroscope
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Accelerometer"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_s_accelerometer
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            size_hint_y: None
+                            padding: [0,0,dp(24),dp(0)]
+                            height: dp(48)
+                            
+                            MDLabel:
+                                text: "Proximity"
+                                font_style: "H6"
+
+                            MDSwitch:
+                                id: telemetry_s_proximity
+                                pos_hint: {"center_y": 0.3}
+                                active: False
+
+                        MDLabel:
+                            markup: True
+                            text: "\\n"
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+
+        MDScreen:
+            name: "icons_screen"
+            
+            BoxLayout:
+                orientation: "vertical"
+
+                MDTopAppBar:
+                    title: "Available Icons"
+                    anchor_title: "left"
+                    elevation: 0
+                    left_action_items:
+                        [['menu', lambda x: nav_drawer.set_state("open")]]
+                    right_action_items:
+                        [
+                        ['close', lambda x: root.ids.screen_manager.app.close_sub_telemetry_action(self)],
+                        ]
+
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    spacing: dp(10)
+                    padding: dp(20)
+
+                    MDBoxLayout:
+                        adaptive_height: True
+
+                        MDIconButton:
+                            icon: 'magnify'
+
+                        MDTextField:
+                            id: icons_search_field
+                            hint_text: 'Search icon'
+                            on_text: root.ids.screen_manager.app.icons_filter(self.text, True)
+
+                    RecycleView:
+                        id: icons_rv
+                        key_viewclass: 'viewclass'
+                        key_size: 'height'
+
+                        RecycleBoxLayout:
+                            padding: dp(10)
+                            default_size: None, dp(48)
+                            default_size_hint: 1, None
+                            size_hint_y: None
+                            height: self.minimum_height
+                            orientation: 'vertical'
+
 
         MDScreen:
             name: "keys_screen"
@@ -1027,14 +1450,6 @@ MDNavigationLayout:
                             MDTextField:
                                 id: settings_propagation_node_address
                                 hint_text: "LXMF Propagation Node"
-                                disabled: False
-                                text: ""
-                                max_text_length: 32
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: settings_home_node_address
-                                hint_text: "Nomad Network Home Node"
                                 disabled: False
                                 text: ""
                                 max_text_length: 32
@@ -1234,22 +1649,6 @@ MDNavigationLayout:
                                     pos_hint: {"center_y": 0.3}
                                     active: False
                                     disabled: True
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                size_hint_y: None
-                                padding: [0,0,dp(24),dp(0)]
-                                height: dp(48)
-                                
-                                MDLabel:
-                                    text: "Send Telemetry to Home Node"
-                                    font_style: "H6"
-
-                                MDSwitch:
-                                    id: settings_telemetry_to_home_node
-                                    pos_hint: {"center_y": 0.3}
-                                    disabled: True
-                                    active: False
 
                             MDBoxLayout:
                                 orientation: "horizontal"
@@ -1974,12 +2373,21 @@ MDNavigationLayout:
 
                                                        
                         OneLineIconListItem:
-                            text: "Local Area Map"
+                            text: "Situation Map"
                             on_release: root.ids.screen_manager.app.map_action(self)
                         
                             IconLeftWidget:
                                 icon: "map"
                                 on_release: root.ids.screen_manager.app.map_action(self)
+
+                                                       
+                        OneLineIconListItem:
+                            text: "Telemetry"
+                            on_release: root.ids.screen_manager.app.telemetry_action(self)
+                        
+                            IconLeftWidget:
+                                icon: "axis-arrow-lock"
+                                on_release: root.ids.screen_manager.app.telemetry_action(self)
 
                                                        
                         OneLineIconListItem:
@@ -2146,6 +2554,22 @@ MDNavigationLayout:
             pos_hint: {"center_y": 0.43}
             active: root.trusted
 
+    MDBoxLayout:
+        orientation: "horizontal"
+        # spacing: "24dp"
+        size_hint_y: None
+        padding: [0,0,dp(8),0]
+        height: dp(48)
+        MDLabel:
+            id: telemetry_switch_label
+            text: "Include Telemetry"
+            font_style: "H6"
+
+        MDSwitch:
+            id: telemetry_switch
+            pos_hint: {"center_y": 0.43}
+            active: root.telemetry
+
 <NewConv>
     orientation: "vertical"
     spacing: "24dp"
@@ -2181,4 +2605,8 @@ MDNavigationLayout:
             id: n_trusted
             pos_hint: {"center_y": 0.3}
             active: False
+
+<CustomOneLineIconListItem>
+    IconLeftWidget:
+        icon: root.icon
 """

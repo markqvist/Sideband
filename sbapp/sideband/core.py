@@ -11,6 +11,7 @@ import RNS.vendor.umsgpack as msgpack
 import RNS.Interfaces.Interface as Interface
 
 from .res import sideband_fb_data
+from .sense import Telemeter
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass, cast
@@ -96,6 +97,7 @@ class SidebandCore():
         self.owner_app = owner_app
         self.reticulum = None
         self.webshare_server = None
+        self.telemeter = None
 
         self.app_dir       = plyer.storagepath.get_home_dir()+"/.config/sideband"
         if self.app_dir.startswith("file://"):
@@ -267,6 +269,7 @@ class SidebandCore():
         self.config["connect_ifmode_modem"] = "full"
         self.config["connect_ifmode_serial"] = "full"
         self.config["connect_ifmode_bluetooth"] = "full"
+        
         # Hardware
         self.config["hw_rnode_frequency"] = None
         self.config["hw_rnode_modulation"] = "LoRa"
@@ -292,6 +295,12 @@ class SidebandCore():
         self.config["hw_serial_databits"] = 8
         self.config["hw_serial_stopbits"] = 1
         self.config["hw_serial_parity"] = "none"
+
+        # Telemetry
+        self.config["telemetry_enabled"] = False
+        self.config["telemetry_icon"] = "alpha-p-circle-outline"
+        self.config["telemetry_send_to_trusted"] = False
+        self.config["telemetry_send_to_collector"] = False
 
         if not os.path.isfile(self.db_path):
             self.__db_init()
@@ -427,6 +436,47 @@ class SidebandCore():
         if not "hw_serial_parity" in self.config:
             self.config["hw_serial_parity"] = "none"
 
+        if not "telemetry_enabled" in self.config:
+            self.config["telemetry_enabled"] = False
+        if not "telemetry_collector" in self.config:
+            self.config["telemetry_collector"] = None
+        if not "telemetry_send_to_trusted" in self.config:
+            self.config["telemetry_send_to_trusted"] = False
+        if not "telemetry_send_to_collector" in self.config:
+            self.config["telemetry_send_to_collector"] = False
+
+        if not "telemetry_icon" in self.config:
+            self.config["telemetry_icon"] = "alpha-p-circle-outline"
+        if not "telemetry_fg" in self.config:
+            self.config["telemetry_fg"] = [0,0,0,1]
+        if not "telemetry_bg" in self.config:
+            self.config["telemetry_bg"] = [1,1,1,1]
+
+        if not "telemetry_s_location" in self.config:
+            self.config["telemetry_s_location"] = False
+        if not "telemetry_s_orientation" in self.config:
+            self.config["telemetry_s_orientation"] = False
+        if not "telemetry_s_battery" in self.config:
+            self.config["telemetry_s_battery"] = False
+        if not "telemetry_s_barometer" in self.config:
+            self.config["telemetry_s_barometer"] = False
+        if not "telemetry_s_temperature" in self.config:
+            self.config["telemetry_s_temperature"] = False
+        if not "telemetry_s_humidity" in self.config:
+            self.config["telemetry_s_humidity"] = False
+        if not "telemetry_s_compass" in self.config:
+            self.config["telemetry_s_compass"] = False
+        if not "telemetry_s_light" in self.config:
+            self.config["telemetry_s_light"] = False
+        if not "telemetry_s_gravity" in self.config:
+            self.config["telemetry_s_gravity"] = False
+        if not "telemetry_s_gyroscope" in self.config:
+            self.config["telemetry_s_gyroscope"] = False
+        if not "telemetry_s_accelerometer" in self.config:
+            self.config["telemetry_s_accelerometer"] = False
+        if not "telemetry_s_proximity" in self.config:
+            self.config["telemetry_s_proximity"] = False
+
         # Make sure we have a database
         if not os.path.isfile(self.db_path):
             self.__db_init()
@@ -547,6 +597,22 @@ class SidebandCore():
             RNS.log("Error while checking trust for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
             return False
 
+    def should_send_telemetry(self, context_dest):
+        try:
+            existing_conv = self._db_conversation(context_dest)
+            if existing_conv != None:
+                cd = existing_conv["data"]
+                if cd != None and "telemetry" in cd and cd["telemetry"] == True:
+                    return True
+                else:
+                    return False
+            else:
+                return False
+
+        except Exception as e:
+            RNS.log("Error while checking telemetry sending for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
+            return False
+
     def raw_display_name(self, context_dest):
         try:
             existing_conv = self._db_conversation(context_dest)
@@ -620,6 +686,12 @@ class SidebandCore():
 
     def untrusted_conversation(self, context_dest):
         self._db_conversation_set_trusted(context_dest, False)
+
+    def send_telemetry_in_conversation(self, context_dest):
+        self._db_conversation_set_telemetry(context_dest, True)
+
+    def no_telemetry_in_conversation(self, context_dest):
+        self._db_conversation_set_telemetry(context_dest, False)
 
     def named_conversation(self, name, context_dest):
         self._db_conversation_set_name(context_dest, name)
@@ -916,6 +988,24 @@ class SidebandCore():
             query = "UPDATE conv set unread = ? where dest_context = ?"
             data = (unread, context_dest)
 
+        dbc.execute(query, data)
+        result = dbc.fetchall()
+        db.commit()
+
+    def _db_conversation_set_telemetry(self, context_dest, send_telemetry=False):
+        conv = self._db_conversation(context_dest)
+        data_dict = conv["data"]
+        if data_dict == None:
+            data_dict = {}
+
+        data_dict["telemetry"] = send_telemetry
+        packed_dict = msgpack.packb(data_dict)
+        
+        db = self.__db_connect()
+        dbc = db.cursor()
+        
+        query = "UPDATE conv set data = ? where dest_context = ?"
+        data = (packed_dict, context_dest)
         dbc.execute(query, data)
         result = dbc.fetchall()
         db.commit()
@@ -1322,6 +1412,9 @@ class SidebandCore():
                 # TODO: The "start_announce" config entry should be
                 # renamed to "auto_announce", which is its current
                 # meaning.
+                if self.config["telemetry_enabled"] == True:
+                    pass
+
                 if self.config["start_announce"] == True:
                     needs_if_change_announce = False
 

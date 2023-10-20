@@ -25,6 +25,7 @@ class ConvSettings(BoxLayout):
     disp_name = StringProperty()
     context_dest = StringProperty()
     trusted = BooleanProperty()
+    telemetry = BooleanProperty()
 
 class Conversations():
     def __init__(self, app):
@@ -116,10 +117,11 @@ class Conversations():
                         try:
                             disp_name = self.app.sideband.raw_display_name(dest)
                             is_trusted = self.app.sideband.is_trusted(dest)
+                            send_telemetry = self.app.sideband.should_send_telemetry(dest)
 
                             yes_button = MDRectangleFlatButton(text="Save",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_accept, text_color=self.app.color_accept)
                             no_button = MDRectangleFlatButton(text="Cancel",font_size=dp(18))
-                            dialog_content = ConvSettings(disp_name=disp_name, context_dest=RNS.hexrep(dest, delimit=False), trusted=is_trusted)
+                            dialog_content = ConvSettings(disp_name=disp_name, context_dest=RNS.hexrep(dest, delimit=False), trusted=is_trusted, telemetry=send_telemetry)
                             dialog = MDDialog(
                                 title="Edit Conversation",
                                 text= "With "+RNS.prettyhexrep(dest),
@@ -133,14 +135,17 @@ class Conversations():
                                 try:
                                     name = dialog.d_content.ids["name_field"].text
                                     trusted = dialog.d_content.ids["trusted_switch"].active
+                                    telemetry = dialog.d_content.ids["telemetry_switch"].active
                                     if trusted:
-                                        RNS.log("Setting Trusted "+str(trusted))
                                         self.app.sideband.trusted_conversation(dest)
                                     else:
-                                        RNS.log("Setting Untrusted "+str(trusted))
                                         self.app.sideband.untrusted_conversation(dest)
 
-                                    RNS.log("Name="+name)
+                                    if telemetry:
+                                        self.app.sideband.send_telemetry_in_conversation(dest)
+                                    else:
+                                        self.app.sideband.no_telemetry_in_conversation(dest)
+
                                     self.app.sideband.named_conversation(name, dest)
 
                                 except Exception as e:
@@ -159,7 +164,7 @@ class Conversations():
                             no_button.bind(on_release=dl_no)
                             item.dmenu.dismiss()
                             dialog.open()
-                            RNS.log("Generated edit dialog in "+str(RNS.prettytime(time.time()-t_s)))
+                            RNS.log("Generated edit dialog in "+str(RNS.prettytime(time.time()-t_s)), RNS.LOG_DEBUG)
 
                         except Exception as e:
                             RNS.log("Error while creating conversation settings: "+str(e), RNS.LOG_ERROR)
