@@ -16,8 +16,8 @@ from kivy.logger import LOG_LEVELS, Logger
 
 from mapview.constants import CACHE_DIR
 
-if "MAPVIEW_DEBUG_DOWNLOADER" in environ:
-    Logger.setLevel(LOG_LEVELS['debug'])
+# if "MAPVIEW_DEBUG_DOWNLOADER" in environ:
+#     Logger.setLevel(LOG_LEVELS['debug'])
 
 # user agent is needed because since may 2019 OSM gives me a 429 or 403 server error
 # I tried it with a simpler one (just Mozilla/5.0) this also gets rejected
