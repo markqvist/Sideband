@@ -682,11 +682,15 @@ class SidebandCore():
     def clear_conversation(self, context_dest):
         self._db_clear_conversation(context_dest)
 
+    def clear_telemetry(self, context_dest):
+        self._db_clear_telemetry(context_dest)
+
     def delete_announce(self, context_dest):
         self._db_delete_announce(context_dest)
 
     def delete_conversation(self, context_dest):
         self._db_clear_conversation(context_dest)
+        self._db_clear_telemetry(context_dest)
         self._db_delete_conversation(context_dest)
 
     def delete_message(self, message_hash):
@@ -724,7 +728,7 @@ class SidebandCore():
             return None
 
     def list_telemetry(self, context_dest = None, after = None, before = None, limit = None):
-        return self._db_telemetry(context_dest = context_dest, after = after, before = before, limit = limit)
+        return self._db_telemetry(context_dest = context_dest, after = after, before = before, limit = limit) or []
 
     def list_messages(self, context_dest, after = None, before = None, limit = None):
         result = self._db_messages(context_dest, after, before, limit)
@@ -1252,6 +1256,17 @@ class SidebandCore():
         dbc.execute(query, {"ctx_dst": context_dest})
         db.commit()
 
+    def _db_clear_telemetry(self, context_dest):
+        RNS.log("Clearing telemetry for "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
+        db = self.__db_connect()
+        dbc = db.cursor()
+
+        query = "delete from telemetry where dest_context=:ctx_dst;"
+        dbc.execute(query, {"ctx_dst": context_dest})
+        db.commit()
+
+        self.setstate("app.flags.last_telemetry", time.time())
+
     def _db_delete_conversation(self, context_dest):
         RNS.log("Deleting conversation with "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
         db = self.__db_connect()
@@ -1441,7 +1456,7 @@ class SidebandCore():
                 messages = messages[-limit:]
             return messages
 
-    def _db_save_lxm(self, lxm, context_dest):    
+    def _db_save_lxm(self, lxm, context_dest, originator = False):
         state = lxm.state
 
         db = self.__db_connect()
@@ -1474,7 +1489,7 @@ class SidebandCore():
 
         db.commit()
 
-        if lxm.fields != None:
+        if not originator and lxm.fields != None:
             if LXMF.FIELD_ICON_APPEARANCE in lxm.fields:
                 self._db_update_appearance(context_dest, lxm.timestamp, lxm.fields[LXMF.FIELD_ICON_APPEARANCE])
 
@@ -2375,7 +2390,7 @@ class SidebandCore():
             self._db_message_set_state(message.hash, message.state)
         else:
             RNS.log("Message does not exist, saving", RNS.LOG_DEBUG)
-            self._db_save_lxm(message, context_dest)
+            self._db_save_lxm(message, context_dest, originator)
 
             if is_trusted:
                 should_notify = True

@@ -37,6 +37,7 @@ class Conversations():
         self.conversation_dropdown = None
         self.delete_dialog = None
         self.clear_dialog = None
+        self.clear_telemetry_dialog = None
 
         self.update()
 
@@ -195,6 +196,30 @@ class Conversations():
                         self.clear_dialog.open()
                     return x
 
+                def gen_clear_telemetry(item):
+                    def x():
+                        if self.clear_telemetry_dialog == None:
+                            yes_button = MDRectangleFlatButton(text="Yes",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
+                            no_button = MDRectangleFlatButton(text="No",font_size=dp(18))
+
+                            self.clear_telemetry_dialog = MDDialog(
+                                title="Clear all telemetry related to this peer?",
+                                buttons=[ yes_button, no_button ],
+                                # elevation=0,
+                            )
+                            def dl_yes(s):
+                                self.clear_telemetry_dialog.dismiss()
+                                self.app.sideband.clear_telemetry(self.conversation_dropdown.context_dest)
+                            def dl_no(s):
+                                self.clear_telemetry_dialog.dismiss()
+
+                            yes_button.bind(on_release=dl_yes)
+                            no_button.bind(on_release=dl_no)
+
+                        item.dmenu.dismiss()
+                        self.clear_telemetry_dialog.open()
+                    return x
+
                 def gen_del(item):
                     def x():
                         if self.delete_dialog == None:
@@ -249,6 +274,12 @@ class Conversations():
                             "viewclass": "OneLineListItem",
                             "height": dp(dmi_h),
                             "on_release": gen_clear(item)
+                        },
+                        {
+                            "text": "Clear Telemetry",
+                            "viewclass": "OneLineListItem",
+                            "height": dp(dmi_h),
+                            "on_release": gen_clear_telemetry(item)
                         },
                         {
                             "text": "Delete Conversation",

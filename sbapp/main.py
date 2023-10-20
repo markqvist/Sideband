@@ -3080,17 +3080,67 @@ class SidebandApp(MDApp):
         # RNS.log("Update map markers", RNS.LOG_WARNING)
         earliest = time.time() - self.sideband.config["map_history_limit"]
         telemetry_entries = self.sideband.list_telemetry(after=earliest)
+        own_address = self.sideband.lxmf_destination.hash
         changes = False
 
         # Add own marker if available
-        
+        retain_own = False
+        own_telemetry = self.sideband.get_telemetry()
+        if own_telemetry != None and "location" in own_telemetry and own_telemetry["location"]["latitude"] != None and own_telemetry["location"]["longtitude"] != None:
+            retain_own = True
+            o = own_telemetry["location"]
+            if not own_address in self.map_markers:
+                # TODO: Remove
+                RNS.log("Adding own marker", RNS.LOG_WARNING)
+                marker = MapMarker(lat=o["latitude"], lon=o["longtitude"])
+                marker.source_dest = own_address
+                marker.latest_timestamp = o["last_update"]
+                self.map_markers[own_address] = marker
+                self.root.ids.map_layout.map.add_widget(marker)
+                changes = True
+            else:
+                marker = self.map_markers[own_address]
+                if o["last_update"] > marker.latest_timestamp:
+                    # TODO: Remove
+                    RNS.log("Updating own marker", RNS.LOG_WARNING)
+                    marker.latest_timestamp = o["last_update"]
+                    marker.lat = o["latitude"]
+                    marker.lon = o["longtitude"]
+                    changes = True
+                else:
+                    # TODO: Remove
+                    RNS.log("Skipped updating own marker, no new location", RNS.LOG_WARNING)
+        else:
+            # TODO: Remove
+            RNS.log("Not adding own marker, no data", RNS.LOG_WARNING)
+
+        stale_markers = []
+        for marker in self.map_markers:
+            if not marker in telemetry_entries:
+                if marker == own_address:
+                    if not retain_own:
+                        # TODO: Remove
+                        RNS.log("Setting own marker for removal: "+str(marker), RNS.LOG_WARNING)
+                        stale_markers.append(marker)
+                else:
+                    # TODO: Remove
+                    RNS.log("Setting marker for removal: "+str(marker), RNS.LOG_WARNING)
+                    stale_markers.append(marker)
+
+        for marker in stale_markers:
+            try:
+                self.root.ids.map_layout.map.remove_widget(self.map_markers[marker])
+                self.map_markers.pop(marker)
+            except Exception as e:
+                RNS.log("Error while removing map marker: "+str(e), RNS.LOG_ERROR)
+
         for telemetry_source in telemetry_entries:
             skip = False
             
             # TODO: Remove
-            RNS.log("Processing telemetry for "+RNS.prettyhexrep(telemetry_source), RNS.LOG_WARNING)
+            RNS.log("Processing telemetry for "+RNS.prettyhexrep(telemetry_source)+"/"+RNS.prettyhexrep(self.sideband.lxmf_destination.hash), RNS.LOG_WARNING)
 
-            if telemetry_source == self.sideband.lxmf_destination.hash:
+            if telemetry_source == own_address:
                 # TODO: Remove
                 RNS.log("Skipping own telemetry", RNS.LOG_WARNING)
                 skip = True
