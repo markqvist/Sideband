@@ -2824,7 +2824,7 @@ class SidebandApp(MDApp):
             self.root.ids.telemetry_icon_preview.icon = self.sideband.config["telemetry_icon"]
 
             self.root.ids.telemetry_enabled.active = self.sideband.config["telemetry_enabled"]
-            self.root.ids.telemetry_enabled.bind(active=self.telemetry_save)
+            self.root.ids.telemetry_enabled.bind(active=self.telemetry_enabled_toggle)
 
             self.root.ids.telemetry_send_to_collector.active = self.sideband.config["telemetry_send_to_collector"]
             self.root.ids.telemetry_send_to_collector.bind(active=self.telemetry_save)
@@ -2880,6 +2880,13 @@ class SidebandApp(MDApp):
         self.sideband.save_configuration()
 
 
+    def telemetry_enabled_toggle(self, sender=None, event=None):
+        self.telemetry_save()
+        if self.root.ids.telemetry_enabled.active:
+            self.sideband.run_telemetry()
+        else:
+            self.sideband.stop_telemetry()
+    
     def telemetry_location_toggle(self, sender=None, event=None):
         if self.root.ids.telemetry_s_location.active:
             if not check_permission("android.permission.ACCESS_COARSE_LOCATION") or not check_permission("android.permission.ACCESS_FINE_LOCATION"):
@@ -2939,9 +2946,9 @@ class SidebandApp(MDApp):
     def telemetry_copy(self, sender=None):
         Clipboard.copy(str(self.sideband.get_telemetry()))
 
-    def telemetry_update(self, sender=None):
+    def telemetry_send_update(self, sender=None):
         # TODO: Implement
-        pass
+        Clipboard.copy(str(self.sideband.get_packed_telemetry()))
 
     def telemetry_fg_color(self, sender=None):
         color_picker = MDColorPicker(size_hint=(0.85, 0.85))

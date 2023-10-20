@@ -890,7 +890,7 @@ MDNavigationLayout:
                                 icon_size: dp(24)
                                 font_size: dp(16)
                                 size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.telemetry_update(self)
+                                on_release: root.ids.screen_manager.app.telemetry_send_update(self)
                                 disabled: False
 
                             MDRectangleFlatIconButton:

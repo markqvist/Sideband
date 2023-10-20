@@ -72,6 +72,7 @@ class SidebandCore():
     SERVICE_JOB_INTERVAL   = 1
     PERIODIC_JOBS_INTERVAL = 60
     PERIODIC_SYNC_RETRY = 360
+    TELEMETRY_INTERVAL = 60
 
     IF_CHANGE_ANNOUNCE_MIN_INTERVAL = 6    # In seconds
     AUTO_ANNOUNCE_RANDOM_MIN        = 90   # In minutes
@@ -98,6 +99,8 @@ class SidebandCore():
         self.reticulum = None
         self.webshare_server = None
         self.telemeter = None
+        self.telemetry_running = False
+        self.latest_telemetry = None
 
         self.app_dir       = plyer.storagepath.get_home_dir()+"/.config/sideband"
         if self.app_dir.startswith("file://"):
@@ -1378,7 +1381,24 @@ class SidebandCore():
         else:
             self.setstate("wants.announce", True)
 
+    def run_telemetry(self):
+        if not self.telemetry_running:
+            self.telemetry_running = True
+            def telemetry_job():
+                while self.telemetry_running:
+                    self.update_telemetry()
+                    time.sleep(SidebandCore.TELEMETRY_INTERVAL)
+
+            threading.Thread(target=telemetry_job, daemon=True).start()
+
+    def stop_telemetry(self):
+        self.telemetry_running = False
+        self.telemeter.stop_all()
+
     def update_telemetry(self):
+        self.latest_telemetry = self.get_telemetry()
+
+    def update_telemeter_config(self):
         if self.config["telemetry_enabled"] == True:
             if self.telemeter == None:
                 self.telemeter = Telemeter()
@@ -1391,8 +1411,15 @@ class SidebandCore():
                     self.telemeter.disable(sensor)
 
     def get_telemetry(self):
-        self.update_telemetry()
+        self.update_telemeter_config()
         return self.telemeter.read_all()
+
+    def get_packed_telemetry(self):
+        self.update_telemeter_config()
+        packed = self.telemeter.packed()
+        # TODO: Remove
+        RNS.log(str(packed), RNS.LOG_WARNING)
+        return packed
 
     def is_known(self, dest_hash):
         try:
@@ -1608,6 +1635,9 @@ class SidebandCore():
             if self.config["start_announce"]:
                 self.lxmf_announce()
                 self.last_if_change_announce = time.time()
+
+            if self.config["telemetry_enabled"]:
+                self.latest_telemetry = self.run_telemetry()
 
             self.periodic_thread = threading.Thread(target=self._periodic_jobs, daemon=True)
             self.periodic_thread.start()

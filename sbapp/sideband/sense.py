@@ -1,6 +1,7 @@
 import RNS
 import time
 import struct
+import threading
 
 from RNS.vendor import umsgpack as umsgpack
 
@@ -30,10 +31,12 @@ class Telemeter():
       return None
 
   def __init__(self, from_packed=False):
-    self.sids = {Sensor.SID_BATTERY: Battery, Sensor.SID_BAROMETER: Barometer, Sensor.SID_LOCATION: Location}
-    self.available = {"battery": Battery, "barometer": Barometer, "location": Location}
+    self.sids = {Sensor.SID_TIME: Time, Sensor.SID_BATTERY: Battery, Sensor.SID_BAROMETER: Barometer, Sensor.SID_LOCATION: Location}
+    self.available = {"time": Time, "battery": Battery, "barometer": Barometer, "location": Location}
     self.from_packed = from_packed
     self.sensors = {}
+    if not self.from_packed:
+      self.enable("time")
 
   def enable(self, sensor):
     if not self.from_packed:
@@ -49,6 +52,11 @@ class Telemeter():
         if sensor in self.sensors:
           if self.sensors[sensor].active:
             self.sensors[sensor].stop()
+
+  def stop_all(self):
+    if not self.from_packed:
+      for sensor in self.sensors:
+        self.sensors[sensor].stop()
 
   def read(self, sensor):
     if not self.from_packed:
@@ -74,6 +82,7 @@ class Telemeter():
 
   def packed(self):
     packed = {}
+    packed[Sensor.SID_TIME] = int(time.time())
     for sensor in self.sensors:
       if self.sensors[sensor].active:
         packed[self.sensors[sensor].sid] = self.sensors[sensor].pack()
@@ -81,9 +90,10 @@ class Telemeter():
 
 class Sensor():
   SID_NONE      = 0x00
-  SID_BATTERY   = 0x01
-  SID_BAROMETER = 0x02
-  SID_LOCATION  = 0x03
+  SID_TIME      = 0x01
+  SID_LOCATION  = 0x02
+  SID_BAROMETER = 0x03
+  SID_BATTERY   = 0x04
 
   def __init__(self, sid = None, stale_time = None):
     self._sid = sid or Sensor.SID_NONE
@@ -141,6 +151,38 @@ class Sensor():
 
   def unpack(self, packed):
     return packed
+
+class Time(Sensor):
+  SID = Sensor.SID_TIME
+  STALE_TIME = 0.1
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+  def setup_sensor(self):
+    self.update_data()
+
+  def teardown_sensor(self):
+    self.data = None
+
+  def update_data(self):
+    self.data = {"utc":int(time.time())}
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      return d["utc"]
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        return {"utc": packed}
+    except:
+      return None
 
 class Battery(Sensor):
   SID = Sensor.SID_BATTERY
@@ -235,7 +277,7 @@ class Barometer(Sensor):
 class Location(Sensor):
   SID = Sensor.SID_LOCATION
   
-  STALE_TIME = 10
+  STALE_TIME = 60*5
   MIN_DISTANCE = 5
   ACCURACY_TARGET = 250
 
@@ -278,14 +320,13 @@ class Location(Sensor):
   def setup_sensor(self):
     if RNS.vendor.platformutils.is_android():
       from android.permissions import request_permissions, check_permission
-      if not check_permission("android.permission.ACCESS_COARSE_LOCATION") or not check_permission("android.permission.ACCESS_FINE_LOCATION"):
-          RNS.log("Requesting location permission", RNS.LOG_DEBUG)
-          request_permissions(["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"])
 
-      self.gps.configure(on_location=self.android_location_callback)
-      self.gps.start(minTime=self._stale_time, minDistance=self._min_distance)
+      if check_permission("android.permission.ACCESS_COARSE_LOCATION") and check_permission("android.permission.ACCESS_FINE_LOCATION"):
+        self.gps.configure(on_location=self.android_location_callback)
+        self.gps.start(minTime=self._stale_time, minDistance=self._min_distance)
+      
       self.update_data()
-
+    
   def teardown_sensor(self):
     if RNS.vendor.platformutils.is_android():
       self.gps.stop()
