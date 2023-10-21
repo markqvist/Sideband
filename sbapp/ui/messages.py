@@ -170,6 +170,33 @@ class Messages():
                 txstr = time.strftime(ts_format, time.localtime(m["sent"]))
                 rxstr = time.strftime(ts_format, time.localtime(m["received"]))
                 titlestr = ""
+                extra_telemetry = {}
+
+                phy_stats_str = ""
+                RNS.log(str(m["lxm"].fields), RNS.LOG_WARNING)
+                if "extras" in m and m["extras"] != None:
+                    phy_stats = m["extras"]
+                    if "q" in phy_stats:
+                        try:
+                            lq = round(float(phy_stats["q"]), 1)
+                            phy_stats_str += "[b]Link Quality[/b] "+str(lq)+"% "
+                            extra_telemetry["quality"] = lq
+                        except:
+                            pass
+                    if "rssi" in phy_stats:
+                        try:
+                            lr = round(float(phy_stats["rssi"]), 1)
+                            phy_stats_str += "[b]RSSI[/b] "+str(lr)+"dBm "
+                            extra_telemetry["rssi"] = lr
+                        except:
+                            pass
+                    if "snr" in phy_stats:
+                        try:
+                            ls = round(float(phy_stats["snr"]), 1)
+                            phy_stats_str += "[b]SNR[/b] "+str(ls)+"dB "
+                            extra_telemetry["snr"] = ls
+                        except:
+                            pass
 
                 if m["title"]:
                     titlestr = "[b]Title[/b] "+m["title"].decode("utf-8")+"\n"
@@ -201,7 +228,11 @@ class Messages():
 
                 else:
                     msg_color = mdc(color_received, intensity_msgs)
-                    heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]Received[/b] "+rxstr
+                    heading_str = titlestr
+                    if phy_stats_str != "" and self.app.sideband.config["advanced_stats"]:
+                        heading_str += phy_stats_str+"\n"
+
+                    heading_str += "[b]Received[/b] "+rxstr+"\n[b]Sent[/b] "+txstr
 
                 item = ListLXMessageCard(
                     text=m["content"].decode("utf-8"),
@@ -262,11 +293,14 @@ class Messages():
 
                     return x
 
-                def gen_copy_telemetry(packed_telemetry, item):
+                def gen_copy_telemetry(packed_telemetry, extra_telemetry, item):
                     def x():
                         try:
                             telemeter = Telemeter.from_packed(packed_telemetry)
-                            Clipboard.copy(str(telemeter.read_all()))
+                            tlm = telemeter.read_all()
+                            if extra_telemetry and len(extra_telemetry) != 0:
+                                tlm["physical_link"] = extra_telemetry
+                            Clipboard.copy(str(tlm))
                             item.dmenu.dismiss()
                         except Exception as e:
                             RNS.log("An error occurred while decoding telemetry. The contained exception was: "+str(e), RNS.LOG_ERROR)
@@ -474,7 +508,7 @@ class Messages():
                                     "viewclass": "OneLineListItem",
                                     "text": "Copy telemetry",
                                     "height": dp(40),
-                                    "on_release": gen_copy_telemetry(packed_telemetry, item)
+                                    "on_release": gen_copy_telemetry(packed_telemetry, extra_telemetry, item)
                                 },
                                 {
                                     "text": "Delete",
