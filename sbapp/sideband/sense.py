@@ -31,12 +31,30 @@ class Telemeter():
       return None
 
   def __init__(self, from_packed=False):
-    self.sids = {Sensor.SID_TIME: Time, Sensor.SID_BATTERY: Battery, Sensor.SID_BAROMETER: Barometer, Sensor.SID_LOCATION: Location}
-    self.available = {"time": Time, "battery": Battery, "barometer": Barometer, "location": Location}
+    self.sids = {
+      Sensor.SID_TIME: Time,
+      Sensor.SID_BATTERY: Battery,
+      Sensor.SID_BAROMETER: Barometer,
+      Sensor.SID_LOCATION: Location,
+      Sensor.SID_PHYSICAL_LINK: PhysicalLink
+    }
+    self.available = {
+      "time": Time,
+      "battery": Battery,
+      "barometer": Barometer,
+      "location": Location,
+      "physical_link": PhysicalLink,
+    }
     self.from_packed = from_packed
     self.sensors = {}
     if not self.from_packed:
       self.enable("time")
+
+  def synthesize(self, sensor):
+      if sensor in self.available:
+        if not sensor in self.sensors:
+          self.sensors[sensor] = self.available[sensor]()
+          self.sensors[sensor].active = True
 
   def enable(self, sensor):
     if not self.from_packed:
@@ -89,11 +107,12 @@ class Telemeter():
     return umsgpack.packb(packed)
 
 class Sensor():
-  SID_NONE      = 0x00
-  SID_TIME      = 0x01
-  SID_LOCATION  = 0x02
-  SID_BAROMETER = 0x03
-  SID_BATTERY   = 0x04
+  SID_NONE          = 0x00
+  SID_TIME          = 0x01
+  SID_LOCATION      = 0x02
+  SID_BAROMETER     = 0x03
+  SID_BATTERY       = 0x04
+  SID_PHYSICAL_LINK = 0x05
 
   def __init__(self, sid = None, stale_time = None):
     self._sid = sid or Sensor.SID_NONE
@@ -403,5 +422,44 @@ class Location(Sensor):
           "accuracy": struct.unpack("!H", packed[5])[0]/1e2,
           "last_update": packed[6],
         }
+    except:
+      return None
+
+class PhysicalLink(Sensor):
+  SID = Sensor.SID_PHYSICAL_LINK
+  STALE_TIME = 5
+
+  def __init__(self):
+    self.rssi = None
+    self.snr = None
+    self.q = None
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+  def setup_sensor(self):
+      self.update_data()
+
+  def teardown_sensor(self):
+      self.data = None
+
+  def update_data(self):
+    try:
+      self.data = {"rssi": self.rssi, "snr": self.snr, "q": self.q}
+
+    except:
+      self.data = None
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      return [d["rssi"], d["snr"], d["q"]]
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        return {"rssi": packed[0], "snr": packed[1], "q": packed[2]}
     except:
       return None
