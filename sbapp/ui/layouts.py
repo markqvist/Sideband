@@ -915,7 +915,7 @@ MDNavigationLayout:
                             MDTextField:
                                 id: telemetry_collector
                                 max_text_length: 32
-                                hint_text: "Telemetry Collector Address"
+                                hint_text: "Telemetry Collector LXMF Address"
                                 text: ""
                                 font_size: dp(24)
 
