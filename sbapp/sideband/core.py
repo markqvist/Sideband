@@ -1586,13 +1586,19 @@ class SidebandCore():
                     self.telemeter.disable(sensor)
 
     def get_telemetry(self):
-        self.update_telemeter_config()
-        return self.telemeter.read_all()
+        if self.config["telemetry_enabled"] == True:
+            self.update_telemeter_config()
+            return self.telemeter.read_all()
+        else:
+            return {}
 
     def get_packed_telemetry(self):
-        self.update_telemeter_config()
-        packed = self.telemeter.packed()
-        return packed
+        if self.config["telemetry_enabled"] == True:
+            self.update_telemeter_config()
+            packed = self.telemeter.packed()
+            return packed
+        else:
+            return None
 
     def is_known(self, dest_hash):
         try:
