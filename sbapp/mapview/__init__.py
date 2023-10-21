@@ -10,6 +10,7 @@ from mapview.types import Bbox, Coordinate
 from mapview.view import (
     MapLayer,
     MapMarker,
+    CustomMapMarker,
     MapMarkerPopup,
     MapView,
     MarkerMapLayer,

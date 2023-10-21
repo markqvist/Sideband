@@ -46,6 +46,12 @@ Builder.load_string(
     size: list(map(dp, self.texture_size))
     allow_stretch: True
 
+<CustomMapMarker>:
+    size_hint: None, None
+    source: root.source
+    size: list(map(dp, self.texture_size))
+    allow_stretch: True
+
 <MapView>:
     canvas.before:
         StencilPush
@@ -119,9 +125,61 @@ class Tile(Rectangle):
         return join(self.cache_dir, fn)
 
     def set_source(self, cache_fn):
-        self.source = cache_fn
-        self.state = "need-animation"
+        try:
+            self.source = cache_fn
+            self.state = "need-animation"
+        except:
+            pass
 
+class CustomMapMarker(ButtonBehavior, Image):
+    """A marker on a map, that must be used on a :class:`MapMarker`
+    """
+
+    anchor_x = NumericProperty(0.5)
+    """Anchor of the marker on the X axis. Defaults to 0.5, mean the anchor will
+    be at the X center of the image.
+    """
+
+    anchor_y = NumericProperty(0)
+    """Anchor of the marker on the Y axis. Defaults to 0, mean the anchor will
+    be at the Y bottom of the image.
+    """
+
+    lat = NumericProperty(0)
+    """Latitude of the marker
+    """
+
+    lon = NumericProperty(0)
+    """Longitude of the marker
+    """
+
+    source = StringProperty(join(dirname(__file__), "icons", "marker.png"))
+    """Source of the marker, defaults to our own marker.png
+    """
+
+    icon_bg = ListProperty()
+
+    # (internal) reference to its layer
+    _layer = None
+
+    def __init__(self, **kwargs):
+        if "icon_bg" in kwargs:
+            bg = kwargs["icon_bg"]
+            if len(bg) >= 3:
+                lim = 0.5
+                lum = (bg[0]+bg[1]+bg[2])/3
+                if lum >= lim:
+                    self.source = join(dirname(__file__), "icons", "marker_light.png")
+                else:
+                    self.source = join(dirname(__file__), "icons", "marker_dark.png")
+
+        super(CustomMapMarker, self).__init__(**kwargs)
+        self.texture_update()
+
+    def detach(self):
+        if self._layer:
+            self._layer.remove_widget(self)
+            self._layer = None
 
 class MapMarker(ButtonBehavior, Image):
     """A marker on a map, that must be used on a :class:`MapMarker`
@@ -267,6 +325,11 @@ class MarkerMapLayer(MapLayer):
         x, y = mapview.get_window_xy_from(marker.lat, marker.lon, mapview.zoom)
         marker.x = int(x - marker.width * marker.anchor_x)
         marker.y = int(y - marker.height * marker.anchor_y)
+        if hasattr(marker, "children"):
+            if marker.children != None and len(marker.children) > 0:
+                c = marker.children[0]
+                c.x = marker.x
+                c.y = marker.y+dp(16)
 
     def unload(self):
         self.clear_widgets()
@@ -348,7 +411,7 @@ class MapView(Widget):
     def scale(self):
         if self._invalid_scale:
             self._invalid_scale = False
-            self._scale = self._scatter.scale
+            self._scale = round(self._scatter.scale, 2)
         return self._scale
 
     def get_bbox(self, margin=0):
@@ -672,13 +735,13 @@ class MapView(Widget):
                 zoom, scale = self._touch_zoom
                 cur_zoom = self.zoom
                 cur_scale = self._scale
-                if cur_zoom < zoom or cur_scale < scale:
+                if cur_zoom < zoom or round(cur_scale, 2) < scale:
                     self.animated_diff_scale_at(1.0 - cur_scale, *touch.pos)
-                elif cur_zoom > zoom or cur_scale > scale:
+                elif cur_zoom > zoom or round(cur_scale, 2) > scale:
                     self.animated_diff_scale_at(2.0 - cur_scale, *touch.pos)
                 self._pause = False
             return True
-        return super().on_touch_up(touch)
+        return super(MapView, self).on_touch_up(touch)
 
     def on_transform(self, *args):
         self._invalid_scale = True
@@ -701,7 +764,7 @@ class MapView(Widget):
             self.set_zoom_at(zoom, scatter.x, scatter.y, scale=scale)
             self.trigger_update(True)
         else:
-            if zoom == map_source.min_zoom and scatter.scale < 1.0:
+            if zoom == map_source.min_zoom and round(scatter.scale, 2) < 1.0:
                 scatter.scale = 1.0
                 self.trigger_update(True)
             else:
