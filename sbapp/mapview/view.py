@@ -327,9 +327,9 @@ class MarkerMapLayer(MapLayer):
         marker.y = int(y - marker.height * marker.anchor_y)
         if hasattr(marker, "children"):
             if marker.children != None and len(marker.children) > 0:
-                c = marker.children[0]
-                c.x = marker.x
-                c.y = marker.y+dp(16)
+                for c in marker.children:
+                    c.x = marker.x
+                    c.y = marker.y+dp(16)
 
     def unload(self):
         self.clear_widgets()

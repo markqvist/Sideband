@@ -73,13 +73,13 @@ class SidebandCore():
     SERVICE_JOB_INTERVAL   = 1
     PERIODIC_JOBS_INTERVAL = 60
     PERIODIC_SYNC_RETRY = 360
-    # TODO: Reset
-    # TELEMETRY_INTERVAL = 60
-    TELEMETRY_INTERVAL = 10
+    TELEMETRY_INTERVAL = 60
 
     IF_CHANGE_ANNOUNCE_MIN_INTERVAL = 6    # In seconds
     AUTO_ANNOUNCE_RANDOM_MIN        = 90   # In minutes
     AUTO_ANNOUNCE_RANDOM_MAX        = 480  # In minutes
+
+    DEFAULT_APPEARANCE = ["alpha-p-circle-outline", [0,0,0,1], [1,1,1,1]]
 
     aspect_filter = "lxmf.delivery"
     def received_announce(self, destination_hash, announced_identity, app_data):
@@ -305,7 +305,7 @@ class SidebandCore():
 
         # Telemetry
         self.config["telemetry_enabled"] = False
-        self.config["telemetry_icon"] = "alpha-p-circle-outline"
+        self.config["telemetry_icon"] = SidebandCore.DEFAULT_APPEARANCE[0]
         self.config["telemetry_send_to_trusted"] = False
         self.config["telemetry_send_to_collector"] = False
 
@@ -315,6 +315,7 @@ class SidebandCore():
             self._db_initstate()
             self._db_initpersistent()
             self._db_inittelemetry()
+            self._db_upgradetables()
 
         self.__save_config()
 
@@ -338,6 +339,8 @@ class SidebandCore():
             self.config["debug"] = False
         if not "dark_ui" in self.config:
             self.config["dark_ui"] = True
+        if not "advanced_stats" in self.config:
+            self.config["advanced_stats"] = False
         if not "lxmf_periodic_sync" in self.config:
             self.config["lxmf_periodic_sync"] = False
         if not "lxmf_ignore_unknown" in self.config:
@@ -454,11 +457,11 @@ class SidebandCore():
             self.config["telemetry_send_to_collector"] = False
 
         if not "telemetry_icon" in self.config:
-            self.config["telemetry_icon"] = "alpha-p-circle-outline"
+            self.config["telemetry_icon"] = SidebandCore.DEFAULT_APPEARANCE[0]
         if not "telemetry_fg" in self.config:
-            self.config["telemetry_fg"] = [0,0,0,1]
+            self.config["telemetry_fg"] = SidebandCore.DEFAULT_APPEARANCE[1]
         if not "telemetry_bg" in self.config:
-            self.config["telemetry_bg"] = [1,1,1,1]
+            self.config["telemetry_bg"] = SidebandCore.DEFAULT_APPEARANCE[2]
         if not "telemetry_send_appearance" in self.config:
             self.config["telemetry_send_appearance"] = False
 
@@ -503,6 +506,7 @@ class SidebandCore():
             self._db_initstate()
             self._db_initpersistent()
             self._db_inittelemetry()
+            self._db_upgradetables()
             self.__db_indices()
 
     def __reload_config(self):
@@ -648,6 +652,9 @@ class SidebandCore():
             RNS.log("Error while getting peer name: "+str(e), RNS.LOG_ERROR)
             return ""
 
+    def peer_appearance(self, context_dest):
+        return self._db_get_appearance(context_dest) or SidebandCore.DEFAULT_APPEARANCE
+
     def peer_display_name(self, context_dest):
         try:
             existing_conv = self._db_conversation(context_dest)
@@ -729,6 +736,31 @@ class SidebandCore():
 
     def list_telemetry(self, context_dest = None, after = None, before = None, limit = None):
         return self._db_telemetry(context_dest = context_dest, after = after, before = before, limit = limit) or []
+
+    def peer_telemetry(self, context_dest, after = None, before = None, limit = None):
+        pts = self._db_telemetry(context_dest, after = after, before = before, limit = limit)
+        if pts != None:
+            if context_dest in pts:
+                return pts[context_dest]
+
+        return []
+
+    def peer_location(self, context_dest):
+        after_time = time.time()-24*60*60
+        pts = self.peer_telemetry(context_dest, after=after_time)
+        for pt in pts:
+            try:
+                t = Telemeter.from_packed(pt[1]).read_all()
+                RNS.log(str(t), RNS.LOG_WARNING)
+                if "location" in t:
+                    l = t["location"]
+                    if "latitude" in l and "longtitude" in l:
+                        if l["latitude"] != None and l["longtitude"] != None:
+                            return l
+            except:
+                pass
+
+        return None
 
     def list_messages(self, context_dest, after = None, before = None, limit = None):
         result = self._db_messages(context_dest, after, before, limit)
@@ -829,13 +861,16 @@ class SidebandCore():
         dbc = db.cursor()
 
         dbc.execute("DROP TABLE IF EXISTS lxm")
-        dbc.execute("CREATE TABLE lxm (lxm_hash BLOB PRIMARY KEY, dest BLOB, source BLOB, title BLOB, tx_ts INTEGER, rx_ts INTEGER, state INTEGER, method INTEGER, t_encrypted INTEGER, t_encryption INTEGER, data BLOB)")
+        dbc.execute("CREATE TABLE lxm (lxm_hash BLOB PRIMARY KEY, dest BLOB, source BLOB, title BLOB, tx_ts INTEGER, rx_ts INTEGER, state INTEGER, method INTEGER, t_encrypted INTEGER, t_encryption INTEGER, data BLOB, extra BLOB)")
 
         dbc.execute("DROP TABLE IF EXISTS conv")
         dbc.execute("CREATE TABLE conv (dest_context BLOB PRIMARY KEY, last_tx INTEGER, last_rx INTEGER, unread INTEGER, type INTEGER, trust INTEGER, name BLOB, data BLOB)")
 
         dbc.execute("DROP TABLE IF EXISTS announce")
         dbc.execute("CREATE TABLE announce (id PRIMARY KEY, received INTEGER, source BLOB, data BLOB, dest_type BLOB)")
+
+        dbc.execute("DROP TABLE IF EXISTS telemetry")
+        dbc.execute("CREATE TABLE IF NOT EXISTS telemetry (id INTEGER PRIMARY KEY, dest_context BLOB, ts INTEGER, data BLOB)")
 
         dbc.execute("DROP TABLE IF EXISTS state")
         dbc.execute("CREATE TABLE state (property BLOB PRIMARY KEY, value BLOB)")
@@ -851,6 +886,23 @@ class SidebandCore():
         dbc.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_persistent_property ON persistent(property)")
         dbc.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_state_property ON state(property)")
         dbc.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_conv_dest_context ON conv(dest_context)")
+        db.commit()
+
+    def _db_inittelemetry(self):
+        db = self.__db_connect()
+        dbc = db.cursor()
+
+        dbc.execute("CREATE TABLE IF NOT EXISTS telemetry (id INTEGER PRIMARY KEY, dest_context BLOB, ts INTEGER, data BLOB)")
+        db.commit()
+
+    def _db_upgradetables(self):
+        # TODO: Remove this again at some point in the future
+        db = self.__db_connect()
+        dbc = db.cursor()
+        dbc.execute("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'lxm' AND sql LIKE '%extra%'")
+        result = dbc.fetchall()
+        if len(result) == 0:
+            dbc.execute("ALTER TABLE lxm ADD COLUMN extra BLOB")
         db.commit()
 
     def _db_initstate(self):
@@ -928,13 +980,6 @@ class SidebandCore():
         dbc = db.cursor()
 
         dbc.execute("CREATE TABLE IF NOT EXISTS persistent (property BLOB PRIMARY KEY, value BLOB)")
-        db.commit()
-
-    def _db_inittelemetry(self):
-        db = self.__db_connect()
-        dbc = db.cursor()
-
-        dbc.execute("CREATE TABLE IF NOT EXISTS telemetry (id INTEGER PRIMARY KEY, dest_context BLOB, ts INTEGER, data BLOB)")
         db.commit()
 
     def _db_getpersistent(self, prop):
@@ -1079,10 +1124,7 @@ class SidebandCore():
             
             return results
 
-    def _db_save_telemetry(self, context_dest, telemetry):
-        # TODO: Remove
-        # RNS.log("Saving telemetry for "+RNS.prettyhexrep(context_dest), RNS.LOG_WARNING)
-
+    def _db_save_telemetry(self, context_dest, telemetry, physical_link = None):
         try:
             remote_telemeter = Telemeter.from_packed(telemetry)
             telemetry_timestamp = remote_telemeter.read_all()["time"]["utc"]
@@ -1095,9 +1137,15 @@ class SidebandCore():
             result = dbc.fetchall()
 
             if len(result) != 0:
-                # TODO: Remove
-                # RNS.log("Telemetry entry already exists, ignoring", RNS.LOG_WARNING)
                 return
+
+            if physical_link != None and len(physical_link) != 0:
+                remote_telemeter.synthesize("physical_link")
+                if "rssi" in physical_link: remote_telemeter.sensors["physical_link"].rssi = physical_link["rssi"]
+                if "snr" in physical_link: remote_telemeter.sensors["physical_link"].snr = physical_link["snr"]
+                if "q" in physical_link: remote_telemeter.sensors["physical_link"].q = physical_link["q"]
+                remote_telemeter.sensors["physical_link"].update_data()
+                RNS.log("PACKED: "+str(remote_telemeter.read_all()), RNS.LOG_WARNING)
             
             query = "INSERT INTO telemetry (dest_context, ts, data) values (?, ?, ?)"
             data = (context_dest, telemetry_timestamp, telemetry)
@@ -1110,25 +1158,44 @@ class SidebandCore():
             self.db = None
 
     def _db_update_appearance(self, context_dest, timestamp, appearance):
-        # TODO: Remove
-        # RNS.log("Updating appearance for "+RNS.prettyhexrep(context_dest), RNS.LOG_WARNING)
-
         conv = self._db_conversation(context_dest)
         data_dict = conv["data"]
         if data_dict == None:
             data_dict = {}
 
-        data_dict["appearance"] = appearance
-        packed_dict = msgpack.packb(data_dict)
+        if data_dict["appearance"] != appearance:
+            data_dict["appearance"] = appearance
+            packed_dict = msgpack.packb(data_dict)
         
-        db = self.__db_connect()
-        dbc = db.cursor()
+            db = self.__db_connect()
+            dbc = db.cursor()
         
-        query = "UPDATE conv set data = ? where dest_context = ?"
-        data = (packed_dict, context_dest)
-        dbc.execute(query, data)
-        result = dbc.fetchall()
-        db.commit()
+            query = "UPDATE conv set data = ? where dest_context = ?"
+            data = (packed_dict, context_dest)
+            dbc.execute(query, data)
+            result = dbc.fetchall()
+            db.commit()
+
+    def _db_get_appearance(self, context_dest):
+        conv = self._db_conversation(context_dest)
+        data_dict = conv["data"]
+        try:
+            if data_dict != None and "appearance" in data_dict:
+                def htf(cbytes):
+                    d = 1.0/255.0
+                    r = round(struct.unpack("!B", bytes([cbytes[0]]))[0]*d, 4)
+                    g = round(struct.unpack("!B", bytes([cbytes[1]]))[0]*d, 4)
+                    b = round(struct.unpack("!B", bytes([cbytes[2]]))[0]*d, 4)
+                    return [r,g,b]
+
+                appearance = [data_dict["appearance"][0], htf(data_dict["appearance"][1]), htf(data_dict["appearance"][2])]
+                
+                return appearance
+        except Exception as e:
+            RNS.log("Could not retrieve appearance for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
+
+        return None
+
 
     def _db_conversation_set_telemetry(self, context_dest, send_telemetry=False):
         conv = self._db_conversation(context_dest)
@@ -1437,6 +1504,12 @@ class SidebandCore():
                 
                 if lxm.desired_method == LXMF.LXMessage.PAPER:
                     lxm.paper_packed = paper_packed_lxm
+
+                extras = None
+                try:
+                    extras = msgpack.unpackb(entry[11])
+                except:
+                    pass
                 
                 message = {
                     "hash": lxm.hash,
@@ -1448,7 +1521,8 @@ class SidebandCore():
                     "sent": lxm.timestamp,
                     "state": entry[6],
                     "method": entry[7],
-                    "lxm": lxm
+                    "lxm": lxm,
+                    "extras": extras,
                 }
 
                 messages.append(message)
@@ -1470,7 +1544,14 @@ class SidebandCore():
         else:
             packed_lxm = lxm.packed
 
-        query = "INSERT INTO lxm (lxm_hash, dest, source, title, tx_ts, rx_ts, state, method, t_encrypted, t_encryption, data) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        extras = {}
+        if lxm.rssi or lxm.snr or lxm.q:
+            extras["rssi"] = lxm.rssi
+            extras["snr"] = lxm.snr
+            extras["q"] = lxm.q
+        extras = msgpack.packb(extras)
+
+        query = "INSERT INTO lxm (lxm_hash, dest, source, title, tx_ts, rx_ts, state, method, t_encrypted, t_encryption, data, extra) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         data = (
             lxm.hash,
             lxm.destination_hash,
@@ -1483,10 +1564,10 @@ class SidebandCore():
             lxm.transport_encrypted,
             lxm.transport_encryption,
             packed_lxm,
+            extras
         )
 
         dbc.execute(query, data)
-
         db.commit()
 
         if not originator and lxm.fields != None:
@@ -1494,7 +1575,12 @@ class SidebandCore():
                 self._db_update_appearance(context_dest, lxm.timestamp, lxm.fields[LXMF.FIELD_ICON_APPEARANCE])
 
             if LXMF.FIELD_TELEMETRY in lxm.fields:
-                self._db_save_telemetry(context_dest, lxm.fields[LXMF.FIELD_TELEMETRY])
+                physical_link = {}
+                if lxm.rssi or lxm.snr or lxm.q:
+                    physical_link["rssi"] = lxm.rssi
+                    physical_link["snr"] = lxm.snr
+                    physical_link["q"] = lxm.q
+                self._db_save_telemetry(context_dest, lxm.fields[LXMF.FIELD_TELEMETRY], physical_link=physical_link)
 
         self.__event_conversation_changed(context_dest)
 
@@ -2258,7 +2344,7 @@ class SidebandCore():
             fields = {}
             if send_appearance:
                 # TODO: REMOVE
-                # RNS.log("Sending appearance", RNS.LOG_WARNING)
+                RNS.log("Sending appearance", RNS.LOG_WARNING)
                 def fth(c):
                     r = c[0]; g = c[1]; b = c[2]
                     r = min(max(0, r), 1); g = min(max(0, g), 1); b = min(max(0, b), 1)
@@ -2273,7 +2359,7 @@ class SidebandCore():
 
             if send_telemetry:
                 # TODO: REMOVE
-                # RNS.log("Sending telemetry", RNS.LOG_WARNING)
+                RNS.log("Sending telemetry", RNS.LOG_WARNING)
                 fields[LXMF.FIELD_TELEMETRY] = self.latest_packed_telemetry
 
         return fields
@@ -2377,9 +2463,6 @@ class SidebandCore():
         self.setstate("lxm_uri_ingest.result", response)
 
     def lxm_ingest(self, message, originator = False):
-        # TODO: Remove
-        RNS.log("MESSAGE FIELDS: "+str(message.fields), RNS.LOG_WARNING)
-
         should_notify = False
         is_trusted = False
         unread_reason_tx = False
@@ -2535,7 +2618,7 @@ class SidebandCore():
             if message.unverified_reason == LXMF.LXMessage.SOURCE_UNKNOWN:
                 signature_string = "Cannot verify, source is unknown"
 
-        RNS.log("LXMF delivery "+str(time_string)+". "+str(signature_string)+".")
+        RNS.log("LXMF delivery "+str(time_string)+". "+str(signature_string)+".", RNS.LOG_DEBUG)
 
         try:
             if self.config["lxmf_ignore_unknown"] == True:

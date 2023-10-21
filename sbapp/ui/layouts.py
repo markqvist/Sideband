@@ -115,6 +115,7 @@ MDNavigationLayout:
                         [['menu', lambda x: nav_drawer.set_state("open")]]
                     right_action_items:
                         [
+                        ['map-search', lambda x: root.ids.screen_manager.app.peer_show_location_action(self)],
                         ['lan-connect', lambda x: root.ids.screen_manager.app.message_propagation_action(self)],
                         ['close', lambda x: root.ids.screen_manager.app.close_messages_action(self)],
                         ]
@@ -1009,7 +1010,7 @@ MDNavigationLayout:
                             MDIconButton:
                                 pos_hint: {"center_x": .5}
                                 id: telemetry_icon_preview
-                                icon: "alpha-p-circle-outline"
+                                icon: "account"
                                 type: "large"
                                 theme_icon_color: "Custom"
                                 icon_color: [0, 0, 0, 1]
@@ -1018,6 +1019,7 @@ MDNavigationLayout:
                                 size_hint_y: None
                                 # width: dp(64)
                                 height: dp(80)
+                                on_release: root.ids.screen_manager.app.icons_action(self)
 
 
                         MDRectangleFlatIconButton:
@@ -1586,6 +1588,21 @@ MDNavigationLayout:
 
                                 MDSwitch:
                                     id: settings_eink_mode
+                                    pos_hint: {"center_y": 0.3}
+                                    active: False
+
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                size_hint_y: None
+                                padding: [0,0,dp(24),dp(0)]
+                                height: dp(48)
+                                
+                                MDLabel:
+                                    text: "Advanced Statistics"
+                                    font_style: "H6"
+
+                                MDSwitch:
+                                    id: settings_advanced_statistics
                                     pos_hint: {"center_y": 0.3}
                                     active: False
 

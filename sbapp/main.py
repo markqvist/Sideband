@@ -44,8 +44,9 @@ from kivy.uix.screenmanager import FadeTransition, NoTransition
 from kivymd.uix.list import OneLineIconListItem
 from kivy.properties import StringProperty
 from kivymd.uix.pickers import MDColorPicker
+from kivymd.uix.button import BaseButton, MDIconButton
 from sideband.sense import Telemeter
-from mapview import MapMarker
+from mapview import CustomMapMarker
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from sideband.core import SidebandCore
@@ -922,6 +923,11 @@ class SidebandApp(MDApp):
             self.root.ids.message_send_button.disabled = False
         Clock.schedule_once(cb, 0.5)
 
+    def peer_show_location_action(self, sender):
+        if self.root.ids.screen_manager.current == "messages_screen":
+            context_dest = self.root.ids.messages_scrollview.active_conversation
+            self.map_show_peer_location(context_dest)
+
     def message_propagation_action(self, sender):
         if self.outbound_mode_paper:
             self.outbound_mode_paper = False
@@ -1289,6 +1295,10 @@ class SidebandApp(MDApp):
                 self.sideband.save_configuration()
                 self.update_ui_theme()
 
+            def save_advanced_stats(sender=None, event=None):
+                self.sideband.config["advanced_stats"] = self.root.ids.settings_advanced_statistics.active
+                self.sideband.save_configuration()
+
             def save_notifications_on(sender=None, event=None):
                 self.sideband.config["notifications_on"] = self.root.ids.settings_notifications_on.active
                 self.sideband.save_configuration()
@@ -1376,6 +1386,9 @@ class SidebandApp(MDApp):
 
             self.root.ids.settings_eink_mode.active = self.sideband.config["eink_mode"]
             self.root.ids.settings_eink_mode.bind(active=save_eink_mode)
+
+            self.root.ids.settings_advanced_statistics.active = self.sideband.config["advanced_stats"]
+            self.root.ids.settings_advanced_statistics.bind(active=save_advanced_stats)
 
             self.root.ids.settings_start_announce.active = self.sideband.config["start_announce"]
             self.root.ids.settings_start_announce.bind(active=save_start_announce)
@@ -2898,6 +2911,7 @@ class SidebandApp(MDApp):
 
         self.sideband.config["telemetry_icon"] = self.root.ids.telemetry_icon_preview.icon
         self.sideband.save_configuration()
+        self.own_appearance_changed = True
 
 
     def telemetry_enabled_toggle(self, sender=None, event=None):
@@ -2909,9 +2923,10 @@ class SidebandApp(MDApp):
     
     def telemetry_location_toggle(self, sender=None, event=None):
         if self.root.ids.telemetry_s_location.active:
-            if not check_permission("android.permission.ACCESS_COARSE_LOCATION") or not check_permission("android.permission.ACCESS_FINE_LOCATION"):
-                RNS.log("Requesting location permission", RNS.LOG_DEBUG)
-                request_permissions(["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"])
+            if RNS.vendor.platformutils.is_android():
+                if not check_permission("android.permission.ACCESS_COARSE_LOCATION") or not check_permission("android.permission.ACCESS_FINE_LOCATION"):
+                    RNS.log("Requesting location permission", RNS.LOG_DEBUG)
+                    request_permissions(["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"])
 
         self.telemetry_save()
 
@@ -2984,6 +2999,7 @@ class SidebandApp(MDApp):
         self.root.ids.telemetry_icon_preview.icon_color = color
         self.sideband.config["telemetry_fg"] = color
         self.sideband.save_configuration()
+        self.own_appearance_changed = True
         if hasattr(self, "color_picker") and self.color_picker != None:
             self.color_picker.dismiss()
             self.color_picker = None
@@ -3000,6 +3016,8 @@ class SidebandApp(MDApp):
         color = selected_color[:-1] + [1]
         self.root.ids.telemetry_icon_preview.md_bg_color = color
         self.sideband.config["telemetry_bg"] = color
+        self.sideband.save_configuration()
+        self.own_appearance_changed = True
         if hasattr(self, "color_picker") and self.color_picker != None:
             self.color_picker.dismiss()
             self.color_picker = None
@@ -3057,7 +3075,7 @@ class SidebandApp(MDApp):
             from mapview import MapView
             mapview = MapView(zoom=self.sideband.config["map_zoom"], lat=self.sideband.config["map_lat"], lon=self.sideband.config["map_lon"])
             mapview.snap_to_zoom = False
-            mapview.double_tap_zoom = False
+            mapview.double_tap_zoom = True
             self.root.ids.map_layout.map = mapview
             self.root.ids.map_layout.add_widget(self.root.ids.map_layout.map)
 
@@ -3073,11 +3091,71 @@ class SidebandApp(MDApp):
             self.map_update_markers()
         Clock.schedule_once(am_job, 0.6)
 
+    def close_location_error_dialog(self, sender=None):
+        if hasattr(self, "location_error_dialog") and self.location_error_dialog != None:
+            self.location_error_dialog.dismiss()
+
+    def map_show(self, location):
+        RNS.log(str(location), RNS.LOG_WARNING)
+        if hasattr(self.root.ids.map_layout, "map") and self.root.ids.map_layout.map:
+            self.root.ids.map_layout.map.lat = location["latitude"]
+            self.root.ids.map_layout.map.lon = location["longtitude"]
+            self.root.ids.map_layout.map.zoom = 16
+
+    def map_show_peer_location(self, context_dest):
+        location = self.sideband.peer_location(context_dest)
+        if not location:
+            self.location_error_dialog = MDDialog(
+                title="No Location",
+                text="During the last 24 hours, no location updates have been received from this peer. You can use the the [b]Situation Map[/b] to manually search for earlier telemetry.",
+                buttons=[
+                    MDRectangleFlatButton(
+                        text="OK",
+                        font_size=dp(18),
+                        on_release=self.close_location_error_dialog
+                    )
+                ],
+            )
+            self.location_error_dialog.open()
+        else:
+            self.map_action()
+            self.map_show(location)
+
+    def map_create_marker(self, source, telemetry, appearance):
+        try:
+            l = telemetry["location"]
+            a_icon = appearance[0]
+            a_fg = appearance[1]; a_bg = appearance[2]
+            marker = CustomMapMarker(lat=l["latitude"], lon=l["longtitude"], icon_bg=a_bg)
+            marker.source_dest = source
+            marker.location_time = l["last_update"]
+            marker.icon = MDMapIconButton(
+                icon=a_icon, icon_color=a_fg,
+                md_bg_color=a_bg, theme_icon_color="Custom",
+                icon_size=dp(32),
+                )
+            marker.icon._default_icon_pad = dp(16)
+            marker.add_widget(marker.icon)
+
+            ########
+            # marker.badge = MDMapIconButton(
+            #     icon="network-strength-2", icon_color=[0,0,0,1],
+            #     md_bg_color=[1,1,1,1], theme_icon_color="Custom",
+            #     icon_size=dp(18),
+            # )
+            # marker.badge._default_icon_pad = dp(5)
+            # marker.icon.add_widget(marker.badge)
+            ########
+
+            return marker
+
+        except Exception as e:
+            RNS.log("Could not create map marker for "+RNS.prettyhexrep(source)+": "+str(e), RNS.LOG_ERROR)
+            return None
+
+
 
     def map_update_markers(self, sender=None):
-        # TODO: Remove
-        # time_s = time.time()
-        # RNS.log("Update map markers", RNS.LOG_WARNING)
         earliest = time.time() - self.sideband.config["map_history_limit"]
         telemetry_entries = self.sideband.list_telemetry(after=earliest)
         own_address = self.sideband.lxmf_destination.hash
@@ -3086,112 +3164,105 @@ class SidebandApp(MDApp):
         # Add own marker if available
         retain_own = False
         own_telemetry = self.sideband.get_telemetry()
-        if own_telemetry != None and "location" in own_telemetry and own_telemetry["location"]["latitude"] != None and own_telemetry["location"]["longtitude"] != None:
-            retain_own = True
-            o = own_telemetry["location"]
-            if not own_address in self.map_markers:
-                # TODO: Remove
-                RNS.log("Adding own marker", RNS.LOG_WARNING)
-                marker = MapMarker(lat=o["latitude"], lon=o["longtitude"])
-                marker.source_dest = own_address
-                marker.latest_timestamp = o["last_update"]
-                self.map_markers[own_address] = marker
-                self.root.ids.map_layout.map.add_widget(marker)
-                changes = True
-            else:
-                marker = self.map_markers[own_address]
-                if o["last_update"] > marker.latest_timestamp:
-                    # TODO: Remove
-                    RNS.log("Updating own marker", RNS.LOG_WARNING)
-                    marker.latest_timestamp = o["last_update"]
-                    marker.lat = o["latitude"]
-                    marker.lon = o["longtitude"]
-                    changes = True
-                else:
-                    # TODO: Remove
-                    RNS.log("Skipped updating own marker, no new location", RNS.LOG_WARNING)
-        else:
-            # TODO: Remove
-            RNS.log("Not adding own marker, no data", RNS.LOG_WARNING)
+        own_appearance = [
+            self.sideband.config["telemetry_icon"],
+            self.sideband.config["telemetry_fg"],
+            self.sideband.config["telemetry_bg"]
+        ]
 
-        stale_markers = []
-        for marker in self.map_markers:
-            if not marker in telemetry_entries:
-                if marker == own_address:
-                    if not retain_own:
-                        # TODO: Remove
-                        RNS.log("Setting own marker for removal: "+str(marker), RNS.LOG_WARNING)
+        try:
+            if own_telemetry != None and "location" in own_telemetry and own_telemetry["location"] != None and own_telemetry["location"]["latitude"] != None and own_telemetry["location"]["longtitude"] != None:
+                retain_own = True
+                
+                if not own_address in self.map_markers:
+                    RNS.log("Adding own marker", RNS.LOG_WARNING)
+                    marker = self.map_create_marker(own_address, own_telemetry, own_appearance)
+                    if marker != None:
+                        self.map_markers[own_address] = marker
+                        self.root.ids.map_layout.map.add_marker(marker)
+                        changes = True
+
+                else:
+                    marker = self.map_markers[own_address]
+                    o = own_telemetry["location"]
+                    if o["last_update"] > marker.location_time or (hasattr(self, "own_appearance_changed") and self.own_appearance_changed):
+                        marker.location_time = o["last_update"]
+                        marker.lat = o["latitude"]
+                        marker.lon = o["longtitude"]
+                        marker.icon.icon = own_appearance[0]
+                        marker.icon.icon_color = own_appearance[1]
+                        marker.icon.md_bg_color = own_appearance[2]
+                        self.own_appearance_changed = False
+                        changes = True
+
+            stale_markers = []
+            for marker in self.map_markers:
+                if not marker in telemetry_entries:
+                    if marker == own_address:
+                        if not retain_own:
+                            stale_markers.append(marker)
+                    else:
                         stale_markers.append(marker)
-                else:
-                    # TODO: Remove
-                    RNS.log("Setting marker for removal: "+str(marker), RNS.LOG_WARNING)
-                    stale_markers.append(marker)
 
-        for marker in stale_markers:
-            try:
-                self.root.ids.map_layout.map.remove_widget(self.map_markers[marker])
-                self.map_markers.pop(marker)
-            except Exception as e:
-                RNS.log("Error while removing map marker: "+str(e), RNS.LOG_ERROR)
+            for marker in stale_markers:
+                try:
+                    self.root.ids.map_layout.map.remove_widget(self.map_markers[marker])
+                    self.map_markers.pop(marker)
+                except Exception as e:
+                    RNS.log("Error while removing map marker: "+str(e), RNS.LOG_ERROR)
+        
+        except Exception as e:
+            RNS.log("Error while updating own map marker: "+str(e), RNS.LOG_ERROR)
 
         for telemetry_source in telemetry_entries:
-            skip = False
-            
-            # TODO: Remove
-            RNS.log("Processing telemetry for "+RNS.prettyhexrep(telemetry_source)+"/"+RNS.prettyhexrep(self.sideband.lxmf_destination.hash), RNS.LOG_WARNING)
-
-            if telemetry_source == own_address:
-                # TODO: Remove
-                RNS.log("Skipping own telemetry", RNS.LOG_WARNING)
-                skip = True
-            elif telemetry_source in self.map_markers:
-                marker = self.map_markers[telemetry_source]
-                newest_timestamp = telemetry_entries[telemetry_source][0][0]
-                if newest_timestamp <= marker.latest_timestamp:
+            try:
+                skip = False
+                if telemetry_source == own_address:
                     skip = True
+                elif telemetry_source in self.map_markers:
+                    marker = self.map_markers[telemetry_source]
+                    newest_timestamp = telemetry_entries[telemetry_source][0][0]
+                    if newest_timestamp <= marker.location_time:
+                        skip = True
 
-            latest_viewable = None
-            if not skip:
-                for telemetry_entry in telemetry_entries[telemetry_source]:
-                    telemetry_timestamp = telemetry_entry[0]
-                    telemetry_data = telemetry_entry[1]
-                    t = Telemeter.from_packed(telemetry_data)
-                    if t != None:
-                        telemetry = t.read_all()
-                        # TODO: Remove
-                        # RNS.log(str(telemetry)+" "+str(t), RNS.LOG_WARNING)
-                        if "location" in telemetry and telemetry["location"]["latitude"] != None and telemetry["location"]["longtitude"] != None:
-                            latest_viewable = telemetry
-                            break
+                latest_viewable = None
+                if not skip:
+                    for telemetry_entry in telemetry_entries[telemetry_source]:
+                        telemetry_timestamp = telemetry_entry[0]
+                        telemetry_data = telemetry_entry[1]
+                        t = Telemeter.from_packed(telemetry_data)
+                        if t != None:
+                            telemetry = t.read_all()
+                            if "location" in telemetry and telemetry["location"]["latitude"] != None and telemetry["location"]["longtitude"] != None:
+                                latest_viewable = telemetry
+                                break
 
-                if latest_viewable != None:
-                    l = latest_viewable["location"]
-                    if not telemetry_source in self.map_markers:
-                        marker = MapMarker(lat=l["latitude"], lon=l["longtitude"])
-                        marker.source_dest = telemetry_source
-                        marker.latest_timestamp = latest_viewable["time"]["utc"]
-                        self.map_markers[telemetry_source] = marker
-                        self.root.ids.map_layout.map.add_widget(marker)
-                        changes = True
-                    else:
-                        marker = self.map_markers[telemetry_source]
-                        marker.latest_timestamp = latest_viewable["time"]["utc"]
-                        marker.lat = l["latitude"]
-                        marker.lon = l["longtitude"]
-                        changes = True
+                    if latest_viewable != None:
+                        l = latest_viewable["location"]
+                        if not telemetry_source in self.map_markers:
+                            marker = self.map_create_marker(telemetry_source, latest_viewable, self.sideband.peer_appearance(telemetry_source))
+                            if marker != None:
+                                self.map_markers[telemetry_source] = marker
+                                self.root.ids.map_layout.map.add_marker(marker)
+                                changes = True
+                        else:
+                            marker = self.map_markers[telemetry_source]
+                            marker.location_time = latest_viewable["time"]["utc"]
+                            marker.lat = l["latitude"]
+                            marker.lon = l["longtitude"]
+                            appearance = self.sideband.peer_appearance(telemetry_source)
+                            marker.icon.icon = appearance[0]
+                            marker.icon.icon_color = appearance[1]
+                            marker.icon.md_bg_color = appearance[2]
+                            changes = True
+
+            except Exception as e:
+                RNS.log("Error while updating map entry for "+RNS.prettyhexrep(telemetry_source)+": "+str(e), RNS.LOG_ERROR)
 
         self.last_map_update = time.time()
         if changes:
             mv = self.root.ids.map_layout.map
             mv.trigger_update(True)
-
-        # TODO: Remove
-        # RNS.log("Updated map markers in "+RNS.prettytime(time.time()-time_s), RNS.LOG_WARNING)
-
-
-    def map_add_marker(self, marker):
-        marker = MapMarker(lat=0.0, lon=0.0)
-        self.root.ids.map_layout.map.add_widget(marker)
 
     ### Guide screen
     ######################################
@@ -3306,6 +3377,9 @@ Thank you very much for using Free Communications Systems.
 
 class CustomOneLineIconListItem(OneLineIconListItem):
     icon = StringProperty()
+
+class MDMapIconButton(MDIconButton):
+    pass
 
 def run():
     SidebandApp().run()
