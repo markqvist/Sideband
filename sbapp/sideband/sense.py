@@ -1,3 +1,4 @@
+import os
 import RNS
 import time
 import struct
@@ -210,9 +211,21 @@ class Battery(Sensor):
   def __init__(self):
     super().__init__(type(self).SID, type(self).STALE_TIME)
 
-    if RNS.vendor.platformutils.is_android() or RNS.vendor.platformutils.is_linux():
+    if RNS.vendor.platformutils.is_android():
       from plyer import battery
       self.battery = battery
+    
+    elif RNS.vendor.platformutils.is_linux():
+      node_exists = False
+      bn = 0
+      node_name = None
+      for bi in range(0,10):
+          path = os.path.join('/sys', 'class', 'power_supply', 'BAT'+str(bi))
+          if os.path.isdir(path):
+              node_name = "BAT"+str(bi)
+              break
+
+      self.battery_node_name = node_name
 
   def setup_sensor(self):
     if RNS.vendor.platformutils.is_android() or RNS.vendor.platformutils.is_linux():
@@ -224,10 +237,29 @@ class Battery(Sensor):
 
   def update_data(self):
     try:
-      if RNS.vendor.platformutils.is_android() or RNS.vendor.platformutils.is_linux():
+      if RNS.vendor.platformutils.is_android():
         self.battery.get_state()
         b = self.battery.status
         self.data = {"charge_percent": b["percentage"], "charging": b["isCharging"]}
+      
+      elif RNS.vendor.platformutils.is_linux():
+        if self.battery_node_name:
+          status = {"isCharging": None, "percentage": None}
+          kernel_bat_path = os.path.join('/sys', 'class', 'power_supply', self.battery_node_name)
+          uevent = os.path.join(kernel_bat_path, 'uevent')
+          with open(uevent, "rb") as fle:
+              lines = [
+                  line.decode('utf-8').strip()
+                  for line in fle.readlines()
+              ]
+          output = {
+              line.split('=')[0]: line.split('=')[1]
+              for line in lines
+          }
+
+          is_charging = output['POWER_SUPPLY_STATUS'] == 'Charging'
+          charge_percent = float(output['POWER_SUPPLY_CAPACITY'])
+          self.data = {"charge_percent": charge_percent, "charging": is_charging}
     
     except:
       self.data = None
