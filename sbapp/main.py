@@ -199,6 +199,9 @@ class SidebandApp(MDApp):
         self.update_loading_text()
         self.init_announces_view()
         self.announces_view.update()
+        self.telemetry_init()
+        self.settings_init()
+        self.connectivity_init()
 
         # Wait a little extra for user to react to permissions prompt
         # if RNS.vendor.platformutils.get_platform() == "android":
@@ -562,6 +565,9 @@ class SidebandApp(MDApp):
         self.nav_drawer = screen.ids.nav_drawer
 
         return screen
+
+    def _state_jobs(self):
+        props = []
 
     def jobs(self, delta_time):
         if self.final_load_completed:

@@ -169,7 +169,7 @@ class CustomMapMarker(ButtonBehavior, Image):
                 lim = 0.5
                 lum = (bg[0]+bg[1]+bg[2])/3
                 if lum >= lim:
-                    self.source = join(dirname(__file__), "icons", "marker_light.png")
+                    self.source = join(dirname(__file__), "icons", "marker_dark.png")
                 else:
                     self.source = join(dirname(__file__), "icons", "marker_dark.png")
 
