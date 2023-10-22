@@ -150,6 +150,7 @@ class SidebandCore():
         self.saving_configuration = False
         self.last_lxmf_announce = 0
         self.last_if_change_announce = 0
+        self.interface_local_adding = False
         self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN))
 
         self.getstate_cache = {}
@@ -1808,6 +1809,19 @@ class SidebandCore():
 
                         self.interface_local.had_peers = have_peers
 
+                        if len(self.interface_local.adopted_interfaces) == 0:
+                            if not self.interface_local_adding:
+                                RNS.log("No suitable interfaces on AutoInterface, scheduling re-init", RNS.LOG_DEBUG)
+                                if self.interface_local in RNS.Transport.interfaces:
+                                    RNS.Transport.interfaces.remove(self.interface_local)
+                                del self.interface_local
+                                self.interface_local = None
+                                def job():
+                                    self.__add_localinterface(delay=60)
+                                threading.Thread(target=job, daemon=True).start()
+                        else:
+                            pass
+
                     for interface in RNS.Transport.interfaces:
                         if not hasattr(self, "interface_local") or interface != self.interface_local:
                             if hasattr(interface, "was_online"):
@@ -1972,6 +1986,58 @@ class SidebandCore():
         if self.is_standalone or self.is_client:
             if self.config["telemetry_enabled"]:
                 self.latest_telemetry = self.run_telemetry()
+
+    def __add_localinterface(self, delay=None):
+        self.interface_local_adding = True
+        if delay:
+            time.sleep(delay)
+
+        try:
+            RNS.log("Adding Auto Interface...", RNS.LOG_DEBUG)
+            if self.config["connect_local_groupid"] == "":
+                group_id = None
+            else:
+                group_id = self.config["connect_local_groupid"]
+
+            if self.config["connect_local_ifac_netname"] == "":
+                ifac_netname = None
+            else:
+                ifac_netname = self.config["connect_local_ifac_netname"]
+
+            if self.config["connect_local_ifac_passphrase"] == "":
+                ifac_netkey = None
+            else:
+                ifac_netkey = self.config["connect_local_ifac_passphrase"]
+
+            autointerface = RNS.Interfaces.AutoInterface.AutoInterface(
+                RNS.Transport,
+                name = "AutoInterface",
+                group_id = group_id
+            )
+            autointerface.OUT = True
+
+            if RNS.Reticulum.transport_enabled():
+                if_mode = Interface.Interface.MODE_FULL
+                if self.config["connect_ifmode_local"] == "gateway":
+                    if_mode = Interface.Interface.MODE_GATEWAY
+                elif self.config["connect_ifmode_local"] == "access point":
+                    if_mode = Interface.Interface.MODE_ACCESS_POINT
+                elif self.config["connect_ifmode_local"] == "roaming":
+                    if_mode = Interface.Interface.MODE_ROAMING
+                elif self.config["connect_ifmode_local"] == "boundary":
+                    if_mode = Interface.Interface.MODE_BOUNDARY
+            else:
+                if_mode = None
+                
+            self.reticulum._add_interface(autointerface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
+            self.interface_local = autointerface
+            self.interface_local_adding = False
+
+        except Exception as e:
+            RNS.log("Error while adding AutoInterface. The contained exception was: "+str(e))
+            self.interface_local = None
+            self.interface_local_adding = False
+
         
     def __start_jobs_immediate(self):
         if self.log_verbose:
@@ -2007,49 +2073,7 @@ class SidebandCore():
 
                 if self.config["connect_local"]:
                     self.setstate("init.loadingstate", "Discovering Topography")
-                    try:
-                        RNS.log("Adding Auto Interface...", RNS.LOG_DEBUG)
-                        if self.config["connect_local_groupid"] == "":
-                            group_id = None
-                        else:
-                            group_id = self.config["connect_local_groupid"]
-
-                        if self.config["connect_local_ifac_netname"] == "":
-                            ifac_netname = None
-                        else:
-                            ifac_netname = self.config["connect_local_ifac_netname"]
-
-                        if self.config["connect_local_ifac_passphrase"] == "":
-                            ifac_netkey = None
-                        else:
-                            ifac_netkey = self.config["connect_local_ifac_passphrase"]
-
-                        autointerface = RNS.Interfaces.AutoInterface.AutoInterface(
-                            RNS.Transport,
-                            name = "AutoInterface",
-                            group_id = group_id
-                        )
-                        autointerface.OUT = True
-
-                        if RNS.Reticulum.transport_enabled():
-                            if_mode = Interface.Interface.MODE_FULL
-                            if self.config["connect_ifmode_local"] == "gateway":
-                                if_mode = Interface.Interface.MODE_GATEWAY
-                            elif self.config["connect_ifmode_local"] == "access point":
-                                if_mode = Interface.Interface.MODE_ACCESS_POINT
-                            elif self.config["connect_ifmode_local"] == "roaming":
-                                if_mode = Interface.Interface.MODE_ROAMING
-                            elif self.config["connect_ifmode_local"] == "boundary":
-                                if_mode = Interface.Interface.MODE_BOUNDARY
-                        else:
-                            if_mode = None
-                            
-                        self.reticulum._add_interface(autointerface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
-                        self.interface_local = autointerface
-
-                    except Exception as e:
-                        RNS.log("Error while adding AutoInterface. The contained exception was: "+str(e))
-                        self.interface_local = None
+                    self.__add_localinterface()
 
                 if self.config["connect_tcp"]:
                     self.setstate("init.loadingstate", "Connecting TCP Tunnel")
