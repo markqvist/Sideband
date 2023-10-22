@@ -80,7 +80,6 @@ version:
 	@(echo $$(python ./gv.py))
 
 install:
-# 	adb install bin/sideband-$$(python ./gv.py)-arm64-v8a-release.apk
 	adb install bin/sideband-$$(python ./gv.py)-arm64-v8a_armeabi-v7a-release.apk
 
 console:
