@@ -590,7 +590,7 @@ MDScreen:
                         icon_size: dp(24)
                         font_size: dp(16)
                         size_hint: [1.0, None]
-                        on_release: root.ids.screen_manager.app.rpc_copy_action(self)
+                        on_release: root.app.rpc_copy_action(self)
 
                 MDBoxLayout:
                     orientation: "horizontal"
@@ -1396,7 +1396,7 @@ MDScreen:
                     icon_size: dp(24)
                     font_size: dp(16)
                     size_hint: [1.0, None]
-                    on_release: root.ids.screen_manager.app.identity_display_action(self)
+                    on_release: root.app.identity_display_action(self)
 
                 MDRectangleFlatIconButton:
                     id: keys_copy
@@ -1406,7 +1406,7 @@ MDScreen:
                     icon_size: dp(24)
                     font_size: dp(16)
                     size_hint: [1.0, None]
-                    on_release: root.ids.screen_manager.app.identity_copy_action(self)
+                    on_release: root.app.identity_copy_action(self)
 
                 MDRectangleFlatIconButton:
                     id: keys_share
@@ -1416,7 +1416,7 @@ MDScreen:
                     icon_size: dp(24)
                     font_size: dp(16)
                     size_hint: [1.0, None]
-                    on_release: root.ids.screen_manager.app.identity_share_action(self)
+                    on_release: root.app.identity_share_action(self)
 
                 MDBoxLayout:
                     orientation: "vertical"
@@ -1440,7 +1440,7 @@ MDScreen:
                     icon_size: dp(24)
                     font_size: dp(16)
                     size_hint: [1.0, None]
-                    on_release: root.ids.screen_manager.app.identity_restore_action(self)
+                    on_release: root.app.identity_restore_action(self)
 """
 
 layout_settings_screen = """
@@ -1785,7 +1785,7 @@ MDScreen:
                         icon_size: dp(24)
                         font_size: dp(16)
                         size_hint: [1.0, None]
-                        on_release: root.ids.screen_manager.app.repository_start_action(self)
+                        on_release: root.app.repository_start_action(self)
 
                     MDRectangleFlatIconButton:
                         id: repository_disable_button
@@ -1795,7 +1795,7 @@ MDScreen:
                         icon_size: dp(24)
                         font_size: dp(16)
                         size_hint: [1.0, None]
-                        on_release: root.ids.screen_manager.app.repository_stop_action(self)
+                        on_release: root.app.repository_stop_action(self)
                         disabled: True
 
                     MDRectangleFlatIconButton:
@@ -1806,7 +1806,7 @@ MDScreen:
                         icon_size: dp(24)
                         font_size: dp(16)
                         size_hint: [1.0, None]
-                        on_release: root.ids.screen_manager.app.repository_download_action(self)
+                        on_release: root.app.repository_download_action(self)
                         disabled: False
 
                     MDLabel:
@@ -1874,7 +1874,7 @@ MDScreen:
                         icon_size: dp(24)
                         font_size: dp(16)
                         size_hint: [1.0, None]
-                        on_release: root.ids.screen_manager.app.hardware_rnode_action(self)
+                        on_release: root.app.hardware_rnode_action(self)
 
                     MDRectangleFlatIconButton:
                         id: hardware_modem_button
@@ -1884,7 +1884,7 @@ MDScreen:
                         icon_size: dp(24)
                         font_size: dp(16)
                         size_hint: [1.0, None]
-                        on_release: root.ids.screen_manager.app.hardware_modem_action(self)
+                        on_release: root.app.hardware_modem_action(self)
                         disabled: False
 
                     MDRectangleFlatIconButton:
@@ -1895,7 +1895,7 @@ MDScreen:
                         icon_size: dp(24)
                         font_size: dp(16)
                         size_hint: [1.0, None]
-                        on_release: root.ids.screen_manager.app.hardware_serial_action(self)
+                        on_release: root.app.hardware_serial_action(self)
                         disabled: False
 """
 
@@ -2102,7 +2102,7 @@ MDScreen:
                         icon_size: dp(24)
                         font_size: dp(16)
                         size_hint: [1.0, None]
-                        on_release: root.ids.screen_manager.app.hardware_rnode_export(self)
+                        on_release: root.app.hardware_rnode_export(self)
 
                     MDRectangleFlatIconButton:
                         id: rnode_mote_import
@@ -2112,7 +2112,7 @@ MDScreen:
                         icon_size: dp(24)
                         font_size: dp(16)
                         size_hint: [1.0, None]
-                        on_release: root.ids.screen_manager.app.hardware_rnode_import(self)
+                        on_release: root.app.hardware_rnode_import(self)
 
                 MDLabel:
                     text: "Radio Options"
@@ -2264,7 +2264,7 @@ MDScreen:
                         icon_size: dp(24)
                         font_size: dp(16)
                         size_hint: [1.0, None]
-                        on_release: root.ids.screen_manager.app.hardware_rnode_bt_on_action(self)
+                        on_release: root.app.hardware_rnode_bt_on_action(self)
 
                     MDRectangleFlatIconButton:
                         id: hardware_rnode_bt_off_button
@@ -2274,7 +2274,7 @@ MDScreen:
                         icon_size: dp(24)
                         font_size: dp(16)
                         size_hint: [1.0, None]
-                        on_release: root.ids.screen_manager.app.hardware_rnode_bt_off_action(self)
+                        on_release: root.app.hardware_rnode_bt_off_action(self)
                         disabled: False
 
                     MDRectangleFlatIconButton:
@@ -2285,7 +2285,7 @@ MDScreen:
                         icon_size: dp(24)
                         font_size: dp(16)
                         size_hint: [1.0, None]
-                        on_release: root.ids.screen_manager.app.hardware_rnode_bt_pair_action(self)
+                        on_release: root.app.hardware_rnode_bt_pair_action(self)
                         disabled: False
 
                     MDTextField:

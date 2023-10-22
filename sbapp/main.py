@@ -1,4 +1,4 @@
-__debug_build__ = True
+__debug_build__ = False
 __disable_shaders__ = False
 __version__ = "0.6.3"
 __variant__ = "beta"
@@ -1223,16 +1223,26 @@ class SidebandApp(MDApp):
     ### Information/version screen
     ######################################
     def information_action(self, sender=None):
-        def link_exec(sender=None, event=None):
-            import webbrowser
-            webbrowser.open("https://unsigned.io/donate")
+        if not self.root.ids.screen_manager.has_screen("information_screen"):
+            self.information_screen = Builder.load_string(layout_information_screen)
+            self.information_screen.app = self
+            self.root.ids.screen_manager.add_widget(self.information_screen)
 
-        self.root.ids.information_scrollview.effect_cls = ScrollEffect
-        self.root.ids.information_logo.icon = self.sideband.asset_dir+"/rns_256.png"
+        def link_exec(sender=None, event=None):
+            def lj():
+                import webbrowser
+                webbrowser.open("https://unsigned.io/donate")
+            if not RNS.vendor.platformutils.is_android():
+                threading.Thread(target=lj, daemon=True).start()
+            else:
+                lj()
+
+        self.information_screen.ids.information_scrollview.effect_cls = ScrollEffect
+        self.information_screen.ids.information_logo.icon = self.sideband.asset_dir+"/rns_256.png"
 
         info = "This is Sideband v"+__version__+" "+__variant__+", on RNS v"+RNS.__version__+" and LXMF v"+LXMF.__version__+".\n\nHumbly build using the following open components:\n\n - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)\n - [b]Kivy[/b] (MIT License)\n - [b]Python[/b] (PSF License)"+"\n\nGo to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2022 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of Sideband v"+__version__+" "+__variant__+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - SIDEBAND COMES WITH ABSOLUTELY NO WARRANTY - USE AT YOUR OWN RISK AND RESPONSIBILITY"
-        self.root.ids.information_info.text = info
-        self.root.ids.information_info.bind(on_ref_press=link_exec)
+        self.information_screen.ids.information_info.text = info
+        self.information_screen.ids.information_info.bind(on_ref_press=link_exec)
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "information_screen"
         self.root.ids.nav_drawer.set_state("closed")
@@ -1249,17 +1259,22 @@ class SidebandApp(MDApp):
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.nav_drawer.set_state("closed")
         if self.sideband.active_propagation_node != None:
-            self.root.ids.settings_propagation_node_address.text = RNS.hexrep(self.sideband.active_propagation_node, delimit=False)
+            self.settings_screen.ids.settings_propagation_node_address.text = RNS.hexrep(self.sideband.active_propagation_node, delimit=False)
         self.root.ids.screen_manager.current = "settings_screen"
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
     def settings_init(self, sender=None):
         if not self.settings_ready:
-            self.root.ids.settings_scrollview.effect_cls = ScrollEffect
+            if not self.root.ids.screen_manager.has_screen("settings_screen"):
+                self.settings_screen = Builder.load_string(layout_settings_screen)
+                self.settings_screen.app = self
+                self.root.ids.screen_manager.add_widget(self.settings_screen)
+
+            self.settings_screen.ids.settings_scrollview.effect_cls = ScrollEffect
 
             def save_disp_name(sender=None, event=None):
                 if not sender.focus:
-                    in_name = self.root.ids.settings_display_name.text
+                    in_name = self.settings_screen.ids.settings_display_name.text
                     if in_name == "":
                         new_name = "Anonymous Peer"
                     else:
@@ -1270,12 +1285,12 @@ class SidebandApp(MDApp):
 
             def save_prop_addr(sender=None, event=None):
                 if not sender.focus:
-                    in_addr = self.root.ids.settings_propagation_node_address.text
+                    in_addr = self.settings_screen.ids.settings_propagation_node_address.text
 
                     new_addr = None
                     if in_addr == "":
                         new_addr = None
-                        self.root.ids.settings_propagation_node_address.error = False
+                        self.settings_screen.ids.settings_propagation_node_address.error = False
                     else:
                         if len(in_addr) != RNS.Reticulum.TRUNCATED_HASHLENGTH//8*2:
                             new_addr = None
@@ -1286,137 +1301,137 @@ class SidebandApp(MDApp):
                                 new_addr = None
 
                         if new_addr == None:
-                            self.root.ids.settings_propagation_node_address.error = True
+                            self.settings_screen.ids.settings_propagation_node_address.error = True
                         else:
-                            self.root.ids.settings_propagation_node_address.error = False
+                            self.settings_screen.ids.settings_propagation_node_address.error = False
 
 
                     self.sideband.config["lxmf_propagation_node"] = new_addr
                     self.sideband.set_active_propagation_node(self.sideband.config["lxmf_propagation_node"])
 
             def save_dark_ui(sender=None, event=None):
-                self.sideband.config["dark_ui"] = self.root.ids.settings_dark_ui.active
+                self.sideband.config["dark_ui"] = self.settings_screen.ids.settings_dark_ui.active
                 self.sideband.save_configuration()
                 self.update_ui_theme()
 
             def save_eink_mode(sender=None, event=None):
-                self.sideband.config["eink_mode"] = self.root.ids.settings_eink_mode.active
+                self.sideband.config["eink_mode"] = self.settings_screen.ids.settings_eink_mode.active
                 self.sideband.save_configuration()
                 self.update_ui_theme()
 
             def save_advanced_stats(sender=None, event=None):
-                self.sideband.config["advanced_stats"] = self.root.ids.settings_advanced_statistics.active
+                self.sideband.config["advanced_stats"] = self.settings_screen.ids.settings_advanced_statistics.active
                 self.sideband.save_configuration()
 
             def save_notifications_on(sender=None, event=None):
-                self.sideband.config["notifications_on"] = self.root.ids.settings_notifications_on.active
+                self.sideband.config["notifications_on"] = self.settings_screen.ids.settings_notifications_on.active
                 self.sideband.save_configuration()
 
             def save_start_announce(sender=None, event=None):
-                self.sideband.config["start_announce"] = self.root.ids.settings_start_announce.active
+                self.sideband.config["start_announce"] = self.settings_screen.ids.settings_start_announce.active
                 self.sideband.save_configuration()
 
             def save_lxmf_delivery_by_default(sender=None, event=None):
-                self.sideband.config["propagation_by_default"] = self.root.ids.settings_lxmf_delivery_by_default.active
+                self.sideband.config["propagation_by_default"] = self.settings_screen.ids.settings_lxmf_delivery_by_default.active
                 self.sideband.save_configuration()
 
             def save_lxmf_ignore_unknown(sender=None, event=None):
-                self.sideband.config["lxmf_ignore_unknown"] = self.root.ids.settings_lxmf_ignore_unknown.active
+                self.sideband.config["lxmf_ignore_unknown"] = self.settings_screen.ids.settings_lxmf_ignore_unknown.active
                 self.sideband.save_configuration()
 
             def save_lxmf_sync_limit(sender=None, event=None):
-                self.sideband.config["lxmf_sync_limit"] = self.root.ids.settings_lxmf_sync_limit.active
+                self.sideband.config["lxmf_sync_limit"] = self.settings_screen.ids.settings_lxmf_sync_limit.active
                 self.sideband.save_configuration()
 
             def save_debug(sender=None, event=None):
-                self.sideband.config["debug"] = self.root.ids.settings_debug.active
+                self.sideband.config["debug"] = self.settings_screen.ids.settings_debug.active
                 self.sideband.save_configuration()
 
             def save_print_command(sender=None, event=None):
                 if not sender.focus:
-                    in_cmd = self.root.ids.settings_print_command.text
+                    in_cmd = self.settings_screen.ids.settings_print_command.text
                     if in_cmd == "":
                         new_cmd = "lp"
                     else:
                         new_cmd = in_cmd
 
                     self.sideband.config["print_command"] = new_cmd.strip()
-                    self.root.ids.settings_print_command.text = self.sideband.config["print_command"]
+                    self.settings_screen.ids.settings_print_command.text = self.sideband.config["print_command"]
                     self.sideband.save_configuration()
 
             def save_lxmf_periodic_sync(sender=None, event=None, save=True):
-                if self.root.ids.settings_lxmf_periodic_sync.active:
-                    self.widget_hide(self.root.ids.lxmf_syncslider_container, False)
+                if self.settings_screen.ids.settings_lxmf_periodic_sync.active:
+                    self.widget_hide(self.settings_screen.ids.lxmf_syncslider_container, False)
                 else:
-                    self.widget_hide(self.root.ids.lxmf_syncslider_container, True)
+                    self.widget_hide(self.settings_screen.ids.lxmf_syncslider_container, True)
 
                 if save:
-                    self.sideband.config["lxmf_periodic_sync"] = self.root.ids.settings_lxmf_periodic_sync.active
+                    self.sideband.config["lxmf_periodic_sync"] = self.settings_screen.ids.settings_lxmf_periodic_sync.active
                     self.sideband.save_configuration()
 
             def sync_interval_change(sender=None, event=None, save=True):
-                interval = (self.root.ids.settings_lxmf_sync_interval.value//300)*300
+                interval = (self.settings_screen.ids.settings_lxmf_sync_interval.value//300)*300
                 interval_text = RNS.prettytime(interval)
-                pre = self.root.ids.settings_lxmf_sync_periodic.text
-                self.root.ids.settings_lxmf_sync_periodic.text = "Auto sync every "+interval_text
+                pre = self.settings_screen.ids.settings_lxmf_sync_periodic.text
+                self.settings_screen.ids.settings_lxmf_sync_periodic.text = "Auto sync every "+interval_text
                 if save:
                     self.sideband.config["lxmf_sync_interval"] = interval
                     self.sideband.save_configuration()
 
-            self.root.ids.settings_lxmf_address.text = RNS.hexrep(self.sideband.lxmf_destination.hash, delimit=False)
-            self.root.ids.settings_identity_hash.text = RNS.hexrep(self.sideband.lxmf_destination.identity.hash, delimit=False)
+            self.settings_screen.ids.settings_lxmf_address.text = RNS.hexrep(self.sideband.lxmf_destination.hash, delimit=False)
+            self.settings_screen.ids.settings_identity_hash.text = RNS.hexrep(self.sideband.lxmf_destination.identity.hash, delimit=False)
 
-            self.root.ids.settings_display_name.text = self.sideband.config["display_name"]
-            self.root.ids.settings_display_name.bind(focus=save_disp_name)
+            self.settings_screen.ids.settings_display_name.text = self.sideband.config["display_name"]
+            self.settings_screen.ids.settings_display_name.bind(focus=save_disp_name)
 
             if RNS.vendor.platformutils.is_android():
-                self.widget_hide(self.root.ids.settings_print_command, True)
+                self.widget_hide(self.settings_screen.ids.settings_print_command, True)
             else:
-                self.root.ids.settings_print_command.text = self.sideband.config["print_command"]
-                self.root.ids.settings_print_command.bind(focus=save_print_command)
+                self.settings_screen.ids.settings_print_command.text = self.sideband.config["print_command"]
+                self.settings_screen.ids.settings_print_command.bind(focus=save_print_command)
 
             if self.sideband.config["lxmf_propagation_node"] == None:
                 prop_node_addr = ""
             else:
                 prop_node_addr = RNS.hexrep(self.sideband.config["lxmf_propagation_node"], delimit=False)
 
-            self.root.ids.settings_propagation_node_address.text = prop_node_addr
-            self.root.ids.settings_propagation_node_address.bind(focus=save_prop_addr)
+            self.settings_screen.ids.settings_propagation_node_address.text = prop_node_addr
+            self.settings_screen.ids.settings_propagation_node_address.bind(focus=save_prop_addr)
 
             if not RNS.vendor.platformutils.is_android() or android_api_version >= 26:
-                self.root.ids.settings_notifications_on.active = self.sideband.config["notifications_on"]
-                self.root.ids.settings_notifications_on.bind(active=save_notifications_on)
+                self.settings_screen.ids.settings_notifications_on.active = self.sideband.config["notifications_on"]
+                self.settings_screen.ids.settings_notifications_on.bind(active=save_notifications_on)
             else:
-                self.root.ids.settings_notifications_on.active = False
-                self.root.ids.settings_notifications_on.disabled = True
+                self.settings_screen.ids.settings_notifications_on.active = False
+                self.settings_screen.ids.settings_notifications_on.disabled = True
 
-            self.root.ids.settings_dark_ui.active = self.sideband.config["dark_ui"]
-            self.root.ids.settings_dark_ui.bind(active=save_dark_ui)
+            self.settings_screen.ids.settings_dark_ui.active = self.sideband.config["dark_ui"]
+            self.settings_screen.ids.settings_dark_ui.bind(active=save_dark_ui)
 
-            self.root.ids.settings_eink_mode.active = self.sideband.config["eink_mode"]
-            self.root.ids.settings_eink_mode.bind(active=save_eink_mode)
+            self.settings_screen.ids.settings_eink_mode.active = self.sideband.config["eink_mode"]
+            self.settings_screen.ids.settings_eink_mode.bind(active=save_eink_mode)
 
-            self.root.ids.settings_advanced_statistics.active = self.sideband.config["advanced_stats"]
-            self.root.ids.settings_advanced_statistics.bind(active=save_advanced_stats)
+            self.settings_screen.ids.settings_advanced_statistics.active = self.sideband.config["advanced_stats"]
+            self.settings_screen.ids.settings_advanced_statistics.bind(active=save_advanced_stats)
 
-            self.root.ids.settings_start_announce.active = self.sideband.config["start_announce"]
-            self.root.ids.settings_start_announce.bind(active=save_start_announce)
+            self.settings_screen.ids.settings_start_announce.active = self.sideband.config["start_announce"]
+            self.settings_screen.ids.settings_start_announce.bind(active=save_start_announce)
 
-            self.root.ids.settings_lxmf_delivery_by_default.active = self.sideband.config["propagation_by_default"]
-            self.root.ids.settings_lxmf_delivery_by_default.bind(active=save_lxmf_delivery_by_default)
+            self.settings_screen.ids.settings_lxmf_delivery_by_default.active = self.sideband.config["propagation_by_default"]
+            self.settings_screen.ids.settings_lxmf_delivery_by_default.bind(active=save_lxmf_delivery_by_default)
 
-            self.root.ids.settings_lxmf_ignore_unknown.active = self.sideband.config["lxmf_ignore_unknown"]
-            self.root.ids.settings_lxmf_ignore_unknown.bind(active=save_lxmf_ignore_unknown)
+            self.settings_screen.ids.settings_lxmf_ignore_unknown.active = self.sideband.config["lxmf_ignore_unknown"]
+            self.settings_screen.ids.settings_lxmf_ignore_unknown.bind(active=save_lxmf_ignore_unknown)
 
-            self.root.ids.settings_lxmf_periodic_sync.active = self.sideband.config["lxmf_periodic_sync"]
-            self.root.ids.settings_lxmf_periodic_sync.bind(active=save_lxmf_periodic_sync)
+            self.settings_screen.ids.settings_lxmf_periodic_sync.active = self.sideband.config["lxmf_periodic_sync"]
+            self.settings_screen.ids.settings_lxmf_periodic_sync.bind(active=save_lxmf_periodic_sync)
             save_lxmf_periodic_sync(save=False)
 
             def sync_interval_change_cb(sender=None, event=None):
                 sync_interval_change(sender=sender, event=event, save=False)
-            self.root.ids.settings_lxmf_sync_interval.bind(value=sync_interval_change_cb)
-            self.root.ids.settings_lxmf_sync_interval.bind(on_touch_up=sync_interval_change)
-            self.root.ids.settings_lxmf_sync_interval.value = self.sideband.config["lxmf_sync_interval"]
+            self.settings_screen.ids.settings_lxmf_sync_interval.bind(value=sync_interval_change_cb)
+            self.settings_screen.ids.settings_lxmf_sync_interval.bind(on_touch_up=sync_interval_change)
+            self.settings_screen.ids.settings_lxmf_sync_interval.value = self.sideband.config["lxmf_sync_interval"]
             sync_interval_change(save=False)
 
             if self.sideband.config["lxmf_sync_limit"] == None or self.sideband.config["lxmf_sync_limit"] == False:
@@ -1424,11 +1439,11 @@ class SidebandApp(MDApp):
             else:
                 sync_limit = True
 
-            self.root.ids.settings_lxmf_sync_limit.active = sync_limit
-            self.root.ids.settings_lxmf_sync_limit.bind(active=save_lxmf_sync_limit)
+            self.settings_screen.ids.settings_lxmf_sync_limit.active = sync_limit
+            self.settings_screen.ids.settings_lxmf_sync_limit.bind(active=save_lxmf_sync_limit)
 
-            self.root.ids.settings_debug.active = self.sideband.config["debug"]
-            self.root.ids.settings_debug.bind(active=save_debug)
+            self.settings_screen.ids.settings_debug.active = self.sideband.config["debug"]
+            self.settings_screen.ids.settings_debug.bind(active=save_debug)
 
             self.settings_ready = True
 
@@ -1783,10 +1798,10 @@ class SidebandApp(MDApp):
         self.root.ids.screen_manager.current = "repository_screen"
         self.root.ids.nav_drawer.set_state("closed")
         if not RNS.vendor.platformutils.is_android():
-            self.widget_hide(self.root.ids.repository_enable_button)
-            self.widget_hide(self.root.ids.repository_disable_button)
-            self.widget_hide(self.root.ids.repository_download_button)
-            self.root.ids.repository_info.text = "\nThe [b]Repository Webserver[/b] feature is currently only available on mobile devices."
+            self.widget_hide(self.repository_screen.ids.repository_enable_button)
+            self.widget_hide(self.repository_screen.ids.repository_disable_button)
+            self.widget_hide(self.repository_screen.ids.repository_download_button)
+            self.repository_screen.ids.repository_info.text = "\nThe [b]Repository Webserver[/b] feature is currently only available on mobile devices."
 
 
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
@@ -1833,15 +1848,15 @@ class SidebandApp(MDApp):
                     ms = "" if len(ips) == 1 else "es"
                     info += "The repository server is running at the following address"+ms+":\n"+ipstr
 
-            self.root.ids.repository_enable_button.disabled = True
-            self.root.ids.repository_disable_button.disabled = False
+            self.repository_screen.ids.repository_enable_button.disabled = True
+            self.repository_screen.ids.repository_disable_button.disabled = False
 
         else:
-            self.root.ids.repository_enable_button.disabled = False
-            self.root.ids.repository_disable_button.disabled = True
+            self.repository_screen.ids.repository_enable_button.disabled = False
+            self.repository_screen.ids.repository_disable_button.disabled = True
 
         info += "\n"
-        self.root.ids.repository_info.text = info
+        self.repository_screen.ids.repository_info.text = info
 
     def repository_start_action(self, sender=None):
         self.sideband.start_webshare()
@@ -1873,10 +1888,10 @@ class SidebandApp(MDApp):
                                 apk_version = release["tag_name"]
                                 RNS.log(f"Found version {apk_version} artefact {pkgname} at {apk_url}")
                 except Exception as e:
-                    self.root.ids.repository_update.text = f"Downloading release info failed with the error:\n"+str(e)
+                    self.repository_screen.ids.repository_update.text = f"Downloading release info failed with the error:\n"+str(e)
                     return
 
-                self.root.ids.repository_update.text = "Downloading: "+str(apk_url)
+                self.repository_screen.ids.repository_update.text = "Downloading: "+str(apk_url)
                 with requests.get(apk_url, stream=True) as response:
                     with open("./dl_tmp", "wb") as tmp_file:
                         cs = 32*1024
@@ -1884,25 +1899,30 @@ class SidebandApp(MDApp):
                         for chunk in response.iter_content(chunk_size=cs):
                             tmp_file.write(chunk)
                             tds += cs
-                            self.root.ids.repository_update.text = "Downloaded "+RNS.prettysize(tds)+" of "+str(pkgname)
+                            self.repository_screen.ids.repository_update.text = "Downloaded "+RNS.prettysize(tds)+" of "+str(pkgname)
 
                     os.rename("./dl_tmp", f"./share/pkg/{pkgname}")
-                    self.root.ids.repository_update.text = f"Added {pkgname} to the repository!"
+                    self.repository_screen.ids.repository_update.text = f"Added {pkgname} to the repository!"
             except Exception as e:
-                self.root.ids.repository_update.text = f"Downloading contents failed with the error:\n"+str(e)
+                self.repository_screen.ids.repository_update.text = f"Downloading contents failed with the error:\n"+str(e)
 
-        self.root.ids.repository_update.text = "Starting package download..."
+        self.repository_screen.ids.repository_update.text = "Starting package download..."
         def start_update_job(sender=None):
             threading.Thread(target=update_job, daemon=True).start()
         Clock.schedule_once(start_update_job, 0.5)
 
     def repository_init(self, sender=None):
         if not self.repository_ready:
-            self.root.ids.hardware_scrollview.effect_cls = ScrollEffect
+            if not self.root.ids.screen_manager.has_screen("repository_screen"):
+                self.repository_screen = Builder.load_string(layout_repository_screen)
+                self.repository_screen.app = self
+                self.root.ids.screen_manager.add_widget(self.repository_screen)
+
+            self.repository_screen.ids.repository_scrollview.effect_cls = ScrollEffect
                                 
             self.repository_update_info()
 
-        self.root.ids.repository_update.text = ""
+        self.repository_screen.ids.repository_update.text = ""
         self.repository_ready = True
 
     def close_repository_action(self, sender=None):
@@ -2748,18 +2768,18 @@ class SidebandApp(MDApp):
     ### Keys screen
     ######################################
     def keys_action(self, sender=None):
-        # def link_exec(sender=None, event=None):
-        #     import webbrowser
-        #     webbrowser.open("https://unsigned.io/sideband")
-        # self.root.ids.keys_info.bind(on_ref_press=link_exec)
+        if not self.root.ids.screen_manager.has_screen("keys_screen"):
+            self.keys_screen = Builder.load_string(layout_keys_screen)
+            self.keys_screen.app = self
+            self.root.ids.screen_manager.add_widget(self.keys_screen)
 
-        self.root.ids.keys_scrollview.effect_cls = ScrollEffect
+        self.keys_screen.ids.keys_scrollview.effect_cls = ScrollEffect
         info = "Your primary encryption keys are stored in a Reticulum Identity within the Sideband app. If you want to backup this Identity for later use on this or another device, you can export it as a plain text blob, with the key data encoded in Base32 format. This will allow you to restore your address in Sideband or other LXMF clients at a later point.\n\n[b]Warning![/b] Anyone that gets access to the key data will be able to control your LXMF address, impersonate you, and read your messages. In is [b]extremely important[/b] that you keep the Identity data secure if you export it.\n\nBefore displaying or exporting your Identity data, make sure that no machine or person in your vicinity is able to see, copy or record your device screen or similar."
 
         if not RNS.vendor.platformutils.get_platform() == "android":
-            self.widget_hide(self.root.ids.keys_share)
+            self.widget_hide(self.keys_screen.ids.keys_share)
 
-        self.root.ids.keys_info.text = info
+        self.keys_screen.ids.keys_info.text = info
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "keys_screen"
         self.root.ids.nav_drawer.set_state("closed")
@@ -2816,7 +2836,7 @@ class SidebandApp(MDApp):
             c_dialog.dismiss()
         def c_dl_yes(s):
             c_dialog.dismiss()
-            b32_text = self.root.ids.key_restore_text.text
+            b32_text = self.keys_screen.ids.key_restore_text.text
         
             try:
                 key_bytes = base64.b32decode(b32_text)
@@ -3294,9 +3314,19 @@ class SidebandApp(MDApp):
         self.open_conversations(direction="right")
     
     def guide_action(self, sender=None):
+        if not self.root.ids.screen_manager.has_screen("guide_screen"):
+            self.guide_screen = Builder.load_string(layout_guide_screen)
+            self.guide_screen.app = self
+            self.root.ids.screen_manager.add_widget(self.guide_screen)
+
         def link_exec(sender=None, event=None):
-            import webbrowser
-            webbrowser.open("https://unsigned.io/donate")
+            def lj():
+                import webbrowser
+                webbrowser.open("https://unsigned.io/donate")
+            if not RNS.vendor.platformutils.is_android():
+                threading.Thread(target=lj, daemon=True).start()
+            else:
+                lj()
 
         guide_text1 = """
 [size=18dp][b]Introduction[/b][/size][size=5dp]\n \n[/size]Welcome to [i]Sideband[/i], an LXMF client for Android, Linux and macOS. With Sideband, you can communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, or anything else Reticulum supports.
@@ -3363,17 +3393,17 @@ Thank you very much for using Free Communications Systems.
             info7 = "[color=#"+dark_theme_text_color+"]"+info7+"[/color]"
             info8 = "[color=#"+dark_theme_text_color+"]"+info8+"[/color]"
             info9 = "[color=#"+dark_theme_text_color+"]"+info9+"[/color]"
-        self.root.ids.guide_info1.text = info1
-        self.root.ids.guide_info2.text = info2
-        self.root.ids.guide_info3.text = info3
-        self.root.ids.guide_info4.text = info4
-        self.root.ids.guide_info5.text = info5
-        self.root.ids.guide_info6.text = info6
-        self.root.ids.guide_info7.text = info7
-        self.root.ids.guide_info8.text = info8
-        self.root.ids.guide_info9.text = info9
-        self.root.ids.guide_info9.bind(on_ref_press=link_exec)
-        self.root.ids.guide_scrollview.effect_cls = ScrollEffect
+        self.guide_screen.ids.guide_info1.text = info1
+        self.guide_screen.ids.guide_info2.text = info2
+        self.guide_screen.ids.guide_info3.text = info3
+        self.guide_screen.ids.guide_info4.text = info4
+        self.guide_screen.ids.guide_info5.text = info5
+        self.guide_screen.ids.guide_info6.text = info6
+        self.guide_screen.ids.guide_info7.text = info7
+        self.guide_screen.ids.guide_info8.text = info8
+        self.guide_screen.ids.guide_info9.text = info9
+        self.guide_screen.ids.guide_info9.bind(on_ref_press=link_exec)
+        self.guide_screen.ids.guide_scrollview.effect_cls = ScrollEffect
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "guide_screen"
         self.root.ids.nav_drawer.set_state("closed")
@@ -3385,10 +3415,13 @@ Thank you very much for using Free Communications Systems.
 
     def broadcasts_action(self, sender=None):
         def link_exec(sender=None, event=None):
-            def lejob():
+            def lj():
                 import webbrowser
                 webbrowser.open("https://unsigned.io/donate")
-            threading.Thread(target=lejob, daemon=True).start()
+            if not RNS.vendor.platformutils.is_android():
+                threading.Thread(target=lj, daemon=True).start()
+            else:
+                lj()
 
         if not self.root.ids.screen_manager.has_screen("broadcasts_screen"):
             self.broadcasts_screen = Builder.load_string(layout_broadcasts_screen)

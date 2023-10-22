@@ -364,11 +364,11 @@ MDScreen:
                 ]
             right_action_items:
                 [
-                ['access-point', lambda x: root.ids.screen_manager.app.announce_now_action(self)],
-                ['webhook', lambda x: root.ids.screen_manager.app.connectivity_status(self)],
-                ['qrcode', lambda x: root.ids.screen_manager.app.ingest_lxm_action(self)],
-                ['email-sync', lambda x: root.ids.screen_manager.app.lxmf_sync_action(self)],
-                ['account-plus', lambda x: root.ids.screen_manager.app.new_conversation_action(self)],
+                ['access-point', lambda x: root.app.announce_now_action(self)],
+                ['webhook', lambda x: root.app.connectivity_status(self)],
+                ['qrcode', lambda x: root.app.ingest_lxm_action(self)],
+                ['email-sync', lambda x: root.app.lxmf_sync_action(self)],
+                ['account-plus', lambda x: root.app.new_conversation_action(self)],
                 ]
 
         ScrollView:
