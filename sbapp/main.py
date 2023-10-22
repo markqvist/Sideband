@@ -54,7 +54,7 @@ if RNS.vendor.platformutils.get_platform() == "android":
     from ui.layouts import *
     from ui.conversations import Conversations, MsgSync, NewConv
     from ui.announces import Announces
-    from ui.messages import Messages, ts_format
+    from ui.messages import Messages, ts_format, messages_screen_kv
     from ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
 
     from jnius import cast
@@ -71,7 +71,7 @@ else:
     from .ui.layouts import *
     from .ui.conversations import Conversations, MsgSync, NewConv
     from .ui.announces import Announces
-    from .ui.messages import Messages, ts_format
+    from .ui.messages import Messages, ts_format, messages_screen_kv
     from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
 
     from kivy.config import Config
@@ -212,6 +212,13 @@ class SidebandApp(MDApp):
             Clock.schedule_once(fp, 3)
         else:
             self.open_conversations()
+
+        if not self.root.ids.screen_manager.has_screen("messages_screen"):
+            # TODO: Remove
+            RNS.log("Adding messages screen", RNS.LOG_WARNING)
+            self.messages_screen = Builder.load_string(messages_screen_kv)
+            self.messages_screen.app = self
+            self.root.ids.screen_manager.add_widget(self.messages_screen)
 
         self.app_state = SidebandApp.ACTIVE
         self.loading_updater.cancel()
@@ -587,7 +594,7 @@ class SidebandApp(MDApp):
         if self.root.ids.screen_manager.current == "messages_screen":
             self.messages_view.update()
 
-            if not self.root.ids.messages_scrollview.dest_known:
+            if not self.messages_view.ids.messages_scrollview.dest_known:
                 self.message_area_detect()
 
         elif self.root.ids.screen_manager.current == "conversations_screen":
@@ -841,23 +848,23 @@ class SidebandApp(MDApp):
         self.root.ids.screen_manager.transition.direction = "left"
         self.messages_view = Messages(self, context_dest)
 
-        self.root.ids.messages_scrollview.effect_cls = ScrollEffect
-        for child in self.root.ids.messages_scrollview.children:
-            self.root.ids.messages_scrollview.remove_widget(child)
+        self.messages_view.ids.messages_scrollview.effect_cls = ScrollEffect
+        for child in self.messages_view.ids.messages_scrollview.children:
+            self.messages_view.ids.messages_scrollview.remove_widget(child)
 
         list_widget = self.messages_view.get_widget()
 
-        self.root.ids.messages_scrollview.add_widget(list_widget)
-        self.root.ids.messages_scrollview.scroll_y = 0.0
+        self.messages_view.ids.messages_scrollview.add_widget(list_widget)
+        self.messages_view.ids.messages_scrollview.scroll_y = 0.0
 
-        self.root.ids.messages_toolbar.title = self.sideband.peer_display_name(context_dest)
-        self.root.ids.messages_scrollview.active_conversation = context_dest
+        self.messages_view.ids.messages_toolbar.title = self.sideband.peer_display_name(context_dest)
+        self.messages_view.ids.messages_scrollview.active_conversation = context_dest
         self.sideband.setstate("app.active_conversation", context_dest)
 
-        self.root.ids.nokeys_text.text = ""
+        self.messages_view.ids.nokeys_text.text = ""
         self.message_area_detect()
         self.update_message_widgets()
-        self.root.ids.message_text.disabled = False
+        self.messages_view.ids.message_text.disabled = False
 
 
         self.root.ids.screen_manager.current = "messages_screen"
@@ -867,14 +874,14 @@ class SidebandApp(MDApp):
         self.sideband.setstate("app.flags.unread_conversations", True)
 
         def scb(dt):
-            self.root.ids.messages_scrollview.scroll_y = 0.0
+            self.messages_view.ids.messages_scrollview.scroll_y = 0.0
         Clock.schedule_once(scb, 0.33)
 
     def close_messages_action(self, sender=None):
         self.open_conversations(direction="right")
 
     def message_send_action(self, sender=None):
-        if self.root.ids.message_text.text == "":
+        if self.messages_view.ids.message_text.text == "":
             return
 
         def cb(dt):
@@ -882,7 +889,7 @@ class SidebandApp(MDApp):
         Clock.schedule_once(cb, 0.20)
 
     def message_send_dispatch(self, sender=None):
-        self.root.ids.message_send_button.disabled = True
+        self.messages_view.ids.message_send_button.disabled = True
         if self.root.ids.screen_manager.current == "messages_screen":
             if self.outbound_mode_propagation and self.sideband.message_router.get_outbound_propagation_node() == None:
                 self.messages_view.send_error_dialog = MDDialog(
@@ -900,17 +907,17 @@ class SidebandApp(MDApp):
                 self.messages_view.send_error_dialog.open()
 
             else:
-                msg_content = self.root.ids.message_text.text
-                context_dest = self.root.ids.messages_scrollview.active_conversation
+                msg_content = self.messages_view.ids.message_text.text
+                context_dest = self.messages_view.ids.messages_scrollview.active_conversation
                 if self.outbound_mode_paper:
                     if self.sideband.paper_message(msg_content, context_dest):
-                        self.root.ids.message_text.text = ""
-                        self.root.ids.messages_scrollview.scroll_y = 0
+                        self.messages_view.ids.message_text.text = ""
+                        self.messages_view.ids.messages_scrollview.scroll_y = 0
                         self.jobs(0)
                 
                 elif self.sideband.send_message(msg_content, context_dest, self.outbound_mode_propagation):
-                    self.root.ids.message_text.text = ""
-                    self.root.ids.messages_scrollview.scroll_y = 0
+                    self.messages_view.ids.message_text.text = ""
+                    self.messages_view.ids.messages_scrollview.scroll_y = 0
                     self.jobs(0)
 
                 else:
@@ -928,12 +935,12 @@ class SidebandApp(MDApp):
                     self.messages_view.send_error_dialog.open()
         
         def cb(dt):
-            self.root.ids.message_send_button.disabled = False
+            self.messages_view.ids.message_send_button.disabled = False
         Clock.schedule_once(cb, 0.5)
 
     def peer_show_location_action(self, sender):
         if self.root.ids.screen_manager.current == "messages_screen":
-            context_dest = self.root.ids.messages_scrollview.active_conversation
+            context_dest = self.messages_view.ids.messages_scrollview.active_conversation
             self.map_show_peer_location(context_dest)
 
     def message_propagation_action(self, sender):
@@ -951,43 +958,43 @@ class SidebandApp(MDApp):
         self.update_message_widgets()
 
     def update_message_widgets(self):
-        toolbar_items = self.root.ids.messages_toolbar.ids.right_actions.children
+        toolbar_items = self.messages_view.ids.messages_toolbar.ids.right_actions.children
         mode_item = toolbar_items[1]
 
         if self.outbound_mode_paper:
             mode_item.icon = "qrcode"
-            self.root.ids.message_text.hint_text = "Paper message"
+            self.messages_view.ids.message_text.hint_text = "Paper message"
         else:
             if not self.outbound_mode_propagation:
                 mode_item.icon = "lan-connect"
-                self.root.ids.message_text.hint_text = "Message for direct delivery"
+                self.messages_view.ids.message_text.hint_text = "Message for direct delivery"
             else:
                 mode_item.icon = "upload-network"
-                self.root.ids.message_text.hint_text = "Message for propagation"
+                self.messages_view.ids.message_text.hint_text = "Message for propagation"
                 # self.root.ids.message_text.hint_text = "Write message for delivery via propagation nodes"
     
     def key_query_action(self, sender):
-        context_dest = self.root.ids.messages_scrollview.active_conversation
+        context_dest = self.messages_view.ids.messages_scrollview.active_conversation
         if self.sideband.request_key(context_dest):
             keys_str = "Public key information for "+RNS.prettyhexrep(context_dest)+" was requested from the network. Waiting for request to be answered."
-            self.root.ids.nokeys_text.text = keys_str
+            self.messages_view.ids.nokeys_text.text = keys_str
         else:
             keys_str = "Could not send request. Check your connectivity and addresses."
-            self.root.ids.nokeys_text.text = keys_str
+            self.messages_view.ids.nokeys_text.text = keys_str
 
     def message_area_detect(self):
-        context_dest = self.root.ids.messages_scrollview.active_conversation
+        context_dest = self.messages_view.ids.messages_scrollview.active_conversation
         if self.sideband.is_known(context_dest):
-            self.root.ids.messages_scrollview.dest_known = True
-            self.widget_hide(self.root.ids.message_input_part, False)
-            self.widget_hide(self.root.ids.no_keys_part, True)
+            self.messages_view.ids.messages_scrollview.dest_known = True
+            self.widget_hide(self.messages_view.ids.message_input_part, False)
+            self.widget_hide(self.messages_view.ids.no_keys_part, True)
         else:
-            self.root.ids.messages_scrollview.dest_known = False
-            if self.root.ids.nokeys_text.text == "":
+            self.messages_view.ids.messages_scrollview.dest_known = False
+            if self.messages_view.ids.nokeys_text.text == "":
                 keys_str = "The crytographic keys for the destination address are unknown at this time. You can wait for an announce to arrive, or query the network for the necessary keys."
-                self.root.ids.nokeys_text.text = keys_str
-            self.widget_hide(self.root.ids.message_input_part, True)
-            self.widget_hide(self.root.ids.no_keys_part, False)
+                self.messages_view.ids.nokeys_text.text = keys_str
+            self.widget_hide(self.messages_view.ids.message_input_part, True)
+            self.widget_hide(self.messages_view.ids.no_keys_part, False)
 
 
     ### Conversations screen
@@ -3155,7 +3162,7 @@ class SidebandApp(MDApp):
             self.location_error_dialog.dismiss()
 
     def map_show(self, location):
-        if hasattr(self.root.ids.map_layout, "map") and self.root.ids.map_layout.map:
+        if hasattr(self.map_screen.ids.map_layout, "map") and self.map_screen.ids.map_layout.map:
             self.map_screen.ids.map_layout.map.lat = location["latitude"]
             self.map_screen.ids.map_layout.map.lon = location["longtitude"]
             self.map_screen.ids.map_layout.map.zoom = 16

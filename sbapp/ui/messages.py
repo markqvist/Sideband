@@ -42,13 +42,8 @@ class Messages():
         self.app = app
         self.context_dest = context_dest
 
-        if not self.app.root.ids.screen_manager.has_screen("messages_screen"):
-            # TODO: Remove
-            RNS.log("Adding messages screen", RNS.LOG_WARNING)
-            self.screen = Builder.load_string(messages_screen_kv)
-            self.screen.app = self.app
-            self.ids = self.screen.ids
-            self.app.root.ids.screen_manager.add_widget(self.screen)
+        self.screen = self.app.root.ids.screen_manager.get_screen("messages_screen")
+        self.ids = self.screen.ids
 
         self.new_messages = []
         self.added_item_hashes = []
@@ -286,7 +281,7 @@ class Messages():
 
                 def gen_retry(mhash, mcontent, item):
                     def x():
-                        self.app.root.ids.message_text.text = mcontent.decode("utf-8")
+                        self.app.messages_view.ids.message_text.text = mcontent.decode("utf-8")
                         self.app.sideband.delete_message(mhash)
                         self.app.message_send_action()
                         item.dmenu.dismiss()
@@ -603,8 +598,8 @@ MDScreen:
                 [['menu', lambda x: root.app.nav_drawer.set_state("open")],]
             right_action_items:
                 [
-                ['map-search', lambda x: root.ids.screen_manager.app.peer_show_location_action(self)],
-                ['lan-connect', lambda x: root.ids.screen_manager.app.message_propagation_action(self)],
+                ['map-search', lambda x: root.app.peer_show_location_action(self)],
+                ['lan-connect', lambda x: root.app.message_propagation_action(self)],
                 ['close', lambda x: root.app.close_settings_action(self)],
                 ]
 
@@ -628,7 +623,7 @@ MDScreen:
             MDRectangleFlatIconButton:
                 icon: "key-wireless"
                 text: "Query Network For Keys"
-                on_release: root.ids.screen_manager.app.key_query_action(self)
+                on_release: root.app.key_query_action(self)
             
 
         BoxLayout:
@@ -654,7 +649,7 @@ MDScreen:
                 padding: [dp(10), dp(13), dp(10), dp(14)]
                 icon_size: dp(24)
                 font_size: dp(16)
-                on_release: root.ids.screen_manager.app.message_send_action(self)
+                on_release: root.app.message_send_action(self)
 """
 
 Builder.load_string("""
