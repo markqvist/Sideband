@@ -832,6 +832,7 @@ class SidebandCore():
                     time.sleep(0.01)
 
                 if get_thread.is_alive():
+                    RNS.log("GETSTATE TIMED OUT, STILL WAITING!", RNS.LOG_WARNING)
                     return self.getstate_cache[prop]
                 else:
                     return self.getstate_cache[prop]
@@ -2365,7 +2366,7 @@ class SidebandCore():
 
             if send_telemetry:
                 # TODO: REMOVE
-                RNS.log("Sending telemetry: "+str(self.latest_packed_telemetry), RNS.LOG_WARNING)
+                RNS.log("Sending telemetry", RNS.LOG_WARNING)
                 fields[LXMF.FIELD_TELEMETRY] = self.latest_packed_telemetry
 
         return fields
