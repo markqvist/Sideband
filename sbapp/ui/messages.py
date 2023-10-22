@@ -41,6 +41,15 @@ class Messages():
     def __init__(self, app, context_dest):
         self.app = app
         self.context_dest = context_dest
+
+        if not self.app.root.ids.screen_manager.has_screen("messages_screen"):
+            # TODO: Remove
+            RNS.log("Adding messages screen", RNS.LOG_WARNING)
+            self.screen = Builder.load_string(messages_screen_kv)
+            self.screen.app = self.app
+            self.ids = self.screen.ids
+            self.app.root.ids.screen_manager.add_widget(self.screen)
+
         self.new_messages = []
         self.added_item_hashes = []
         self.added_messages = 0
@@ -577,6 +586,76 @@ class Messages():
     def close_send_error_dialog(self, sender=None):
         if self.send_error_dialog:
             self.send_error_dialog.dismiss()
+
+messages_screen_kv = """
+MDScreen:
+    name: "messages_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            id: messages_toolbar
+            anchor_title: "left"
+            title: "Messages"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")],]
+            right_action_items:
+                [
+                ['map-search', lambda x: root.ids.screen_manager.app.peer_show_location_action(self)],
+                ['lan-connect', lambda x: root.ids.screen_manager.app.message_propagation_action(self)],
+                ['close', lambda x: root.app.close_settings_action(self)],
+                ]
+
+        ScrollView:
+            id: messages_scrollview
+            do_scroll_x: False
+            do_scroll_y: True
+
+        BoxLayout:
+            id: no_keys_part
+            orientation: "vertical"
+            padding: [dp(16), dp(0), dp(16), dp(16)]
+            spacing: dp(24)
+            size_hint_y: None
+            height: self.minimum_height + dp(64)
+
+            MDLabel:
+                id: nokeys_text
+                text: ""
+
+            MDRectangleFlatIconButton:
+                icon: "key-wireless"
+                text: "Query Network For Keys"
+                on_release: root.ids.screen_manager.app.key_query_action(self)
+            
+
+        BoxLayout:
+            id: message_input_part
+            padding: [dp(16), dp(0), dp(16), dp(16)]
+            spacing: dp(24)
+            size_hint_y: None
+            height: self.minimum_height
+
+            MDTextField:
+                id: message_text
+                input_type: "text"
+                keyboard_suggestions: True
+                multiline: True
+                hint_text: "Write message"
+                mode: "rectangle"
+                max_height: dp(100)
+
+            MDRectangleFlatIconButton:
+                id: message_send_button
+                icon: "transfer-up"
+                text: "Send"
+                padding: [dp(10), dp(13), dp(10), dp(14)]
+                icon_size: dp(24)
+                font_size: dp(16)
+                on_release: root.ids.screen_manager.app.message_send_action(self)
+"""
 
 Builder.load_string("""
 <ListLXMessageCard>:

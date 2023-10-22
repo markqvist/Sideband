@@ -14,6 +14,8 @@ from kivy.core.clipboard import Clipboard
 from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.dialog import MDDialog
 
+from kivy.lang.builder import Builder
+
 if RNS.vendor.platformutils.get_platform() == "android":
     from ui.helpers import ts_format
 else:
@@ -25,6 +27,15 @@ class Announces():
         self.context_dests = []
         self.added_item_dests = []
         self.list = None
+
+        if not self.app.root.ids.screen_manager.has_screen("announces_screen"):
+            # TODO: Remove
+            RNS.log("Adding announces screen", RNS.LOG_WARNING)
+            self.screen = Builder.load_string(layout_announces_screen)
+            self.screen.app = self.app
+            self.ids = self.screen.ids
+            self.app.root.ids.screen_manager.add_widget(self.screen)
+
         self.fetch_announces()
         self.list = MDList()
         # self.update()
@@ -241,3 +252,41 @@ class Announces():
 
     def get_widget(self):
         return self.list
+
+layout_announces_screen = """
+MDScreen:
+    name: "announces_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Announce Stream"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_settings_action(self)],
+                ]
+            #    [['eye-off', lambda x: root.ids.screen_manager.app.announce_filter_action(self)]]
+
+        ScrollView:
+            id: announces_scrollview
+
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: "24dp"
+                size_hint_y: None
+                height: self.minimum_height
+                padding: dp(64)
+
+                MDLabel:
+                    id: announces_info
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+"""

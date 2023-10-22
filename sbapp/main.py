@@ -51,7 +51,7 @@ from mapview import CustomMapMarker
 if RNS.vendor.platformutils.get_platform() == "android":
     from sideband.core import SidebandCore
 
-    from ui.layouts import root_layout
+    from ui.layouts import *
     from ui.conversations import Conversations, MsgSync, NewConv
     from ui.announces import Announces
     from ui.messages import Messages, ts_format
@@ -68,7 +68,7 @@ if RNS.vendor.platformutils.get_platform() == "android":
 else:
     from .sideband.core import SidebandCore
 
-    from .ui.layouts import root_layout
+    from .ui.layouts import *
     from .ui.conversations import Conversations, MsgSync, NewConv
     from .ui.announces import Announces
     from .ui.messages import Messages, ts_format
@@ -117,6 +117,8 @@ class SidebandApp(MDApp):
         self.set_ui_theme()
 
         self.conversations_view = None
+        self.messages_view = None
+        self.map_screen = None
         self.sync_dialog = None
         self.settings_ready = False
         self.telemetry_ready = False
@@ -550,6 +552,8 @@ class SidebandApp(MDApp):
         else:
             screen = Builder.load_string(root_layout)
 
+        self.nav_drawer = screen.ids.nav_drawer
+
         return screen
 
     def jobs(self, delta_time):
@@ -607,10 +611,10 @@ class SidebandApp(MDApp):
                     self.announces_view.update()
 
         elif self.root.ids.screen_manager.current == "map_screen":
-            if hasattr(self.root.ids.map_layout, "map") and self.root.ids.map_layout.map != None:
-                self.sideband.config["map_lat"] = self.root.ids.map_layout.map.lat
-                self.sideband.config["map_lon"] = self.root.ids.map_layout.map.lon
-                self.sideband.config["map_zoom"] = self.root.ids.map_layout.map.zoom
+            if self.map_screen and hasattr(self.map_screen.ids.map_layout, "map") and self.map_screen.ids.map_layout.map != None:
+                self.sideband.config["map_lat"] = self.map_screen.ids.map_layout.map.lat
+                self.sideband.config["map_lon"] = self.map_screen.ids.map_layout.map.lon
+                self.sideband.config["map_zoom"] = self.map_screen.ids.map_layout.map.zoom
 
             self.last_telemetry_received = self.sideband.getstate("app.flags.last_telemetry", allow_cache=True) or 0
             if self.last_telemetry_received > self.last_map_update:
@@ -756,6 +760,10 @@ class SidebandApp(MDApp):
     def quit_action(self, sender):
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.should_persist_data()
+
+        if not self.root.ids.screen_manager.has_screen("exit_screen"):
+            self.exit_screen = Builder.load_string(layout_exit_screen)
+            self.root.ids.screen_manager.add_widget(self.exit_screen)
 
         self.root.ids.screen_manager.transition = NoTransition()
         self.root.ids.screen_manager.current = "exit_screen"
@@ -994,14 +1002,15 @@ class SidebandApp(MDApp):
         if not self.conversations_view:
             self.conversations_view = Conversations(self)
 
-            for child in self.root.ids.conversations_scrollview.children:
-                self.root.ids.conversations_scrollview.remove_widget(child)
+            for child in self.conversations_view.ids.conversations_scrollview.children:
+                self.conversations_view.ids.conversations_scrollview.remove_widget(child)
 
-            self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
-            self.root.ids.conversations_scrollview.add_widget(self.conversations_view.get_widget())
+            self.conversations_view.ids.conversations_scrollview.effect_cls = ScrollEffect
+            self.conversations_view.ids.conversations_scrollview.add_widget(self.conversations_view.get_widget())
 
         self.root.ids.screen_manager.current = "conversations_screen"
-        self.root.ids.messages_scrollview.active_conversation = None
+        if self.messages_view:
+            self.messages_view.ids.messages_scrollview.active_conversation = None
 
         def cb(dt):
             self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
@@ -2707,11 +2716,11 @@ class SidebandApp(MDApp):
             self.announces_view = Announces(self)
             self.sideband.setstate("app.flags.new_announces", True)
 
-            for child in self.root.ids.announces_scrollview.children:
-                self.root.ids.announces_scrollview.remove_widget(child)
+            for child in self.announces_view.ids.announces_scrollview.children:
+                self.announces_view.ids.announces_scrollview.remove_widget(child)
 
-            self.root.ids.announces_scrollview.effect_cls = ScrollEffect
-            self.root.ids.announces_scrollview.add_widget(self.announces_view.get_widget())
+            self.announces_view.ids.announces_scrollview.effect_cls = ScrollEffect
+            self.announces_view.ids.announces_scrollview.add_widget(self.announces_view.get_widget())
 
     def announces_action(self, sender=None):
         self.root.ids.screen_manager.transition.direction = "left"
@@ -2843,83 +2852,88 @@ class SidebandApp(MDApp):
 
     def telemetry_init(self):
         if not self.telemetry_ready:
-            self.root.ids.telemetry_collector.bind(focus=self.telemetry_save)
+            if not self.root.ids.screen_manager.has_screen("telemetry_screen"):
+                self.telemetry_screen = Builder.load_string(layout_telemetry_screen)
+                self.telemetry_screen.app = self
+                self.root.ids.screen_manager.add_widget(self.telemetry_screen)
+
+            self.telemetry_screen.ids.telemetry_collector.bind(focus=self.telemetry_save)
             if self.sideband.config["telemetry_collector"] == None:
-                self.root.ids.telemetry_collector.text = ""
+                self.telemetry_screen.ids.telemetry_collector.text = ""
             else:
-                self.root.ids.telemetry_collector.text = RNS.hexrep(self.sideband.config["telemetry_collector"], delimit=False)
+                self.telemetry_screen.ids.telemetry_collector.text = RNS.hexrep(self.sideband.config["telemetry_collector"], delimit=False)
 
-            self.root.ids.telemetry_icon_preview.icon_color  = self.sideband.config["telemetry_fg"]
-            self.root.ids.telemetry_icon_preview.md_bg_color = self.sideband.config["telemetry_bg"]
-            self.root.ids.telemetry_icon_preview.icon = self.sideband.config["telemetry_icon"]
+            self.telemetry_screen.ids.telemetry_icon_preview.icon_color  = self.sideband.config["telemetry_fg"]
+            self.telemetry_screen.ids.telemetry_icon_preview.md_bg_color = self.sideband.config["telemetry_bg"]
+            self.telemetry_screen.ids.telemetry_icon_preview.icon = self.sideband.config["telemetry_icon"]
 
-            self.root.ids.telemetry_enabled.active = self.sideband.config["telemetry_enabled"]
-            self.root.ids.telemetry_enabled.bind(active=self.telemetry_enabled_toggle)
+            self.telemetry_screen.ids.telemetry_enabled.active = self.sideband.config["telemetry_enabled"]
+            self.telemetry_screen.ids.telemetry_enabled.bind(active=self.telemetry_enabled_toggle)
 
-            self.root.ids.telemetry_send_to_collector.active = self.sideband.config["telemetry_send_to_collector"]
-            self.root.ids.telemetry_send_to_collector.bind(active=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_send_to_collector.active = self.sideband.config["telemetry_send_to_collector"]
+            self.telemetry_screen.ids.telemetry_send_to_collector.bind(active=self.telemetry_save)
 
-            self.root.ids.telemetry_send_to_trusted.active = self.sideband.config["telemetry_send_to_trusted"]
-            self.root.ids.telemetry_send_to_trusted.bind(active=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_send_to_trusted.active = self.sideband.config["telemetry_send_to_trusted"]
+            self.telemetry_screen.ids.telemetry_send_to_trusted.bind(active=self.telemetry_save)
 
-            self.root.ids.telemetry_send_appearance.active = self.sideband.config["telemetry_send_appearance"]
-            self.root.ids.telemetry_send_appearance.bind(active=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_send_appearance.active = self.sideband.config["telemetry_send_appearance"]
+            self.telemetry_screen.ids.telemetry_send_appearance.bind(active=self.telemetry_save)
 
-            self.root.ids.telemetry_s_location.active = self.sideband.config["telemetry_s_location"]
-            self.root.ids.telemetry_s_location.bind(active=self.telemetry_location_toggle)
+            self.telemetry_screen.ids.telemetry_s_location.active = self.sideband.config["telemetry_s_location"]
+            self.telemetry_screen.ids.telemetry_s_location.bind(active=self.telemetry_location_toggle)
 
-            self.root.ids.telemetry_s_battery.active = self.sideband.config["telemetry_s_battery"]
-            self.root.ids.telemetry_s_battery.bind(active=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_s_battery.active = self.sideband.config["telemetry_s_battery"]
+            self.telemetry_screen.ids.telemetry_s_battery.bind(active=self.telemetry_save)
             
-            self.root.ids.telemetry_s_barometer.active = self.sideband.config["telemetry_s_pressure"]
-            self.root.ids.telemetry_s_barometer.bind(active=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_s_barometer.active = self.sideband.config["telemetry_s_pressure"]
+            self.telemetry_screen.ids.telemetry_s_barometer.bind(active=self.telemetry_save)
             
-            self.root.ids.telemetry_s_temperature.active = self.sideband.config["telemetry_s_temperature"]
-            self.root.ids.telemetry_s_temperature.bind(active=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_s_temperature.active = self.sideband.config["telemetry_s_temperature"]
+            self.telemetry_screen.ids.telemetry_s_temperature.bind(active=self.telemetry_save)
             
-            self.root.ids.telemetry_s_humidity.active = self.sideband.config["telemetry_s_humidity"]
-            self.root.ids.telemetry_s_humidity.bind(active=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_s_humidity.active = self.sideband.config["telemetry_s_humidity"]
+            self.telemetry_screen.ids.telemetry_s_humidity.bind(active=self.telemetry_save)
             
-            self.root.ids.telemetry_s_compass.active = self.sideband.config["telemetry_s_magnetic_field"]
-            self.root.ids.telemetry_s_compass.bind(active=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_s_compass.active = self.sideband.config["telemetry_s_magnetic_field"]
+            self.telemetry_screen.ids.telemetry_s_compass.bind(active=self.telemetry_save)
             
-            self.root.ids.telemetry_s_light.active = self.sideband.config["telemetry_s_ambient_light"]
-            self.root.ids.telemetry_s_light.bind(active=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_s_light.active = self.sideband.config["telemetry_s_ambient_light"]
+            self.telemetry_screen.ids.telemetry_s_light.bind(active=self.telemetry_save)
             
-            self.root.ids.telemetry_s_gravity.active = self.sideband.config["telemetry_s_gravity"]
-            self.root.ids.telemetry_s_gravity.bind(active=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_s_gravity.active = self.sideband.config["telemetry_s_gravity"]
+            self.telemetry_screen.ids.telemetry_s_gravity.bind(active=self.telemetry_save)
             
-            self.root.ids.telemetry_s_gyroscope.active = self.sideband.config["telemetry_s_angular_velocity"]
-            self.root.ids.telemetry_s_gyroscope.bind(active=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_s_gyroscope.active = self.sideband.config["telemetry_s_angular_velocity"]
+            self.telemetry_screen.ids.telemetry_s_gyroscope.bind(active=self.telemetry_save)
             
-            self.root.ids.telemetry_s_accelerometer.active = self.sideband.config["telemetry_s_acceleration"]
-            self.root.ids.telemetry_s_accelerometer.bind(active=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_s_accelerometer.active = self.sideband.config["telemetry_s_acceleration"]
+            self.telemetry_screen.ids.telemetry_s_accelerometer.bind(active=self.telemetry_save)
             
-            self.root.ids.telemetry_s_proximity.active = self.sideband.config["telemetry_s_proximity"]
-            self.root.ids.telemetry_s_proximity.bind(active=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_s_proximity.active = self.sideband.config["telemetry_s_proximity"]
+            self.telemetry_screen.ids.telemetry_s_proximity.bind(active=self.telemetry_save)
 
             self.telemetry_ready = True
 
     def telemetry_set_icon(self, text="", search=False):
         if text in md_icons.keys():
-            self.root.ids.telemetry_icon_preview.icon = text
+            self.telemetry_screen.ids.telemetry_icon_preview.icon = text
         else:
-            self.root.ids.telemetry_icon_preview.icon = "alpha-p-circle-outline"
+            self.telemetry_screen.ids.telemetry_icon_preview.icon = "alpha-p-circle-outline"
 
-        self.sideband.config["telemetry_icon"] = self.root.ids.telemetry_icon_preview.icon
+        self.sideband.config["telemetry_icon"] = self.telemetry_screen.ids.telemetry_icon_preview.icon
         self.sideband.save_configuration()
         self.own_appearance_changed = True
 
 
     def telemetry_enabled_toggle(self, sender=None, event=None):
         self.telemetry_save()
-        if self.root.ids.telemetry_enabled.active:
+        if self.telemetry_screen.ids.telemetry_enabled.active:
             self.sideband.run_telemetry()
         else:
             self.sideband.stop_telemetry()
     
     def telemetry_location_toggle(self, sender=None, event=None):
-        if self.root.ids.telemetry_s_location.active:
+        if self.telemetry_screen.ids.telemetry_s_location.active:
             if RNS.vendor.platformutils.is_android():
                 if not check_permission("android.permission.ACCESS_COARSE_LOCATION") or not check_permission("android.permission.ACCESS_FINE_LOCATION"):
                     RNS.log("Requesting location permission", RNS.LOG_DEBUG)
@@ -2928,38 +2942,38 @@ class SidebandApp(MDApp):
         self.telemetry_save()
 
     def telemetry_save(self, sender=None, event=None):
-        if len(self.root.ids.telemetry_collector.text) != 32:
-            self.root.ids.telemetry_collector.text = ""
+        if len(self.telemetry_screen.ids.telemetry_collector.text) != 32:
+            self.telemetry_screen.ids.telemetry_collector.text = ""
             self.sideband.config["telemetry_collector"] = None
         else:
             try:
-                self.sideband.config["telemetry_collector"] = bytes.fromhex(self.root.ids.telemetry_collector.text)
+                self.sideband.config["telemetry_collector"] = bytes.fromhex(self.telemetry_screen.ids.telemetry_collector.text)
             except:
-                self.root.ids.telemetry_collector.text = ""
+                self.telemetry_screen.ids.telemetry_collector.text = ""
                 self.sideband.config["telemetry_collector"] = None
 
-        self.sideband.config["telemetry_enabled"] = self.root.ids.telemetry_enabled.active
-        self.sideband.config["telemetry_send_to_collector"] = self.root.ids.telemetry_send_to_collector.active
-        self.sideband.config["telemetry_send_to_trusted"] = self.root.ids.telemetry_send_to_trusted.active
-        self.sideband.config["telemetry_send_appearance"] = self.root.ids.telemetry_send_appearance.active
+        self.sideband.config["telemetry_enabled"] = self.telemetry_screen.ids.telemetry_enabled.active
+        self.sideband.config["telemetry_send_to_collector"] = self.telemetry_screen.ids.telemetry_send_to_collector.active
+        self.sideband.config["telemetry_send_to_trusted"] = self.telemetry_screen.ids.telemetry_send_to_trusted.active
+        self.sideband.config["telemetry_send_appearance"] = self.telemetry_screen.ids.telemetry_send_appearance.active
         
-        self.sideband.config["telemetry_s_location"] = self.root.ids.telemetry_s_location.active
-        self.sideband.config["telemetry_s_battery"] = self.root.ids.telemetry_s_battery.active
-        self.sideband.config["telemetry_s_pressure"] = self.root.ids.telemetry_s_barometer.active
-        self.sideband.config["telemetry_s_temperature"] = self.root.ids.telemetry_s_temperature.active
-        self.sideband.config["telemetry_s_humidity"] = self.root.ids.telemetry_s_humidity.active
-        self.sideband.config["telemetry_s_magnetic_field"] = self.root.ids.telemetry_s_compass.active
-        self.sideband.config["telemetry_s_ambient_light"] = self.root.ids.telemetry_s_light.active
-        self.sideband.config["telemetry_s_gravity"] = self.root.ids.telemetry_s_gravity.active
-        self.sideband.config["telemetry_s_angular_velocity"] = self.root.ids.telemetry_s_gyroscope.active
-        self.sideband.config["telemetry_s_acceleration"] = self.root.ids.telemetry_s_accelerometer.active
-        self.sideband.config["telemetry_s_proximity"] = self.root.ids.telemetry_s_proximity.active
+        self.sideband.config["telemetry_s_location"] = self.telemetry_screen.ids.telemetry_s_location.active
+        self.sideband.config["telemetry_s_battery"] = self.telemetry_screen.ids.telemetry_s_battery.active
+        self.sideband.config["telemetry_s_pressure"] = self.telemetry_screen.ids.telemetry_s_barometer.active
+        self.sideband.config["telemetry_s_temperature"] = self.telemetry_screen.ids.telemetry_s_temperature.active
+        self.sideband.config["telemetry_s_humidity"] = self.telemetry_screen.ids.telemetry_s_humidity.active
+        self.sideband.config["telemetry_s_magnetic_field"] = self.telemetry_screen.ids.telemetry_s_compass.active
+        self.sideband.config["telemetry_s_ambient_light"] = self.telemetry_screen.ids.telemetry_s_light.active
+        self.sideband.config["telemetry_s_gravity"] = self.telemetry_screen.ids.telemetry_s_gravity.active
+        self.sideband.config["telemetry_s_angular_velocity"] = self.telemetry_screen.ids.telemetry_s_gyroscope.active
+        self.sideband.config["telemetry_s_acceleration"] = self.telemetry_screen.ids.telemetry_s_accelerometer.active
+        self.sideband.config["telemetry_s_proximity"] = self.telemetry_screen.ids.telemetry_s_proximity.active
         
         self.sideband.save_configuration()
 
     def telemetry_action(self, sender=None, direction="left"):
         self.telemetry_init()
-        self.root.ids.telemetry_scrollview.effect_cls = ScrollEffect
+        self.telemetry_screen.ids.telemetry_scrollview.effect_cls = ScrollEffect
         info  = "\nSideband allows you to securely share telemetry, such as location and sensor data, with people, custom programs, machines or other system over LXMF. You have complete control over what kind of telemetry to send, and who you share it with.\n\nTelemetry data is never sent to, via or processed by any external services or servers, but is carried exclusively within encrypted LXMF messages over Reticulum.\n\nWhen telemetry is enabled, it is possible to embed telemetry data in normal messages on a per-peer basis. You can control this from the [b]Conversations[/b] list, by selecting the [b]Edit[/b] option for the relevant peer.\n\nYou can also define a [b]Telemetry Collector[/b], that Sideband will automatically send telemetry to on a periodic basis - for example your Nomad Network home node.\n"
         info3 = "\nTo include a specific type of telemetry data while sending, it must be enabled below. Please note that some sensor types are not supported on all devices. Sideband will only be able to read a specific type of sensor if your device actually includes hardware for it.\n"
         if self.theme_cls.theme_style == "Dark":
@@ -2967,9 +2981,9 @@ class SidebandApp(MDApp):
             # info2 = "[color=#"+dark_theme_text_color+"]"+info2+"[/color]"
             info3 = "[color=#"+dark_theme_text_color+"]"+info3+"[/color]"
         
-        self.root.ids.telemetry_info.text = info
+        self.telemetry_screen.ids.telemetry_info.text = info
         # self.root.ids.telemetry_info2.text = info2
-        self.root.ids.telemetry_info3.text = info3
+        self.telemetry_screen.ids.telemetry_info3.text = info3
         self.root.ids.screen_manager.transition.direction = direction
         self.root.ids.screen_manager.current = "telemetry_screen"
         self.root.ids.nav_drawer.set_state("closed")
@@ -2985,15 +2999,18 @@ class SidebandApp(MDApp):
 
     def telemetry_fg_color(self, sender=None):
         color_picker = MDColorPicker(size_hint=(0.85, 0.85))
-        color_picker.open()
-        color_picker.bind(
-            on_release=self.telemetry_fg_select,
-        )
         self.color_picker = color_picker
+
+        color_picker.open()
+        color_picker.bind(on_release=self.telemetry_fg_select)
+        def job(sender=None):
+            color_picker._rgb = self.sideband.config["telemetry_fg"][:-1]
+            color_picker.ids.view_headline.on_tab_press()
+        Clock.schedule_once(job, 0)
     
     def telemetry_fg_select(self, instance_color_picker: MDColorPicker, type_color: str, selected_color: Union[list, str]):
         color = selected_color[:-1] + [1]
-        self.root.ids.telemetry_icon_preview.icon_color = color
+        self.telemetry_screen.ids.telemetry_icon_preview.icon_color = color
         self.sideband.config["telemetry_fg"] = color
         self.sideband.save_configuration()
         self.own_appearance_changed = True
@@ -3003,15 +3020,18 @@ class SidebandApp(MDApp):
 
     def telemetry_bg_color(self, sender=None):
         color_picker = MDColorPicker(size_hint=(0.85, 0.85))
-        color_picker.open()
-        color_picker.bind(
-            on_release=self.telemetry_bg_select,
-        )
         self.color_picker = color_picker
+
+        color_picker.open()
+        color_picker.bind(on_release=self.telemetry_bg_select)
+        def job(sender=None):
+            color_picker._rgb = self.sideband.config["telemetry_bg"][:-1]
+            color_picker.ids.view_headline.on_tab_press()
+        Clock.schedule_once(job, 0)
     
     def telemetry_bg_select(self, instance_color_picker: MDColorPicker, type_color: str, selected_color: Union[list, str]):
         color = selected_color[:-1] + [1]
-        self.root.ids.telemetry_icon_preview.md_bg_color = color
+        self.telemetry_screen.ids.telemetry_icon_preview.md_bg_color = color
         self.sideband.config["telemetry_bg"] = color
         self.sideband.save_configuration()
         self.own_appearance_changed = True
@@ -3026,6 +3046,11 @@ class SidebandApp(MDApp):
     ######################################
 
     def icons_action(self, sender=None):
+        if not self.root.ids.screen_manager.has_screen("icons_screen"):
+            self.icons_screen = Builder.load_string(layout_icons_screen)
+            self.icons_screen.app = self
+            self.root.ids.screen_manager.add_widget(self.icons_screen)
+
         self.icons_filter()
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "icons_screen"
@@ -3043,10 +3068,10 @@ class SidebandApp(MDApp):
         def add_icon_item(name_icon):
             def select_factory(x):
                 def f():
-                    self.root.ids.screen_manager.app.icons_selected(x)
+                    self.icons_selected(x)
                 return f
 
-            self.root.ids.icons_rv.data.append(
+            self.icons_screen.ids.icons_rv.data.append(
                 {
                     "viewclass": "CustomOneLineIconListItem",
                     "icon": name_icon,
@@ -3056,7 +3081,7 @@ class SidebandApp(MDApp):
                 }
             )
 
-        self.root.ids.icons_rv.data = []
+        self.icons_screen.ids.icons_rv.data = []
         for name_icon in md_icons.keys():
             if search:
                 if text in name_icon:
@@ -3068,13 +3093,17 @@ class SidebandApp(MDApp):
     ######################################
 
     def map_action(self, sender=None):
-        if not hasattr(self.root.ids.map_layout, "map") or self.root.ids.map_layout.map == None:
+        if not self.root.ids.screen_manager.has_screen("map_screen"):
+            self.map_screen = Builder.load_string(layout_map_screen)
+            self.map_screen.app = self
+            self.root.ids.screen_manager.add_widget(self.map_screen)
+
             from mapview import MapView
             mapview = MapView(zoom=self.sideband.config["map_zoom"], lat=self.sideband.config["map_lat"], lon=self.sideband.config["map_lon"])
             mapview.snap_to_zoom = False
             mapview.double_tap_zoom = True
-            self.root.ids.map_layout.map = mapview
-            self.root.ids.map_layout.add_widget(self.root.ids.map_layout.map)
+            self.map_screen.ids.map_layout.map = mapview
+            self.map_screen.ids.map_layout.add_widget(self.map_screen.ids.map_layout.map)
 
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "map_screen"
@@ -3094,9 +3123,9 @@ class SidebandApp(MDApp):
 
     def map_show(self, location):
         if hasattr(self.root.ids.map_layout, "map") and self.root.ids.map_layout.map:
-            self.root.ids.map_layout.map.lat = location["latitude"]
-            self.root.ids.map_layout.map.lon = location["longtitude"]
-            self.root.ids.map_layout.map.zoom = 16
+            self.map_screen.ids.map_layout.map.lat = location["latitude"]
+            self.map_screen.ids.map_layout.map.lon = location["longtitude"]
+            self.map_screen.ids.map_layout.map.zoom = 16
 
     def map_show_peer_location(self, context_dest):
         location = self.sideband.peer_location(context_dest)
@@ -3174,7 +3203,7 @@ class SidebandApp(MDApp):
                     marker = self.map_create_marker(own_address, own_telemetry, own_appearance)
                     if marker != None:
                         self.map_markers[own_address] = marker
-                        self.root.ids.map_layout.map.add_marker(marker)
+                        self.map_screen.ids.map_layout.map.add_marker(marker)
                         changes = True
 
                 else:
@@ -3201,7 +3230,7 @@ class SidebandApp(MDApp):
 
             for marker in stale_markers:
                 try:
-                    self.root.ids.map_layout.map.remove_widget(self.map_markers[marker])
+                    self.map_screen.ids.map_layout.map.remove_widget(self.map_markers[marker])
                     self.map_markers.pop(marker)
                 except Exception as e:
                     RNS.log("Error while removing map marker: "+str(e), RNS.LOG_ERROR)
@@ -3238,7 +3267,7 @@ class SidebandApp(MDApp):
                             marker = self.map_create_marker(telemetry_source, latest_viewable, self.sideband.peer_appearance(telemetry_source))
                             if marker != None:
                                 self.map_markers[telemetry_source] = marker
-                                self.root.ids.map_layout.map.add_marker(marker)
+                                self.map_screen.ids.map_layout.map.add_marker(marker)
                                 changes = True
                         else:
                             marker = self.map_markers[telemetry_source]
@@ -3256,7 +3285,7 @@ class SidebandApp(MDApp):
 
         self.last_map_update = time.time()
         if changes:
-            mv = self.root.ids.map_layout.map
+            mv = self.map_screen.ids.map_layout.map
             mv.trigger_update(True)
 
     ### Guide screen
@@ -3356,15 +3385,22 @@ Thank you very much for using Free Communications Systems.
 
     def broadcasts_action(self, sender=None):
         def link_exec(sender=None, event=None):
-            import webbrowser
-            webbrowser.open("https://unsigned.io/donate")
+            def lejob():
+                import webbrowser
+                webbrowser.open("https://unsigned.io/donate")
+            threading.Thread(target=lejob, daemon=True).start()
 
-        self.root.ids.broadcasts_scrollview.effect_cls = ScrollEffect
+        if not self.root.ids.screen_manager.has_screen("broadcasts_screen"):
+            self.broadcasts_screen = Builder.load_string(layout_broadcasts_screen)
+            self.broadcasts_screen.app = self
+            self.root.ids.screen_manager.add_widget(self.broadcasts_screen)
+
+        self.broadcasts_screen.ids.broadcasts_scrollview.effect_cls = ScrollEffect
         info = "The [b]Local Broadcasts[/b] feature will allow you to send and listen for local broadcast transmissions on connected radio, LoRa and WiFi interfaces.\n\n[b]Local Broadcasts[/b] makes it easy to establish public information exchange with anyone in direct radio range, or even with large areas far away using the [i]Remote Broadcast Repeater[/i] feature.\n\nThese features are not yet implemented in Sideband.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project."
         if self.theme_cls.theme_style == "Dark":
             info = "[color=#"+dark_theme_text_color+"]"+info+"[/color]"
-        self.root.ids.broadcasts_info.text = info
-        self.root.ids.broadcasts_info.bind(on_ref_press=link_exec)
+        self.broadcasts_screen.ids.broadcasts_info.text = info
+        self.broadcasts_screen.ids.broadcasts_info.bind(on_ref_press=link_exec)
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "broadcasts_screen"
         self.root.ids.nav_drawer.set_state("closed")

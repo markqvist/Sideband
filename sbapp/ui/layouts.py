@@ -41,2323 +41,6 @@ MDNavigationLayout:
                         text: "Substantiating Reticulum"
                         font_size: "32dp"
 
-
-        MDScreen:
-            name: "exit_screen"
-                 
-            AnchorLayout:
-                padding: [dp(0), dp(72), dp(0), dp(0)]
-                anchor_x: "center"
-                anchor_y: "center"
-
-                BoxLayout:
-                    spacing: dp(36)
-                    orientation: 'vertical'
-                    size_hint_y: None
-
-                    MDLabel:
-                        id: exiting_info
-                        halign: "center"
-                        text: "Please Wait"
-                        font_size: "32dp"
-
-                    MDIconButton:
-                        pos_hint: {"center_x": .5, "center_y": .5}
-                        icon: "waves"
-                        icon_size: "92dp"
-
-                    MDLabel:
-                        id: exiting_status
-                        halign: "center"
-                        text: "Dissolving Reticulum"
-                        font_size: "32dp"
-
-
-        MDScreen:
-            name: "conversations_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "Conversations"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [
-                        ['menu', lambda x: nav_drawer.set_state("open")],
-                        ]
-                    right_action_items:
-                        [
-                        ['access-point', lambda x: root.ids.screen_manager.app.announce_now_action(self)],
-                        ['webhook', lambda x: root.ids.screen_manager.app.connectivity_status(self)],
-                        ['qrcode', lambda x: root.ids.screen_manager.app.ingest_lxm_action(self)],
-                        ['email-sync', lambda x: root.ids.screen_manager.app.lxmf_sync_action(self)],
-                        ['account-plus', lambda x: root.ids.screen_manager.app.new_conversation_action(self)],
-                        ]
-
-                ScrollView:
-                    id: conversations_scrollview
-
-
-        MDScreen:
-            name: "messages_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    id: messages_toolbar
-                    anchor_title: "left"
-                    title: "Messages"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['map-search', lambda x: root.ids.screen_manager.app.peer_show_location_action(self)],
-                        ['lan-connect', lambda x: root.ids.screen_manager.app.message_propagation_action(self)],
-                        ['close', lambda x: root.ids.screen_manager.app.close_messages_action(self)],
-                        ]
-
-                ScrollView:
-                    id: messages_scrollview
-                    do_scroll_x: False
-                    do_scroll_y: True
-
-                BoxLayout:
-                    id: no_keys_part
-                    orientation: "vertical"
-                    padding: [dp(16), dp(0), dp(16), dp(16)]
-                    spacing: dp(24)
-                    size_hint_y: None
-                    height: self.minimum_height + dp(64)
-
-                    MDLabel:
-                        id: nokeys_text
-                        text: ""
-
-                    MDRectangleFlatIconButton:
-                        icon: "key-wireless"
-                        text: "Query Network For Keys"
-                        on_release: root.ids.screen_manager.app.key_query_action(self)
-                    
-
-                BoxLayout:
-                    id: message_input_part
-                    padding: [dp(16), dp(0), dp(16), dp(16)]
-                    spacing: dp(24)
-                    size_hint_y: None
-                    height: self.minimum_height
-
-                    MDTextField:
-                        id: message_text
-                        input_type: "text"
-                        keyboard_suggestions: True
-                        multiline: True
-                        hint_text: "Write message"
-                        mode: "rectangle"
-                        max_height: dp(100)
-
-                    MDRectangleFlatIconButton:
-                        id: message_send_button
-                        icon: "transfer-up"
-                        text: "Send"
-                        padding: [dp(10), dp(13), dp(10), dp(14)]
-                        icon_size: dp(24)
-                        font_size: dp(16)
-                        on_release: root.ids.screen_manager.app.message_send_action(self)
-                        
-
-        MDScreen:
-            name: "broadcasts_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "Local Broadcasts"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['close', lambda x: root.ids.screen_manager.app.close_any_action(self)],
-                        ]
-
-                ScrollView:
-                    id: broadcasts_scrollview
-
-                    MDBoxLayout:
-                        orientation: "vertical"
-                        spacing: "24dp"
-                        size_hint_y: None
-                        height: self.minimum_height
-                        padding: [dp(35), dp(35), dp(35), dp(35)]
-
-                        MDLabel:
-                            id: broadcasts_info
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-        
-
-        MDScreen:
-            name: "connectivity_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "Connectivity"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['close', lambda x: root.ids.screen_manager.app.close_connectivity_action(self)],
-                        ]
-
-                ScrollView:
-                    id: connectivity_scrollview
-
-                    MDBoxLayout:
-                        orientation: "vertical"
-                        spacing: "10dp"
-                        size_hint_y: None
-                        height: self.minimum_height
-                        padding: [dp(28), dp(48), dp(28), dp(16)]
-
-                        MDLabel:
-                            text: "Configuring Connectivity\\n"
-                            font_style: "H6"
-
-                        MDLabel:
-                            id: connectivity_info
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            padding: [0,0,dp(24),0]
-                            size_hint_y: None
-                            height: dp(24)
-                            
-                            MDLabel:
-                                id: connectivity_local_label
-                                text: "Connect via local WiFi/Ethernet"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: connectivity_use_local
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            id: connectivity_local_fields
-                            orientation: "vertical"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [0, 0, 0, dp(32)]
-
-                            MDTextField:
-                                id: connectivity_local_groupid
-                                hint_text: "Optional WiFi/Ethernet Group ID"
-                                text: ""
-                                max_text_length: 128
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: connectivity_local_ifac_netname
-                                hint_text: "Optional IFAC network name"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: connectivity_local_ifac_passphrase
-                                hint_text: "Optional IFAC passphrase"
-                                text: ""
-                                font_size: dp(24)
-
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            padding: [0,0,dp(24),0]
-                            size_hint_y: None
-                            height: dp(24)
-                            
-                            MDLabel:
-                                id: connectivity_tcp_label
-                                text: "Connect via TCP"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: connectivity_use_tcp
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-
-                        MDBoxLayout:
-                            id: connectivity_tcp_fields
-                            orientation: "vertical"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [0, 0, 0, dp(32)]
-
-                            MDTextField:
-                                id: connectivity_tcp_host
-                                hint_text: "TCP Host"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: connectivity_tcp_port
-                                hint_text: "TCP Port"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: connectivity_tcp_ifac_netname
-                                hint_text: "Optional IFAC network name"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: connectivity_tcp_ifac_passphrase
-                                hint_text: "Optional IFAC passphrase"
-                                text: ""
-                                font_size: dp(24)
-
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            padding: [0,0,dp(24),0]
-                            size_hint_y: None
-                            height: dp(24)
-                            
-                            MDLabel:
-                                id: connectivity_i2p_label
-                                text: "Connect via I2P"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: connectivity_use_i2p
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-
-                        MDBoxLayout:
-                            id: connectivity_i2p_fields
-                            orientation: "vertical"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [0, 0, 0, dp(32)]
-
-                            MDTextField:
-                                id: connectivity_i2p_b32
-                                hint_text: "I2P B32"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: connectivity_i2p_ifac_netname
-                                hint_text: "Optional IFAC network name"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: connectivity_i2p_ifac_passphrase
-                                hint_text: "Optional IFAC passphrase"
-                                text: ""
-                                font_size: dp(24)
-
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            padding: [0,0,dp(24),0]
-                            size_hint_y: None
-                            height: dp(24)
-                            
-                            MDLabel:
-                                id: connectivity_rnode_label
-                                text: "Connect via RNode"
-                                font_style: "H6"
-                                disabled: False
-
-                            MDSwitch:
-                                id: connectivity_use_rnode
-                                active: False
-                                pos_hint: {"center_y": 0.3}
-                                disabled: False
-
-                        MDBoxLayout:
-                            id: connectivity_rnode_fields
-                            orientation: "vertical"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [0, 0, 0, dp(32)]
-
-                            MDTextField:
-                                id: connectivity_rnode_ifac_netname
-                                hint_text: "Optional IFAC network name"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: connectivity_rnode_ifac_passphrase
-                                hint_text: "Optional IFAC passphrase"
-                                text: ""
-                                font_size: dp(24)
-
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            padding: [0,0,dp(24),0]
-                            size_hint_y: None
-                            height: dp(24)
-                            
-                            MDLabel:
-                                id: connectivity_modem_label
-                                text: "Connect via Radio Modem"
-                                font_style: "H6"
-                                disabled: False
-
-                            MDSwitch:
-                                id: connectivity_use_modem
-                                active: False
-                                pos_hint: {"center_y": 0.3}
-                                disabled: False
-
-                        MDBoxLayout:
-                            id: connectivity_modem_fields
-                            orientation: "vertical"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [0, 0, 0, dp(32)]
-
-                            MDTextField:
-                                id: connectivity_modem_ifac_netname
-                                hint_text: "Optional IFAC network name"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: connectivity_modem_ifac_passphrase
-                                hint_text: "Optional IFAC passphrase"
-                                text: ""
-                                font_size: dp(24)
-
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            padding: [0,0,dp(24),0]
-                            size_hint_y: None
-                            height: dp(24)
-                            
-                            MDLabel:
-                                id: connectivity_serial_label
-                                text: "Connect via Serial Port"
-                                font_style: "H6"
-                                disabled: False
-
-                            MDSwitch:
-                                id: connectivity_use_serial
-                                active: False
-                                pos_hint: {"center_y": 0.3}
-                                disabled: False
-
-                        MDBoxLayout:
-                            id: connectivity_serial_fields
-                            orientation: "vertical"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [0, 0, 0, dp(32)]
-
-                            MDTextField:
-                                id: connectivity_serial_ifac_netname
-                                hint_text: "Optional IFAC network name"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: connectivity_serial_ifac_passphrase
-                                hint_text: "Optional IFAC passphrase"
-                                text: ""
-                                font_size: dp(24)
-
-
-                        # MDBoxLayout:
-                        #     orientation: "horizontal"
-                        #     padding: [0,0,dp(24),0]
-                        #     size_hint_y: None
-                        #     height: dp(24)
-                            
-                        #     MDLabel:
-                        #         id: connectivity_bluetooth_label
-                        #         text: "Connect via Bluetooth"
-                        #         font_style: "H6"
-                        #         disabled: True
-
-                        #     MDSwitch:
-                        #         id: connectivity_use_bluetooth
-                        #         active: False
-                        #         pos_hint: {"center_y": 0.3}
-                        #         disabled: True
-
-                        # MDBoxLayout:
-                        #     id: connectivity_bluetooth_fields
-                        #     orientation: "vertical"
-                        #     size_hint_y: None
-                        #     height: self.minimum_height
-                        #     padding: [0, 0, 0, dp(32)]
-
-                        #     MDTextField:
-                        #         id: connectivity_bluetooth_cid
-                        #         hint_text: "Bluetooth Pairing ID"
-                        #         text: ""
-                        #         font_size: dp(24)
-                        #         # disabled: True
-
-                        MDLabel:
-                            text: "Shared Instance Access\\n"
-                            id: connectivity_shared_access_label
-                            font_style: "H6"
-
-                        MDLabel:
-                            id: connectivity_shared_access
-                            markup: True
-                            text: "The Reticulum instance launched by Sideband will be available for other programs on this system. By default, this grants connectivity to other local Reticulum-based programs, but no access to management, interface status and path information.\\n\\nIf you want to allow full functionality and ability to manage the running instance, you will need to configure other programs to use the correct RPC key for this instance.\\n\\nThis can be very useful for using other tools related to Reticulum, for example via command-line programs running in Termux. To do this, use the button below to copy the RPC key configuration line, and paste it into the Reticulum configuration file within the Termux environment, or other program.\\n\\nPlease note! [b]It is not necessary[/b] to enable Reticulum Transport for this to work!\\n\\n"
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDBoxLayout:
-                            id: connectivity_shared_access_fields
-                            orientation: "vertical"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [0, 0, 0, dp(32)]
-
-                            MDRectangleFlatIconButton:
-                                id: rpc_keys_copy
-                                icon: "file-key"
-                                text: "Copy RPC Config To Clipboard"
-                                padding: [dp(0), dp(14), dp(0), dp(14)]
-                                icon_size: dp(24)
-                                font_size: dp(16)
-                                size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.rpc_copy_action(self)
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            padding: [0,0,dp(24),0]
-                            size_hint_y: None
-                            height: dp(24)
-                            
-                            MDLabel:
-                                id: connectivity_transport_label
-                                text: "Enable Reticulum Transport"
-                                font_style: "H6"
-                                # disabled: True
-
-                            MDSwitch:
-                                id: connectivity_enable_transport
-                                active: False
-                                pos_hint: {"center_y": 0.3}
-                                # disabled: True
-
-                        MDLabel:
-                            id: connectivity_transport_info
-                            markup: True
-                            text: "Enabling Reticulum Transport will allow this device to route traffic between all enabled interfaces.\\n\\nFor general usage, this option should not be enabled, but it can be useful in situations where you want to share connectivity from one device to many others. An example of this could be sharing connectivity from a radio interface to other people on your local WiFi network.\\n\\nWhen enabled, you will be able to configure the interface mode for all interfaces configured on this device. For more information on this topic, refer to the Reticulum Manual."
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDBoxLayout:
-                            id: connectivity_transport_fields
-                            orientation: "vertical"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [0, 0, 0, dp(32)]
-
-                            # MDLabel:
-                            #     id: connectivity_modes_info
-                            #     markup: True
-                            #     text: "With Transport enabled, you can configure the interface modes for any enabled interfaces. Changing interface modes affects how Reticulum processes traffic and announces. For more information, refer to the Reticulum Manual."
-                            #     size_hint_y: None
-                            #     text_size: self.width, None
-                            #     height: self.texture_size[1]
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                spacing: "24dp"
-                                size_hint_y: None
-                                height: self.minimum_height
-                                padding: [dp(0), dp(12), dp(0), dp(12)]
-
-                                MDTextField:
-                                    id: connectivity_local_ifmode
-                                    hint_text: "Local Interface Mode"
-                                    text: ""
-                                    font_size: dp(24)
-
-                                MDTextField:
-                                    id: connectivity_tcp_ifmode
-                                    hint_text: "TCP Interface Mode"
-                                    text: ""
-                                    font_size: dp(24)
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                spacing: "24dp"
-                                size_hint_y: None
-                                height: self.minimum_height
-                                padding: [dp(0), dp(12), dp(0), dp(12)]
-
-                                MDTextField:
-                                    id: connectivity_i2p_ifmode
-                                    hint_text: "I2P Mode"
-                                    text: ""
-                                    font_size: dp(24)
-
-                                MDTextField:
-                                    id: connectivity_rnode_ifmode
-                                    hint_text: "RNode Mode"
-                                    text: ""
-                                    font_size: dp(24)
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                spacing: "24dp"
-                                size_hint_y: None
-                                height: self.minimum_height
-                                padding: [dp(0), dp(12), dp(0), dp(12)]
-
-                                MDTextField:
-                                    id: connectivity_modem_ifmode
-                                    hint_text: "Modem Mode"
-                                    text: ""
-                                    font_size: dp(24)
-
-                                MDTextField:
-                                    id: connectivity_serial_ifmode
-                                    hint_text: "Serial Mode"
-                                    text: ""
-                                    font_size: dp(24)
-
-                            # MDTextField:
-                            #     id: connectivity_bluetooth_ifmode
-                            #     hint_text: "Bluetooth Mode"
-                            #     text: ""
-                            #     font_size: dp(24)
-
-        
-        MDScreen:
-            name: "guide_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "Guide"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['close', lambda x: root.ids.screen_manager.app.close_guide_action(self)],
-                        ]
-
-                ScrollView:
-                    id:guide_scrollview
-
-                    MDBoxLayout:
-                        orientation: "vertical"
-                        size_hint_y: None
-                        height: self.minimum_height
-                        padding: [dp(35), dp(16), dp(35), dp(16)]
-
-                        MDLabel:
-                            id: guide_info1
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDLabel:
-                            id: guide_info2
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDLabel:
-                            id: guide_info3
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDLabel:
-                            id: guide_info4
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDLabel:
-                            id: guide_info5
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDLabel:
-                            id: guide_info6
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDLabel:
-                            id: guide_info7
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDLabel:
-                            id: guide_info8
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDLabel:
-                            id: guide_info9
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-        
-
-        MDScreen:
-            name: "information_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "App & Version Information"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['close', lambda x: root.ids.screen_manager.app.close_information_action(self)],
-                        ]
-
-                ScrollView:
-                    id:information_scrollview
-
-                    MDBoxLayout:
-                        orientation: "vertical"
-                        size_hint_y: None
-                        height: self.minimum_height
-                        spacing: dp(35)
-                        padding: [dp(35), dp(32), dp(35), dp(16)]
-
-                        MDLabel:
-                            id: information_info
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDBoxLayout:
-                            orientation: "vertical"
-                            size_hint_y: None
-                            size_hint_x: None
-                            height: dp(256)
-                            width: dp(256)
-                            spacing: dp(0)
-                            padding: [dp(0), dp(0), dp(0), dp(0)]
-                            pos_hint: {"center_x": .5, "center_y": .5}
-
-                            MDIcon:
-                                pos_hint: {"center_x": .5, "center_y": .5}
-                                id: information_logo
-                                font_size: "256dp"
-                                width: dp(256)
-                                height: dp(256)
-
-        MDScreen:
-            name: "map_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "Situation Map"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['close', lambda x: root.ids.screen_manager.app.close_any_action(self)],
-                        ]
-
-                MDBoxLayout:
-                    id: map_layout
-
-        MDScreen:
-            name: "telemetry_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "Telemetry"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['close', lambda x: root.ids.screen_manager.app.close_any_action(self)],
-                        ]
-
-                ScrollView:
-                    id: telemetry_scrollview
-
-                    MDBoxLayout:
-                        orientation: "vertical"
-                        size_hint_y: None
-                        height: self.minimum_height
-                        padding: [dp(28), dp(48), dp(28), dp(16)]
-
-                        MDLabel:
-                            text: "Telemetry Over LXMF"
-                            font_style: "H6"
-
-                        MDLabel:
-                            id: telemetry_info
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDLabel:
-                            markup: True
-                            text: "\\n\\n"
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDBoxLayout:
-                            orientation: "vertical"
-                            spacing: dp(24)
-                            size_hint_y: None
-                            padding: [dp(0),dp(24),dp(0),dp(0)]
-                            height: dp(74)
-
-                            MDRectangleFlatIconButton:
-                                id: telemetry_icons_button
-                                icon: "update"
-                                text: "Send Telemetry Update Now"
-                                padding: [dp(0), dp(14), dp(0), dp(14)]
-                                icon_size: dp(24)
-                                font_size: dp(16)
-                                size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.telemetry_send_update(self)
-                                disabled: False
-
-                            MDRectangleFlatIconButton:
-                                id: telemetry_icons_button
-                                icon: "content-copy"
-                                text: "Copy Telemetry Data To Clipboard"
-                                padding: [dp(0), dp(14), dp(0), dp(14)]
-                                icon_size: dp(24)
-                                font_size: dp(16)
-                                size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.telemetry_copy(self)
-                                disabled: False
-
-                        MDBoxLayout:
-                            id: telemetry_enabled_fields
-                            orientation: "vertical"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [0, dp(16), 0, dp(0)]
-
-                            MDTextField:
-                                id: telemetry_collector
-                                max_text_length: 32
-                                hint_text: "Telemetry Collector LXMF Address"
-                                text: ""
-                                font_size: dp(24)
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            padding: [0,0,dp(24),0]
-                            size_hint_y: None
-                            height: dp(48)
-                            
-                            MDLabel:
-                                id: telemetry_enabled_label
-                                text: "Enable Telemetry"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_enabled
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Automatically send to collector"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_send_to_collector
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Send to all trusted peers"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_send_to_trusted
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Always send custom display style"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_send_appearance
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-
-                        MDLabel:
-                            markup: True
-                            text: "\\n\\n"
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDLabel:
-                            text: "Display Options"
-                            font_style: "H6"
-
-                        MDLabel:
-                            id: telemetry_info4
-                            markup: True
-                            text: "\\nYou can customise the display style of your telemetry data when viewed by others, by setting an icon and color options. This is usually used by clients to display your telemetry entry on a map or in lists and overviews. If left unset, the receiver will decide how to display the data.\\n"
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDBoxLayout:
-                            orientation: "vertical"
-                            size_hint_y: None
-                            height: dp(112)
-                            padding: [dp(0), dp(24), dp(0), dp(24)]
-                            pos_hint: {"center_x": .5}
-
-                            MDIconButton:
-                                pos_hint: {"center_x": .5}
-                                id: telemetry_icon_preview
-                                icon: "account"
-                                type: "large"
-                                theme_icon_color: "Custom"
-                                icon_color: [0, 0, 0, 1]
-                                md_bg_color: [1, 1, 1, 1]
-                                icon_size: dp(64)
-                                size_hint_y: None
-                                # width: dp(64)
-                                height: dp(80)
-                                on_release: root.ids.screen_manager.app.icons_action(self)
-
-
-                        MDRectangleFlatIconButton:
-                            id: telemetry_icons_button
-                            icon: "list-box-outline"
-                            text: "Select From Available Icons"
-                            padding: [dp(0), dp(14), dp(0), dp(14)]
-                            icon_size: dp(24)
-                            font_size: dp(16)
-                            size_hint: [1.0, None]
-                            on_release: root.ids.screen_manager.app.icons_action(self)
-                            disabled: False
-
-                        MDBoxLayout:
-                            orientation: "vertical"
-                            size_hint_y: None
-                            padding: [dp(0),dp(24),dp(0),dp(0)]
-                            height: dp(74)
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                #size_hint_y: None
-                                spacing: dp(24)
-                                # padding: [0,0,dp(24),dp(0)]
-                                # height: dp(48)
-
-                                MDRectangleFlatIconButton:
-                                    id: telemetry_icons_button
-                                    icon: "list-box-outline"
-                                    text: "Set Foreground Color"
-                                    padding: [dp(0), dp(14), dp(0), dp(14)]
-                                    icon_size: dp(24)
-                                    font_size: dp(16)
-                                    size_hint: [1.0, None]
-                                    on_release: root.ids.screen_manager.app.telemetry_fg_color(self)
-                                    disabled: False
-
-                                MDRectangleFlatIconButton:
-                                    id: telemetry_icons_button
-                                    icon: "list-box-outline"
-                                    text: "Set Background Color"
-                                    padding: [dp(0), dp(14), dp(0), dp(14)]
-                                    icon_size: dp(24)
-                                    font_size: dp(16)
-                                    size_hint: [1.0, None]
-                                    on_release: root.ids.screen_manager.app.telemetry_bg_color(self)
-                                    disabled: False
-
-                        MDLabel:
-                            markup: True
-                            text: "\\n\\n\\n"
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDLabel:
-                            text: "Sensor Types"
-                            font_style: "H6"
-
-                        MDLabel:
-                            id: telemetry_info3
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Location"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_s_location
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Battery State"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_s_battery
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Pressure"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_s_barometer
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Temperature"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_s_temperature
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Humidity"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_s_humidity
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Magnetic Field"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_s_compass
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Ambient Light"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_s_light
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Gravity"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_s_gravity
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Angular Velocity"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_s_gyroscope
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Acceleration"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_s_accelerometer
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Proximity"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_s_proximity
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDLabel:
-                            markup: True
-                            text: "\\n"
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-        MDScreen:
-            name: "icons_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "Available Icons"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['close', lambda x: root.ids.screen_manager.app.close_sub_telemetry_action(self)],
-                        ]
-
-                MDBoxLayout:
-                    orientation: 'vertical'
-                    spacing: dp(10)
-                    padding: dp(20)
-
-                    MDBoxLayout:
-                        adaptive_height: True
-
-                        MDIconButton:
-                            icon: 'magnify'
-
-                        MDTextField:
-                            id: icons_search_field
-                            hint_text: 'Search icon'
-                            on_text: root.ids.screen_manager.app.icons_filter(self.text, True)
-
-                    RecycleView:
-                        id: icons_rv
-                        key_viewclass: 'viewclass'
-                        key_size: 'height'
-
-                        RecycleBoxLayout:
-                            padding: dp(10)
-                            default_size: None, dp(48)
-                            default_size_hint: 1, None
-                            size_hint_y: None
-                            height: self.minimum_height
-                            orientation: 'vertical'
-
-
-        MDScreen:
-            name: "keys_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "Encryption Keys"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['close', lambda x: root.ids.screen_manager.app.close_keys_action(self)],
-                        ]
-
-                ScrollView:
-                    id:keys_scrollview
-
-                    MDBoxLayout:
-                        orientation: "vertical"
-                        spacing: "24dp"
-                        size_hint_y: None
-                        height: self.minimum_height
-                        padding: [dp(35), dp(35), dp(35), dp(35)]
-
-
-                        MDLabel:
-                            id: keys_info
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDRectangleFlatIconButton:
-                            id: keys_display
-                            icon: "eye"
-                            text: "Display Identity Key"
-                            padding: [dp(0), dp(14), dp(0), dp(14)]
-                            icon_size: dp(24)
-                            font_size: dp(16)
-                            size_hint: [1.0, None]
-                            on_release: root.ids.screen_manager.app.identity_display_action(self)
-
-                        MDRectangleFlatIconButton:
-                            id: keys_copy
-                            icon: "file-key"
-                            text: "Copy Key To Clipboard"
-                            padding: [dp(0), dp(14), dp(0), dp(14)]
-                            icon_size: dp(24)
-                            font_size: dp(16)
-                            size_hint: [1.0, None]
-                            on_release: root.ids.screen_manager.app.identity_copy_action(self)
-
-                        MDRectangleFlatIconButton:
-                            id: keys_share
-                            icon: "upload-lock"
-                            text: "Send Key To Other App"
-                            padding: [dp(0), dp(14), dp(0), dp(14)]
-                            icon_size: dp(24)
-                            font_size: dp(16)
-                            size_hint: [1.0, None]
-                            on_release: root.ids.screen_manager.app.identity_share_action(self)
-
-                        MDBoxLayout:
-                            orientation: "vertical"
-                            # spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [dp(0), dp(12), dp(0), dp(0)]
-
-                            MDTextField:
-                                id: key_restore_text
-                                hint_text: "Enter base32 key for import"
-                                mode: "rectangle"
-                                # size_hint: [1.0, None]
-                                pos_hint: {"center_x": .5}
-
-                        MDRectangleFlatIconButton:
-                            id: keys_restore
-                            icon: "download-lock"
-                            text: "Restore Identity From Key"
-                            padding: [dp(0), dp(14), dp(0), dp(14)]
-                            icon_size: dp(24)
-                            font_size: dp(16)
-                            size_hint: [1.0, None]
-                            on_release: root.ids.screen_manager.app.identity_restore_action(self)
-        
-
-        MDScreen:
-            name: "announces_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "Announce Stream"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['close', lambda x: root.ids.screen_manager.app.close_settings_action(self)],
-                        ]
-                    #    [['eye-off', lambda x: root.ids.screen_manager.app.announce_filter_action(self)]]
-
-                ScrollView:
-                    id: announces_scrollview
-
-                    MDBoxLayout:
-                        orientation: "vertical"
-                        spacing: "24dp"
-                        size_hint_y: None
-                        height: self.minimum_height
-                        padding: dp(64)
-
-                        MDLabel:
-                            id: announces_info
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-        
-
-        MDScreen:
-            name: "settings_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "Preferences"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['close', lambda x: root.ids.screen_manager.app.close_settings_action(self)],
-                        ]
-
-                ScrollView:
-                    id: settings_scrollview
-
-                    MDBoxLayout:
-                        orientation: "vertical"
-                        spacing: 0
-                        size_hint_y: None
-                        height: self.minimum_height
-                        padding: [0, 0, 0, 0]
-
-                        MDBoxLayout:
-                            orientation: "vertical"
-                            spacing: "16dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [dp(28), dp(16), dp(28), dp(16)]
-                            
-
-                            MDLabel:
-                                text: ""
-                                font_style: "H6"
-
-                            MDLabel:
-                                text: "User Options"
-                                font_style: "H6"
-
-                            MDTextField:
-                                id: settings_display_name
-                                hint_text: "Display Name"
-                                text: ""
-                                max_text_length: 128
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: settings_propagation_node_address
-                                hint_text: "LXMF Propagation Node"
-                                disabled: False
-                                text: ""
-                                max_text_length: 32
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: settings_print_command
-                                hint_text: "Print Command"
-                                disabled: False
-                                text: ""
-                                font_size: dp(24)
-
-                            MDLabel:
-                                text: ""
-                                font_style: "H6"
-
-                            MDLabel:
-                                text: "Address & Identity"
-                                font_style: "H6"
-
-                            MDTextField:
-                                id: settings_lxmf_address
-                                hint_text: "Your LXMF Address"
-                                text: ""
-                                disabled: False
-                                max_text_length: 32
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: settings_identity_hash
-                                hint_text: "Your Identity Hash"
-                                text: ""
-                                disabled: False
-                                max_text_length: 32
-                                font_size: dp(24)
-
-
-                        MDBoxLayout:
-                            orientation: "vertical"
-                            # spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [dp(28), dp(16), dp(28), dp(16)]
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                size_hint_y: None
-                                padding: [0,0,dp(24),dp(0)]
-                                height: dp(48)
-                                
-                                MDLabel:
-                                    text: "Notifications"
-                                    font_style: "H6"
-
-                                MDSwitch:
-                                    id: settings_notifications_on
-                                    pos_hint: {"center_y": 0.3}
-                                    active: True
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                size_hint_y: None
-                                padding: [0,0,dp(24),dp(0)]
-                                height: dp(48)
-                                
-                                MDLabel:
-                                    text: "Dark Mode"
-                                    font_style: "H6"
-
-                                MDSwitch:
-                                    id: settings_dark_ui
-                                    pos_hint: {"center_y": 0.3}
-                                    active: False
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                size_hint_y: None
-                                padding: [0,0,dp(24),dp(0)]
-                                height: dp(48)
-                                
-                                MDLabel:
-                                    text: "E-Ink Mode"
-                                    font_style: "H6"
-
-                                MDSwitch:
-                                    id: settings_eink_mode
-                                    pos_hint: {"center_y": 0.3}
-                                    active: False
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                size_hint_y: None
-                                padding: [0,0,dp(24),dp(0)]
-                                height: dp(48)
-                                
-                                MDLabel:
-                                    text: "Advanced Statistics"
-                                    font_style: "H6"
-
-                                MDSwitch:
-                                    id: settings_advanced_statistics
-                                    pos_hint: {"center_y": 0.3}
-                                    active: False
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                size_hint_y: None
-                                padding: [0,0,dp(24),dp(0)]
-                                height: dp(48)
-                                
-                                MDLabel:
-                                    text: "Announce Automatically"
-                                    font_style: "H6"
-
-                                MDSwitch:
-                                    id: settings_start_announce
-                                    pos_hint: {"center_y": 0.3}
-                                    active: False
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                size_hint_y: None
-                                padding: [0,0,dp(24),dp(0)]
-                                height: dp(48)
-                                
-                                MDLabel:
-                                    text: "Send via Propagation Node by default"
-                                    font_style: "H6"
-
-                                MDSwitch:
-                                    id: settings_lxmf_delivery_by_default
-                                    pos_hint: {"center_y": 0.3}
-                                    disabled: False
-                                    active: False
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                size_hint_y: None
-                                padding: [0,0,dp(24),dp(0)]
-                                height: dp(48)
-                                
-                                MDLabel:
-                                    text: "Ignore unknown senders"
-                                    font_style: "H6"
-
-                                MDSwitch:
-                                    id: settings_lxmf_ignore_unknown
-                                    pos_hint: {"center_y": 0.3}
-                                    disabled: False
-                                    active: False
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                size_hint_y: None
-                                padding: [0,0,dp(24),dp(0)]
-                                height: dp(48)
-                                
-                                MDLabel:
-                                    text: "Limit each sync to 3 messages"
-                                    font_style: "H6"
-
-                                MDSwitch:
-                                    id: settings_lxmf_sync_limit
-                                    pos_hint: {"center_y": 0.3}
-                                    disabled: False
-                                    active: False
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                size_hint_y: None
-                                padding: [0,0,dp(24),dp(0)]
-                                height: dp(48)
-                                
-                                MDLabel:
-                                    id: settings_lxmf_sync_periodic
-                                    text: "Sync with Propagation Node periodically"
-                                    font_style: "H6"
-
-                                MDSwitch:
-                                    id: settings_lxmf_periodic_sync
-                                    pos_hint: {"center_y": 0.3}
-                                    disabled: False
-                                    active: False
-
-                            MDBoxLayout:
-                                id: lxmf_syncslider_container
-                                orientation: "vertical"
-                                size_hint_y: None
-                                padding: [0,0,dp(0),0]
-                                height: dp(68)
-
-                                MDSlider
-                                    min: 300
-                                    max: 172800
-                                    value: 43200
-                                    id: settings_lxmf_sync_interval
-                                    sensitivity: "all"
-                                    hint: False
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                size_hint_y: None
-                                padding: [0,0,dp(24),dp(0)]
-                                height: dp(48)
-                                
-                                MDLabel:
-                                    text: "Use Home Node as Broadcast Repeater"
-                                    font_style: "H6"
-
-                                MDSwitch:
-                                    id: settings_home_node_as_broadcast_repeater
-                                    pos_hint: {"center_y": 0.3}
-                                    active: False
-                                    disabled: True
-
-                            MDBoxLayout:
-                                orientation: "horizontal"
-                                size_hint_y: None
-                                padding: [0,0,dp(24),dp(0)]
-                                height: dp(48)
-                                
-                                MDLabel:
-                                    text: "Debug Logging"
-                                    font_style: "H6"
-
-                                MDSwitch:
-                                    id: settings_debug
-                                    pos_hint: {"center_y": 0.3}
-                                    disabled: False
-                                    active: False
-
-        MDScreen:
-            name: "repository_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "Share Software & Guides"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['close', lambda x: root.ids.screen_manager.app.close_repository_action(self)],
-                        ]
-
-                ScrollView:
-                    id: repository_scrollview
-
-                    MDBoxLayout:
-                        orientation: "vertical"
-                        spacing: "8dp"
-                        size_hint_y: None
-                        height: self.minimum_height
-                        padding: [dp(28), dp(48), dp(28), dp(16)]
-
-                        MDLabel:
-                            text: "Repository Server\\n"
-                            font_style: "H6"
-
-                        MDLabel:
-                            id: repository_info
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-
-                        MDBoxLayout:
-                            orientation: "vertical"
-                            spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [dp(0), dp(35), dp(0), dp(35)]
-
-                            MDRectangleFlatIconButton:
-                                id: repository_enable_button
-                                icon: "wifi"
-                                text: "Start Repository Server"
-                                padding: [dp(0), dp(14), dp(0), dp(14)]
-                                icon_size: dp(24)
-                                font_size: dp(16)
-                                size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.repository_start_action(self)
-
-                            MDRectangleFlatIconButton:
-                                id: repository_disable_button
-                                icon: "wifi-off"
-                                text: "Stop Repository Server"
-                                padding: [dp(0), dp(14), dp(0), dp(14)]
-                                icon_size: dp(24)
-                                font_size: dp(16)
-                                size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.repository_stop_action(self)
-                                disabled: True
-
-                            MDRectangleFlatIconButton:
-                                id: repository_download_button
-                                icon: "download-multiple"
-                                text: "Update Contents"
-                                padding: [dp(0), dp(14), dp(0), dp(14)]
-                                icon_size: dp(24)
-                                font_size: dp(16)
-                                size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.repository_download_action(self)
-                                disabled: False
-
-                            MDLabel:
-                                id: repository_update
-                                markup: True
-                                text: ""
-                                size_hint_y: None
-                                text_size: self.width, None
-                                height: self.texture_size[1]
-
-        MDScreen:
-            name: "hardware_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "Hardware"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['close', lambda x: root.ids.screen_manager.app.close_hardware_action(self)],
-                        ]
-
-                ScrollView:
-                    id: hardware_scrollview
-
-                    MDBoxLayout:
-                        orientation: "vertical"
-                        spacing: "8dp"
-                        size_hint_y: None
-                        height: self.minimum_height
-                        padding: [dp(28), dp(48), dp(28), dp(16)]
-
-                        MDLabel:
-                            text: "Configure Hardware Parameters\\n"
-                            font_style: "H6"
-
-                        MDLabel:
-                            id: hardware_info
-                            markup: True
-                            text: ""
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-
-                        MDBoxLayout:
-                            orientation: "vertical"
-                            spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [dp(0), dp(35), dp(0), dp(35)]
-
-                            MDRectangleFlatIconButton:
-                                id: hardware_rnode_button
-                                icon: "radio-handheld"
-                                text: "RNode"
-                                padding: [dp(0), dp(14), dp(0), dp(14)]
-                                icon_size: dp(24)
-                                font_size: dp(16)
-                                size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.hardware_rnode_action(self)
-
-                            MDRectangleFlatIconButton:
-                                id: hardware_modem_button
-                                icon: "router-wireless"
-                                text: "Radio Modem"
-                                padding: [dp(0), dp(14), dp(0), dp(14)]
-                                icon_size: dp(24)
-                                font_size: dp(16)
-                                size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.hardware_modem_action(self)
-                                disabled: False
-
-                            MDRectangleFlatIconButton:
-                                id: hardware_serial_button
-                                icon: "cable-data"
-                                text: "Serial Port"
-                                padding: [dp(0), dp(14), dp(0), dp(14)]
-                                icon_size: dp(24)
-                                font_size: dp(16)
-                                size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.hardware_serial_action(self)
-                                disabled: False
-
-        MDScreen:
-            name: "hardware_rnode_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "RNode"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['close', lambda x: root.ids.screen_manager.app.close_sub_hardware_action(self)],
-                        ]
-
-                ScrollView:
-                    id: hardware_rnode_scrollview
-
-                    MDBoxLayout:
-                        orientation: "vertical"
-                        spacing: "8dp"
-                        size_hint_y: None
-                        height: self.minimum_height
-                        padding: [dp(28), dp(48), dp(28), dp(16)]
-
-                        MDLabel:
-                            text: "RNode Hardware Parameters\\n"
-                            font_style: "H6"
-
-                        MDLabel:
-                            id: hardware_rnode_info
-                            markup: True
-                            text: "To communicate using an RNode, you will need to specify the following parameters. For two or more RNodes to be able to communicate, all parameters must match, except for the [i]Coding Rate[/i] and [i]TX Power[/i] parameter, which can vary between devices.\\n"
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [dp(0), dp(0), dp(0), dp(35)]
-
-                            MDRectangleFlatIconButton:
-                                id: rnode_mote_export
-                                icon: "upload"
-                                text: "Export"
-                                padding: [dp(0), dp(14), dp(0), dp(14)]
-                                icon_size: dp(24)
-                                font_size: dp(16)
-                                size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.hardware_rnode_export(self)
-
-                            MDRectangleFlatIconButton:
-                                id: rnode_mote_import
-                                icon: "download"
-                                text: "Import"
-                                padding: [dp(0), dp(14), dp(0), dp(14)]
-                                icon_size: dp(24)
-                                font_size: dp(16)
-                                size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.hardware_rnode_import(self)
-
-                        MDLabel:
-                            text: "Radio Options"
-                            font_style: "H6"
-
-                        # MDTextField:
-                        #     id: hardware_rnode_modulation
-                        #     hint_text: "Modulation"
-                        #     text: "LoRa"
-                        #     disabled: True
-                        #     font_size: dp(24)
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            # padding: [dp(0), dp(0), dp(0), dp(35)]
-
-                            MDTextField:
-                                id: hardware_rnode_frequency
-                                hint_text: "Frequency (MHz)"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: hardware_rnode_bandwidth
-                                hint_text: "Bandwidth (KHz)"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: hardware_rnode_txpower
-                                hint_text: "TX Power (dBm)"
-                                text: ""
-                                font_size: dp(24)
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [dp(0), dp(0), dp(0), dp(24)]
-
-                            MDTextField:
-                                id: hardware_rnode_spreadingfactor
-                                hint_text: "Spreading Factor"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: hardware_rnode_codingrate
-                                hint_text: "Coding Rate"
-                                text: ""
-                                font_size: dp(24)
-
-                        MDLabel:
-                            text: "Optional Settings"
-                            font_style: "H6"
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            # padding: [dp(0), dp(0), dp(0), dp(35)]
-
-                            MDTextField:
-                                id: hardware_rnode_beaconinterval
-                                hint_text: "Beacon Interval (seconds)"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: hardware_rnode_beacondata
-                                hint_text: "Beacon Data"
-                                text: ""
-                                font_size: dp(24)
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            # padding: [dp(0), dp(0), dp(0), dp(35)]
-
-                            MDTextField:
-                                id: hardware_rnode_atl_short
-                                hint_text: "Airime Limit % (15s)"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: hardware_rnode_atl_long
-                                hint_text: "Airime Limit % (1h)"
-                                text: ""
-                                font_size: dp(24)
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Control RNode Display"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: hardware_rnode_framebuffer
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
-                                text: "Connect using Bluetooth"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: hardware_rnode_bluetooth
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDLabel:
-                            id: hardware_rnode_info
-                            markup: True
-                            text: "If you enable connection via Bluetooth, Sideband will attempt to connect to any available and paired RNodes over Bluetooth.\\n\\nYou must first pair the RNode with your device for this to work. If your RNode does not have a physical pairing button, you can enable Bluetooth and put it into pairing mode by first connecting it via a USB cable, and using the buttons below. When plugging in the RNode over USB, you must grant Sideband permission to the USB device for this to work.\\n\\nYou can also change Bluetooth settings using the \\"rnodeconf\\" utility from a computer.\\n\\nBy default, Sideband will connect to the first available RNode that is paired. If you want to always use a specific RNode, you can enter its name in the Preferred RNode Device Name field below, for example \\"RNode A8EB\\".\\n"
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDBoxLayout:
-                            orientation: "vertical"
-                            spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            # padding: [dp(0), dp(0), dp(0), dp(35)]
-
-                            MDRectangleFlatIconButton:
-                                id: hardware_rnode_bt_on_button
-                                icon: "bluetooth"
-                                text: "Enable Bluetooth"
-                                padding: [dp(0), dp(14), dp(0), dp(14)]
-                                icon_size: dp(24)
-                                font_size: dp(16)
-                                size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.hardware_rnode_bt_on_action(self)
-
-                            MDRectangleFlatIconButton:
-                                id: hardware_rnode_bt_off_button
-                                icon: "bluetooth-off"
-                                text: "Disable Bluetooth"
-                                padding: [dp(0), dp(14), dp(0), dp(14)]
-                                icon_size: dp(24)
-                                font_size: dp(16)
-                                size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.hardware_rnode_bt_off_action(self)
-                                disabled: False
-
-                            MDRectangleFlatIconButton:
-                                id: hardware_rnode_bt_pair_button
-                                icon: "link-variant"
-                                text: "Start Pairing Mode"
-                                padding: [dp(0), dp(14), dp(0), dp(14)]
-                                icon_size: dp(24)
-                                font_size: dp(16)
-                                size_hint: [1.0, None]
-                                on_release: root.ids.screen_manager.app.hardware_rnode_bt_pair_action(self)
-                                disabled: False
-
-                            MDTextField:
-                                id: hardware_rnode_bt_device
-                                hint_text: "Preferred RNode Device Name"
-                                text: ""
-                                font_size: dp(24)
-
-        MDScreen:
-            name: "hardware_modem_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "Radio Modem"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['close', lambda x: root.ids.screen_manager.app.close_sub_hardware_action(self)],
-                        ]
-
-                ScrollView:
-                    id: hardware_modem_scrollview
-
-                    MDBoxLayout:
-                        orientation: "vertical"
-                        spacing: "8dp"
-                        size_hint_y: None
-                        height: self.minimum_height
-                        padding: [dp(28), dp(48), dp(28), dp(16)]
-
-                        MDLabel:
-                            text: "Modem Hardware Parameters\\n"
-                            font_style: "H6"
-
-                        MDLabel:
-                            id: hardware_modem_info
-                            markup: True
-                            text: "To communicate using a Radio Modem, you will need to specify the following parameters. Serial port parameters must be set to match those of the modem. CSMA parameters can be left at their default values in most cases.\\n"
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDLabel:
-                            text: "Port Options"
-                            font_style: "H6"
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            # padding: [dp(0), dp(0), dp(0), dp(35)]
-
-                            MDTextField:
-                                id: hardware_modem_baudrate
-                                hint_text: "Baud Rate"
-                                text: ""
-                                font_size: dp(24)
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [dp(0), dp(0), dp(0), dp(24)]
-
-                            MDTextField:
-                                id: hardware_modem_databits
-                                hint_text: "Data Bits"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: hardware_modem_parity
-                                hint_text: "Parity"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: hardware_modem_stopbits
-                                hint_text: "Stop Bits"
-                                text: ""
-                                font_size: dp(24)
-
-                        MDLabel:
-                            text: "CSMA Parameters"
-                            font_style: "H6"
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [dp(0), dp(0), dp(0), dp(0)]
-
-                            MDTextField:
-                                id: hardware_modem_preamble
-                                hint_text: "Preamble (ms)"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: hardware_modem_tail
-                                hint_text: "TX Tail (ms)"
-                                text: ""
-                                font_size: dp(24)
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [dp(0), dp(0), dp(0), dp(24)]
-
-                            MDTextField:
-                                id: hardware_modem_persistence
-                                hint_text: "Persistence (1-255)"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: hardware_modem_slottime
-                                hint_text: "Slot Time (ms)"
-                                text: ""
-                                font_size: dp(24)
-
-                        MDLabel:
-                            text: "Optional Settings"
-                            font_style: "H6"
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            # padding: [dp(0), dp(0), dp(0), dp(35)]
-
-                            MDTextField:
-                                id: hardware_modem_beaconinterval
-                                hint_text: "Beacon Interval (seconds)"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: hardware_modem_beacondata
-                                hint_text: "Beacon Data"
-                                text: ""
-                                font_size: dp(24)
-
-        MDScreen:
-            name: "hardware_serial_screen"
-            
-            BoxLayout:
-                orientation: "vertical"
-
-                MDTopAppBar:
-                    title: "Serial Port"
-                    anchor_title: "left"
-                    elevation: 0
-                    left_action_items:
-                        [['menu', lambda x: nav_drawer.set_state("open")]]
-                    right_action_items:
-                        [
-                        ['close', lambda x: root.ids.screen_manager.app.close_sub_hardware_action(self)],
-                        ]
-
-                ScrollView:
-                    id: hardware_serial_scrollview
-
-                    MDBoxLayout:
-                        orientation: "vertical"
-                        spacing: "8dp"
-                        size_hint_y: None
-                        height: self.minimum_height
-                        padding: [dp(28), dp(48), dp(28), dp(16)]
-
-                        MDLabel:
-                            text: "Serial Hardware Parameters\\n"
-                            font_style: "H6"
-
-                        MDLabel:
-                            id: hardware_serial_info
-                            markup: True
-                            text: "To communicate using a serial port, you will need to specify the following parameters. If communicating directly to another Reticulum instance over serial, the parameters must match the other device.\\n\\nIf you are using a serial-connected device to pass on data to other Reticulum instances, it should be configured to pass data transparently to the desired endpoints.\\n"
-                            size_hint_y: None
-                            text_size: self.width, None
-                            height: self.texture_size[1]
-
-                        MDLabel:
-                            text: "Port Options"
-                            font_style: "H6"
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            # padding: [dp(0), dp(0), dp(0), dp(35)]
-
-                            MDTextField:
-                                id: hardware_serial_baudrate
-                                hint_text: "Baud Rate"
-                                text: ""
-                                font_size: dp(24)
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            spacing: "24dp"
-                            size_hint_y: None
-                            height: self.minimum_height
-                            padding: [dp(0), dp(0), dp(0), dp(24)]
-
-                            MDTextField:
-                                id: hardware_serial_databits
-                                hint_text: "Data Bits"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: hardware_serial_parity
-                                hint_text: "Parity"
-                                text: ""
-                                font_size: dp(24)
-
-                            MDTextField:
-                                id: hardware_serial_stopbits
-                                hint_text: "Stop Bits"
-                                text: ""
-                                font_size: dp(24)
-
-
     MDNavigationDrawer:
         id: nav_drawer
         radius: (0, dp(8), dp(8), 0)
@@ -2487,4 +170,2210 @@ MDNavigationLayout:
                                 icon: "power"
                                 on_release: root.ids.screen_manager.app.quit_action(self)
 
+"""
+
+layout_broadcasts_screen = """
+MDScreen:
+    name: "broadcasts_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Local Broadcasts"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_any_action(self)],
+                ]
+
+        ScrollView:
+            id: broadcasts_scrollview
+
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: "24dp"
+                size_hint_y: None
+                height: self.minimum_height
+                padding: [dp(35), dp(35), dp(35), dp(35)]
+
+                MDLabel:
+                    id: broadcasts_info
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+"""
+
+layout_exit_screen = """
+MDScreen:
+    name: "exit_screen"
+         
+    AnchorLayout:
+        padding: [dp(0), dp(72), dp(0), dp(0)]
+        anchor_x: "center"
+        anchor_y: "center"
+
+        BoxLayout:
+            spacing: dp(36)
+            orientation: 'vertical'
+            size_hint_y: None
+
+            MDLabel:
+                id: exiting_info
+                halign: "center"
+                text: "Please Wait"
+                font_size: "32dp"
+
+            MDIconButton:
+                pos_hint: {"center_x": .5, "center_y": .5}
+                icon: "waves"
+                icon_size: "92dp"
+
+            MDLabel:
+                id: exiting_status
+                halign: "center"
+                text: "Dissolving Reticulum"
+                font_size: "32dp"
+"""
+
+layout_connectivity_screen = """
+MDScreen:
+    name: "connectivity_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Connectivity"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_connectivity_action(self)],
+                ]
+
+        ScrollView:
+            id: connectivity_scrollview
+
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: "10dp"
+                size_hint_y: None
+                height: self.minimum_height
+                padding: [dp(28), dp(48), dp(28), dp(16)]
+
+                MDLabel:
+                    text: "Configuring Connectivity\\n"
+                    font_style: "H6"
+
+                MDLabel:
+                    id: connectivity_info
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: [0,0,dp(24),0]
+                    size_hint_y: None
+                    height: dp(24)
+                    
+                    MDLabel:
+                        id: connectivity_local_label
+                        text: "Connect via local WiFi/Ethernet"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: connectivity_use_local
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    id: connectivity_local_fields
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [0, 0, 0, dp(32)]
+
+                    MDTextField:
+                        id: connectivity_local_groupid
+                        hint_text: "Optional WiFi/Ethernet Group ID"
+                        text: ""
+                        max_text_length: 128
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: connectivity_local_ifac_netname
+                        hint_text: "Optional IFAC network name"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: connectivity_local_ifac_passphrase
+                        hint_text: "Optional IFAC passphrase"
+                        text: ""
+                        font_size: dp(24)
+
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: [0,0,dp(24),0]
+                    size_hint_y: None
+                    height: dp(24)
+                    
+                    MDLabel:
+                        id: connectivity_tcp_label
+                        text: "Connect via TCP"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: connectivity_use_tcp
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+
+                MDBoxLayout:
+                    id: connectivity_tcp_fields
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [0, 0, 0, dp(32)]
+
+                    MDTextField:
+                        id: connectivity_tcp_host
+                        hint_text: "TCP Host"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: connectivity_tcp_port
+                        hint_text: "TCP Port"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: connectivity_tcp_ifac_netname
+                        hint_text: "Optional IFAC network name"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: connectivity_tcp_ifac_passphrase
+                        hint_text: "Optional IFAC passphrase"
+                        text: ""
+                        font_size: dp(24)
+
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: [0,0,dp(24),0]
+                    size_hint_y: None
+                    height: dp(24)
+                    
+                    MDLabel:
+                        id: connectivity_i2p_label
+                        text: "Connect via I2P"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: connectivity_use_i2p
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+
+                MDBoxLayout:
+                    id: connectivity_i2p_fields
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [0, 0, 0, dp(32)]
+
+                    MDTextField:
+                        id: connectivity_i2p_b32
+                        hint_text: "I2P B32"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: connectivity_i2p_ifac_netname
+                        hint_text: "Optional IFAC network name"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: connectivity_i2p_ifac_passphrase
+                        hint_text: "Optional IFAC passphrase"
+                        text: ""
+                        font_size: dp(24)
+
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: [0,0,dp(24),0]
+                    size_hint_y: None
+                    height: dp(24)
+                    
+                    MDLabel:
+                        id: connectivity_rnode_label
+                        text: "Connect via RNode"
+                        font_style: "H6"
+                        disabled: False
+
+                    MDSwitch:
+                        id: connectivity_use_rnode
+                        active: False
+                        pos_hint: {"center_y": 0.3}
+                        disabled: False
+
+                MDBoxLayout:
+                    id: connectivity_rnode_fields
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [0, 0, 0, dp(32)]
+
+                    MDTextField:
+                        id: connectivity_rnode_ifac_netname
+                        hint_text: "Optional IFAC network name"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: connectivity_rnode_ifac_passphrase
+                        hint_text: "Optional IFAC passphrase"
+                        text: ""
+                        font_size: dp(24)
+
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: [0,0,dp(24),0]
+                    size_hint_y: None
+                    height: dp(24)
+                    
+                    MDLabel:
+                        id: connectivity_modem_label
+                        text: "Connect via Radio Modem"
+                        font_style: "H6"
+                        disabled: False
+
+                    MDSwitch:
+                        id: connectivity_use_modem
+                        active: False
+                        pos_hint: {"center_y": 0.3}
+                        disabled: False
+
+                MDBoxLayout:
+                    id: connectivity_modem_fields
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [0, 0, 0, dp(32)]
+
+                    MDTextField:
+                        id: connectivity_modem_ifac_netname
+                        hint_text: "Optional IFAC network name"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: connectivity_modem_ifac_passphrase
+                        hint_text: "Optional IFAC passphrase"
+                        text: ""
+                        font_size: dp(24)
+
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: [0,0,dp(24),0]
+                    size_hint_y: None
+                    height: dp(24)
+                    
+                    MDLabel:
+                        id: connectivity_serial_label
+                        text: "Connect via Serial Port"
+                        font_style: "H6"
+                        disabled: False
+
+                    MDSwitch:
+                        id: connectivity_use_serial
+                        active: False
+                        pos_hint: {"center_y": 0.3}
+                        disabled: False
+
+                MDBoxLayout:
+                    id: connectivity_serial_fields
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [0, 0, 0, dp(32)]
+
+                    MDTextField:
+                        id: connectivity_serial_ifac_netname
+                        hint_text: "Optional IFAC network name"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: connectivity_serial_ifac_passphrase
+                        hint_text: "Optional IFAC passphrase"
+                        text: ""
+                        font_size: dp(24)
+
+
+                # MDBoxLayout:
+                #     orientation: "horizontal"
+                #     padding: [0,0,dp(24),0]
+                #     size_hint_y: None
+                #     height: dp(24)
+                    
+                #     MDLabel:
+                #         id: connectivity_bluetooth_label
+                #         text: "Connect via Bluetooth"
+                #         font_style: "H6"
+                #         disabled: True
+
+                #     MDSwitch:
+                #         id: connectivity_use_bluetooth
+                #         active: False
+                #         pos_hint: {"center_y": 0.3}
+                #         disabled: True
+
+                # MDBoxLayout:
+                #     id: connectivity_bluetooth_fields
+                #     orientation: "vertical"
+                #     size_hint_y: None
+                #     height: self.minimum_height
+                #     padding: [0, 0, 0, dp(32)]
+
+                #     MDTextField:
+                #         id: connectivity_bluetooth_cid
+                #         hint_text: "Bluetooth Pairing ID"
+                #         text: ""
+                #         font_size: dp(24)
+                #         # disabled: True
+
+                MDLabel:
+                    text: "Shared Instance Access\\n"
+                    id: connectivity_shared_access_label
+                    font_style: "H6"
+
+                MDLabel:
+                    id: connectivity_shared_access
+                    markup: True
+                    text: "The Reticulum instance launched by Sideband will be available for other programs on this system. By default, this grants connectivity to other local Reticulum-based programs, but no access to management, interface status and path information.\\n\\nIf you want to allow full functionality and ability to manage the running instance, you will need to configure other programs to use the correct RPC key for this instance.\\n\\nThis can be very useful for using other tools related to Reticulum, for example via command-line programs running in Termux. To do this, use the button below to copy the RPC key configuration line, and paste it into the Reticulum configuration file within the Termux environment, or other program.\\n\\nPlease note! [b]It is not necessary[/b] to enable Reticulum Transport for this to work!\\n\\n"
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    id: connectivity_shared_access_fields
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [0, 0, 0, dp(32)]
+
+                    MDRectangleFlatIconButton:
+                        id: rpc_keys_copy
+                        icon: "file-key"
+                        text: "Copy RPC Config To Clipboard"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.ids.screen_manager.app.rpc_copy_action(self)
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: [0,0,dp(24),0]
+                    size_hint_y: None
+                    height: dp(24)
+                    
+                    MDLabel:
+                        id: connectivity_transport_label
+                        text: "Enable Reticulum Transport"
+                        font_style: "H6"
+                        # disabled: True
+
+                    MDSwitch:
+                        id: connectivity_enable_transport
+                        active: False
+                        pos_hint: {"center_y": 0.3}
+                        # disabled: True
+
+                MDLabel:
+                    id: connectivity_transport_info
+                    markup: True
+                    text: "Enabling Reticulum Transport will allow this device to route traffic between all enabled interfaces.\\n\\nFor general usage, this option should not be enabled, but it can be useful in situations where you want to share connectivity from one device to many others. An example of this could be sharing connectivity from a radio interface to other people on your local WiFi network.\\n\\nWhen enabled, you will be able to configure the interface mode for all interfaces configured on this device. For more information on this topic, refer to the Reticulum Manual."
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    id: connectivity_transport_fields
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [0, 0, 0, dp(32)]
+
+                    # MDLabel:
+                    #     id: connectivity_modes_info
+                    #     markup: True
+                    #     text: "With Transport enabled, you can configure the interface modes for any enabled interfaces. Changing interface modes affects how Reticulum processes traffic and announces. For more information, refer to the Reticulum Manual."
+                    #     size_hint_y: None
+                    #     text_size: self.width, None
+                    #     height: self.texture_size[1]
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        spacing: "24dp"
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: [dp(0), dp(12), dp(0), dp(12)]
+
+                        MDTextField:
+                            id: connectivity_local_ifmode
+                            hint_text: "Local Interface Mode"
+                            text: ""
+                            font_size: dp(24)
+
+                        MDTextField:
+                            id: connectivity_tcp_ifmode
+                            hint_text: "TCP Interface Mode"
+                            text: ""
+                            font_size: dp(24)
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        spacing: "24dp"
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: [dp(0), dp(12), dp(0), dp(12)]
+
+                        MDTextField:
+                            id: connectivity_i2p_ifmode
+                            hint_text: "I2P Mode"
+                            text: ""
+                            font_size: dp(24)
+
+                        MDTextField:
+                            id: connectivity_rnode_ifmode
+                            hint_text: "RNode Mode"
+                            text: ""
+                            font_size: dp(24)
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        spacing: "24dp"
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: [dp(0), dp(12), dp(0), dp(12)]
+
+                        MDTextField:
+                            id: connectivity_modem_ifmode
+                            hint_text: "Modem Mode"
+                            text: ""
+                            font_size: dp(24)
+
+                        MDTextField:
+                            id: connectivity_serial_ifmode
+                            hint_text: "Serial Mode"
+                            text: ""
+                            font_size: dp(24)
+
+                    # MDTextField:
+                    #     id: connectivity_bluetooth_ifmode
+                    #     hint_text: "Bluetooth Mode"
+                    #     text: ""
+                    #     font_size: dp(24)
+"""
+
+layout_guide_screen = """
+MDScreen:
+    name: "guide_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Guide"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_guide_action(self)],
+                ]
+
+        ScrollView:
+            id:guide_scrollview
+
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_y: None
+                height: self.minimum_height
+                padding: [dp(35), dp(16), dp(35), dp(16)]
+
+                MDLabel:
+                    id: guide_info1
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    id: guide_info2
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    id: guide_info3
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    id: guide_info4
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    id: guide_info5
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    id: guide_info6
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    id: guide_info7
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    id: guide_info8
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    id: guide_info9
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+"""
+
+layout_information_screen = """
+MDScreen:
+    name: "information_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "App & Version Information"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_information_action(self)],
+                ]
+
+        ScrollView:
+            id:information_scrollview
+
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: dp(35)
+                padding: [dp(35), dp(32), dp(35), dp(16)]
+
+                MDLabel:
+                    id: information_info
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    size_hint_y: None
+                    size_hint_x: None
+                    height: dp(256)
+                    width: dp(256)
+                    spacing: dp(0)
+                    padding: [dp(0), dp(0), dp(0), dp(0)]
+                    pos_hint: {"center_x": .5, "center_y": .5}
+
+                    MDIcon:
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        id: information_logo
+                        font_size: "256dp"
+                        width: dp(256)
+                        height: dp(256)
+"""
+
+layout_map_screen = """
+MDScreen:
+    name: "map_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Situation Map"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_any_action(self)],
+                ]
+
+        MDBoxLayout:
+            id: map_layout
+"""
+
+layout_telemetry_screen = """
+MDScreen:
+    name: "telemetry_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Telemetry"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_any_action(self)],
+                ]
+
+        ScrollView:
+            id: telemetry_scrollview
+
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_y: None
+                height: self.minimum_height
+                padding: [dp(28), dp(48), dp(28), dp(16)]
+
+                MDLabel:
+                    text: "Telemetry Over LXMF"
+                    font_style: "H6"
+
+                MDLabel:
+                    id: telemetry_info
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    markup: True
+                    text: "\\n\\n"
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    spacing: dp(24)
+                    size_hint_y: None
+                    padding: [dp(0),dp(24),dp(0),dp(0)]
+                    height: dp(74)
+
+                    MDRectangleFlatIconButton:
+                        id: telemetry_icons_button
+                        icon: "update"
+                        text: "Send Telemetry Update Now"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.app.telemetry_send_update(self)
+                        disabled: False
+
+                    MDRectangleFlatIconButton:
+                        id: telemetry_icons_button
+                        icon: "content-copy"
+                        text: "Copy Telemetry Data To Clipboard"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.app.telemetry_copy(self)
+                        disabled: False
+
+                MDBoxLayout:
+                    id: telemetry_enabled_fields
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [0, dp(16), 0, dp(0)]
+
+                    MDTextField:
+                        id: telemetry_collector
+                        max_text_length: 32
+                        hint_text: "Telemetry Collector LXMF Address"
+                        text: ""
+                        font_size: dp(24)
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: [0,0,dp(24),0]
+                    size_hint_y: None
+                    height: dp(48)
+                    
+                    MDLabel:
+                        id: telemetry_enabled_label
+                        text: "Enable Telemetry"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_enabled
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Automatically send to collector"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_send_to_collector
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Send to all trusted peers"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_send_to_trusted
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Always send custom display style"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_send_appearance
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+
+                MDLabel:
+                    markup: True
+                    text: "\\n\\n"
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    text: "Display Options"
+                    font_style: "H6"
+
+                MDLabel:
+                    id: telemetry_info4
+                    markup: True
+                    text: "\\nYou can customise the display style of your telemetry data when viewed by others, by setting an icon and color options. This is usually used by clients to display your telemetry entry on a map or in lists and overviews. If left unset, the receiver will decide how to display the data.\\n"
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: dp(112)
+                    padding: [dp(0), dp(24), dp(0), dp(24)]
+                    pos_hint: {"center_x": .5}
+
+                    MDIconButton:
+                        pos_hint: {"center_x": .5}
+                        id: telemetry_icon_preview
+                        icon: "account"
+                        type: "large"
+                        theme_icon_color: "Custom"
+                        icon_color: [0, 0, 0, 1]
+                        md_bg_color: [1, 1, 1, 1]
+                        icon_size: dp(64)
+                        size_hint_y: None
+                        # width: dp(64)
+                        height: dp(80)
+                        on_release: root.app.icons_action(self)
+
+
+                MDRectangleFlatIconButton:
+                    id: telemetry_icons_button
+                    icon: "list-box-outline"
+                    text: "Select From Available Icons"
+                    padding: [dp(0), dp(14), dp(0), dp(14)]
+                    icon_size: dp(24)
+                    font_size: dp(16)
+                    size_hint: [1.0, None]
+                    on_release: root.app.icons_action(self)
+                    disabled: False
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    size_hint_y: None
+                    padding: [dp(0),dp(24),dp(0),dp(0)]
+                    height: dp(74)
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        #size_hint_y: None
+                        spacing: dp(24)
+                        # padding: [0,0,dp(24),dp(0)]
+                        # height: dp(48)
+
+                        MDRectangleFlatIconButton:
+                            id: telemetry_icons_button
+                            icon: "list-box-outline"
+                            text: "Set Foreground Color"
+                            padding: [dp(0), dp(14), dp(0), dp(14)]
+                            icon_size: dp(24)
+                            font_size: dp(16)
+                            size_hint: [1.0, None]
+                            on_release: root.app.telemetry_fg_color(self)
+                            disabled: False
+
+                        MDRectangleFlatIconButton:
+                            id: telemetry_icons_button
+                            icon: "list-box-outline"
+                            text: "Set Background Color"
+                            padding: [dp(0), dp(14), dp(0), dp(14)]
+                            icon_size: dp(24)
+                            font_size: dp(16)
+                            size_hint: [1.0, None]
+                            on_release: root.app.telemetry_bg_color(self)
+                            disabled: False
+
+                MDLabel:
+                    markup: True
+                    text: "\\n\\n\\n"
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    text: "Sensor Types"
+                    font_style: "H6"
+
+                MDLabel:
+                    id: telemetry_info3
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Location"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_s_location
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Battery State"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_s_battery
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Pressure"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_s_barometer
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Temperature"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_s_temperature
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Humidity"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_s_humidity
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Magnetic Field"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_s_compass
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Ambient Light"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_s_light
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Gravity"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_s_gravity
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Angular Velocity"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_s_gyroscope
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Acceleration"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_s_accelerometer
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Proximity"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_s_proximity
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDLabel:
+                    markup: True
+                    text: "\\n"
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+"""
+
+layout_icons_screen = """
+MDScreen:
+    name: "icons_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Available Icons"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_sub_telemetry_action(self)],
+                ]
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            spacing: dp(10)
+            padding: dp(20)
+
+            MDBoxLayout:
+                adaptive_height: True
+
+                MDIconButton:
+                    icon: 'magnify'
+
+                MDTextField:
+                    id: icons_search_field
+                    hint_text: 'Search icon'
+                    on_text: root.app.icons_filter(self.text, True)
+
+            RecycleView:
+                id: icons_rv
+                key_viewclass: 'viewclass'
+                key_size: 'height'
+
+                RecycleBoxLayout:
+                    padding: dp(10)
+                    default_size: None, dp(48)
+                    default_size_hint: 1, None
+                    size_hint_y: None
+                    height: self.minimum_height
+                    orientation: 'vertical'
+"""
+
+layout_keys_screen = """
+MDScreen:
+    name: "keys_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Encryption Keys"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_keys_action(self)],
+                ]
+
+        ScrollView:
+            id:keys_scrollview
+
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: "24dp"
+                size_hint_y: None
+                height: self.minimum_height
+                padding: [dp(35), dp(35), dp(35), dp(35)]
+
+
+                MDLabel:
+                    id: keys_info
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDRectangleFlatIconButton:
+                    id: keys_display
+                    icon: "eye"
+                    text: "Display Identity Key"
+                    padding: [dp(0), dp(14), dp(0), dp(14)]
+                    icon_size: dp(24)
+                    font_size: dp(16)
+                    size_hint: [1.0, None]
+                    on_release: root.ids.screen_manager.app.identity_display_action(self)
+
+                MDRectangleFlatIconButton:
+                    id: keys_copy
+                    icon: "file-key"
+                    text: "Copy Key To Clipboard"
+                    padding: [dp(0), dp(14), dp(0), dp(14)]
+                    icon_size: dp(24)
+                    font_size: dp(16)
+                    size_hint: [1.0, None]
+                    on_release: root.ids.screen_manager.app.identity_copy_action(self)
+
+                MDRectangleFlatIconButton:
+                    id: keys_share
+                    icon: "upload-lock"
+                    text: "Send Key To Other App"
+                    padding: [dp(0), dp(14), dp(0), dp(14)]
+                    icon_size: dp(24)
+                    font_size: dp(16)
+                    size_hint: [1.0, None]
+                    on_release: root.ids.screen_manager.app.identity_share_action(self)
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    # spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(0), dp(12), dp(0), dp(0)]
+
+                    MDTextField:
+                        id: key_restore_text
+                        hint_text: "Enter base32 key for import"
+                        mode: "rectangle"
+                        # size_hint: [1.0, None]
+                        pos_hint: {"center_x": .5}
+
+                MDRectangleFlatIconButton:
+                    id: keys_restore
+                    icon: "download-lock"
+                    text: "Restore Identity From Key"
+                    padding: [dp(0), dp(14), dp(0), dp(14)]
+                    icon_size: dp(24)
+                    font_size: dp(16)
+                    size_hint: [1.0, None]
+                    on_release: root.ids.screen_manager.app.identity_restore_action(self)
+"""
+
+layout_settings_screen = """
+MDScreen:
+    name: "settings_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Preferences"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_settings_action(self)],
+                ]
+
+        ScrollView:
+            id: settings_scrollview
+
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: 0
+                size_hint_y: None
+                height: self.minimum_height
+                padding: [0, 0, 0, 0]
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    spacing: "16dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(28), dp(16), dp(28), dp(16)]
+                    
+
+                    MDLabel:
+                        text: ""
+                        font_style: "H6"
+
+                    MDLabel:
+                        text: "User Options"
+                        font_style: "H6"
+
+                    MDTextField:
+                        id: settings_display_name
+                        hint_text: "Display Name"
+                        text: ""
+                        max_text_length: 128
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: settings_propagation_node_address
+                        hint_text: "LXMF Propagation Node"
+                        disabled: False
+                        text: ""
+                        max_text_length: 32
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: settings_print_command
+                        hint_text: "Print Command"
+                        disabled: False
+                        text: ""
+                        font_size: dp(24)
+
+                    MDLabel:
+                        text: ""
+                        font_style: "H6"
+
+                    MDLabel:
+                        text: "Address & Identity"
+                        font_style: "H6"
+
+                    MDTextField:
+                        id: settings_lxmf_address
+                        hint_text: "Your LXMF Address"
+                        text: ""
+                        disabled: False
+                        max_text_length: 32
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: settings_identity_hash
+                        hint_text: "Your Identity Hash"
+                        text: ""
+                        disabled: False
+                        max_text_length: 32
+                        font_size: dp(24)
+
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    # spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(28), dp(16), dp(28), dp(16)]
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        size_hint_y: None
+                        padding: [0,0,dp(24),dp(0)]
+                        height: dp(48)
+                        
+                        MDLabel:
+                            text: "Notifications"
+                            font_style: "H6"
+
+                        MDSwitch:
+                            id: settings_notifications_on
+                            pos_hint: {"center_y": 0.3}
+                            active: True
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        size_hint_y: None
+                        padding: [0,0,dp(24),dp(0)]
+                        height: dp(48)
+                        
+                        MDLabel:
+                            text: "Dark Mode"
+                            font_style: "H6"
+
+                        MDSwitch:
+                            id: settings_dark_ui
+                            pos_hint: {"center_y": 0.3}
+                            active: False
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        size_hint_y: None
+                        padding: [0,0,dp(24),dp(0)]
+                        height: dp(48)
+                        
+                        MDLabel:
+                            text: "E-Ink Mode"
+                            font_style: "H6"
+
+                        MDSwitch:
+                            id: settings_eink_mode
+                            pos_hint: {"center_y": 0.3}
+                            active: False
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        size_hint_y: None
+                        padding: [0,0,dp(24),dp(0)]
+                        height: dp(48)
+                        
+                        MDLabel:
+                            text: "Advanced Statistics"
+                            font_style: "H6"
+
+                        MDSwitch:
+                            id: settings_advanced_statistics
+                            pos_hint: {"center_y": 0.3}
+                            active: False
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        size_hint_y: None
+                        padding: [0,0,dp(24),dp(0)]
+                        height: dp(48)
+                        
+                        MDLabel:
+                            text: "Announce Automatically"
+                            font_style: "H6"
+
+                        MDSwitch:
+                            id: settings_start_announce
+                            pos_hint: {"center_y": 0.3}
+                            active: False
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        size_hint_y: None
+                        padding: [0,0,dp(24),dp(0)]
+                        height: dp(48)
+                        
+                        MDLabel:
+                            text: "Send via Propagation Node by default"
+                            font_style: "H6"
+
+                        MDSwitch:
+                            id: settings_lxmf_delivery_by_default
+                            pos_hint: {"center_y": 0.3}
+                            disabled: False
+                            active: False
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        size_hint_y: None
+                        padding: [0,0,dp(24),dp(0)]
+                        height: dp(48)
+                        
+                        MDLabel:
+                            text: "Ignore unknown senders"
+                            font_style: "H6"
+
+                        MDSwitch:
+                            id: settings_lxmf_ignore_unknown
+                            pos_hint: {"center_y": 0.3}
+                            disabled: False
+                            active: False
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        size_hint_y: None
+                        padding: [0,0,dp(24),dp(0)]
+                        height: dp(48)
+                        
+                        MDLabel:
+                            text: "Limit each sync to 3 messages"
+                            font_style: "H6"
+
+                        MDSwitch:
+                            id: settings_lxmf_sync_limit
+                            pos_hint: {"center_y": 0.3}
+                            disabled: False
+                            active: False
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        size_hint_y: None
+                        padding: [0,0,dp(24),dp(0)]
+                        height: dp(48)
+                        
+                        MDLabel:
+                            id: settings_lxmf_sync_periodic
+                            text: "Sync with Propagation Node periodically"
+                            font_style: "H6"
+
+                        MDSwitch:
+                            id: settings_lxmf_periodic_sync
+                            pos_hint: {"center_y": 0.3}
+                            disabled: False
+                            active: False
+
+                    MDBoxLayout:
+                        id: lxmf_syncslider_container
+                        orientation: "vertical"
+                        size_hint_y: None
+                        padding: [0,0,dp(0),0]
+                        height: dp(68)
+
+                        MDSlider
+                            min: 300
+                            max: 172800
+                            value: 43200
+                            id: settings_lxmf_sync_interval
+                            sensitivity: "all"
+                            hint: False
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        size_hint_y: None
+                        padding: [0,0,dp(24),dp(0)]
+                        height: dp(48)
+                        
+                        MDLabel:
+                            text: "Use Home Node as Broadcast Repeater"
+                            font_style: "H6"
+
+                        MDSwitch:
+                            id: settings_home_node_as_broadcast_repeater
+                            pos_hint: {"center_y": 0.3}
+                            active: False
+                            disabled: True
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        size_hint_y: None
+                        padding: [0,0,dp(24),dp(0)]
+                        height: dp(48)
+                        
+                        MDLabel:
+                            text: "Debug Logging"
+                            font_style: "H6"
+
+                        MDSwitch:
+                            id: settings_debug
+                            pos_hint: {"center_y": 0.3}
+                            disabled: False
+                            active: False
+"""
+
+layout_repository_screen = """
+MDScreen:
+    name: "repository_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Share Software & Guides"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_repository_action(self)],
+                ]
+
+        ScrollView:
+            id: repository_scrollview
+
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: "8dp"
+                size_hint_y: None
+                height: self.minimum_height
+                padding: [dp(28), dp(48), dp(28), dp(16)]
+
+                MDLabel:
+                    text: "Repository Server\\n"
+                    font_style: "H6"
+
+                MDLabel:
+                    id: repository_info
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(0), dp(35), dp(0), dp(35)]
+
+                    MDRectangleFlatIconButton:
+                        id: repository_enable_button
+                        icon: "wifi"
+                        text: "Start Repository Server"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.ids.screen_manager.app.repository_start_action(self)
+
+                    MDRectangleFlatIconButton:
+                        id: repository_disable_button
+                        icon: "wifi-off"
+                        text: "Stop Repository Server"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.ids.screen_manager.app.repository_stop_action(self)
+                        disabled: True
+
+                    MDRectangleFlatIconButton:
+                        id: repository_download_button
+                        icon: "download-multiple"
+                        text: "Update Contents"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.ids.screen_manager.app.repository_download_action(self)
+                        disabled: False
+
+                    MDLabel:
+                        id: repository_update
+                        markup: True
+                        text: ""
+                        size_hint_y: None
+                        text_size: self.width, None
+                        height: self.texture_size[1]
+"""
+
+layout_hardware_screen = """
+MDScreen:
+    name: "hardware_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Hardware"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_hardware_action(self)],
+                ]
+
+        ScrollView:
+            id: hardware_scrollview
+
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: "8dp"
+                size_hint_y: None
+                height: self.minimum_height
+                padding: [dp(28), dp(48), dp(28), dp(16)]
+
+                MDLabel:
+                    text: "Configure Hardware Parameters\\n"
+                    font_style: "H6"
+
+                MDLabel:
+                    id: hardware_info
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(0), dp(35), dp(0), dp(35)]
+
+                    MDRectangleFlatIconButton:
+                        id: hardware_rnode_button
+                        icon: "radio-handheld"
+                        text: "RNode"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.ids.screen_manager.app.hardware_rnode_action(self)
+
+                    MDRectangleFlatIconButton:
+                        id: hardware_modem_button
+                        icon: "router-wireless"
+                        text: "Radio Modem"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.ids.screen_manager.app.hardware_modem_action(self)
+                        disabled: False
+
+                    MDRectangleFlatIconButton:
+                        id: hardware_serial_button
+                        icon: "cable-data"
+                        text: "Serial Port"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.ids.screen_manager.app.hardware_serial_action(self)
+                        disabled: False
+"""
+
+layout_hardware_modem_screen = """
+MDScreen:
+    name: "hardware_modem_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Radio Modem"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_sub_hardware_action(self)],
+                ]
+
+        ScrollView:
+            id: hardware_modem_scrollview
+
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: "8dp"
+                size_hint_y: None
+                height: self.minimum_height
+                padding: [dp(28), dp(48), dp(28), dp(16)]
+
+                MDLabel:
+                    text: "Modem Hardware Parameters\\n"
+                    font_style: "H6"
+
+                MDLabel:
+                    id: hardware_modem_info
+                    markup: True
+                    text: "To communicate using a Radio Modem, you will need to specify the following parameters. Serial port parameters must be set to match those of the modem. CSMA parameters can be left at their default values in most cases.\\n"
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    text: "Port Options"
+                    font_style: "H6"
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                    MDTextField:
+                        id: hardware_modem_baudrate
+                        hint_text: "Baud Rate"
+                        text: ""
+                        font_size: dp(24)
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(0), dp(0), dp(0), dp(24)]
+
+                    MDTextField:
+                        id: hardware_modem_databits
+                        hint_text: "Data Bits"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: hardware_modem_parity
+                        hint_text: "Parity"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: hardware_modem_stopbits
+                        hint_text: "Stop Bits"
+                        text: ""
+                        font_size: dp(24)
+
+                MDLabel:
+                    text: "CSMA Parameters"
+                    font_style: "H6"
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(0), dp(0), dp(0), dp(0)]
+
+                    MDTextField:
+                        id: hardware_modem_preamble
+                        hint_text: "Preamble (ms)"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: hardware_modem_tail
+                        hint_text: "TX Tail (ms)"
+                        text: ""
+                        font_size: dp(24)
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(0), dp(0), dp(0), dp(24)]
+
+                    MDTextField:
+                        id: hardware_modem_persistence
+                        hint_text: "Persistence (1-255)"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: hardware_modem_slottime
+                        hint_text: "Slot Time (ms)"
+                        text: ""
+                        font_size: dp(24)
+
+                MDLabel:
+                    text: "Optional Settings"
+                    font_style: "H6"
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                    MDTextField:
+                        id: hardware_modem_beaconinterval
+                        hint_text: "Beacon Interval (seconds)"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: hardware_modem_beacondata
+                        hint_text: "Beacon Data"
+                        text: ""
+                        font_size: dp(24)
+"""
+
+layout_hardware_rnode_screen = """
+MDScreen:
+    name: "hardware_rnode_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "RNode"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_sub_hardware_action(self)],
+                ]
+
+        ScrollView:
+            id: hardware_rnode_scrollview
+
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: "8dp"
+                size_hint_y: None
+                height: self.minimum_height
+                padding: [dp(28), dp(48), dp(28), dp(16)]
+
+                MDLabel:
+                    text: "RNode Hardware Parameters\\n"
+                    font_style: "H6"
+
+                MDLabel:
+                    id: hardware_rnode_info
+                    markup: True
+                    text: "To communicate using an RNode, you will need to specify the following parameters. For two or more RNodes to be able to communicate, all parameters must match, except for the [i]Coding Rate[/i] and [i]TX Power[/i] parameter, which can vary between devices.\\n"
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                    MDRectangleFlatIconButton:
+                        id: rnode_mote_export
+                        icon: "upload"
+                        text: "Export"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.ids.screen_manager.app.hardware_rnode_export(self)
+
+                    MDRectangleFlatIconButton:
+                        id: rnode_mote_import
+                        icon: "download"
+                        text: "Import"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.ids.screen_manager.app.hardware_rnode_import(self)
+
+                MDLabel:
+                    text: "Radio Options"
+                    font_style: "H6"
+
+                # MDTextField:
+                #     id: hardware_rnode_modulation
+                #     hint_text: "Modulation"
+                #     text: "LoRa"
+                #     disabled: True
+                #     font_size: dp(24)
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                    MDTextField:
+                        id: hardware_rnode_frequency
+                        hint_text: "Frequency (MHz)"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: hardware_rnode_bandwidth
+                        hint_text: "Bandwidth (KHz)"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: hardware_rnode_txpower
+                        hint_text: "TX Power (dBm)"
+                        text: ""
+                        font_size: dp(24)
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(0), dp(0), dp(0), dp(24)]
+
+                    MDTextField:
+                        id: hardware_rnode_spreadingfactor
+                        hint_text: "Spreading Factor"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: hardware_rnode_codingrate
+                        hint_text: "Coding Rate"
+                        text: ""
+                        font_size: dp(24)
+
+                MDLabel:
+                    text: "Optional Settings"
+                    font_style: "H6"
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                    MDTextField:
+                        id: hardware_rnode_beaconinterval
+                        hint_text: "Beacon Interval (seconds)"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: hardware_rnode_beacondata
+                        hint_text: "Beacon Data"
+                        text: ""
+                        font_size: dp(24)
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                    MDTextField:
+                        id: hardware_rnode_atl_short
+                        hint_text: "Airime Limit % (15s)"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: hardware_rnode_atl_long
+                        hint_text: "Airime Limit % (1h)"
+                        text: ""
+                        font_size: dp(24)
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Control RNode Display"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: hardware_rnode_framebuffer
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Connect using Bluetooth"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: hardware_rnode_bluetooth
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDLabel:
+                    id: hardware_rnode_info
+                    markup: True
+                    text: "If you enable connection via Bluetooth, Sideband will attempt to connect to any available and paired RNodes over Bluetooth.\\n\\nYou must first pair the RNode with your device for this to work. If your RNode does not have a physical pairing button, you can enable Bluetooth and put it into pairing mode by first connecting it via a USB cable, and using the buttons below. When plugging in the RNode over USB, you must grant Sideband permission to the USB device for this to work.\\n\\nYou can also change Bluetooth settings using the \\"rnodeconf\\" utility from a computer.\\n\\nBy default, Sideband will connect to the first available RNode that is paired. If you want to always use a specific RNode, you can enter its name in the Preferred RNode Device Name field below, for example \\"RNode A8EB\\".\\n"
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                    MDRectangleFlatIconButton:
+                        id: hardware_rnode_bt_on_button
+                        icon: "bluetooth"
+                        text: "Enable Bluetooth"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.ids.screen_manager.app.hardware_rnode_bt_on_action(self)
+
+                    MDRectangleFlatIconButton:
+                        id: hardware_rnode_bt_off_button
+                        icon: "bluetooth-off"
+                        text: "Disable Bluetooth"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.ids.screen_manager.app.hardware_rnode_bt_off_action(self)
+                        disabled: False
+
+                    MDRectangleFlatIconButton:
+                        id: hardware_rnode_bt_pair_button
+                        icon: "link-variant"
+                        text: "Start Pairing Mode"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.ids.screen_manager.app.hardware_rnode_bt_pair_action(self)
+                        disabled: False
+
+                    MDTextField:
+                        id: hardware_rnode_bt_device
+                        hint_text: "Preferred RNode Device Name"
+                        text: ""
+                        font_size: dp(24)
+"""
+
+layout_hardware_serial_screen = """
+MDScreen:
+    name: "hardware_serial_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Serial Port"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_sub_hardware_action(self)],
+                ]
+
+        ScrollView:
+            id: hardware_serial_scrollview
+
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: "8dp"
+                size_hint_y: None
+                height: self.minimum_height
+                padding: [dp(28), dp(48), dp(28), dp(16)]
+
+                MDLabel:
+                    text: "Serial Hardware Parameters\\n"
+                    font_style: "H6"
+
+                MDLabel:
+                    id: hardware_serial_info
+                    markup: True
+                    text: "To communicate using a serial port, you will need to specify the following parameters. If communicating directly to another Reticulum instance over serial, the parameters must match the other device.\\n\\nIf you are using a serial-connected device to pass on data to other Reticulum instances, it should be configured to pass data transparently to the desired endpoints.\\n"
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    text: "Port Options"
+                    font_style: "H6"
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                    MDTextField:
+                        id: hardware_serial_baudrate
+                        hint_text: "Baud Rate"
+                        text: ""
+                        font_size: dp(24)
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(0), dp(0), dp(0), dp(24)]
+
+                    MDTextField:
+                        id: hardware_serial_databits
+                        hint_text: "Data Bits"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: hardware_serial_parity
+                        hint_text: "Parity"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: hardware_serial_stopbits
+                        hint_text: "Stop Bits"
+                        text: ""
+                        font_size: dp(24)
 """
