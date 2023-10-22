@@ -763,7 +763,7 @@ class SidebandCore():
         for pt in pts:
             try:
                 t = Telemeter.from_packed(pt[1]).read_all()
-                if "location" in t:
+                if "location" in t and t["location"] != None:
                     l = t["location"]
                     if "latitude" in l and "longtitude" in l:
                         if l["latitude"] != None and l["longtitude"] != None:

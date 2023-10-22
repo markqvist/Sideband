@@ -3303,7 +3303,7 @@ class SidebandApp(MDApp):
                         t = Telemeter.from_packed(telemetry_data)
                         if t != None:
                             telemetry = t.read_all()
-                            if "location" in telemetry and telemetry["location"]["latitude"] != None and telemetry["location"]["longtitude"] != None:
+                            if "location" in telemetry and telemetry["location"] != None and telemetry["location"]["latitude"] != None and telemetry["location"]["longtitude"] != None:
                                 latest_viewable = telemetry
                                 break
 
