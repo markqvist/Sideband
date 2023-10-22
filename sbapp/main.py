@@ -1,4 +1,4 @@
-__debug_build__ = False
+__debug_build__ = True
 __disable_shaders__ = False
 __version__ = "0.6.3"
 __variant__ = "beta"
@@ -217,8 +217,6 @@ class SidebandApp(MDApp):
             self.open_conversations()
 
         if not self.root.ids.screen_manager.has_screen("messages_screen"):
-            # TODO: Remove
-            RNS.log("Adding messages screen", RNS.LOG_WARNING)
             self.messages_screen = Builder.load_string(messages_screen_kv)
             self.messages_screen.app = self
             self.root.ids.screen_manager.add_widget(self.messages_screen)

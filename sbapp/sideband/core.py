@@ -794,15 +794,18 @@ class SidebandCore():
                 return False
 
     def gui_foreground(self):
-        return self._db_getstate("app.foreground")
+        return self.getstate("app.foreground")
 
     def gui_display(self):
-        return self._db_getstate("app.displaying")
+        return self.getstate("app.displaying")
 
     def gui_conversation(self):
-        return self._db_getstate("app.active_conversation")
+        return self.getstate("app.active_conversation")
 
     def setstate(self, prop, val):
+        # TODO: remove
+        us = time.time()
+
         if not RNS.vendor.platformutils.is_android():
             self.getstate_cache[prop] = val
             self._db_setstate(prop, val)
@@ -816,12 +819,22 @@ class SidebandCore():
                         self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
                     self.rpc_connection.send({"setstate": (prop, val)})
                     response = self.rpc_connection.recv()
+                    
+                    # TODO: Remove
+                    # if response:
+                    #     RNS.log("RPC setstate SUCCESS for "+str(prop)+"="+str(val)+" in "+RNS.prettytime(time.time()-us), RNS.LOG_WARNING)
+                    # else:
+                    #     RNS.log("RPC setstate FAIL for "+str(prop)+"="+str(val)+" in "+RNS.prettytime(time.time()-us), RNS.LOG_WARNING)
+
                     return response
                 except Exception as e:
                     RNS.log("Error while setting state over RPC: "+str(e), RNS.LOG_ERROR)
                     return False
 
     def getstate(self, prop, allow_cache=False):
+        # TODO: remove
+        # us = time.time()
+
         if not RNS.vendor.platformutils.is_android():
             return self._db_getstate(prop)
         else:
@@ -836,6 +849,8 @@ class SidebandCore():
                         self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
                     self.rpc_connection.send({"getstate": prop})
                     response = self.rpc_connection.recv()
+                    # TODO: Remove
+                    # RNS.log("RPC getstate result for "+str(prop)+"="+str(response)+" in "+RNS.prettytime(time.time()-us), RNS.LOG_WARNING)
                     return response
 
                 except Exception as e:
