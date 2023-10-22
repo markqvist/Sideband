@@ -81,7 +81,7 @@ class SidebandCore():
     AUTO_ANNOUNCE_RANDOM_MIN        = 90   # In minutes
     AUTO_ANNOUNCE_RANDOM_MAX        = 480  # In minutes
 
-    DEFAULT_APPEARANCE = ["alpha-p-circle-outline", [0,0,0,1], [1,1,1,1]]
+    DEFAULT_APPEARANCE = ["account", [0,0,0,1], [1,1,1,1]]
 
     aspect_filter = "lxmf.delivery"
     def received_announce(self, destination_hash, announced_identity, app_data):
@@ -805,7 +805,7 @@ class SidebandCore():
 
     def setstate(self, prop, val):
         # TODO: remove
-        us = time.time()
+        # us = time.time()
 
         if not RNS.vendor.platformutils.is_android():
             self.getstate_cache[prop] = val
@@ -1225,6 +1225,9 @@ class SidebandCore():
         data_dict = conv["data"]
         if data_dict == None:
             data_dict = {}
+
+        if not "appearance" in data_dict:
+            data_dict["appearance"] = None
 
         if data_dict["appearance"] != appearance:
             data_dict["appearance"] = appearance
@@ -1696,6 +1699,7 @@ class SidebandCore():
     def stop_telemetry(self):
         self.telemetry_running = False
         self.telemeter.stop_all()
+        self.setstate("app.flags.last_telemetry", time.time())
 
     def update_telemetry(self):
         try:
@@ -1722,6 +1726,8 @@ class SidebandCore():
                     self.telemetry_changes += 1
                     self.latest_telemetry = telemetry
                     self.latest_packed_telemetry = packed_telemetry
+                    self.setstate("app.flags.last_telemetry", time.time())
+
         except Exception as e:
             RNS.log("Error while updating telemetry: "+str(e), RNS.LOG_ERROR)
 
@@ -2435,8 +2441,6 @@ class SidebandCore():
         if send_telemetry or send_appearance:
             fields = {}
             if send_appearance:
-                # TODO: REMOVE
-                RNS.log("Sending appearance", RNS.LOG_WARNING)
                 def fth(c):
                     r = c[0]; g = c[1]; b = c[2]
                     r = min(max(0, r), 1); g = min(max(0, g), 1); b = min(max(0, b), 1)
@@ -2450,8 +2454,6 @@ class SidebandCore():
                 fields[LXMF.FIELD_ICON_APPEARANCE] = [icon, fg, bg]
 
             if send_telemetry:
-                # TODO: REMOVE
-                RNS.log("Sending telemetry", RNS.LOG_WARNING)
                 fields[LXMF.FIELD_TELEMETRY] = self.latest_packed_telemetry
 
         return fields

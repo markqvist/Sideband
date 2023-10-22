@@ -1,6 +1,6 @@
 __debug_build__ = False
 __disable_shaders__ = False
-__version__ = "0.6.3"
+__version__ = "0.7.0"
 __variant__ = "beta"
 
 import sys
@@ -3224,9 +3224,8 @@ class SidebandApp(MDApp):
             RNS.log("Could not create map marker for "+RNS.prettyhexrep(source)+": "+str(e), RNS.LOG_ERROR)
             return None
 
-
-
     def map_update_markers(self, sender=None):
+        RNS.log("Updating map markers", RNS.LOG_DEBUG)
         earliest = time.time() - self.sideband.config["map_history_limit"]
         telemetry_entries = self.sideband.list_telemetry(after=earliest)
         own_address = self.sideband.lxmf_destination.hash
@@ -3275,9 +3274,12 @@ class SidebandApp(MDApp):
                         stale_markers.append(marker)
 
             for marker in stale_markers:
+                RNS.log("Removing stale marker: "+str(marker), RNS.LOG_DEBUG)
                 try:
-                    self.map_screen.ids.map_layout.map.remove_widget(self.map_markers[marker])
+                    to_remove = self.map_markers[marker]
+                    self.map_screen.ids.map_layout.map.remove_marker(to_remove)
                     self.map_markers.pop(marker)
+                    changes = True
                 except Exception as e:
                     RNS.log("Error while removing map marker: "+str(e), RNS.LOG_ERROR)
         
