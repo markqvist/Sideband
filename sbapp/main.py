@@ -3004,12 +3004,12 @@ class SidebandApp(MDApp):
         color_picker.open()
         color_picker.bind(on_release=self.telemetry_fg_select)
         def job(sender=None):
-            color_picker._rgb = self.sideband.config["telemetry_fg"][:-1]
+            color_picker._rgb = self.sideband.config["telemetry_fg"][0:3]
             color_picker.ids.view_headline.on_tab_press()
         Clock.schedule_once(job, 0)
     
     def telemetry_fg_select(self, instance_color_picker: MDColorPicker, type_color: str, selected_color: Union[list, str]):
-        color = selected_color[:-1] + [1]
+        s = selected_color; color = [s[0], s[1], s[2], 1]
         self.telemetry_screen.ids.telemetry_icon_preview.icon_color = color
         self.sideband.config["telemetry_fg"] = color
         self.sideband.save_configuration()
@@ -3025,12 +3025,12 @@ class SidebandApp(MDApp):
         color_picker.open()
         color_picker.bind(on_release=self.telemetry_bg_select)
         def job(sender=None):
-            color_picker._rgb = self.sideband.config["telemetry_bg"][:-1]
+            color_picker._rgb = self.sideband.config["telemetry_bg"][0:3]
             color_picker.ids.view_headline.on_tab_press()
         Clock.schedule_once(job, 0)
     
     def telemetry_bg_select(self, instance_color_picker: MDColorPicker, type_color: str, selected_color: Union[list, str]):
-        color = selected_color[:-1] + [1]
+        s = selected_color; color = [s[0], s[1], s[2], 1]
         self.telemetry_screen.ids.telemetry_icon_preview.md_bg_color = color
         self.sideband.config["telemetry_bg"] = color
         self.sideband.save_configuration()

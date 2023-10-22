@@ -644,12 +644,15 @@ class MDColorPicker(BaseDialog):
 
         rgba = [0, 0, 0, 0]
         if isinstance(selected_color, list):
-            if selected_color[0] > 1:
-                rgba = [x / 255.0 for x in selected_color] + [
-                    self._opacity_value_selected_color
-                ]
-            else:
-                rgba = selected_color
+            # if selected_color[0] > 1:
+            #     rgba = [x / 255.0 for x in selected_color] + [
+            #         self._opacity_value_selected_color
+            #     ]
+            # else:
+            #     rgba = selected_color
+            rgba = [x / 255.0 for x in selected_color] + [
+                self._opacity_value_selected_color
+            ]
         elif isinstance(selected_color, str):
             rgba = get_color_from_hex(selected_color)[:-1] + [
                 self._opacity_value_selected_color
