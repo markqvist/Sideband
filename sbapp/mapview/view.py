@@ -51,6 +51,7 @@ Builder.load_string(
     source: root.source
     size: list(map(dp, self.texture_size))
     allow_stretch: True
+    on_release: root.app.map_display_telemetry()
 
 <MapView>:
     canvas.before:

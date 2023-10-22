@@ -495,6 +495,8 @@ class SidebandCore():
             self.config["telemetry_s_acceleration"] = False
         if not "telemetry_s_proximity" in self.config:
             self.config["telemetry_s_proximity"] = False
+        if not "telemetry_display_trusted_only" in self.config:
+            self.config["telemetry_display_trusted_only"] = False
 
         if not "map_history_limit" in self.config:
             self.config["map_history_limit"] = 7*24*60*60

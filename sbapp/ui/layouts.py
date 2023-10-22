@@ -866,6 +866,8 @@ MDScreen:
                 [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
             right_action_items:
                 [
+                ['arrow-down-bold-hexagon-outline', lambda x: root.app.telemetry_request_action(self)],
+                ['upload-lock', lambda x: root.app.telemetry_send_update(self)],
                 ['close', lambda x: root.app.close_any_action(self)],
                 ]
 
@@ -924,17 +926,28 @@ MDScreen:
                     spacing: dp(24)
                     size_hint_y: None
                     padding: [dp(0),dp(24),dp(0),dp(0)]
-                    height: dp(74)
+                    height: dp(160)
 
                     MDRectangleFlatIconButton:
                         id: telemetry_icons_button
-                        icon: "update"
+                        icon: "upload-lock"
                         text: "Send Telemetry Update Now"
                         padding: [dp(0), dp(14), dp(0), dp(14)]
                         icon_size: dp(24)
                         font_size: dp(16)
                         size_hint: [1.0, None]
                         on_release: root.app.telemetry_send_update(self)
+                        disabled: False
+
+                    MDRectangleFlatIconButton:
+                        id: telemetry_icons_button
+                        icon: "arrow-down-bold-hexagon-outline"
+                        text: "Request Telemetry From Collector"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.app.telemetry_request_action(self)
                         disabled: False
 
                     MDRectangleFlatIconButton:
@@ -990,6 +1003,21 @@ MDScreen:
 
                     MDSwitch:
                         id: telemetry_send_to_collector
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Only display from trusted"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_display_trusted_only
                         pos_hint: {"center_y": 0.3}
                         active: False
 

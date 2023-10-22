@@ -53,6 +53,7 @@ if RNS.vendor.platformutils.get_platform() == "android":
 
     from ui.layouts import *
     from ui.conversations import Conversations, MsgSync, NewConv
+    from ui.objectdetails import ObjectDetails
     from ui.announces import Announces
     from ui.messages import Messages, ts_format, messages_screen_kv
     from ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
@@ -71,6 +72,7 @@ else:
     from .ui.layouts import *
     from .ui.conversations import Conversations, MsgSync, NewConv
     from .ui.announces import Announces
+    from .ui.objectdetails import ObjectDetails
     from .ui.messages import Messages, ts_format, messages_screen_kv
     from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
 
@@ -119,6 +121,7 @@ class SidebandApp(MDApp):
         self.conversations_view = None
         self.messages_view = None
         self.map_screen = None
+        self.object_details_screen = None
         self.sync_dialog = None
         self.settings_ready = False
         self.telemetry_ready = False
@@ -1398,7 +1401,8 @@ class SidebandApp(MDApp):
             self.settings_screen.ids.settings_display_name.bind(focus=save_disp_name)
 
             if RNS.vendor.platformutils.is_android():
-                self.widget_hide(self.settings_screen.ids.settings_print_command, True)
+                pass
+                # self.widget_hide(self.settings_screen.ids.settings_print_command, True)
             else:
                 self.settings_screen.ids.settings_print_command.text = self.sideband.config["print_command"]
                 self.settings_screen.ids.settings_print_command.bind(focus=save_print_command)
@@ -2922,6 +2926,9 @@ class SidebandApp(MDApp):
             self.telemetry_screen.ids.telemetry_send_to_trusted.active = self.sideband.config["telemetry_send_to_trusted"]
             self.telemetry_screen.ids.telemetry_send_to_trusted.bind(active=self.telemetry_save)
 
+            self.telemetry_screen.ids.telemetry_display_trusted_only.active = self.sideband.config["telemetry_display_trusted_only"]
+            self.telemetry_screen.ids.telemetry_display_trusted_only.bind(active=self.telemetry_save)
+
             self.telemetry_screen.ids.telemetry_send_appearance.active = self.sideband.config["telemetry_send_appearance"]
             self.telemetry_screen.ids.telemetry_send_appearance.bind(active=self.telemetry_save)
 
@@ -3001,6 +3008,7 @@ class SidebandApp(MDApp):
         self.sideband.config["telemetry_enabled"] = self.telemetry_screen.ids.telemetry_enabled.active
         self.sideband.config["telemetry_send_to_collector"] = self.telemetry_screen.ids.telemetry_send_to_collector.active
         self.sideband.config["telemetry_send_to_trusted"] = self.telemetry_screen.ids.telemetry_send_to_trusted.active
+        self.sideband.config["telemetry_display_trusted_only"] = self.telemetry_screen.ids.telemetry_display_trusted_only.active
         self.sideband.config["telemetry_send_appearance"] = self.telemetry_screen.ids.telemetry_send_appearance.active
         
         self.sideband.config["telemetry_s_location"] = self.telemetry_screen.ids.telemetry_s_location.active
@@ -3016,6 +3024,7 @@ class SidebandApp(MDApp):
         self.sideband.config["telemetry_s_proximity"] = self.telemetry_screen.ids.telemetry_s_proximity.active
         
         self.sideband.save_configuration()
+        self.sideband.setstate("app.flags.last_telemetry", time.time())
 
     def telemetry_action(self, sender=None, direction="left"):
         self.telemetry_init()
@@ -3041,7 +3050,11 @@ class SidebandApp(MDApp):
 
     def telemetry_send_update(self, sender=None):
         # TODO: Implement
-        Clipboard.copy(str(self.sideband.get_packed_telemetry()))
+        pass
+
+    def telemetry_request_action(self, sender=None):
+        # TODO: Implement
+        pass
 
     def telemetry_fg_color(self, sender=None):
         color_picker = MDColorPicker(size_hint=(0.85, 0.85))
@@ -3138,7 +3151,7 @@ class SidebandApp(MDApp):
     ### Map Screen
     ######################################
 
-    def map_action(self, sender=None):
+    def map_action(self, sender=None, direction="left"):
         if not self.root.ids.screen_manager.has_screen("map_screen"):
             self.map_screen = Builder.load_string(layout_map_screen)
             self.map_screen.app = self
@@ -3151,7 +3164,7 @@ class SidebandApp(MDApp):
             self.map_screen.ids.map_layout.map = mapview
             self.map_screen.ids.map_layout.add_widget(self.map_screen.ids.map_layout.map)
 
-        self.root.ids.screen_manager.transition.direction = "left"
+        self.root.ids.screen_manager.transition.direction = direction
         self.root.ids.screen_manager.current = "map_screen"
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
@@ -3192,6 +3205,23 @@ class SidebandApp(MDApp):
             self.map_action()
             self.map_show(location)
 
+    def map_display_telemetry(self, sender):
+        RNS.log("Display telemetry from "+str(sender), RNS.LOG_WARNING)
+        self.object_details_action()
+
+    def close_sub_map_action(self, sender=None):
+        self.map_action(direction="right")
+
+    def object_details_action(self, sender=None):
+        self.root.ids.screen_manager.transition.direction = "left"
+        self.root.ids.nav_drawer.set_state("closed")
+        
+        if self.object_details_screen == None:
+            self.object_details_screen = ObjectDetails(self)
+
+        self.root.ids.screen_manager.current = "object_details_screen"
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
     def map_create_marker(self, source, telemetry, appearance):
         try:
             l = telemetry["location"]
@@ -3204,6 +3234,7 @@ class SidebandApp(MDApp):
                 icon=a_icon, icon_color=a_fg,
                 md_bg_color=a_bg, theme_icon_color="Custom",
                 icon_size=dp(32),
+                on_release=self.map_display_telemetry,
                 )
             marker.icon._default_icon_pad = dp(16)
             marker.add_widget(marker.icon)
@@ -3239,6 +3270,20 @@ class SidebandApp(MDApp):
             self.sideband.config["telemetry_fg"],
             self.sideband.config["telemetry_bg"]
         ]
+
+        skip_entries = []
+        if self.sideband.config["telemetry_display_trusted_only"]:
+            for telemetry_source in telemetry_entries:
+                try:
+                    if not self.sideband.is_trusted(telemetry_source):
+                        skip_entries.append(telemetry_source)
+                except:
+                    pass
+        for skip_entry in skip_entries:
+            try:
+                telemetry_entries.pop(skip_entry)
+            except:
+                pass
 
         try:
             if own_telemetry != None and "location" in own_telemetry and own_telemetry["location"] != None and own_telemetry["location"]["latitude"] != None and own_telemetry["location"]["longtitude"] != None:
