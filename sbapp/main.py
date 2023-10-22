@@ -1,4 +1,4 @@
-__debug_build__ = False
+__debug_build__ = True
 __disable_shaders__ = False
 __version__ = "0.6.3"
 __variant__ = "beta"
@@ -357,8 +357,8 @@ class SidebandApp(MDApp):
                 self.app_state = SidebandApp.PAUSED
                 self.sideband.should_persist_data()
                 if self.conversations_view != None:
-                    self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
-                    self.root.ids.conversations_scrollview.scroll = 1
+                    self.conversations_view.ids.conversations_scrollview.effect_cls = ScrollEffect
+                    self.conversations_view.ids.conversations_scrollview.scroll = 1
 
                 RNS.log("App paused", RNS.LOG_DEBUG)
                 return True
@@ -377,8 +377,8 @@ class SidebandApp(MDApp):
                 self.sideband.setstate("wants.clear_notifications", True)
                 self.app_state = SidebandApp.ACTIVE
                 if self.conversations_view != None:
-                    self.root.ids.conversations_scrollview.effect_cls = ScrollEffect
-                    self.root.ids.conversations_scrollview.scroll = 1
+                    self.conversations_view.ids.conversations_scrollview.effect_cls = ScrollEffect
+                    self.conversations_view.ids.conversations_scrollview.scroll = 1
                     
                 else:
                     RNS.log("Conversations view did not exist", RNS.LOG_DEBUG)
@@ -1462,47 +1462,48 @@ class SidebandApp(MDApp):
 
     def connectivity_init(self, sender=None):
         if not self.connectivity_ready:
-            self.root.ids.connectivity_scrollview.effect_cls = ScrollEffect
+            if not self.root.ids.screen_manager.has_screen("connectivity_screen"):
+                self.connectivity_screen = Builder.load_string(layout_connectivity_screen)
+                self.connectivity_screen.app = self
+                self.root.ids.screen_manager.add_widget(self.connectivity_screen)
+
+            self.connectivity_screen.ids.connectivity_scrollview.effect_cls = ScrollEffect
             def con_hide_settings():
-                self.widget_hide(self.root.ids.connectivity_use_local)
-                self.widget_hide(self.root.ids.connectivity_local_groupid)
-                self.widget_hide(self.root.ids.connectivity_local_ifac_netname)
-                self.widget_hide(self.root.ids.connectivity_local_ifac_passphrase)
-                self.widget_hide(self.root.ids.connectivity_use_tcp)
-                self.widget_hide(self.root.ids.connectivity_tcp_host)
-                self.widget_hide(self.root.ids.connectivity_tcp_port)
-                self.widget_hide(self.root.ids.connectivity_tcp_ifac_netname)
-                self.widget_hide(self.root.ids.connectivity_tcp_ifac_passphrase)
-                self.widget_hide(self.root.ids.connectivity_use_i2p)
-                self.widget_hide(self.root.ids.connectivity_i2p_b32)
-                self.widget_hide(self.root.ids.connectivity_i2p_ifac_netname)
-                self.widget_hide(self.root.ids.connectivity_i2p_ifac_passphrase)
-                self.widget_hide(self.root.ids.connectivity_tcp_label)
-                self.widget_hide(self.root.ids.connectivity_local_label)
-                self.widget_hide(self.root.ids.connectivity_i2p_label)
-                self.widget_hide(self.root.ids.connectivity_rnode_label)
-                self.widget_hide(self.root.ids.connectivity_rnode_ifac_netname)
-                self.widget_hide(self.root.ids.connectivity_rnode_ifac_passphrase)
-                self.widget_hide(self.root.ids.connectivity_use_rnode)
-                self.widget_hide(self.root.ids.connectivity_modem_label)
-                self.widget_hide(self.root.ids.connectivity_use_modem)
-                self.widget_hide(self.root.ids.connectivity_modem_fields)
-                # self.widget_hide(self.root.ids.connectivity_bluetooth_label)
-                # self.widget_hide(self.root.ids.connectivity_use_bluetooth)
-                # self.widget_hide(self.root.ids.connectivity_bluetooth_fields)
-                self.widget_hide(self.root.ids.connectivity_transport_label)
-                self.widget_hide(self.root.ids.connectivity_enable_transport)
-                self.widget_hide(self.root.ids.connectivity_serial_label)
-                self.widget_hide(self.root.ids.connectivity_use_serial)
-                self.widget_hide(self.root.ids.connectivity_serial_fields)
-                
-                self.widget_hide(self.root.ids.connectivity_shared_access)
-                self.widget_hide(self.root.ids.connectivity_shared_access_label)
-                self.widget_hide(self.root.ids.connectivity_shared_access_fields)
-                self.widget_hide(self.root.ids.connectivity_transport_label)
-                self.widget_hide(self.root.ids.connectivity_enable_transport)
-                self.widget_hide(self.root.ids.connectivity_transport_info)
-                self.widget_hide(self.root.ids.connectivity_transport_fields)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_use_local)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_local_groupid)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_local_ifac_netname)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_local_ifac_passphrase)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_use_tcp)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_tcp_host)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_tcp_port)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_tcp_ifac_netname)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_tcp_ifac_passphrase)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_use_i2p)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_i2p_b32)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_i2p_ifac_netname)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_i2p_ifac_passphrase)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_tcp_label)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_local_label)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_i2p_label)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_rnode_label)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_rnode_ifac_netname)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_rnode_ifac_passphrase)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_use_rnode)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_modem_label)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_use_modem)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_modem_fields)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_transport_label)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_enable_transport)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_serial_label)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_use_serial)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_serial_fields)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_shared_access)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_shared_access_label)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_shared_access_fields)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_transport_label)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_enable_transport)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_transport_info)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_transport_fields)
 
             def con_collapse_local(collapse=True):
                 # self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
@@ -1537,52 +1538,50 @@ class SidebandApp(MDApp):
                 pass
                 
             def save_connectivity(sender=None, event=None):
-                self.sideband.config["connect_transport"] = self.root.ids.connectivity_enable_transport.active
-                self.sideband.config["connect_local"] = self.root.ids.connectivity_use_local.active
-                self.sideband.config["connect_local_groupid"] = self.root.ids.connectivity_local_groupid.text
-                self.sideband.config["connect_local_ifac_netname"] = self.root.ids.connectivity_local_ifac_netname.text
-                self.sideband.config["connect_local_ifac_passphrase"] = self.root.ids.connectivity_local_ifac_passphrase.text
-                self.sideband.config["connect_tcp"] = self.root.ids.connectivity_use_tcp.active
-                self.sideband.config["connect_tcp_host"] = self.root.ids.connectivity_tcp_host.text
-                self.sideband.config["connect_tcp_port"] = self.root.ids.connectivity_tcp_port.text
-                self.sideband.config["connect_tcp_ifac_netname"] = self.root.ids.connectivity_tcp_ifac_netname.text
-                self.sideband.config["connect_tcp_ifac_passphrase"] = self.root.ids.connectivity_tcp_ifac_passphrase.text
-                self.sideband.config["connect_i2p"] = self.root.ids.connectivity_use_i2p.active
-                self.sideband.config["connect_i2p_b32"] = self.root.ids.connectivity_i2p_b32.text
-                self.sideband.config["connect_i2p_ifac_netname"] = self.root.ids.connectivity_i2p_ifac_netname.text
-                self.sideband.config["connect_i2p_ifac_passphrase"] = self.root.ids.connectivity_i2p_ifac_passphrase.text
-                self.sideband.config["connect_rnode"] = self.root.ids.connectivity_use_rnode.active
-                self.sideband.config["connect_rnode_ifac_netname"] = self.root.ids.connectivity_rnode_ifac_netname.text
-                self.sideband.config["connect_rnode_ifac_passphrase"] = self.root.ids.connectivity_rnode_ifac_passphrase.text
+                self.sideband.config["connect_transport"] = self.connectivity_screen.ids.connectivity_enable_transport.active
+                self.sideband.config["connect_local"] = self.connectivity_screen.ids.connectivity_use_local.active
+                self.sideband.config["connect_local_groupid"] = self.connectivity_screen.ids.connectivity_local_groupid.text
+                self.sideband.config["connect_local_ifac_netname"] = self.connectivity_screen.ids.connectivity_local_ifac_netname.text
+                self.sideband.config["connect_local_ifac_passphrase"] = self.connectivity_screen.ids.connectivity_local_ifac_passphrase.text
+                self.sideband.config["connect_tcp"] = self.connectivity_screen.ids.connectivity_use_tcp.active
+                self.sideband.config["connect_tcp_host"] = self.connectivity_screen.ids.connectivity_tcp_host.text
+                self.sideband.config["connect_tcp_port"] = self.connectivity_screen.ids.connectivity_tcp_port.text
+                self.sideband.config["connect_tcp_ifac_netname"] = self.connectivity_screen.ids.connectivity_tcp_ifac_netname.text
+                self.sideband.config["connect_tcp_ifac_passphrase"] = self.connectivity_screen.ids.connectivity_tcp_ifac_passphrase.text
+                self.sideband.config["connect_i2p"] = self.connectivity_screen.ids.connectivity_use_i2p.active
+                self.sideband.config["connect_i2p_b32"] = self.connectivity_screen.ids.connectivity_i2p_b32.text
+                self.sideband.config["connect_i2p_ifac_netname"] = self.connectivity_screen.ids.connectivity_i2p_ifac_netname.text
+                self.sideband.config["connect_i2p_ifac_passphrase"] = self.connectivity_screen.ids.connectivity_i2p_ifac_passphrase.text
+                self.sideband.config["connect_rnode"] = self.connectivity_screen.ids.connectivity_use_rnode.active
+                self.sideband.config["connect_rnode_ifac_netname"] = self.connectivity_screen.ids.connectivity_rnode_ifac_netname.text
+                self.sideband.config["connect_rnode_ifac_passphrase"] = self.connectivity_screen.ids.connectivity_rnode_ifac_passphrase.text
 
-                self.sideband.config["connect_serial"] = self.root.ids.connectivity_use_serial.active
-                self.sideband.config["connect_serial_ifac_netname"] = self.root.ids.connectivity_serial_ifac_netname.text
-                self.sideband.config["connect_serial_ifac_passphrase"] = self.root.ids.connectivity_serial_ifac_passphrase.text
+                self.sideband.config["connect_serial"] = self.connectivity_screen.ids.connectivity_use_serial.active
+                self.sideband.config["connect_serial_ifac_netname"] = self.connectivity_screen.ids.connectivity_serial_ifac_netname.text
+                self.sideband.config["connect_serial_ifac_passphrase"] = self.connectivity_screen.ids.connectivity_serial_ifac_passphrase.text
 
-                self.sideband.config["connect_modem"] = self.root.ids.connectivity_use_modem.active
-                self.sideband.config["connect_modem_ifac_netname"] = self.root.ids.connectivity_modem_ifac_netname.text
-                self.sideband.config["connect_modem_ifac_passphrase"] = self.root.ids.connectivity_modem_ifac_passphrase.text
+                self.sideband.config["connect_modem"] = self.connectivity_screen.ids.connectivity_use_modem.active
+                self.sideband.config["connect_modem_ifac_netname"] = self.connectivity_screen.ids.connectivity_modem_ifac_netname.text
+                self.sideband.config["connect_modem_ifac_passphrase"] = self.connectivity_screen.ids.connectivity_modem_ifac_passphrase.text
 
-                self.sideband.config["connect_ifmode_local"] = self.root.ids.connectivity_local_ifmode.text.lower()
-                self.sideband.config["connect_ifmode_tcp"] = self.root.ids.connectivity_tcp_ifmode.text.lower()
-                self.sideband.config["connect_ifmode_i2p"] = self.root.ids.connectivity_i2p_ifmode.text.lower()
-                self.sideband.config["connect_ifmode_rnode"] = self.root.ids.connectivity_rnode_ifmode.text.lower()
-                self.sideband.config["connect_ifmode_modem"] = self.root.ids.connectivity_modem_ifmode.text.lower()
-                self.sideband.config["connect_ifmode_serial"] = self.root.ids.connectivity_serial_ifmode.text.lower()
+                self.sideband.config["connect_ifmode_local"] = self.connectivity_screen.ids.connectivity_local_ifmode.text.lower()
+                self.sideband.config["connect_ifmode_tcp"] = self.connectivity_screen.ids.connectivity_tcp_ifmode.text.lower()
+                self.sideband.config["connect_ifmode_i2p"] = self.connectivity_screen.ids.connectivity_i2p_ifmode.text.lower()
+                self.sideband.config["connect_ifmode_rnode"] = self.connectivity_screen.ids.connectivity_rnode_ifmode.text.lower()
+                self.sideband.config["connect_ifmode_modem"] = self.connectivity_screen.ids.connectivity_modem_ifmode.text.lower()
+                self.sideband.config["connect_ifmode_serial"] = self.connectivity_screen.ids.connectivity_serial_ifmode.text.lower()
 
-                con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
-                con_collapse_tcp(collapse=not self.root.ids.connectivity_use_tcp.active)
-                con_collapse_i2p(collapse=not self.root.ids.connectivity_use_i2p.active)
-                con_collapse_rnode(collapse=not self.root.ids.connectivity_use_rnode.active)
-                con_collapse_modem(collapse=not self.root.ids.connectivity_use_modem.active)
-                con_collapse_serial(collapse=not self.root.ids.connectivity_use_serial.active)
+                con_collapse_local(collapse=not self.connectivity_screen.ids.connectivity_use_local.active)
+                con_collapse_tcp(collapse=not self.connectivity_screen.ids.connectivity_use_tcp.active)
+                con_collapse_i2p(collapse=not self.connectivity_screen.ids.connectivity_use_i2p.active)
+                con_collapse_rnode(collapse=not self.connectivity_screen.ids.connectivity_use_rnode.active)
+                con_collapse_modem(collapse=not self.connectivity_screen.ids.connectivity_use_modem.active)
+                con_collapse_serial(collapse=not self.connectivity_screen.ids.connectivity_use_serial.active)
                 con_collapse_transport(collapse=not self.sideband.config["connect_transport"])
-
-                # con_collapse_bluetooth(collapse=not self.root.ids.connectivity_use_bluetooth.active)
 
                 self.sideband.save_configuration()
 
-                if sender == self.root.ids.connectivity_enable_transport:
+                if sender == self.connectivity_screen.ids.connectivity_enable_transport:
                     if sender.active:
                         def cb(dt):
                             yes_button = MDRectangleFlatButton(text="Understood",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
@@ -1600,16 +1599,16 @@ class SidebandApp(MDApp):
 
             def serial_connectivity_save(sender=None, event=None):
                 if sender.active:
-                    self.root.ids.connectivity_use_rnode.unbind(active=serial_connectivity_save)
-                    self.root.ids.connectivity_use_modem.unbind(active=serial_connectivity_save)
-                    self.root.ids.connectivity_use_serial.unbind(active=serial_connectivity_save)
-                    self.root.ids.connectivity_use_rnode.active = False
-                    self.root.ids.connectivity_use_modem.active = False
-                    self.root.ids.connectivity_use_serial.active = False
+                    self.connectivity_screen.ids.connectivity_use_rnode.unbind(active=serial_connectivity_save)
+                    self.connectivity_screen.ids.connectivity_use_modem.unbind(active=serial_connectivity_save)
+                    self.connectivity_screen.ids.connectivity_use_serial.unbind(active=serial_connectivity_save)
+                    self.connectivity_screen.ids.connectivity_use_rnode.active = False
+                    self.connectivity_screen.ids.connectivity_use_modem.active = False
+                    self.connectivity_screen.ids.connectivity_use_serial.active = False
                     sender.active = True
-                    self.root.ids.connectivity_use_rnode.bind(active=serial_connectivity_save)
-                    self.root.ids.connectivity_use_modem.bind(active=serial_connectivity_save)
-                    self.root.ids.connectivity_use_serial.bind(active=serial_connectivity_save)
+                    self.connectivity_screen.ids.connectivity_use_rnode.bind(active=serial_connectivity_save)
+                    self.connectivity_screen.ids.connectivity_use_modem.bind(active=serial_connectivity_save)
+                    self.connectivity_screen.ids.connectivity_use_serial.bind(active=serial_connectivity_save)
                 save_connectivity(sender, event)
 
             def focus_save(sender=None, event=None):
@@ -1651,98 +1650,93 @@ class SidebandApp(MDApp):
                 if not self.sideband.getpersistent("service.is_controlling_connectivity"):
                     info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
                     info += "To configure connectivity, edit the relevant configuration file for the instance."
-                    self.root.ids.connectivity_info.text = info
+                    self.connectivity_screen.ids.connectivity_info.text = info
                     con_hide_settings()
 
                 else:
                     info =  "By default, Sideband will try to discover and connect to any available Reticulum networks via active WiFi and/or Ethernet interfaces. If any Reticulum Transport Instances are found, Sideband will use these to connect to wider Reticulum networks. You can disable this behaviour if you don't want it.\n\n"
                     info += "You can also connect to a network via a remote or local Reticulum instance using TCP or I2P. [b]Please Note![/b] Connecting via I2P requires that you already have I2P running on your device, and that the SAM API is enabled.\n\n"
                     info += "For changes to connectivity to take effect, you must shut down and restart Sideband.\n"
-                    self.root.ids.connectivity_info.text = info
+                    self.connectivity_screen.ids.connectivity_info.text = info
 
-                    self.root.ids.connectivity_use_local.active = self.sideband.config["connect_local"]
-                    con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
-                    self.root.ids.connectivity_local_groupid.text = self.sideband.config["connect_local_groupid"]
-                    self.root.ids.connectivity_local_ifac_netname.text = self.sideband.config["connect_local_ifac_netname"]
-                    self.root.ids.connectivity_local_ifac_passphrase.text = self.sideband.config["connect_local_ifac_passphrase"]
+                    self.connectivity_screen.ids.connectivity_use_local.active = self.sideband.config["connect_local"]
+                    con_collapse_local(collapse=not self.connectivity_screen.ids.connectivity_use_local.active)
+                    self.connectivity_screen.ids.connectivity_local_groupid.text = self.sideband.config["connect_local_groupid"]
+                    self.connectivity_screen.ids.connectivity_local_ifac_netname.text = self.sideband.config["connect_local_ifac_netname"]
+                    self.connectivity_screen.ids.connectivity_local_ifac_passphrase.text = self.sideband.config["connect_local_ifac_passphrase"]
 
-                    self.root.ids.connectivity_use_tcp.active = self.sideband.config["connect_tcp"]
-                    con_collapse_tcp(collapse=not self.root.ids.connectivity_use_tcp.active)
-                    self.root.ids.connectivity_tcp_host.text = self.sideband.config["connect_tcp_host"]
-                    self.root.ids.connectivity_tcp_port.text = self.sideband.config["connect_tcp_port"]
-                    self.root.ids.connectivity_tcp_ifac_netname.text = self.sideband.config["connect_tcp_ifac_netname"]
-                    self.root.ids.connectivity_tcp_ifac_passphrase.text = self.sideband.config["connect_tcp_ifac_passphrase"]
+                    self.connectivity_screen.ids.connectivity_use_tcp.active = self.sideband.config["connect_tcp"]
+                    con_collapse_tcp(collapse=not self.connectivity_screen.ids.connectivity_use_tcp.active)
+                    self.connectivity_screen.ids.connectivity_tcp_host.text = self.sideband.config["connect_tcp_host"]
+                    self.connectivity_screen.ids.connectivity_tcp_port.text = self.sideband.config["connect_tcp_port"]
+                    self.connectivity_screen.ids.connectivity_tcp_ifac_netname.text = self.sideband.config["connect_tcp_ifac_netname"]
+                    self.connectivity_screen.ids.connectivity_tcp_ifac_passphrase.text = self.sideband.config["connect_tcp_ifac_passphrase"]
 
-                    self.root.ids.connectivity_use_i2p.active = self.sideband.config["connect_i2p"]
-                    con_collapse_i2p(collapse=not self.root.ids.connectivity_use_i2p.active)
-                    self.root.ids.connectivity_i2p_b32.text = self.sideband.config["connect_i2p_b32"]
-                    self.root.ids.connectivity_i2p_ifac_netname.text = self.sideband.config["connect_i2p_ifac_netname"]
-                    self.root.ids.connectivity_i2p_ifac_passphrase.text = self.sideband.config["connect_i2p_ifac_passphrase"]
+                    self.connectivity_screen.ids.connectivity_use_i2p.active = self.sideband.config["connect_i2p"]
+                    con_collapse_i2p(collapse=not self.connectivity_screen.ids.connectivity_use_i2p.active)
+                    self.connectivity_screen.ids.connectivity_i2p_b32.text = self.sideband.config["connect_i2p_b32"]
+                    self.connectivity_screen.ids.connectivity_i2p_ifac_netname.text = self.sideband.config["connect_i2p_ifac_netname"]
+                    self.connectivity_screen.ids.connectivity_i2p_ifac_passphrase.text = self.sideband.config["connect_i2p_ifac_passphrase"]
 
-                    self.root.ids.connectivity_use_rnode.active = self.sideband.config["connect_rnode"]
-                    con_collapse_rnode(collapse=not self.root.ids.connectivity_use_rnode.active)
-                    self.root.ids.connectivity_rnode_ifac_netname.text = self.sideband.config["connect_rnode_ifac_netname"]
-                    self.root.ids.connectivity_rnode_ifac_passphrase.text = self.sideband.config["connect_rnode_ifac_passphrase"]
+                    self.connectivity_screen.ids.connectivity_use_rnode.active = self.sideband.config["connect_rnode"]
+                    con_collapse_rnode(collapse=not self.connectivity_screen.ids.connectivity_use_rnode.active)
+                    self.connectivity_screen.ids.connectivity_rnode_ifac_netname.text = self.sideband.config["connect_rnode_ifac_netname"]
+                    self.connectivity_screen.ids.connectivity_rnode_ifac_passphrase.text = self.sideband.config["connect_rnode_ifac_passphrase"]
 
-                    # self.root.ids.connectivity_use_bluetooth.active = False
-                    # con_collapse_bluetooth(collapse=not self.root.ids.connectivity_use_bluetooth.active)
+                    self.connectivity_screen.ids.connectivity_use_modem.active = self.sideband.config["connect_modem"]
+                    con_collapse_modem(collapse=not self.connectivity_screen.ids.connectivity_use_modem.active)
+                    self.connectivity_screen.ids.connectivity_modem_ifac_netname.text = self.sideband.config["connect_modem_ifac_netname"]
+                    self.connectivity_screen.ids.connectivity_modem_ifac_passphrase.text = self.sideband.config["connect_modem_ifac_passphrase"]
 
-                    self.root.ids.connectivity_use_modem.active = self.sideband.config["connect_modem"]
-                    con_collapse_modem(collapse=not self.root.ids.connectivity_use_modem.active)
-                    self.root.ids.connectivity_modem_ifac_netname.text = self.sideband.config["connect_modem_ifac_netname"]
-                    self.root.ids.connectivity_modem_ifac_passphrase.text = self.sideband.config["connect_modem_ifac_passphrase"]
+                    self.connectivity_screen.ids.connectivity_use_serial.active = self.sideband.config["connect_serial"]
+                    con_collapse_serial(collapse=not self.connectivity_screen.ids.connectivity_use_serial.active)
+                    self.connectivity_screen.ids.connectivity_serial_ifac_netname.text = self.sideband.config["connect_serial_ifac_netname"]
+                    self.connectivity_screen.ids.connectivity_serial_ifac_passphrase.text = self.sideband.config["connect_serial_ifac_passphrase"]
 
-                    self.root.ids.connectivity_use_serial.active = self.sideband.config["connect_serial"]
-                    con_collapse_serial(collapse=not self.root.ids.connectivity_use_serial.active)
-                    self.root.ids.connectivity_serial_ifac_netname.text = self.sideband.config["connect_serial_ifac_netname"]
-                    self.root.ids.connectivity_serial_ifac_passphrase.text = self.sideband.config["connect_serial_ifac_passphrase"]
-
-                    self.root.ids.connectivity_enable_transport.active = self.sideband.config["connect_transport"]
+                    self.connectivity_screen.ids.connectivity_enable_transport.active = self.sideband.config["connect_transport"]
                     con_collapse_transport(collapse=not self.sideband.config["connect_transport"])
-                    self.root.ids.connectivity_enable_transport.bind(active=save_connectivity)
-                    self.root.ids.connectivity_local_ifmode.text = self.sideband.config["connect_ifmode_local"].capitalize()
-                    self.root.ids.connectivity_tcp_ifmode.text = self.sideband.config["connect_ifmode_tcp"].capitalize()
-                    self.root.ids.connectivity_i2p_ifmode.text = self.sideband.config["connect_ifmode_i2p"].capitalize()
-                    self.root.ids.connectivity_rnode_ifmode.text = self.sideband.config["connect_ifmode_rnode"].capitalize()
-                    self.root.ids.connectivity_modem_ifmode.text = self.sideband.config["connect_ifmode_modem"].capitalize()
-                    self.root.ids.connectivity_serial_ifmode.text = self.sideband.config["connect_ifmode_serial"].capitalize()
+                    self.connectivity_screen.ids.connectivity_enable_transport.bind(active=save_connectivity)
+                    self.connectivity_screen.ids.connectivity_local_ifmode.text = self.sideband.config["connect_ifmode_local"].capitalize()
+                    self.connectivity_screen.ids.connectivity_tcp_ifmode.text = self.sideband.config["connect_ifmode_tcp"].capitalize()
+                    self.connectivity_screen.ids.connectivity_i2p_ifmode.text = self.sideband.config["connect_ifmode_i2p"].capitalize()
+                    self.connectivity_screen.ids.connectivity_rnode_ifmode.text = self.sideband.config["connect_ifmode_rnode"].capitalize()
+                    self.connectivity_screen.ids.connectivity_modem_ifmode.text = self.sideband.config["connect_ifmode_modem"].capitalize()
+                    self.connectivity_screen.ids.connectivity_serial_ifmode.text = self.sideband.config["connect_ifmode_serial"].capitalize()
 
-                    self.root.ids.connectivity_use_local.bind(active=save_connectivity)
-                    self.root.ids.connectivity_local_groupid.bind(focus=focus_save)
-                    self.root.ids.connectivity_local_ifac_netname.bind(focus=focus_save)
-                    self.root.ids.connectivity_local_ifac_passphrase.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_use_local.bind(active=save_connectivity)
+                    self.connectivity_screen.ids.connectivity_local_groupid.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_local_ifac_netname.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_local_ifac_passphrase.bind(focus=focus_save)
 
-                    self.root.ids.connectivity_use_tcp.bind(active=save_connectivity)
-                    self.root.ids.connectivity_tcp_host.bind(focus=focus_save)
-                    self.root.ids.connectivity_tcp_port.bind(focus=focus_save)
-                    self.root.ids.connectivity_tcp_ifac_netname.bind(focus=focus_save)
-                    self.root.ids.connectivity_tcp_ifac_passphrase.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_use_tcp.bind(active=save_connectivity)
+                    self.connectivity_screen.ids.connectivity_tcp_host.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_tcp_port.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_tcp_ifac_netname.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_tcp_ifac_passphrase.bind(focus=focus_save)
                     
-                    self.root.ids.connectivity_use_i2p.bind(active=save_connectivity)
-                    self.root.ids.connectivity_i2p_b32.bind(focus=focus_save)
-                    self.root.ids.connectivity_i2p_ifac_netname.bind(focus=focus_save)
-                    self.root.ids.connectivity_i2p_ifac_passphrase.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_use_i2p.bind(active=save_connectivity)
+                    self.connectivity_screen.ids.connectivity_i2p_b32.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_i2p_ifac_netname.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_i2p_ifac_passphrase.bind(focus=focus_save)
                     
-                    self.root.ids.connectivity_use_rnode.bind(active=serial_connectivity_save)
-                    self.root.ids.connectivity_rnode_ifac_netname.bind(focus=focus_save)
-                    self.root.ids.connectivity_rnode_ifac_passphrase.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_use_rnode.bind(active=serial_connectivity_save)
+                    self.connectivity_screen.ids.connectivity_rnode_ifac_netname.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_rnode_ifac_passphrase.bind(focus=focus_save)
 
-                    self.root.ids.connectivity_use_modem.bind(active=serial_connectivity_save)
-                    self.root.ids.connectivity_modem_ifac_netname.bind(focus=focus_save)
-                    self.root.ids.connectivity_modem_ifac_passphrase.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_use_modem.bind(active=serial_connectivity_save)
+                    self.connectivity_screen.ids.connectivity_modem_ifac_netname.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_modem_ifac_passphrase.bind(focus=focus_save)
 
-                    self.root.ids.connectivity_use_serial.bind(active=serial_connectivity_save)
-                    self.root.ids.connectivity_serial_ifac_netname.bind(focus=focus_save)
-                    self.root.ids.connectivity_serial_ifac_passphrase.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_use_serial.bind(active=serial_connectivity_save)
+                    self.connectivity_screen.ids.connectivity_serial_ifac_netname.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_serial_ifac_passphrase.bind(focus=focus_save)
 
-                    self.root.ids.connectivity_local_ifmode.bind(focus=ifmode_validate)
-                    self.root.ids.connectivity_tcp_ifmode.bind(focus=ifmode_validate)
-                    self.root.ids.connectivity_i2p_ifmode.bind(focus=ifmode_validate)
-                    self.root.ids.connectivity_rnode_ifmode.bind(focus=ifmode_validate)
-                    self.root.ids.connectivity_modem_ifmode.bind(focus=ifmode_validate)
-                    self.root.ids.connectivity_serial_ifmode.bind(focus=ifmode_validate)
-
-                    # self.root.ids.connectivity_use_bluetooth.bind(active=save_connectivity)
+                    self.connectivity_screen.ids.connectivity_local_ifmode.bind(focus=ifmode_validate)
+                    self.connectivity_screen.ids.connectivity_tcp_ifmode.bind(focus=ifmode_validate)
+                    self.connectivity_screen.ids.connectivity_i2p_ifmode.bind(focus=ifmode_validate)
+                    self.connectivity_screen.ids.connectivity_rnode_ifmode.bind(focus=ifmode_validate)
+                    self.connectivity_screen.ids.connectivity_modem_ifmode.bind(focus=ifmode_validate)
+                    self.connectivity_screen.ids.connectivity_serial_ifmode.bind(focus=ifmode_validate)
 
             else:
                 info = ""
@@ -1758,7 +1752,7 @@ class SidebandApp(MDApp):
                     info += "To configure connectivity, edit the configuration file located at:\n\n"
                     info += str(RNS.Reticulum.configpath)
 
-                self.root.ids.connectivity_info.text = info
+                self.connectivity_screen.ids.connectivity_info.text = info
 
                 con_hide_settings()
 
@@ -1942,33 +1936,38 @@ class SidebandApp(MDApp):
     
     def hardware_init(self, sender=None):
         if not self.hardware_ready:
-            self.root.ids.hardware_scrollview.effect_cls = ScrollEffect
+            if not self.root.ids.screen_manager.has_screen("hardware_screen"):
+                self.hardware_screen = Builder.load_string(layout_hardware_screen)
+                self.hardware_screen.app = self
+                self.root.ids.screen_manager.add_widget(self.hardware_screen)
+
+            self.hardware_screen.ids.hardware_scrollview.effect_cls = ScrollEffect
 
             def con_hide_settings():
-                self.widget_hide(self.root.ids.hardware_rnode_button)
-                self.widget_hide(self.root.ids.hardware_modem_button)
-                self.widget_hide(self.root.ids.hardware_serial_button)
+                self.widget_hide(self.hardware_screen.ids.hardware_rnode_button)
+                self.widget_hide(self.hardware_screen.ids.hardware_modem_button)
+                self.widget_hide(self.hardware_screen.ids.hardware_serial_button)
 
-            def con_collapse_local(collapse=True):
-                self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
+            # def con_collapse_local(collapse=True):
+            #     self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
                                 
-            def save_connectivity(sender=None, event=None):
-                # self.sideband.config["connect_local"] = self.root.ids.connectivity_use_local.active
-                con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
-                self.sideband.save_configuration()
+            # def save_connectivity(sender=None, event=None):
+            #     # self.sideband.config["connect_local"] = self.root.ids.connectivity_use_local.active
+            #     con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
+            #     self.sideband.save_configuration()
 
             if RNS.vendor.platformutils.get_platform() == "android":
                 if not self.sideband.getpersistent("service.is_controlling_connectivity"):
                     info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
                     info += "To configure hardware parameters, edit the relevant configuration file for the instance."
-                    self.root.ids.hardware_info.text = info
+                    self.hardware_screen.ids.hardware_info.text = info
                     con_hide_settings()
 
                 else:
                     info =  "When using external hardware for communicating, you may configure various parameters, such as channel settings, modulation schemes, interface speeds and access parameters. You can set up these parameters per device type, and Sideband will apply the configuration when opening a device of that type.\n\n"
                     info += "Hardware configurations can also be exported or imported as [i]config motes[/i], which are self-contained plaintext strings that are easy to share with others. When importing a config mote, Sideband will automatically set all relevant parameters as specified within it.\n\n"
                     info += "For changes to hardware parameters to take effect, you must shut down and restart Sideband.\n"
-                    self.root.ids.hardware_info.text = info
+                    self.hardware_screen.ids.hardware_info.text = info
 
             else:
                 info = ""
@@ -1982,7 +1981,7 @@ class SidebandApp(MDApp):
                     info += "To configure hardware parameters, edit the configuration file located at:\n\n"
                     info += str(RNS.Reticulum.configpath)
 
-                self.root.ids.hardware_info.text = info
+                self.hardware_screen.ids.hardware_info.text = info
 
                 con_hide_settings()
 
@@ -2001,96 +2000,99 @@ class SidebandApp(MDApp):
 
     def hardware_rnode_save(self):
         try:
-            self.sideband.config["hw_rnode_frequency"] = int(float(self.root.ids.hardware_rnode_frequency.text)*1000000)
+            self.sideband.config["hw_rnode_frequency"] = int(float(self.hardware_rnode_screen.ids.hardware_rnode_frequency.text)*1000000)
         except:
             pass
 
         try:
-            self.sideband.config["hw_rnode_bandwidth"] = int(float(self.root.ids.hardware_rnode_bandwidth.text)*1000)
+            self.sideband.config["hw_rnode_bandwidth"] = int(float(self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.text)*1000)
         except:
             pass
 
         try:
-            self.sideband.config["hw_rnode_tx_power"] = int(self.root.ids.hardware_rnode_txpower.text)
+            self.sideband.config["hw_rnode_tx_power"] = int(self.hardware_rnode_screen.ids.hardware_rnode_txpower.text)
         except:
             pass
 
         try:
-            self.sideband.config["hw_rnode_spreading_factor"] = int(self.root.ids.hardware_rnode_spreadingfactor.text)
+            self.sideband.config["hw_rnode_spreading_factor"] = int(self.hardware_rnode_screen.ids.hardware_rnode_spreadingfactor.text)
         except:
             pass
         
         try:
-            self.sideband.config["hw_rnode_coding_rate"] = int(self.root.ids.hardware_rnode_codingrate.text)
+            self.sideband.config["hw_rnode_coding_rate"] = int(self.hardware_rnode_screen.ids.hardware_rnode_codingrate.text)
         except:
             pass
         
         try:
-            self.sideband.config["hw_rnode_atl_short"] = float(self.root.ids.hardware_rnode_atl_short.text)
+            self.sideband.config["hw_rnode_atl_short"] = float(self.hardware_rnode_screen.ids.hardware_rnode_atl_short.text)
         except:
             self.sideband.config["hw_rnode_atl_short"] = None
 
         try:
-            self.sideband.config["hw_rnode_atl_long"] = float(self.root.ids.hardware_rnode_atl_long.text)
+            self.sideband.config["hw_rnode_atl_long"] = float(self.hardware_rnode_screen.ids.hardware_rnode_atl_long.text)
         except:
             self.sideband.config["hw_rnode_atl_long"] = None
         
-        if self.root.ids.hardware_rnode_beaconinterval.text == "":
+        if self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text == "":
             self.sideband.config["hw_rnode_beaconinterval"] = None
         else:
-            self.sideband.config["hw_rnode_beaconinterval"] = int(self.root.ids.hardware_rnode_beaconinterval.text)
+            try:
+                self.sideband.config["hw_rnode_beaconinterval"] = int(self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text)
+            except:
+                pass
 
-        if self.root.ids.hardware_rnode_beacondata.text == "":
+        if self.hardware_rnode_screen.ids.hardware_rnode_beacondata.text == "":
             self.sideband.config["hw_rnode_beacondata"] = None
         else:
-            self.sideband.config["hw_rnode_beacondata"] = self.root.ids.hardware_rnode_beacondata.text
+            self.sideband.config["hw_rnode_beacondata"] = self.hardware_rnode_screen.ids.hardware_rnode_beacondata.text
 
-        if self.root.ids.hardware_rnode_bt_device.text == "":
+        if self.hardware_rnode_screen.ids.hardware_rnode_bt_device.text == "":
             self.sideband.config["hw_rnode_bt_device"] = None
         else:
-            self.sideband.config["hw_rnode_bt_device"] = self.root.ids.hardware_rnode_bt_device.text
+            self.sideband.config["hw_rnode_bt_device"] = self.hardware_rnode_screen.ids.hardware_rnode_bt_device.text
 
         self.sideband.save_configuration()
 
     def hardware_rnode_bt_on_action(self, sender=None):
-        self.root.ids.hardware_rnode_bt_pair_button.disabled = True
-        self.root.ids.hardware_rnode_bt_on_button.disabled = True
-        self.root.ids.hardware_rnode_bt_off_button.disabled = True
+        self.hardware_rnode_screen.ids.hardware_rnode_bt_pair_button.disabled = True
+        self.hardware_rnode_screen.ids.hardware_rnode_bt_on_button.disabled = True
+        self.hardware_rnode_screen.ids.hardware_rnode_bt_off_button.disabled = True
         def re_enable():
             time.sleep(2)
             while self.sideband.getstate("executing.bt_on"):
                 time.sleep(1)
-            self.root.ids.hardware_rnode_bt_off_button.disabled = False
-            self.root.ids.hardware_rnode_bt_pair_button.disabled = False
-            self.root.ids.hardware_rnode_bt_on_button.disabled = False
+            self.hardware_rnode_screen.ids.hardware_rnode_bt_off_button.disabled = False
+            self.hardware_rnode_screen.ids.hardware_rnode_bt_pair_button.disabled = False
+            self.hardware_rnode_screen.ids.hardware_rnode_bt_on_button.disabled = False
         threading.Thread(target=re_enable, daemon=True).start()
         self.sideband.setstate("wants.bt_on", True)
 
     def hardware_rnode_bt_off_action(self, sender=None):
-        self.root.ids.hardware_rnode_bt_pair_button.disabled = True
-        self.root.ids.hardware_rnode_bt_on_button.disabled = True
-        self.root.ids.hardware_rnode_bt_off_button.disabled = True
+        self.hardware_rnode_screen.ids.hardware_rnode_bt_pair_button.disabled = True
+        self.hardware_rnode_screen.ids.hardware_rnode_bt_on_button.disabled = True
+        self.hardware_rnode_screen.ids.hardware_rnode_bt_off_button.disabled = True
         def re_enable():
             time.sleep(2)
             while self.sideband.getstate("executing.bt_off"):
                 time.sleep(1)
-            self.root.ids.hardware_rnode_bt_off_button.disabled = False
-            self.root.ids.hardware_rnode_bt_pair_button.disabled = False
-            self.root.ids.hardware_rnode_bt_on_button.disabled = False
+            self.hardware_rnode_screen.ids.hardware_rnode_bt_off_button.disabled = False
+            self.hardware_rnode_screen.ids.hardware_rnode_bt_pair_button.disabled = False
+            self.hardware_rnode_screen.ids.hardware_rnode_bt_on_button.disabled = False
         threading.Thread(target=re_enable, daemon=True).start()
         self.sideband.setstate("wants.bt_off", True)
 
     def hardware_rnode_bt_pair_action(self, sender=None):
-        self.root.ids.hardware_rnode_bt_pair_button.disabled = True
-        self.root.ids.hardware_rnode_bt_on_button.disabled = True
-        self.root.ids.hardware_rnode_bt_off_button.disabled = True
+        self.hardware_rnode_screen.ids.hardware_rnode_bt_pair_button.disabled = True
+        self.hardware_rnode_screen.ids.hardware_rnode_bt_on_button.disabled = True
+        self.hardware_rnode_screen.ids.hardware_rnode_bt_off_button.disabled = True
         def re_enable():
             time.sleep(2)
             while self.sideband.getstate("executing.bt_pair"):
                 time.sleep(1)
-            self.root.ids.hardware_rnode_bt_off_button.disabled = False
-            self.root.ids.hardware_rnode_bt_pair_button.disabled = False
-            self.root.ids.hardware_rnode_bt_on_button.disabled = False
+            self.hardware_rnode_screen.ids.hardware_rnode_bt_off_button.disabled = False
+            self.hardware_rnode_screen.ids.hardware_rnode_bt_pair_button.disabled = False
+            self.hardware_rnode_screen.ids.hardware_rnode_bt_on_button.disabled = False
         threading.Thread(target=re_enable, daemon=True).start()
         self.sideband.setstate("wants.bt_pair", True)
 
@@ -2115,7 +2117,12 @@ class SidebandApp(MDApp):
     
     def hardware_rnode_init(self, sender=None):
         if not self.hardware_rnode_ready:
-            self.root.ids.hardware_rnode_scrollview.effect_cls = ScrollEffect
+            if not self.root.ids.screen_manager.has_screen("hardware_rnode_screen"):
+                self.hardware_rnode_screen = Builder.load_string(layout_hardware_rnode_screen)
+                self.hardware_rnode_screen.app = self
+                self.root.ids.screen_manager.add_widget(self.hardware_rnode_screen)
+
+            self.hardware_rnode_screen.ids.hardware_rnode_scrollview.effect_cls = ScrollEffect
             def save_connectivity(sender=None, event=None):
                 if self.hardware_rnode_validate():
                     self.hardware_rnode_save()
@@ -2166,102 +2173,102 @@ class SidebandApp(MDApp):
             else:
                 t_atl = ""
 
-            self.root.ids.hardware_rnode_bluetooth.active = self.sideband.config["hw_rnode_bluetooth"]
-            self.root.ids.hardware_rnode_framebuffer.active = self.sideband.config["hw_rnode_enable_framebuffer"]
-            self.root.ids.hardware_rnode_frequency.text = t_freq
-            self.root.ids.hardware_rnode_bandwidth.text = t_bw
-            self.root.ids.hardware_rnode_txpower.text = t_p
-            self.root.ids.hardware_rnode_spreadingfactor.text = t_sf
-            self.root.ids.hardware_rnode_codingrate.text = t_cr
-            self.root.ids.hardware_rnode_beaconinterval.text = t_bi
-            self.root.ids.hardware_rnode_beacondata.text = t_bd
-            self.root.ids.hardware_rnode_bt_device.text = t_btd
-            self.root.ids.hardware_rnode_atl_short.text = t_ats
-            self.root.ids.hardware_rnode_atl_long.text = t_atl
-            self.root.ids.hardware_rnode_frequency.bind(focus=focus_save)
-            self.root.ids.hardware_rnode_bandwidth.bind(focus=focus_save)
-            self.root.ids.hardware_rnode_txpower.bind(focus=focus_save)
-            self.root.ids.hardware_rnode_spreadingfactor.bind(focus=focus_save)
-            self.root.ids.hardware_rnode_codingrate.bind(focus=focus_save)
-            self.root.ids.hardware_rnode_beaconinterval.bind(focus=focus_save)
-            self.root.ids.hardware_rnode_beacondata.bind(focus=focus_save)
-            self.root.ids.hardware_rnode_bt_device.bind(focus=focus_save)
-            self.root.ids.hardware_rnode_frequency.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_rnode_bandwidth.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_rnode_txpower.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_rnode_spreadingfactor.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_rnode_codingrate.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_rnode_beaconinterval.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_rnode_beacondata.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_rnode_atl_short.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_rnode_atl_long.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_rnode_bluetooth.bind(active=self.hardware_rnode_bt_toggle_action)
-            self.root.ids.hardware_rnode_framebuffer.bind(active=self.hardware_rnode_framebuffer_toggle_action)
+            self.hardware_rnode_screen.ids.hardware_rnode_bluetooth.active = self.sideband.config["hw_rnode_bluetooth"]
+            self.hardware_rnode_screen.ids.hardware_rnode_framebuffer.active = self.sideband.config["hw_rnode_enable_framebuffer"]
+            self.hardware_rnode_screen.ids.hardware_rnode_frequency.text = t_freq
+            self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.text = t_bw
+            self.hardware_rnode_screen.ids.hardware_rnode_txpower.text = t_p
+            self.hardware_rnode_screen.ids.hardware_rnode_spreadingfactor.text = t_sf
+            self.hardware_rnode_screen.ids.hardware_rnode_codingrate.text = t_cr
+            self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text = t_bi
+            self.hardware_rnode_screen.ids.hardware_rnode_beacondata.text = t_bd
+            self.hardware_rnode_screen.ids.hardware_rnode_bt_device.text = t_btd
+            self.hardware_rnode_screen.ids.hardware_rnode_atl_short.text = t_ats
+            self.hardware_rnode_screen.ids.hardware_rnode_atl_long.text = t_atl
+            self.hardware_rnode_screen.ids.hardware_rnode_frequency.bind(focus=focus_save)
+            self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.bind(focus=focus_save)
+            self.hardware_rnode_screen.ids.hardware_rnode_txpower.bind(focus=focus_save)
+            self.hardware_rnode_screen.ids.hardware_rnode_spreadingfactor.bind(focus=focus_save)
+            self.hardware_rnode_screen.ids.hardware_rnode_codingrate.bind(focus=focus_save)
+            self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.bind(focus=focus_save)
+            self.hardware_rnode_screen.ids.hardware_rnode_beacondata.bind(focus=focus_save)
+            self.hardware_rnode_screen.ids.hardware_rnode_bt_device.bind(focus=focus_save)
+            self.hardware_rnode_screen.ids.hardware_rnode_frequency.bind(on_text_validate=save_connectivity)
+            self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.bind(on_text_validate=save_connectivity)
+            self.hardware_rnode_screen.ids.hardware_rnode_txpower.bind(on_text_validate=save_connectivity)
+            self.hardware_rnode_screen.ids.hardware_rnode_spreadingfactor.bind(on_text_validate=save_connectivity)
+            self.hardware_rnode_screen.ids.hardware_rnode_codingrate.bind(on_text_validate=save_connectivity)
+            self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.bind(on_text_validate=save_connectivity)
+            self.hardware_rnode_screen.ids.hardware_rnode_beacondata.bind(on_text_validate=save_connectivity)
+            self.hardware_rnode_screen.ids.hardware_rnode_atl_short.bind(on_text_validate=save_connectivity)
+            self.hardware_rnode_screen.ids.hardware_rnode_atl_long.bind(on_text_validate=save_connectivity)
+            self.hardware_rnode_screen.ids.hardware_rnode_bluetooth.bind(active=self.hardware_rnode_bt_toggle_action)
+            self.hardware_rnode_screen.ids.hardware_rnode_framebuffer.bind(active=self.hardware_rnode_framebuffer_toggle_action)
 
 
     def hardware_rnode_validate(self, sender=None):
         valid = True        
         try:
-            val = float(self.root.ids.hardware_rnode_frequency.text)
+            val = float(self.hardware_rnode_screen.ids.hardware_rnode_frequency.text)
             if not val > 0:
                 raise ValueError("Invalid frequency")
-            self.root.ids.hardware_rnode_frequency.error = False
-            self.root.ids.hardware_rnode_frequency.text = str(val)
+            self.hardware_rnode_screen.ids.hardware_rnode_frequency.error = False
+            self.hardware_rnode_screen.ids.hardware_rnode_frequency.text = str(val)
         except:
-            self.root.ids.hardware_rnode_frequency.error = True
+            self.hardware_rnode_screen.ids.hardware_rnode_frequency.error = True
             valid = False
         
         try:
             valid_vals = [7.8, 10.4, 15.6, 20.8, 31.25, 41.7, 62.5, 125, 250, 500]
-            val = float(self.root.ids.hardware_rnode_bandwidth.text)
+            val = float(self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.text)
             if not val in valid_vals:
                 raise ValueError("Invalid bandwidth")
-            self.root.ids.hardware_rnode_bandwidth.error = False
-            self.root.ids.hardware_rnode_bandwidth.text = str(val)
+            self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.error = False
+            self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.text = str(val)
         except:
-            self.root.ids.hardware_rnode_bandwidth.error = True
+            self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.error = True
             valid = False
         
         try:
-            val = int(self.root.ids.hardware_rnode_txpower.text)
+            val = int(self.hardware_rnode_screen.ids.hardware_rnode_txpower.text)
             if not val >= 0:
                 raise ValueError("Invalid TX power")
-            self.root.ids.hardware_rnode_txpower.error = False
-            self.root.ids.hardware_rnode_txpower.text = str(val)
+            self.hardware_rnode_screen.ids.hardware_rnode_txpower.error = False
+            self.hardware_rnode_screen.ids.hardware_rnode_txpower.text = str(val)
         except:
-            self.root.ids.hardware_rnode_txpower.error = True
+            self.hardware_rnode_screen.ids.hardware_rnode_txpower.error = True
             valid = False
         
         try:
-            val = int(self.root.ids.hardware_rnode_spreadingfactor.text)
+            val = int(self.hardware_rnode_screen.ids.hardware_rnode_spreadingfactor.text)
             if val < 7 or val > 12:
                 raise ValueError("Invalid sf")
-            self.root.ids.hardware_rnode_spreadingfactor.error = False
-            self.root.ids.hardware_rnode_spreadingfactor.text = str(val)
+            self.hardware_rnode_screen.ids.hardware_rnode_spreadingfactor.error = False
+            self.hardware_rnode_screen.ids.hardware_rnode_spreadingfactor.text = str(val)
         except:
-            self.root.ids.hardware_rnode_spreadingfactor.error = True
+            self.hardware_rnode_screen.ids.hardware_rnode_spreadingfactor.error = True
             valid = False
         
         try:
-            val = int(self.root.ids.hardware_rnode_codingrate.text)
+            val = int(self.hardware_rnode_screen.ids.hardware_rnode_codingrate.text)
             if val < 5 or val > 8:
                 raise ValueError("Invalid cr")
-            self.root.ids.hardware_rnode_codingrate.error = False
-            self.root.ids.hardware_rnode_codingrate.text = str(val)
+            self.hardware_rnode_screen.ids.hardware_rnode_codingrate.error = False
+            self.hardware_rnode_screen.ids.hardware_rnode_codingrate.text = str(val)
         except:
-            self.root.ids.hardware_rnode_codingrate.error = True
+            self.hardware_rnode_screen.ids.hardware_rnode_codingrate.error = True
             valid = False
         
         try:
-            if self.root.ids.hardware_rnode_beaconinterval.text != "":
-                val = int(self.root.ids.hardware_rnode_beaconinterval.text)
+            if self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text != "":
+                val = int(self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text)
                 if val < 10:
                     raise ValueError("Invalid bi")
-                self.root.ids.hardware_rnode_beaconinterval.text = str(val)
+                self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text = str(val)
 
-            self.root.ids.hardware_rnode_beaconinterval.error = False
+            self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.error = False
         except:
-            self.root.ids.hardware_rnode_beaconinterval.text = ""
+            self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text = ""
             valid = False
         
         return valid
@@ -2285,11 +2292,11 @@ class SidebandApp(MDApp):
 
         try:
             config = msgpack.unpackb(base64.b32decode(mote))
-            self.root.ids.hardware_rnode_frequency.text        = str(config["f"]/1000000.0)
-            self.root.ids.hardware_rnode_bandwidth.text        = str(config["b"]/1000.0)
-            self.root.ids.hardware_rnode_txpower.text          = str(config["t"])
-            self.root.ids.hardware_rnode_spreadingfactor.text  = str(config["s"])
-            self.root.ids.hardware_rnode_codingrate.text       = str(config["c"])
+            self.hardware_rnode_screen.ids.hardware_rnode_frequency.text        = str(config["f"]/1000000.0)
+            self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.text        = str(config["b"]/1000.0)
+            self.hardware_rnode_screen.ids.hardware_rnode_txpower.text          = str(config["t"])
+            self.hardware_rnode_screen.ids.hardware_rnode_spreadingfactor.text  = str(config["s"])
+            self.hardware_rnode_screen.ids.hardware_rnode_codingrate.text       = str(config["c"])
             
             if "n" in config and config["n"] != None:
                 ifn = str(config["n"])
@@ -2300,21 +2307,21 @@ class SidebandApp(MDApp):
             else:
                 ifp = ""
 
-            self.root.ids.connectivity_rnode_ifac_netname.text    = ifn
+            self.connectivity_screen.ids.connectivity_rnode_ifac_netname.text    = ifn
             self.sideband.config["connect_rnode_ifac_netname"]             = ifn
-            self.root.ids.connectivity_rnode_ifac_passphrase.text = ifp
+            self.connectivity_screen.ids.connectivity_rnode_ifac_passphrase.text = ifp
             self.sideband.config["connect_rnode_ifac_passphrase"]          = ifp
 
             if config["i"] != None:
                 ti = str(config["i"])
             else:
                 ti = ""
-            self.root.ids.hardware_rnode_beaconinterval.text  = ti
+            self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text  = ti
             if config["d"] != None:
                 td = str(config["d"])
             else:
                 td = ""
-            self.root.ids.hardware_rnode_beacondata.text      = td
+            self.hardware_rnode_screen.ids.hardware_rnode_beacondata.text      = td
 
             if self.hardware_rnode_validate():
                 self.hardware_rnode_save()
@@ -2398,7 +2405,12 @@ class SidebandApp(MDApp):
 
     def hardware_modem_init(self, sender=None):
         if not self.hardware_modem_ready:
-            self.root.ids.hardware_modem_scrollview.effect_cls = ScrollEffect
+            if not self.root.ids.screen_manager.has_screen("hardware_modem_screen"):
+                self.hardware_modem_screen = Builder.load_string(layout_hardware_modem_screen)
+                self.hardware_modem_screen.app = self
+                self.root.ids.screen_manager.add_widget(self.hardware_modem_screen)
+
+            self.hardware_modem_screen.ids.hardware_modem_scrollview.effect_cls = ScrollEffect
             def save_connectivity(sender=None, event=None):
                 if self.hardware_modem_validate():
                     self.hardware_modem_save()
@@ -2457,135 +2469,133 @@ class SidebandApp(MDApp):
             else:
                 t_bd = ""
             
-            self.root.ids.hardware_modem_baudrate.text = t_b
-            self.root.ids.hardware_modem_databits.text = t_db
-            self.root.ids.hardware_modem_parity.text = t_p
-            self.root.ids.hardware_modem_stopbits.text = t_sb
-            self.root.ids.hardware_modem_beaconinterval.text = t_bi
-            self.root.ids.hardware_modem_beacondata.text = t_bd
-            self.root.ids.hardware_modem_preamble.text = t_pa
-            self.root.ids.hardware_modem_tail.text = t_t
-            self.root.ids.hardware_modem_persistence.text = t_ps
-            self.root.ids.hardware_modem_slottime.text = t_st
-            
-            self.root.ids.hardware_modem_baudrate.bind(focus=focus_save)
-            self.root.ids.hardware_modem_databits.bind(focus=focus_save)
-            self.root.ids.hardware_modem_parity.bind(focus=focus_save)
-            self.root.ids.hardware_modem_stopbits.bind(focus=focus_save)
-            self.root.ids.hardware_modem_beaconinterval.bind(focus=focus_save)
-            self.root.ids.hardware_modem_beacondata.bind(focus=focus_save)
-            self.root.ids.hardware_modem_preamble.bind(focus=focus_save)
-            self.root.ids.hardware_modem_tail.bind(focus=focus_save)
-            self.root.ids.hardware_modem_persistence.bind(focus=focus_save)
-            self.root.ids.hardware_modem_slottime.bind(focus=focus_save)
-            
-            self.root.ids.hardware_modem_baudrate.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_modem_databits.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_modem_parity.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_modem_stopbits.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_modem_beaconinterval.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_modem_beacondata.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_modem_preamble.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_modem_tail.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_modem_persistence.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_modem_slottime.bind(on_text_validate=save_connectivity)
+            self.hardware_modem_screen.ids.hardware_modem_baudrate.text = t_b
+            self.hardware_modem_screen.ids.hardware_modem_databits.text = t_db
+            self.hardware_modem_screen.ids.hardware_modem_parity.text = t_p
+            self.hardware_modem_screen.ids.hardware_modem_stopbits.text = t_sb
+            self.hardware_modem_screen.ids.hardware_modem_beaconinterval.text = t_bi
+            self.hardware_modem_screen.ids.hardware_modem_beacondata.text = t_bd
+            self.hardware_modem_screen.ids.hardware_modem_preamble.text = t_pa
+            self.hardware_modem_screen.ids.hardware_modem_tail.text = t_t
+            self.hardware_modem_screen.ids.hardware_modem_persistence.text = t_ps
+            self.hardware_modem_screen.ids.hardware_modem_slottime.text = t_st
+            self.hardware_modem_screen.ids.hardware_modem_baudrate.bind(focus=focus_save)
+            self.hardware_modem_screen.ids.hardware_modem_databits.bind(focus=focus_save)
+            self.hardware_modem_screen.ids.hardware_modem_parity.bind(focus=focus_save)
+            self.hardware_modem_screen.ids.hardware_modem_stopbits.bind(focus=focus_save)
+            self.hardware_modem_screen.ids.hardware_modem_beaconinterval.bind(focus=focus_save)
+            self.hardware_modem_screen.ids.hardware_modem_beacondata.bind(focus=focus_save)
+            self.hardware_modem_screen.ids.hardware_modem_preamble.bind(focus=focus_save)
+            self.hardware_modem_screen.ids.hardware_modem_tail.bind(focus=focus_save)
+            self.hardware_modem_screen.ids.hardware_modem_persistence.bind(focus=focus_save)
+            self.hardware_modem_screen.ids.hardware_modem_slottime.bind(focus=focus_save)
+            self.hardware_modem_screen.ids.hardware_modem_baudrate.bind(on_text_validate=save_connectivity)
+            self.hardware_modem_screen.ids.hardware_modem_databits.bind(on_text_validate=save_connectivity)
+            self.hardware_modem_screen.ids.hardware_modem_parity.bind(on_text_validate=save_connectivity)
+            self.hardware_modem_screen.ids.hardware_modem_stopbits.bind(on_text_validate=save_connectivity)
+            self.hardware_modem_screen.ids.hardware_modem_beaconinterval.bind(on_text_validate=save_connectivity)
+            self.hardware_modem_screen.ids.hardware_modem_beacondata.bind(on_text_validate=save_connectivity)
+            self.hardware_modem_screen.ids.hardware_modem_preamble.bind(on_text_validate=save_connectivity)
+            self.hardware_modem_screen.ids.hardware_modem_tail.bind(on_text_validate=save_connectivity)
+            self.hardware_modem_screen.ids.hardware_modem_persistence.bind(on_text_validate=save_connectivity)
+            self.hardware_modem_screen.ids.hardware_modem_slottime.bind(on_text_validate=save_connectivity)
     
     def hardware_modem_save(self):
-        self.sideband.config["hw_modem_baudrate"] = int(self.root.ids.hardware_modem_baudrate.text)
-        self.sideband.config["hw_modem_databits"] = int(self.root.ids.hardware_modem_databits.text)
-        self.sideband.config["hw_modem_parity"] = self.root.ids.hardware_modem_parity.text
-        self.sideband.config["hw_modem_stopbits"] = int(self.root.ids.hardware_modem_stopbits.text)
-        self.sideband.config["hw_modem_preamble"] = int(self.root.ids.hardware_modem_preamble.text)
-        self.sideband.config["hw_modem_tail"] = int(self.root.ids.hardware_modem_tail.text)
-        self.sideband.config["hw_modem_persistence"] = int(self.root.ids.hardware_modem_persistence.text)
-        self.sideband.config["hw_modem_slottime"] = int(self.root.ids.hardware_modem_slottime.text)
+        self.sideband.config["hw_modem_baudrate"] = int(self.hardware_modem_screen.ids.hardware_modem_baudrate.text)
+        self.sideband.config["hw_modem_databits"] = int(self.hardware_modem_screen.ids.hardware_modem_databits.text)
+        self.sideband.config["hw_modem_parity"] = self.hardware_modem_screen.ids.hardware_modem_parity.text
+        self.sideband.config["hw_modem_stopbits"] = int(self.hardware_modem_screen.ids.hardware_modem_stopbits.text)
+        self.sideband.config["hw_modem_preamble"] = int(self.hardware_modem_screen.ids.hardware_modem_preamble.text)
+        self.sideband.config["hw_modem_tail"] = int(self.hardware_modem_screen.ids.hardware_modem_tail.text)
+        self.sideband.config["hw_modem_persistence"] = int(self.hardware_modem_screen.ids.hardware_modem_persistence.text)
+        self.sideband.config["hw_modem_slottime"] = int(self.hardware_modem_screen.ids.hardware_modem_slottime.text)
 
-        if self.root.ids.hardware_modem_beaconinterval.text == "":
+        if self.hardware_modem_screen.ids.hardware_modem_beaconinterval.text == "":
             self.sideband.config["hw_modem_beaconinterval"] = None
         else:
-            self.sideband.config["hw_modem_beaconinterval"] = int(self.root.ids.hardware_modem_beaconinterval.text)
+            self.sideband.config["hw_modem_beaconinterval"] = int(self.hardware_modem_screen.ids.hardware_modem_beaconinterval.text)
 
-        if self.root.ids.hardware_modem_beacondata.text == "":
+        if self.hardware_modem_screen.ids.hardware_modem_beacondata.text == "":
             self.sideband.config["hw_modem_beacondata"] = None
         else:
-            self.sideband.config["hw_modem_beacondata"] = self.root.ids.hardware_modem_beacondata.text
+            self.sideband.config["hw_modem_beacondata"] = self.hardware_modem_screen.ids.hardware_modem_beacondata.text
 
         self.sideband.save_configuration()
 
     def hardware_modem_validate(self, sender=None):
         valid = True        
         try:
-            val = int(self.root.ids.hardware_modem_baudrate.text)
+            val = int(self.hardware_modem_screen.ids.hardware_modem_baudrate.text)
             if not val > 0:
                 raise ValueError("Invalid baudrate")
-            self.root.ids.hardware_modem_baudrate.error = False
-            self.root.ids.hardware_modem_baudrate.text = str(val)
+            self.hardware_modem_screen.ids.hardware_modem_baudrate.error = False
+            self.hardware_modem_screen.ids.hardware_modem_baudrate.text = str(val)
         except:
-            self.root.ids.hardware_modem_baudrate.error = True
+            self.hardware_modem_screen.ids.hardware_modem_baudrate.error = True
             valid = False
         
         try:
-            val = int(self.root.ids.hardware_modem_databits.text)
+            val = int(self.hardware_modem_screen.ids.hardware_modem_databits.text)
             if not val > 0:
                 raise ValueError("Invalid databits")
-            self.root.ids.hardware_modem_databits.error = False
-            self.root.ids.hardware_modem_databits.text = str(val)
+            self.hardware_modem_screen.ids.hardware_modem_databits.error = False
+            self.hardware_modem_screen.ids.hardware_modem_databits.text = str(val)
         except:
-            self.root.ids.hardware_modem_databits.error = True
+            self.hardware_modem_screen.ids.hardware_modem_databits.error = True
             valid = False
         
         try:
-            val = int(self.root.ids.hardware_modem_stopbits.text)
+            val = int(self.hardware_modem_screen.ids.hardware_modem_stopbits.text)
             if not val > 0:
                 raise ValueError("Invalid stopbits")
-            self.root.ids.hardware_modem_stopbits.error = False
-            self.root.ids.hardware_modem_stopbits.text = str(val)
+            self.hardware_modem_screen.ids.hardware_modem_stopbits.error = False
+            self.hardware_modem_screen.ids.hardware_modem_stopbits.text = str(val)
         except:
-            self.root.ids.hardware_modem_stopbits.error = True
+            self.hardware_modem_screen.ids.hardware_modem_stopbits.error = True
             valid = False
         
         try:
-            val = int(self.root.ids.hardware_modem_preamble.text)
+            val = int(self.hardware_modem_screen.ids.hardware_modem_preamble.text)
             if not (val >= 0 and val <= 1000):
                 raise ValueError("Invalid preamble")
-            self.root.ids.hardware_modem_preamble.error = False
-            self.root.ids.hardware_modem_preamble.text = str(val)
+            self.hardware_modem_screen.ids.hardware_modem_preamble.error = False
+            self.hardware_modem_screen.ids.hardware_modem_preamble.text = str(val)
         except:
-            self.root.ids.hardware_modem_preamble.error = True
+            self.hardware_modem_screen.ids.hardware_modem_preamble.error = True
             valid = False
         
         try:
-            val = int(self.root.ids.hardware_modem_tail.text)
+            val = int(self.hardware_modem_screen.ids.hardware_modem_tail.text)
             if not (val > 0 and val <= 500):
                 raise ValueError("Invalid tail")
-            self.root.ids.hardware_modem_tail.error = False
-            self.root.ids.hardware_modem_tail.text = str(val)
+            self.hardware_modem_screen.ids.hardware_modem_tail.error = False
+            self.hardware_modem_screen.ids.hardware_modem_tail.text = str(val)
         except:
-            self.root.ids.hardware_modem_tail.error = True
+            self.hardware_modem_screen.ids.hardware_modem_tail.error = True
             valid = False
         
         try:
-            val = int(self.root.ids.hardware_modem_slottime.text)
+            val = int(self.hardware_modem_screen.ids.hardware_modem_slottime.text)
             if not (val > 0 and val <= 500):
                 raise ValueError("Invalid slottime")
-            self.root.ids.hardware_modem_slottime.error = False
-            self.root.ids.hardware_modem_slottime.text = str(val)
+            self.hardware_modem_screen.ids.hardware_modem_slottime.error = False
+            self.hardware_modem_screen.ids.hardware_modem_slottime.text = str(val)
         except:
-            self.root.ids.hardware_modem_slottime.error = True
+            self.hardware_modem_screen.ids.hardware_modem_slottime.error = True
             valid = False
         
         try:
-            val = int(self.root.ids.hardware_modem_persistence.text)
+            val = int(self.hardware_modem_screen.ids.hardware_modem_persistence.text)
             if not (val > 0 and val <= 255):
                 raise ValueError("Invalid persistence")
-            self.root.ids.hardware_modem_persistence.error = False
-            self.root.ids.hardware_modem_persistence.text = str(val)
+            self.hardware_modem_screen.ids.hardware_modem_persistence.error = False
+            self.hardware_modem_screen.ids.hardware_modem_persistence.text = str(val)
         except:
-            self.root.ids.hardware_modem_persistence.error = True
+            self.hardware_modem_screen.ids.hardware_modem_persistence.error = True
             valid = False
         
         try:
-            val = self.root.ids.hardware_modem_parity.text
+            val = self.hardware_modem_screen.ids.hardware_modem_parity.text
             nval = val.lower()
             if nval in ["e", "ev", "eve", "even"]:
                 val = "even"
@@ -2595,22 +2605,22 @@ class SidebandApp(MDApp):
                 val = "none"
             if not val in ["even", "odd", "none"]:
                 raise ValueError("Invalid parity")
-            self.root.ids.hardware_modem_parity.error = False
-            self.root.ids.hardware_modem_parity.text = str(val)
+            self.hardware_modem_screen.ids.hardware_modem_parity.error = False
+            self.hardware_modem_screen.ids.hardware_modem_parity.text = str(val)
         except:
-            self.root.ids.hardware_modem_parity.error = True
+            self.hardware_modem_screen.ids.hardware_modem_parity.error = True
             valid = False
 
         try:
-            if self.root.ids.hardware_modem_beaconinterval.text != "":
-                val = int(self.root.ids.hardware_modem_beaconinterval.text)
+            if self.hardware_modem_screen.ids.hardware_modem_beaconinterval.text != "":
+                val = int(self.hardware_modem_screen.ids.hardware_modem_beaconinterval.text)
                 if val < 10:
                     raise ValueError("Invalid bi")
-                self.root.ids.hardware_modem_beaconinterval.text = str(val)
+                self.hardware_modem_screen.ids.hardware_modem_beaconinterval.text = str(val)
 
-            self.root.ids.hardware_modem_beaconinterval.error = False
+            self.hardware_modem_screen.ids.hardware_modem_beaconinterval.error = False
         except:
-            self.root.ids.hardware_modem_beaconinterval.text = ""
+            self.hardware_modem_screen.ids.hardware_modem_beaconinterval.text = ""
             valid = False
 
         return valid
@@ -2625,7 +2635,12 @@ class SidebandApp(MDApp):
 
     def hardware_serial_init(self, sender=None):
         if not self.hardware_serial_ready:
-            self.root.ids.hardware_serial_scrollview.effect_cls = ScrollEffect
+            if not self.root.ids.screen_manager.has_screen("hardware_serial_screen"):
+                self.hardware_serial_screen = Builder.load_string(layout_hardware_serial_screen)
+                self.hardware_serial_screen.app = self
+                self.root.ids.screen_manager.add_widget(self.hardware_serial_screen)
+
+            self.hardware_serial_screen.ids.hardware_serial_scrollview.effect_cls = ScrollEffect
             def save_connectivity(sender=None, event=None):
                 if self.hardware_serial_validate():
                     self.hardware_serial_save()
@@ -2655,55 +2670,53 @@ class SidebandApp(MDApp):
             else:
                 t_sb = ""
             
-            self.root.ids.hardware_serial_baudrate.text = t_b
-            self.root.ids.hardware_serial_databits.text = t_db
-            self.root.ids.hardware_serial_parity.text = t_p
-            self.root.ids.hardware_serial_stopbits.text = t_sb
-            
-            self.root.ids.hardware_serial_baudrate.bind(focus=focus_save)
-            self.root.ids.hardware_serial_databits.bind(focus=focus_save)
-            self.root.ids.hardware_serial_parity.bind(focus=focus_save)
-            self.root.ids.hardware_serial_stopbits.bind(focus=focus_save)
-            
-            self.root.ids.hardware_serial_baudrate.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_serial_databits.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_serial_parity.bind(on_text_validate=save_connectivity)
-            self.root.ids.hardware_serial_stopbits.bind(on_text_validate=save_connectivity)
+            self.hardware_serial_screen.ids.hardware_serial_baudrate.text = t_b
+            self.hardware_serial_screen.ids.hardware_serial_databits.text = t_db
+            self.hardware_serial_screen.ids.hardware_serial_parity.text = t_p
+            self.hardware_serial_screen.ids.hardware_serial_stopbits.text = t_sb
+            self.hardware_serial_screen.ids.hardware_serial_baudrate.bind(focus=focus_save)
+            self.hardware_serial_screen.ids.hardware_serial_databits.bind(focus=focus_save)
+            self.hardware_serial_screen.ids.hardware_serial_parity.bind(focus=focus_save)
+            self.hardware_serial_screen.ids.hardware_serial_stopbits.bind(focus=focus_save)
+            self.hardware_serial_screen.ids.hardware_serial_baudrate.bind(on_text_validate=save_connectivity)
+            self.hardware_serial_screen.ids.hardware_serial_databits.bind(on_text_validate=save_connectivity)
+            self.hardware_serial_screen.ids.hardware_serial_parity.bind(on_text_validate=save_connectivity)
+            self.hardware_serial_screen.ids.hardware_serial_stopbits.bind(on_text_validate=save_connectivity)
 
     def hardware_serial_validate(self, sender=None):
         valid = True        
         try:
-            val = int(self.root.ids.hardware_serial_baudrate.text)
+            val = int(self.hardware_serial_screen.ids.hardware_serial_baudrate.text)
             if not val > 0:
                 raise ValueError("Invalid baudrate")
-            self.root.ids.hardware_serial_baudrate.error = False
-            self.root.ids.hardware_serial_baudrate.text = str(val)
+            self.hardware_serial_screen.ids.hardware_serial_baudrate.error = False
+            self.hardware_serial_screen.ids.hardware_serial_baudrate.text = str(val)
         except:
-            self.root.ids.hardware_serial_baudrate.error = True
+            self.hardware_serial_screen.ids.hardware_serial_baudrate.error = True
             valid = False
         
         try:
-            val = int(self.root.ids.hardware_serial_databits.text)
+            val = int(self.hardware_serial_screen.ids.hardware_serial_databits.text)
             if not val > 0:
                 raise ValueError("Invalid databits")
-            self.root.ids.hardware_serial_databits.error = False
-            self.root.ids.hardware_serial_databits.text = str(val)
+            self.hardware_serial_screen.ids.hardware_serial_databits.error = False
+            self.hardware_serial_screen.ids.hardware_serial_databits.text = str(val)
         except:
-            self.root.ids.hardware_serial_databits.error = True
+            self.hardware_serial_screen.ids.hardware_serial_databits.error = True
             valid = False
         
         try:
-            val = int(self.root.ids.hardware_serial_stopbits.text)
+            val = int(self.hardware_serial_screen.ids.hardware_serial_stopbits.text)
             if not val > 0:
                 raise ValueError("Invalid stopbits")
-            self.root.ids.hardware_serial_stopbits.error = False
-            self.root.ids.hardware_serial_stopbits.text = str(val)
+            self.hardware_serial_screen.ids.hardware_serial_stopbits.error = False
+            self.hardware_serial_screen.ids.hardware_serial_stopbits.text = str(val)
         except:
-            self.root.ids.hardware_serial_stopbits.error = True
+            self.hardware_serial_screen.ids.hardware_serial_stopbits.error = True
             valid = False
         
         try:
-            val = self.root.ids.hardware_serial_parity.text
+            val = self.hardware_serial_screen.ids.hardware_serial_parity.text
             nval = val.lower()
             if nval in ["e", "ev", "eve", "even"]:
                 val = "even"
@@ -2713,19 +2726,19 @@ class SidebandApp(MDApp):
                 val = "none"
             if not val in ["even", "odd", "none"]:
                 raise ValueError("Invalid parity")
-            self.root.ids.hardware_serial_parity.error = False
-            self.root.ids.hardware_serial_parity.text = str(val)
+            self.hardware_serial_screen.ids.hardware_serial_parity.error = False
+            self.hardware_serial_screen.ids.hardware_serial_parity.text = str(val)
         except:
-            self.root.ids.hardware_serial_parity.error = True
+            self.hardware_serial_screen.ids.hardware_serial_parity.error = True
             valid = False
 
         return valid
 
     def hardware_serial_save(self):
-        self.sideband.config["hw_serial_baudrate"] = int(self.root.ids.hardware_serial_baudrate.text)
-        self.sideband.config["hw_serial_databits"] = int(self.root.ids.hardware_serial_databits.text)
-        self.sideband.config["hw_serial_parity"] = self.root.ids.hardware_serial_parity.text
-        self.sideband.config["hw_serial_stopbits"] = int(self.root.ids.hardware_serial_stopbits.text)
+        self.sideband.config["hw_serial_baudrate"] = int(self.hardware_serial_screen.ids.hardware_serial_baudrate.text)
+        self.sideband.config["hw_serial_databits"] = int(self.hardware_serial_screen.ids.hardware_serial_databits.text)
+        self.sideband.config["hw_serial_parity"] = self.hardware_serial_screen.ids.hardware_serial_parity.text
+        self.sideband.config["hw_serial_stopbits"] = int(self.hardware_serial_screen.ids.hardware_serial_stopbits.text)
 
         self.sideband.save_configuration()
 
