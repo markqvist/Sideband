@@ -3096,7 +3096,6 @@ class SidebandApp(MDApp):
             self.location_error_dialog.dismiss()
 
     def map_show(self, location):
-        RNS.log(str(location), RNS.LOG_WARNING)
         if hasattr(self.root.ids.map_layout, "map") and self.root.ids.map_layout.map:
             self.root.ids.map_layout.map.lat = location["latitude"]
             self.root.ids.map_layout.map.lon = location["longtitude"]
@@ -3175,7 +3174,6 @@ class SidebandApp(MDApp):
                 retain_own = True
                 
                 if not own_address in self.map_markers:
-                    RNS.log("Adding own marker", RNS.LOG_WARNING)
                     marker = self.map_create_marker(own_address, own_telemetry, own_appearance)
                     if marker != None:
                         self.map_markers[own_address] = marker

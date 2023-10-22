@@ -751,7 +751,6 @@ class SidebandCore():
         for pt in pts:
             try:
                 t = Telemeter.from_packed(pt[1]).read_all()
-                RNS.log(str(t), RNS.LOG_WARNING)
                 if "location" in t:
                     l = t["location"]
                     if "latitude" in l and "longtitude" in l:
@@ -1145,7 +1144,6 @@ class SidebandCore():
                 if "snr" in physical_link: remote_telemeter.sensors["physical_link"].snr = physical_link["snr"]
                 if "q" in physical_link: remote_telemeter.sensors["physical_link"].q = physical_link["q"]
                 remote_telemeter.sensors["physical_link"].update_data()
-                RNS.log("PACKED: "+str(remote_telemeter.read_all()), RNS.LOG_WARNING)
             
             query = "INSERT INTO telemetry (dest_context, ts, data) values (?, ?, ?)"
             data = (context_dest, telemetry_timestamp, telemetry)
