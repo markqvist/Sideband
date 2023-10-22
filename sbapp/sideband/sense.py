@@ -328,7 +328,7 @@ class Pressure(Sensor):
   def update_data(self):
     try:
       if RNS.vendor.platformutils.is_android():
-        self.data = {"mbar": self.android_sensor.pressure}
+        self.data = {"mbar": round(self.android_sensor.pressure, 2)}
     
     except:
       self.data = None
