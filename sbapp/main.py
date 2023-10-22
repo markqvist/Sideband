@@ -1,4 +1,4 @@
-__debug_build__ = True
+__debug_build__ = False
 __disable_shaders__ = False
 __version__ = "0.6.3"
 __variant__ = "beta"
@@ -176,9 +176,11 @@ class SidebandApp(MDApp):
 
         self.set_bars_colors()
 
-        self.sideband.setstate("app.loaded", True)
-        self.sideband.setstate("app.running", True)
-        self.sideband.setstate("app.foreground", True)
+        def sjob(dt):
+            self.sideband.setstate("app.loaded", True)
+            self.sideband.setstate("app.running", True)
+            self.sideband.setstate("app.foreground", True)
+        Clock.schedule_once(sjob, 6.5)
         
     def start_service(self):
         if RNS.vendor.platformutils.is_android():
@@ -697,7 +699,7 @@ class SidebandApp(MDApp):
         self.root.ids.screen_manager.app = self
         self.root.ids.app_version_info.text = "Sideband v"+__version__+" "+__variant__
         self.root.ids.nav_scrollview.effect_cls = ScrollEffect
-        Clock.schedule_once(self.start_core, 3.5)
+        Clock.schedule_once(self.start_core, 0.25)
     
     # Part of the focus hack fix
     def android_focus_fix(self, sender, val):
