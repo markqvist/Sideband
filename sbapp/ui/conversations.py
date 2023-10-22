@@ -15,6 +15,8 @@ from kivy.effects.scroll import ScrollEffect
 from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.dialog import MDDialog
 
+from kivy.lang.builder import Builder
+
 class NewConv(BoxLayout):
     pass
 
@@ -33,7 +35,13 @@ class Conversations():
         self.context_dests = []
         self.added_item_dests = []
         self.list = None
+        self.ids = None
 
+        if not self.app.root.ids.screen_manager.has_screen("conversations_screen"):
+            self.screen = Builder.load_string(conv_screen_kv)
+            self.ids = self.screen.ids
+            self.app.root.ids.screen_manager.add_widget(self.screen)
+        
         self.conversation_dropdown = None
         self.delete_dialog = None
         self.clear_dialog = None
@@ -335,3 +343,139 @@ class Conversations():
 
     def get_widget(self):
         return self.list
+
+conv_screen_kv = """
+MDScreen:
+    name: "conversations_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Conversations"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [
+                ['menu', lambda x: nav_drawer.set_state("open")],
+                ]
+            right_action_items:
+                [
+                ['access-point', lambda x: root.ids.screen_manager.app.announce_now_action(self)],
+                ['webhook', lambda x: root.ids.screen_manager.app.connectivity_status(self)],
+                ['qrcode', lambda x: root.ids.screen_manager.app.ingest_lxm_action(self)],
+                ['email-sync', lambda x: root.ids.screen_manager.app.lxmf_sync_action(self)],
+                ['account-plus', lambda x: root.ids.screen_manager.app.new_conversation_action(self)],
+                ]
+
+        ScrollView:
+            id: conversations_scrollview
+"""
+
+Builder.load_string("""
+<NewConv>
+    orientation: "vertical"
+    spacing: "24dp"
+    size_hint_y: None
+    height: dp(250)
+
+    MDTextField:
+        id: n_address_field
+        max_text_length: 32
+        hint_text: "Address"
+        helper_text: "Error, check your input"
+        helper_text_mode: "on_error"
+        text: ""
+        font_size: dp(24)
+
+    MDTextField:
+        id: n_name_field
+        hint_text: "Name"
+        text: ""
+        font_size: dp(24)
+
+    MDBoxLayout:
+        orientation: "horizontal"
+        size_hint_y: None
+        padding: [0,0,dp(8),dp(24)]
+        height: dp(48)
+        MDLabel:
+            id: "trusted_switch_label"
+            text: "Trusted"
+            font_style: "H6"
+
+        MDSwitch:
+            id: n_trusted
+            pos_hint: {"center_y": 0.3}
+            active: False
+
+<ConvSettings>
+    orientation: "vertical"
+    spacing: "16dp"
+    size_hint_y: None
+    padding: [0, 0, 0, dp(8)]
+    height: self.minimum_height
+
+    MDTextField:
+        id: dest_field
+        hint_text: "Address"
+        text: root.context_dest
+        # disabled: True
+        font_size: dp(18)
+
+    MDTextField:
+        id: name_field
+        hint_text: "Name"
+        text: root.disp_name
+        font_size: dp(18)
+
+    MDBoxLayout:
+        orientation: "horizontal"
+        # spacing: "24dp"
+        size_hint_y: None
+        padding: [0,0,dp(8),0]
+        height: dp(48)
+        MDLabel:
+            id: trusted_switch_label
+            text: "Trusted"
+            font_style: "H6"
+
+        MDSwitch:
+            id: trusted_switch
+            pos_hint: {"center_y": 0.43}
+            active: root.trusted
+
+    MDBoxLayout:
+        orientation: "horizontal"
+        # spacing: "24dp"
+        size_hint_y: None
+        padding: [0,0,dp(8),0]
+        height: dp(48)
+        MDLabel:
+            id: telemetry_switch_label
+            text: "Include Telemetry"
+            font_style: "H6"
+
+        MDSwitch:
+            id: telemetry_switch
+            pos_hint: {"center_y": 0.43}
+            active: root.telemetry
+
+<MsgSync>
+    orientation: "vertical"
+    spacing: "24dp"
+    size_hint_y: None
+    padding: [0, 0, 0, dp(16)]
+    height: self.minimum_height+dp(24)
+
+    MDProgressBar:
+        id: sync_progress
+        value: 0
+
+    MDLabel:
+        id: sync_status
+        hint_text: "Name"
+        text: "Initiating sync..."
+
+
+""")

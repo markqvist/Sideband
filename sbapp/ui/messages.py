@@ -30,6 +30,8 @@ else:
     from .helpers import ts_format, file_ts_format, mdc
     from .helpers import color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
 
+from kivy.lang.builder import Builder
+
 class ListLXMessageCard(MDCard):
 # class ListLXMessageCard(MDCard, FakeRectangularElevationBehavior):
     text = StringProperty()
@@ -575,3 +577,49 @@ class Messages():
     def close_send_error_dialog(self, sender=None):
         if self.send_error_dialog:
             self.send_error_dialog.dismiss()
+
+Builder.load_string("""
+<ListLXMessageCard>:
+    style: "outlined"
+    elevation: 2
+    padding: dp(8)
+    radius: [dp(4), dp(4), dp(4), dp(4)]
+    size_hint: 1.0, None
+    height: content_text.height + heading_text.height + dp(32)
+    pos_hint: {"center_x": .5, "center_y": .5}
+
+    MDRelativeLayout:
+        size_hint: 1.0, None
+        theme_text_color: "ContrastParentBackground"
+
+        MDIconButton:
+            id: msg_submenu
+            icon: "dots-vertical"
+            # theme_text_color: 'Custom'
+            # text_color: rgba(255,255,255,216)
+            pos:
+                root.width - (self.width + root.padding[0] + dp(4)), root.height - (self.height + root.padding[0] + dp(4))
+
+        MDLabel:
+            id: heading_text
+            markup: True
+            text: root.heading
+            adaptive_size: True
+            # theme_text_color: 'Custom'
+            # text_color: rgba(255,255,255,100)
+            pos: 0, root.height - (self.height + root.padding[0] + dp(8))
+
+        MDLabel:
+            id: content_text
+            text: root.text
+            # adaptive_size: True
+            size_hint_y: None
+            text_size: self.width, None
+            # theme_text_color: 'Custom'
+            # text_color: rgba(255,255,255,216)
+            height: self.texture_size[1]
+
+<CustomOneLineIconListItem>
+    IconLeftWidget:
+        icon: root.icon
+""")
