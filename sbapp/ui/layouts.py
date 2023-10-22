@@ -1109,21 +1109,6 @@ MDNavigationLayout:
                             height: dp(48)
                             
                             MDLabel:
-                                text: "Orientation"
-                                font_style: "H6"
-
-                            MDSwitch:
-                                id: telemetry_s_orientation
-                                pos_hint: {"center_y": 0.3}
-                                active: False
-
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            size_hint_y: None
-                            padding: [0,0,dp(24),dp(0)]
-                            height: dp(48)
-                            
-                            MDLabel:
                                 text: "Battery State"
                                 font_style: "H6"
 
@@ -1139,7 +1124,7 @@ MDNavigationLayout:
                             height: dp(48)
                             
                             MDLabel:
-                                text: "Barometer"
+                                text: "Pressure"
                                 font_style: "H6"
 
                             MDSwitch:
@@ -1184,7 +1169,7 @@ MDNavigationLayout:
                             height: dp(48)
                             
                             MDLabel:
-                                text: "Compass"
+                                text: "Magnetic Field"
                                 font_style: "H6"
 
                             MDSwitch:
@@ -1229,7 +1214,7 @@ MDNavigationLayout:
                             height: dp(48)
                             
                             MDLabel:
-                                text: "Gyroscope"
+                                text: "Angular Velocity"
                                 font_style: "H6"
 
                             MDSwitch:
@@ -1244,7 +1229,7 @@ MDNavigationLayout:
                             height: dp(48)
                             
                             MDLabel:
-                                text: "Accelerometer"
+                                text: "Acceleration"
                                 font_style: "H6"
 
                             MDSwitch:

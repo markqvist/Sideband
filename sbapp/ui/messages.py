@@ -173,7 +173,6 @@ class Messages():
                 extra_telemetry = {}
 
                 phy_stats_str = ""
-                RNS.log(str(m["lxm"].fields), RNS.LOG_WARNING)
                 if "extras" in m and m["extras"] != None:
                     phy_stats = m["extras"]
                     if "q" in phy_stats:

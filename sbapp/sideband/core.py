@@ -467,26 +467,24 @@ class SidebandCore():
 
         if not "telemetry_s_location" in self.config:
             self.config["telemetry_s_location"] = False
-        if not "telemetry_s_orientation" in self.config:
-            self.config["telemetry_s_orientation"] = False
         if not "telemetry_s_battery" in self.config:
             self.config["telemetry_s_battery"] = False
-        if not "telemetry_s_barometer" in self.config:
-            self.config["telemetry_s_barometer"] = False
+        if not "telemetry_s_pressure" in self.config:
+            self.config["telemetry_s_pressure"] = False
         if not "telemetry_s_temperature" in self.config:
             self.config["telemetry_s_temperature"] = False
         if not "telemetry_s_humidity" in self.config:
             self.config["telemetry_s_humidity"] = False
-        if not "telemetry_s_compass" in self.config:
-            self.config["telemetry_s_compass"] = False
-        if not "telemetry_s_light" in self.config:
-            self.config["telemetry_s_light"] = False
+        if not "telemetry_s_magnetic_field" in self.config:
+            self.config["telemetry_s_magnetic_field"] = False
+        if not "telemetry_s_ambient_light" in self.config:
+            self.config["telemetry_s_ambient_light"] = False
         if not "telemetry_s_gravity" in self.config:
             self.config["telemetry_s_gravity"] = False
-        if not "telemetry_s_gyroscope" in self.config:
-            self.config["telemetry_s_gyroscope"] = False
-        if not "telemetry_s_accelerometer" in self.config:
-            self.config["telemetry_s_accelerometer"] = False
+        if not "telemetry_s_angular_velocity" in self.config:
+            self.config["telemetry_s_angular_velocity"] = False
+        if not "telemetry_s_acceleration" in self.config:
+            self.config["telemetry_s_acceleration"] = False
         if not "telemetry_s_proximity" in self.config:
             self.config["telemetry_s_proximity"] = False
 
@@ -606,9 +604,13 @@ class SidebandCore():
         else:
             return False
 
-    def is_trusted(self, context_dest):
+    def is_trusted(self, context_dest, conv_data = None):
         try:
-            existing_conv = self._db_conversation(context_dest)
+            if conv_data == None:
+                existing_conv = self._db_conversation(context_dest)
+            else:
+                existing_conv = conv_data
+
             if existing_conv != None:
                 if existing_conv["trust"] == 1:
                     return True
@@ -629,7 +631,10 @@ class SidebandCore():
                 if cd != None and "telemetry" in cd and cd["telemetry"] == True:
                     return True
                 else:
-                    return False
+                    if self.is_trusted(context_dest, conv_data=existing_conv) and self.config["telemetry_send_to_trusted"]:
+                        return True
+                    else:
+                        return False
             else:
                 return False
 
@@ -1633,36 +1638,39 @@ class SidebandCore():
         self.telemeter.stop_all()
 
     def update_telemetry(self):
-        telemetry = self.get_telemetry()
-        packed_telemetry = self.get_packed_telemetry()
-        telemetry_changed = False
+        try:
+            telemetry = self.get_telemetry()
+            packed_telemetry = self.get_packed_telemetry()
+            telemetry_changed = False
 
-        if telemetry != None and packed_telemetry != None:
-            if self.latest_telemetry == None or len(telemetry) != len(self.latest_telemetry):
-                telemetry_changed = True
+            if telemetry != None and packed_telemetry != None:
+                if self.latest_telemetry == None or len(telemetry) != len(self.latest_telemetry):
+                    telemetry_changed = True
 
-            for sn in telemetry:
-                if telemetry_changed:
-                    break
+                for sn in telemetry:
+                    if telemetry_changed:
+                        break
 
-                if sn != "time":
-                    if sn in self.latest_telemetry:
-                        if telemetry[sn] != self.latest_telemetry[sn]:
+                    if sn != "time":
+                        if sn in self.latest_telemetry:
+                            if telemetry[sn] != self.latest_telemetry[sn]:
+                                telemetry_changed = True
+                        else:
                             telemetry_changed = True
-                    else:
-                        telemetry_changed = True
 
-            if telemetry_changed:
-                self.telemetry_changes += 1
-                self.latest_telemetry = telemetry
-                self.latest_packed_telemetry = packed_telemetry
+                if telemetry_changed:
+                    self.telemetry_changes += 1
+                    self.latest_telemetry = telemetry
+                    self.latest_packed_telemetry = packed_telemetry
+        except Exception as e:
+            RNS.log("Error while updating telemetry: "+str(e), RNS.LOG_ERROR)
 
     def update_telemeter_config(self):
         if self.config["telemetry_enabled"] == True:
             if self.telemeter == None:
                 self.telemeter = Telemeter()
 
-            sensors = ["location", "orientation", "battery", "barometer", "temperature", "humidity", "compass", "light", "gravity", "gyroscope", "accelerometer", "proximity"]
+            sensors = ["location", "battery", "pressure", "temperature", "humidity", "magnetic_field", "ambient_light", "gravity", "angular_velocity", "acceleration", "proximity"]
             for sensor in sensors:
                 if self.config["telemetry_s_"+sensor]:
                     self.telemeter.enable(sensor)
@@ -2357,7 +2365,7 @@ class SidebandCore():
 
             if send_telemetry:
                 # TODO: REMOVE
-                RNS.log("Sending telemetry", RNS.LOG_WARNING)
+                RNS.log("Sending telemetry: "+str(self.latest_packed_telemetry), RNS.LOG_WARNING)
                 fields[LXMF.FIELD_TELEMETRY] = self.latest_packed_telemetry
 
         return fields

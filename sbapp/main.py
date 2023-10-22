@@ -1,4 +1,4 @@
-__debug_build__ = False
+__debug_build__ = True
 __disable_shaders__ = False
 __version__ = "0.6.3"
 __variant__ = "beta"
@@ -2868,13 +2868,10 @@ class SidebandApp(MDApp):
             self.root.ids.telemetry_s_location.active = self.sideband.config["telemetry_s_location"]
             self.root.ids.telemetry_s_location.bind(active=self.telemetry_location_toggle)
 
-            self.root.ids.telemetry_s_orientation.active = self.sideband.config["telemetry_s_orientation"]
-            self.root.ids.telemetry_s_orientation.bind(active=self.telemetry_save)
-
             self.root.ids.telemetry_s_battery.active = self.sideband.config["telemetry_s_battery"]
             self.root.ids.telemetry_s_battery.bind(active=self.telemetry_save)
             
-            self.root.ids.telemetry_s_barometer.active = self.sideband.config["telemetry_s_barometer"]
+            self.root.ids.telemetry_s_barometer.active = self.sideband.config["telemetry_s_pressure"]
             self.root.ids.telemetry_s_barometer.bind(active=self.telemetry_save)
             
             self.root.ids.telemetry_s_temperature.active = self.sideband.config["telemetry_s_temperature"]
@@ -2883,19 +2880,19 @@ class SidebandApp(MDApp):
             self.root.ids.telemetry_s_humidity.active = self.sideband.config["telemetry_s_humidity"]
             self.root.ids.telemetry_s_humidity.bind(active=self.telemetry_save)
             
-            self.root.ids.telemetry_s_compass.active = self.sideband.config["telemetry_s_compass"]
+            self.root.ids.telemetry_s_compass.active = self.sideband.config["telemetry_s_magnetic_field"]
             self.root.ids.telemetry_s_compass.bind(active=self.telemetry_save)
             
-            self.root.ids.telemetry_s_light.active = self.sideband.config["telemetry_s_light"]
+            self.root.ids.telemetry_s_light.active = self.sideband.config["telemetry_s_ambient_light"]
             self.root.ids.telemetry_s_light.bind(active=self.telemetry_save)
             
             self.root.ids.telemetry_s_gravity.active = self.sideband.config["telemetry_s_gravity"]
             self.root.ids.telemetry_s_gravity.bind(active=self.telemetry_save)
             
-            self.root.ids.telemetry_s_gyroscope.active = self.sideband.config["telemetry_s_gyroscope"]
+            self.root.ids.telemetry_s_gyroscope.active = self.sideband.config["telemetry_s_angular_velocity"]
             self.root.ids.telemetry_s_gyroscope.bind(active=self.telemetry_save)
             
-            self.root.ids.telemetry_s_accelerometer.active = self.sideband.config["telemetry_s_accelerometer"]
+            self.root.ids.telemetry_s_accelerometer.active = self.sideband.config["telemetry_s_acceleration"]
             self.root.ids.telemetry_s_accelerometer.bind(active=self.telemetry_save)
             
             self.root.ids.telemetry_s_proximity.active = self.sideband.config["telemetry_s_proximity"]
@@ -2947,16 +2944,15 @@ class SidebandApp(MDApp):
         self.sideband.config["telemetry_send_appearance"] = self.root.ids.telemetry_send_appearance.active
         
         self.sideband.config["telemetry_s_location"] = self.root.ids.telemetry_s_location.active
-        self.sideband.config["telemetry_s_orientation"] = self.root.ids.telemetry_s_orientation.active
         self.sideband.config["telemetry_s_battery"] = self.root.ids.telemetry_s_battery.active
-        self.sideband.config["telemetry_s_barometer"] = self.root.ids.telemetry_s_barometer.active
+        self.sideband.config["telemetry_s_pressure"] = self.root.ids.telemetry_s_barometer.active
         self.sideband.config["telemetry_s_temperature"] = self.root.ids.telemetry_s_temperature.active
         self.sideband.config["telemetry_s_humidity"] = self.root.ids.telemetry_s_humidity.active
-        self.sideband.config["telemetry_s_compass"] = self.root.ids.telemetry_s_compass.active
-        self.sideband.config["telemetry_s_light"] = self.root.ids.telemetry_s_light.active
+        self.sideband.config["telemetry_s_magnetic_field"] = self.root.ids.telemetry_s_compass.active
+        self.sideband.config["telemetry_s_ambient_light"] = self.root.ids.telemetry_s_light.active
         self.sideband.config["telemetry_s_gravity"] = self.root.ids.telemetry_s_gravity.active
-        self.sideband.config["telemetry_s_gyroscope"] = self.root.ids.telemetry_s_gyroscope.active
-        self.sideband.config["telemetry_s_accelerometer"] = self.root.ids.telemetry_s_accelerometer.active
+        self.sideband.config["telemetry_s_angular_velocity"] = self.root.ids.telemetry_s_gyroscope.active
+        self.sideband.config["telemetry_s_acceleration"] = self.root.ids.telemetry_s_accelerometer.active
         self.sideband.config["telemetry_s_proximity"] = self.root.ids.telemetry_s_proximity.active
         
         self.sideband.save_configuration()
@@ -2981,6 +2977,7 @@ class SidebandApp(MDApp):
 
     def telemetry_copy(self, sender=None):
         Clipboard.copy(str(self.sideband.get_telemetry()))
+        self.sideband.update_telemetry()
 
     def telemetry_send_update(self, sender=None):
         # TODO: Implement

@@ -17,7 +17,7 @@ class Telemeter():
           name = None
           s = t.sids[sid]()
           for n in t.available:
-            if t.available[n] == type(s):
+            if t.sids[t.available[n]] == type(s):
               name = n
 
           if name != None:
@@ -35,16 +35,32 @@ class Telemeter():
     self.sids = {
       Sensor.SID_TIME: Time,
       Sensor.SID_BATTERY: Battery,
-      Sensor.SID_BAROMETER: Barometer,
+      Sensor.SID_PRESSURE: Pressure,
       Sensor.SID_LOCATION: Location,
-      Sensor.SID_PHYSICAL_LINK: PhysicalLink
+      Sensor.SID_PHYSICAL_LINK: PhysicalLink,
+      Sensor.SID_TEMPERATURE: Temperature,
+      Sensor.SID_HUMIDITY: Humidity,
+      Sensor.SID_MAGNETIC_FIELD: MagneticField,
+      Sensor.SID_AMBIENT_LIGHT: AmbientLight,
+      Sensor.SID_GRAVITY: Gravity,
+      Sensor.SID_ANGULAR_VELOCITY: AngularVelocity,
+      Sensor.SID_ACCELERATION: Acceleration,
+      Sensor.SID_PROXIMITY: Proximity,
     }
     self.available = {
-      "time": Time,
-      "battery": Battery,
-      "barometer": Barometer,
-      "location": Location,
-      "physical_link": PhysicalLink,
+      "time": Sensor.SID_TIME,
+      "battery": Sensor.SID_BATTERY,
+      "pressure": Sensor.SID_PRESSURE,
+      "location": Sensor.SID_LOCATION,
+      "physical_link": Sensor.SID_PHYSICAL_LINK,
+      "temperature": Sensor.SID_TEMPERATURE,
+      "humidity": Sensor.SID_HUMIDITY,
+      "magnetic_field": Sensor.SID_MAGNETIC_FIELD,
+      "ambient_light": Sensor.SID_AMBIENT_LIGHT,
+      "gravity": Sensor.SID_GRAVITY,
+      "angular_velocity": Sensor.SID_ANGULAR_VELOCITY,
+      "acceleration": Sensor.SID_ACCELERATION,
+      "proximity": Sensor.SID_PROXIMITY,
     }
     self.from_packed = from_packed
     self.sensors = {}
@@ -61,7 +77,7 @@ class Telemeter():
     if not self.from_packed:
       if sensor in self.available:
         if not sensor in self.sensors:
-          self.sensors[sensor] = self.available[sensor]()
+          self.sensors[sensor] = self.sids[self.available[sensor]]()
         if not self.sensors[sensor].active:
           self.sensors[sensor].start()
   
@@ -108,12 +124,20 @@ class Telemeter():
     return umsgpack.packb(packed)
 
 class Sensor():
-  SID_NONE          = 0x00
-  SID_TIME          = 0x01
-  SID_LOCATION      = 0x02
-  SID_BAROMETER     = 0x03
-  SID_BATTERY       = 0x04
-  SID_PHYSICAL_LINK = 0x05
+  SID_NONE             = 0x00
+  SID_TIME             = 0x01
+  SID_LOCATION         = 0x02
+  SID_PRESSURE         = 0x03
+  SID_BATTERY          = 0x04
+  SID_PHYSICAL_LINK    = 0x05
+  SID_ACCELERATION     = 0x06
+  SID_TEMPERATURE      = 0x07
+  SID_HUMIDITY         = 0x08
+  SID_MAGNETIC_FIELD   = 0x09
+  SID_AMBIENT_LIGHT    = 0x0A
+  SID_GRAVITY          = 0x0B
+  SID_ANGULAR_VELOCITY = 0x0C
+  SID_PROXIMITY        = 0x0E
 
   def __init__(self, sid = None, stale_time = None):
     self._sid = sid or Sensor.SID_NONE
@@ -280,8 +304,8 @@ class Battery(Sensor):
     except:
       return None
 
-class Barometer(Sensor):
-  SID = Sensor.SID_BAROMETER
+class Pressure(Sensor):
+  SID = Sensor.SID_PRESSURE
   STALE_TIME = 5
 
   def __init__(self):
@@ -289,22 +313,22 @@ class Barometer(Sensor):
 
     if RNS.vendor.platformutils.is_android():
       from plyer import barometer
-      self.android_barometer = barometer
+      self.android_sensor = barometer
 
   def setup_sensor(self):
     if RNS.vendor.platformutils.is_android():
-      self.android_barometer.enable()
+      self.android_sensor.enable()
       self.update_data()
 
   def teardown_sensor(self):
     if RNS.vendor.platformutils.is_android():
-      self.android_barometer.disable()
+      self.android_sensor.disable()
       self.data = None
 
   def update_data(self):
     try:
       if RNS.vendor.platformutils.is_android():
-        self.data = {"mbar": self.android_barometer.pressure}
+        self.data = {"mbar": self.android_sensor.pressure}
     
     except:
       self.data = None
@@ -493,5 +517,369 @@ class PhysicalLink(Sensor):
         return None
       else:
         return {"rssi": packed[0], "snr": packed[1], "q": packed[2]}
+    except:
+      return None
+
+class Temperature(Sensor):
+  SID = Sensor.SID_TEMPERATURE
+  STALE_TIME = 5
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+    if RNS.vendor.platformutils.is_android():
+      from plyer import temperature
+      self.android_sensor = temperature
+
+  def setup_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.enable()
+      self.update_data()
+
+  def teardown_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.disable()
+      self.data = None
+
+  def update_data(self):
+    try:
+      if RNS.vendor.platformutils.is_android():
+        self.data = {"c": round(self.android_sensor.temperature, 2)}
+    
+    except:
+      self.data = None
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      return d["percent_relative"]
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        return {"percent_relative": packed}
+    except:
+      return None
+
+class Humidity(Sensor):
+  SID = Sensor.SID_HUMIDITY
+  STALE_TIME = 5
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+    if RNS.vendor.platformutils.is_android():
+      from plyer import humidity
+      self.android_sensor = humidity
+
+  def setup_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.enable()
+      self.update_data()
+
+  def teardown_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.disable()
+      self.data = None
+
+  def update_data(self):
+    try:
+      if RNS.vendor.platformutils.is_android():
+        self.data = {"percent_relative": round(self.android_sensor.tell, 2)}
+    
+    except:
+      self.data = None
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      return d["percent_relative"]
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        return {"percent_relative": packed}
+    except:
+      return None
+
+class MagneticField(Sensor):
+  SID = Sensor.SID_MAGNETIC_FIELD
+  STALE_TIME = 1
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+    if RNS.vendor.platformutils.is_android():
+      from plyer import compass
+      self.android_sensor = compass
+
+  def setup_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.enable()
+      self.update_data()
+
+  def teardown_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.disable()
+      self.data = None
+
+  def update_data(self):
+    try:
+      if RNS.vendor.platformutils.is_android():
+        vectors = self.android_sensor.field
+        self.data = {"x": round(vectors[0], 6), "y": round(vectors[1], 6), "z": round(vectors[2], 6)}
+    
+    except:
+      self.data = None
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      return [d["x"], d["y"], d["z"]]
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        return {"x": packed[0], "y": packed[1], "z": packed[2]}
+    except:
+      return None
+
+class AmbientLight(Sensor):
+  SID = Sensor.SID_AMBIENT_LIGHT
+  STALE_TIME = 1
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+    if RNS.vendor.platformutils.is_android():
+      from plyer import light
+      self.android_sensor = light
+
+  def setup_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.enable()
+      self.update_data()
+
+  def teardown_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.disable()
+      self.data = None
+
+  def update_data(self):
+    try:
+      if RNS.vendor.platformutils.is_android():
+        self.data = {"lux": round(self.android_sensor.illumination, 2)}
+    
+    except:
+      self.data = None
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      return d["lux"]
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        return {"lux": packed}
+    except:
+      return None
+
+class Gravity(Sensor):
+  SID = Sensor.SID_GRAVITY
+  STALE_TIME = 1
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+    if RNS.vendor.platformutils.is_android():
+      from plyer import gravity
+      self.android_sensor = gravity
+
+  def setup_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.enable()
+      self.update_data()
+
+  def teardown_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.disable()
+      self.data = None
+
+  def update_data(self):
+    try:
+      if RNS.vendor.platformutils.is_android():
+        vectors = self.android_sensor.gravity
+        self.data = {"x": round(vectors[0], 6), "y": round(vectors[1], 6), "z": round(vectors[2], 6)}
+    
+    except:
+      self.data = None
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      return [d["x"], d["y"], d["z"]]
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        return {"x": packed[0], "y": packed[1], "z": packed[2]}
+    except:
+      return None
+
+class AngularVelocity(Sensor):
+  SID = Sensor.SID_ANGULAR_VELOCITY
+  STALE_TIME = 1
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+    if RNS.vendor.platformutils.is_android():
+      from plyer import gyroscope
+      self.android_sensor = gyroscope
+
+  def setup_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.enable()
+      self.update_data()
+
+  def teardown_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.disable()
+      self.data = None
+
+  def update_data(self):
+    try:
+      if RNS.vendor.platformutils.is_android():
+        vectors = self.android_sensor.rotation
+        self.data = {"x": round(vectors[0], 6), "y": round(vectors[1], 6), "z": round(vectors[2], 6)}
+    
+    except:
+      self.data = None
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      return [d["x"], d["y"], d["z"]]
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        return {"x": packed[0], "y": packed[1], "z": packed[2]}
+    except:
+      return None
+
+class Acceleration(Sensor):
+  SID = Sensor.SID_ACCELERATION
+  STALE_TIME = 1
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+    if RNS.vendor.platformutils.is_android():
+      from plyer import accelerometer
+      self.android_sensor = accelerometer
+
+  def setup_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.enable()
+      self.update_data()
+
+  def teardown_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.disable()
+      self.data = None
+
+  def update_data(self):
+    try:
+      if RNS.vendor.platformutils.is_android():
+        vectors = self.android_sensor.acceleration
+        self.data = {"x": round(vectors[0], 6), "y": round(vectors[1], 6), "z": round(vectors[2], 6)}
+    
+    except:
+      self.data = None
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      return [d["x"], d["y"], d["z"]]
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        return {"x": packed[0], "y": packed[1], "z": packed[2]}
+    except:
+      return None
+
+class Proximity(Sensor):
+  SID = Sensor.SID_PROXIMITY
+  STALE_TIME = 1
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+    if RNS.vendor.platformutils.is_android():
+      from plyer import proximity
+      self.android_sensor = proximity
+
+  def setup_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.enable()
+      self.update_data()
+
+  def teardown_sensor(self):
+    if RNS.vendor.platformutils.is_android():
+      self.android_sensor.disable()
+      self.data = None
+
+  def update_data(self):
+    try:
+      if RNS.vendor.platformutils.is_android():
+        self.data = self.android_sensor.proximity
+    
+    except:
+      self.data = None
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      return d
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        return packed
     except:
       return None
