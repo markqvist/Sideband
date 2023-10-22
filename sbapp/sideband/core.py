@@ -828,7 +828,7 @@ class SidebandCore():
 
                     return response
                 except Exception as e:
-                    RNS.log("Error while setting state over RPC: "+str(e), RNS.LOG_ERROR)
+                    RNS.log("Error while setting state over RPC: "+str(e), RNS.LOG_DEBUG)
                     return False
 
     def getstate(self, prop, allow_cache=False):
