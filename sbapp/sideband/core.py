@@ -674,7 +674,13 @@ class SidebandCore():
             return ""
 
     def peer_appearance(self, context_dest):
-        return self._db_get_appearance(context_dest) or SidebandCore.DEFAULT_APPEARANCE
+        appearance = self._db_get_appearance(context_dest)
+        if appearance == None:
+            return SidebandCore.DEFAULT_APPEARANCE
+        for e in appearance:
+            if e == None:
+                return SidebandCore.DEFAULT_APPEARANCE
+        return appearance
 
     def peer_display_name(self, context_dest):
         if context_dest == self.lxmf_destination.hash:

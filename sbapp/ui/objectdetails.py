@@ -8,6 +8,7 @@ from kivymd.uix.recycleview import MDRecycleView
 from kivymd.uix.list import OneLineIconListItem
 from kivy.properties import StringProperty, BooleanProperty
 from kivy.effects.scroll import ScrollEffect
+from kivy.clock import Clock
 from sideband.sense import Telemeter
 import threading
 import webbrowser
@@ -72,11 +73,18 @@ class ObjectDetails():
 
             rendered_telemetry = telemeter.render()
             if "location" in telemeter.sensors:
-                self.screen.ids.coordinates_button.disabled = False
+                def job(dt):
+                    self.screen.ids.coordinates_button.disabled = False
+                Clock.schedule_once(job, 0.01)
+                
             self.telemetry_list.update_source(rendered_telemetry)
-            self.screen.ids.telemetry_button.disabled = False
+            def job(dt):
+                self.screen.ids.telemetry_button.disabled = False
+            Clock.schedule_once(job, 0.01)
         else:
-            self.screen.ids.telemetry_button.disabled = True
+            def job(dt):
+                self.screen.ids.telemetry_button.disabled = True
+            Clock.schedule_once(job, 0.01)
             self.telemetry_list.update_source(None)
 
     def reload(self):
