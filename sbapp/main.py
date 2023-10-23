@@ -723,6 +723,8 @@ class SidebandApp(MDApp):
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "w"):
             if self.root.ids.screen_manager.current == "conversations_screen":
                 self.quit_action(self)
+            elif self.root.ids.screen_manager.current == "object_details_screen":
+                self.object_details_screen.close_action()
             else:
                 self.open_conversations(direction="right")
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "s" or text == "d"):
@@ -759,6 +761,8 @@ class SidebandApp(MDApp):
                     self.close_sub_hardware_action()
                 elif self.root.ids.screen_manager.current == "hardware_serial_screen":
                     self.close_sub_hardware_action()
+                if self.root.ids.screen_manager.current == "object_details_screen":
+                    self.object_details_screen.close_action()
                 else:
                     self.open_conversations(direction="right")
 
@@ -847,14 +851,14 @@ class SidebandApp(MDApp):
         Clock.schedule_once(cb, 0.15)
         Clock.schedule_once(cbu, 0.15+0.25)
 
-    def open_conversation(self, context_dest):
+    def open_conversation(self, context_dest, direction="left"):
         self.outbound_mode_paper = False
         if self.sideband.config["propagation_by_default"]:
             self.outbound_mode_propagation = True
         else:
             self.outbound_mode_propagation = False
 
-        self.root.ids.screen_manager.transition.direction = "left"
+        self.root.ids.screen_manager.transition.direction = direction
         self.messages_view = Messages(self, context_dest)
 
         self.messages_view.ids.messages_scrollview.effect_cls = ScrollEffect
@@ -951,6 +955,10 @@ class SidebandApp(MDApp):
         if self.root.ids.screen_manager.current == "messages_screen":
             context_dest = self.messages_view.ids.messages_scrollview.active_conversation
             self.map_show_peer_location(context_dest)
+
+    def peer_show_telemetry_action(self, sender):
+        if self.root.ids.screen_manager.current == "messages_screen":
+            self.object_details_action(self.messages_view, from_conv=True)
 
     def message_propagation_action(self, sender):
         if self.outbound_mode_paper:
@@ -1248,10 +1256,7 @@ class SidebandApp(MDApp):
             def lj():
                 import webbrowser
                 webbrowser.open("https://unsigned.io/donate")
-            if not RNS.vendor.platformutils.is_android():
-                threading.Thread(target=lj, daemon=True).start()
-            else:
-                lj()
+            threading.Thread(target=lj, daemon=True).start()
 
         self.information_screen.ids.information_scrollview.effect_cls = ScrollEffect
         self.information_screen.ids.information_logo.icon = self.sideband.asset_dir+"/rns_256.png"
@@ -2935,6 +2940,17 @@ class SidebandApp(MDApp):
             self.telemetry_screen.ids.telemetry_s_location.active = self.sideband.config["telemetry_s_location"]
             self.telemetry_screen.ids.telemetry_s_location.bind(active=self.telemetry_location_toggle)
 
+            self.telemetry_screen.ids.telemetry_s_fixed_location.active = self.sideband.config["telemetry_s_fixed_location"]
+            self.telemetry_screen.ids.telemetry_s_fixed_location.bind(active=self.telemetry_location_toggle)
+            self.telemetry_screen.ids.telemetry_s_fixed_latlon.bind(focus=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_s_fixed_altitude.bind(focus=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_s_fixed_altitude.text = str(self.sideband.config["telemetry_s_fixed_altitude"])
+            try:
+                lat = self.sideband.config["telemetry_s_fixed_latlon"][0]; lon = self.sideband.config["telemetry_s_fixed_latlon"][1]
+            except:
+                lat = 0.0; lon = 0.0
+            self.telemetry_screen.ids.telemetry_s_fixed_latlon.text = f"{lat}, {lon}"
+
             self.telemetry_screen.ids.telemetry_s_battery.active = self.sideband.config["telemetry_s_battery"]
             self.telemetry_screen.ids.telemetry_s_battery.bind(active=self.telemetry_save)
             
@@ -2986,6 +3002,14 @@ class SidebandApp(MDApp):
             self.sideband.stop_telemetry()
     
     def telemetry_location_toggle(self, sender=None, event=None):
+        if sender == self.telemetry_screen.ids.telemetry_s_location:
+            if self.telemetry_screen.ids.telemetry_s_location.active:
+                self.telemetry_screen.ids.telemetry_s_fixed_location.active = False
+        if sender == self.telemetry_screen.ids.telemetry_s_fixed_location:
+            if self.telemetry_screen.ids.telemetry_s_fixed_location.active:
+                self.telemetry_screen.ids.telemetry_s_location.active = False
+
+
         if self.telemetry_screen.ids.telemetry_s_location.active:
             if RNS.vendor.platformutils.is_android():
                 if not check_permission("android.permission.ACCESS_COARSE_LOCATION") or not check_permission("android.permission.ACCESS_FINE_LOCATION"):
@@ -3012,6 +3036,7 @@ class SidebandApp(MDApp):
         self.sideband.config["telemetry_send_appearance"] = self.telemetry_screen.ids.telemetry_send_appearance.active
         
         self.sideband.config["telemetry_s_location"] = self.telemetry_screen.ids.telemetry_s_location.active
+        self.sideband.config["telemetry_s_fixed_location"] = self.telemetry_screen.ids.telemetry_s_fixed_location.active
         self.sideband.config["telemetry_s_battery"] = self.telemetry_screen.ids.telemetry_s_battery.active
         self.sideband.config["telemetry_s_pressure"] = self.telemetry_screen.ids.telemetry_s_barometer.active
         self.sideband.config["telemetry_s_temperature"] = self.telemetry_screen.ids.telemetry_s_temperature.active
@@ -3022,6 +3047,28 @@ class SidebandApp(MDApp):
         self.sideband.config["telemetry_s_angular_velocity"] = self.telemetry_screen.ids.telemetry_s_gyroscope.active
         self.sideband.config["telemetry_s_acceleration"] = self.telemetry_screen.ids.telemetry_s_accelerometer.active
         self.sideband.config["telemetry_s_proximity"] = self.telemetry_screen.ids.telemetry_s_proximity.active
+
+        try:
+            alt = float(self.telemetry_screen.ids.telemetry_s_fixed_altitude.text.strip().replace(" ", ""))
+            self.telemetry_screen.ids.telemetry_s_fixed_altitude.text = str(alt)
+            self.sideband.config["telemetry_s_fixed_altitude"] = alt
+        except:
+            self.telemetry_screen.ids.telemetry_s_fixed_altitude.text = str(self.sideband.config["telemetry_s_fixed_altitude"])
+
+        try:
+            s = self.telemetry_screen.ids.telemetry_s_fixed_latlon.text
+            l = s.strip().replace(" ","").split(",")
+            lat = float(l[0]); lon = float(l[1])
+            self.sideband.config["telemetry_s_fixed_latlon"] = [lat, lon]
+            self.telemetry_screen.ids.telemetry_s_fixed_latlon.text = f"{lat}, {lon}"
+        except:
+            try:
+                lat = self.sideband.config["telemetry_s_fixed_latlon"][0]
+                lon = self.sideband.config["telemetry_s_fixed_latlon"][1]
+                self.telemetry_screen.ids.telemetry_s_fixed_latlon.text = f"{lat}, {lon}"
+            except:
+                self.sideband.config["telemetry_s_fixed_latlon"] = [0.0, 0.0]
+                self.telemetry_screen.ids.telemetry_s_fixed_latlon.text = "0.0, 0.0"
         
         self.sideband.save_configuration()
         self.sideband.setstate("app.flags.last_telemetry", time.time())
@@ -3205,22 +3252,24 @@ class SidebandApp(MDApp):
             self.map_action()
             self.map_show(location)
 
-    def map_display_telemetry(self, sender):
-        RNS.log("Display telemetry from "+str(sender), RNS.LOG_WARNING)
-        self.object_details_action()
+    def map_display_telemetry(self, sender=None):
+        self.object_details_action(sender)
 
     def close_sub_map_action(self, sender=None):
         self.map_action(direction="right")
 
-    def object_details_action(self, sender=None):
+    def object_details_action(self, sender=None, from_conv=False):
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.nav_drawer.set_state("closed")
-        
-        if self.object_details_screen == None:
-            self.object_details_screen = ObjectDetails(self)
 
-        self.root.ids.screen_manager.current = "object_details_screen"
-        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+        if sender != None and hasattr(sender, "source_dest") and sender.source_dest != None:
+            if self.object_details_screen == None:
+                self.object_details_screen = ObjectDetails(self)
+
+            self.object_details_screen.set_source(sender.source_dest, from_conv=from_conv)
+
+            self.root.ids.screen_manager.current = "object_details_screen"
+            self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
     def map_create_marker(self, source, telemetry, appearance):
         try:
@@ -3228,6 +3277,7 @@ class SidebandApp(MDApp):
             a_icon = appearance[0]
             a_fg = appearance[1]; a_bg = appearance[2]
             marker = CustomMapMarker(lat=l["latitude"], lon=l["longtitude"], icon_bg=a_bg)
+            marker.app = self
             marker.source_dest = source
             marker.location_time = l["last_update"]
             marker.icon = MDMapIconButton(
@@ -3237,6 +3287,7 @@ class SidebandApp(MDApp):
                 on_release=self.map_display_telemetry,
                 )
             marker.icon._default_icon_pad = dp(16)
+            marker.icon.source_dest = marker.source_dest
             marker.add_widget(marker.icon)
 
             ########

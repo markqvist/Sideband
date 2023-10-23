@@ -868,6 +868,7 @@ MDScreen:
                 [
                 ['arrow-down-bold-hexagon-outline', lambda x: root.app.telemetry_request_action(self)],
                 ['upload-lock', lambda x: root.app.telemetry_send_update(self)],
+                ['wrench-cog', lambda x: root.app.close_any_action(self)],
                 ['close', lambda x: root.app.close_any_action(self)],
                 ]
 
@@ -1322,6 +1323,44 @@ MDScreen:
                         id: telemetry_s_proximity
                         pos_hint: {"center_y": 0.3}
                         active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Fixed Location"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_s_fixed_location
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    id: telemetry_fixed_location_fields
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    spacing: dp(16)
+                    height: dp(64)
+                    padding: [0, dp(0), 0, dp(0)]
+                    # md_bg_color: [1,0,0,1]
+
+                    MDTextField:
+                        id: telemetry_s_fixed_latlon
+                        size_hint: [0.618, None]
+                        hint_text: "Latitude, longtitude"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: telemetry_s_fixed_altitude
+                        size_hint: [0.382, None]
+                        hint_text: "Altitude"
+                        text: ""
+                        font_size: dp(24)
 
                 MDLabel:
                     markup: True

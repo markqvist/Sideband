@@ -41,6 +41,7 @@ class Messages():
     def __init__(self, app, context_dest):
         self.app = app
         self.context_dest = context_dest
+        self.source_dest = context_dest
 
         self.screen = self.app.root.ids.screen_manager.get_screen("messages_screen")
         self.ids = self.screen.ids
@@ -302,9 +303,15 @@ class Messages():
                     def x():
                         try:
                             telemeter = Telemeter.from_packed(packed_telemetry)
-                            tlm = telemeter.read_all()
                             if extra_telemetry and len(extra_telemetry) != 0:
-                                tlm["physical_link"] = extra_telemetry
+                                physical_link = extra_telemetry
+                                telemeter.synthesize("physical_link")
+                                if "rssi" in physical_link: telemeter.sensors["physical_link"].rssi = physical_link["rssi"]
+                                if "snr" in physical_link: telemeter.sensors["physical_link"].snr = physical_link["snr"]
+                                if "quality" in physical_link: telemeter.sensors["physical_link"].q = physical_link["quality"]
+                                telemeter.sensors["physical_link"].update_data()
+                            
+                            tlm = telemeter.read_all()
                             Clipboard.copy(str(tlm))
                             item.dmenu.dismiss()
                         except Exception as e:
@@ -598,6 +605,7 @@ MDScreen:
                 [['menu', lambda x: root.app.nav_drawer.set_state("open")],]
             right_action_items:
                 [
+                ['map-marker-path', lambda x: root.app.peer_show_telemetry_action(self)],
                 ['map-search', lambda x: root.app.peer_show_location_action(self)],
                 ['lan-connect', lambda x: root.app.message_propagation_action(self)],
                 ['close', lambda x: root.app.close_settings_action(self)],

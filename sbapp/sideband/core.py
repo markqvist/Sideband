@@ -472,6 +472,8 @@ class SidebandCore():
             self.config["telemetry_bg"] = SidebandCore.DEFAULT_APPEARANCE[2]
         if not "telemetry_send_appearance" in self.config:
             self.config["telemetry_send_appearance"] = False
+        if not "telemetry_display_trusted_only" in self.config:
+            self.config["telemetry_display_trusted_only"] = False
 
         if not "telemetry_s_location" in self.config:
             self.config["telemetry_s_location"] = False
@@ -495,8 +497,12 @@ class SidebandCore():
             self.config["telemetry_s_acceleration"] = False
         if not "telemetry_s_proximity" in self.config:
             self.config["telemetry_s_proximity"] = False
-        if not "telemetry_display_trusted_only" in self.config:
-            self.config["telemetry_display_trusted_only"] = False
+        if not "telemetry_s_fixed_location" in self.config:
+            self.config["telemetry_s_fixed_location"] = False
+        if not "telemetry_s_fixed_latlon" in self.config:
+            self.config["telemetry_s_fixed_latlon"] = [0.0, 0.0]
+        if not "telemetry_s_fixed_altitude" in self.config:
+            self.config["telemetry_s_fixed_altitude"] = 0.0
 
         if not "map_history_limit" in self.config:
             self.config["map_history_limit"] = 7*24*60*60
@@ -671,6 +677,8 @@ class SidebandCore():
         return self._db_get_appearance(context_dest) or SidebandCore.DEFAULT_APPEARANCE
 
     def peer_display_name(self, context_dest):
+        if context_dest == self.lxmf_destination.hash:
+            return self.config["display_name"]
         try:
             existing_conv = self._db_conversation(context_dest)
             if existing_conv != None:
@@ -753,10 +761,20 @@ class SidebandCore():
         return self._db_telemetry(context_dest = context_dest, after = after, before = before, limit = limit) or []
 
     def peer_telemetry(self, context_dest, after = None, before = None, limit = None):
-        pts = self._db_telemetry(context_dest, after = after, before = before, limit = limit)
-        if pts != None:
-            if context_dest in pts:
-                return pts[context_dest]
+        if context_dest == self.lxmf_destination.hash and limit == 1:
+            try:
+                return [[self.latest_telemetry["time"]["utc"], self.latest_packed_telemetry]]
+            except:
+                RNS.log("An error occurred while retrieving telemetry from the database: "+str(e), RNS.LOG_ERROR)
+                return []
+
+        try:
+            pts = self._db_telemetry(context_dest, after = after, before = before, limit = limit)
+            if pts != None:
+                if context_dest in pts:
+                    return pts[context_dest]
+        except Exception as e:
+            RNS.log("An error occurred while retrieving telemetry from the database: "+str(e), RNS.LOG_ERROR)
 
         return []
 
@@ -1142,8 +1160,10 @@ class SidebandCore():
         dbc = db.cursor()
 
         # TODO: Implement limit
-
-        order_part = " order by ts DESC"
+        limit_part = ""
+        if limit:
+            limit_part = " LIMIT "+str(int(limit))
+        order_part = " order by ts DESC"+limit_part
         if context_dest == None:
             if after != None and before == None:
                 query = "select * from telemetry where ts>:after_ts"+order_part
@@ -1211,6 +1231,7 @@ class SidebandCore():
                 if "snr" in physical_link: remote_telemeter.sensors["physical_link"].snr = physical_link["snr"]
                 if "q" in physical_link: remote_telemeter.sensors["physical_link"].q = physical_link["q"]
                 remote_telemeter.sensors["physical_link"].update_data()
+                telemetry = remote_telemeter.packed()
             
             query = "INSERT INTO telemetry (dest_context, ts, data) values (?, ?, ?)"
             data = (context_dest, telemetry_timestamp, telemetry)
@@ -1245,22 +1266,26 @@ class SidebandCore():
             db.commit()
 
     def _db_get_appearance(self, context_dest):
-        conv = self._db_conversation(context_dest)
-        data_dict = conv["data"]
-        try:
-            if data_dict != None and "appearance" in data_dict:
-                def htf(cbytes):
-                    d = 1.0/255.0
-                    r = round(struct.unpack("!B", bytes([cbytes[0]]))[0]*d, 4)
-                    g = round(struct.unpack("!B", bytes([cbytes[1]]))[0]*d, 4)
-                    b = round(struct.unpack("!B", bytes([cbytes[2]]))[0]*d, 4)
-                    return [r,g,b]
+        if context_dest == self.lxmf_destination.hash:
+            return [self.config["telemetry_icon"], self.config["telemetry_fg"], self.config["telemetry_bg"]]
+        else:
+            conv = self._db_conversation(context_dest)
+            if conv != None and "data" in conv:
+                data_dict = conv["data"]
+                try:
+                    if data_dict != None and "appearance" in data_dict:
+                        def htf(cbytes):
+                            d = 1.0/255.0
+                            r = round(struct.unpack("!B", bytes([cbytes[0]]))[0]*d, 4)
+                            g = round(struct.unpack("!B", bytes([cbytes[1]]))[0]*d, 4)
+                            b = round(struct.unpack("!B", bytes([cbytes[2]]))[0]*d, 4)
+                            return [r,g,b]
 
-                appearance = [data_dict["appearance"][0], htf(data_dict["appearance"][1]), htf(data_dict["appearance"][2])]
-                
-                return appearance
-        except Exception as e:
-            RNS.log("Could not retrieve appearance for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
+                        appearance = [data_dict["appearance"][0], htf(data_dict["appearance"][1]), htf(data_dict["appearance"][2])]
+                        
+                        return appearance
+                except Exception as e:
+                    RNS.log("Could not retrieve appearance for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
 
         return None
 
@@ -1744,6 +1769,13 @@ class SidebandCore():
                     self.telemeter.enable(sensor)
                 else:
                     self.telemeter.disable(sensor)
+            
+            if self.config["telemetry_s_fixed_location"]:
+                self.telemeter.synthesize("location")
+                self.telemeter.sensors["location"].latitude = self.config["telemetry_s_fixed_latlon"][0]
+                self.telemeter.sensors["location"].longtitude = self.config["telemetry_s_fixed_latlon"][1]
+                self.telemeter.sensors["location"].altitude = self.config["telemetry_s_fixed_altitude"]
+
 
     def get_telemetry(self):
         if self.config["telemetry_enabled"] == True:
