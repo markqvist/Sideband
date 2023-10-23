@@ -140,7 +140,9 @@ class RVDetails(MDRecycleView):
         rendered_telemetry.sort(key=lambda s: sort[s["name"]] if s["name"] in sort else 1000)
         for s in rendered_telemetry:
             extra_entries = []
-            release_function = None
+            def pass_job(sender=None):
+                pass
+            release_function = pass_job
             name = s["name"]
             if name == "Timestamp":
                 ts = s["values"]["UTC"]
