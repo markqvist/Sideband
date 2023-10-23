@@ -70,8 +70,9 @@ class Telemeter():
   def synthesize(self, sensor):
       if sensor in self.available:
         if not sensor in self.sensors:
-          self.sensors[sensor] = self.available[sensor]()
+          self.sensors[sensor] = self.sids[self.available[sensor]]()
           self.sensors[sensor].active = True
+          self.sensors[sensor].synthesized = True
 
   def enable(self, sensor):
     if not self.from_packed:
@@ -87,6 +88,8 @@ class Telemeter():
         if sensor in self.sensors:
           if self.sensors[sensor].active:
             self.sensors[sensor].stop()
+          removed = self.sensors.pop(sensor)
+          del removed
 
   def stop_all(self):
     if not self.from_packed:
@@ -123,6 +126,16 @@ class Telemeter():
         packed[self.sensors[sensor].sid] = self.sensors[sensor].pack()
     return umsgpack.packb(packed)
 
+  def render(self, relative_to=None):
+    rendered = []
+    for sensor in self.sensors:
+      s = self.sensors[sensor]
+      if s.active:
+        r = s.render(relative_to)
+        if r: rendered.append(r)
+
+    return rendered
+
 class Sensor():
   SID_NONE             = 0x00
   SID_TIME             = 0x01
@@ -144,6 +157,7 @@ class Sensor():
     self._stale_time = stale_time
     self._data = None
     self.active = False
+    self.synthesized = False
     self.last_update = 0
     self.last_read = 0
 
@@ -177,7 +191,8 @@ class Sensor():
     raise NotImplementedError()
 
   def start(self):
-    self.setup_sensor()
+    if not self.synthesized:
+      self.setup_sensor()
     self.active = True
 
   def stop(self):
@@ -195,6 +210,9 @@ class Sensor():
 
   def unpack(self, packed):
     return packed
+
+  def render(self, relative_to=None):
+    return None
 
 class Time(Sensor):
   SID = Sensor.SID_TIME
@@ -227,6 +245,15 @@ class Time(Sensor):
         return {"utc": packed}
     except:
       return None
+
+  def render(self, relative_to=None):
+    rendered = {
+      "icon": "clock-time-ten-outline",
+      "name": "Timestamp",
+      "values": { "UTC": self.data["utc"] },
+    }
+
+    return rendered
 
 class Battery(Sensor):
   SID = Sensor.SID_BATTERY
@@ -283,7 +310,7 @@ class Battery(Sensor):
 
           is_charging = output['POWER_SUPPLY_STATUS'] == 'Charging'
           charge_percent = float(output['POWER_SUPPLY_CAPACITY'])
-          self.data = {"charge_percent": charge_percent, "charging": is_charging}
+          self.data = {"charge_percent": round(charge_percent, 1), "charging": is_charging}
     
     except:
       self.data = None
@@ -293,16 +320,58 @@ class Battery(Sensor):
     if d == None:
       return None
     else:
-      return [d["charge_percent"], d["charging"]]
+      return [round(d["charge_percent"],1), d["charging"]]
 
   def unpack(self, packed):
     try:
       if packed == None:
         return None
       else:
-        return {"charge_percent": packed[0], "charging": packed[1]}
+        return {"charge_percent": round(packed[0], 1), "charging": packed[1]}
     except:
       return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+    
+    d = self.data
+    p = d["charge_percent"]
+    if d["charging"]:
+      charge_string = "charging"
+    else:
+      charge_string = "discharging"
+
+    rendered = {
+      "icon": "battery-outline",
+      "name": "Battery",
+      "values": {"percent": p, "_meta": charge_string},
+    }
+
+    if d["charging"]:
+      if p >= 10: rendered["icon"] = "battery-charging-10"
+      if p >= 20: rendered["icon"] = "battery-charging-20"
+      if p >= 30: rendered["icon"] = "battery-charging-30"
+      if p >= 40: rendered["icon"] = "battery-charging-40"
+      if p >= 50: rendered["icon"] = "battery-charging-50"
+      if p >= 60: rendered["icon"] = "battery-charging-60"
+      if p >= 70: rendered["icon"] = "battery-charging-70"
+      if p >= 80: rendered["icon"] = "battery-charging-80"
+      if p >= 90: rendered["icon"] = "battery-charging-90"
+      if p >= 100: rendered["icon"]= "battery-charging-100"
+    else:
+      if p >= 10: rendered["icon"] = "battery-10"
+      if p >= 20: rendered["icon"] = "battery-20"
+      if p >= 30: rendered["icon"] = "battery-30"
+      if p >= 40: rendered["icon"] = "battery-40"
+      if p >= 50: rendered["icon"] = "battery-50"
+      if p >= 60: rendered["icon"] = "battery-60"
+      if p >= 70: rendered["icon"] = "battery-70"
+      if p >= 80: rendered["icon"] = "battery-80"
+      if p >= 90: rendered["icon"] = "battery-90"
+      if p >= 100: rendered["icon"]= "battery-100"
+
+    return rendered
 
 class Pressure(Sensor):
   SID = Sensor.SID_PRESSURE
@@ -348,6 +417,17 @@ class Pressure(Sensor):
         return {"mbar": packed}
     except:
       return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+    
+    rendered = {
+      "icon": "weather-cloudy",
+      "name": "Ambient Pressure",
+      "values": { "mbar": self.data["mbar"] },
+    }
+    return rendered
 
 class Location(Sensor):
   SID = Sensor.SID_LOCATION
@@ -400,12 +480,19 @@ class Location(Sensor):
         self.gps.configure(on_location=self.android_location_callback)
         self.gps.start(minTime=self._stale_time, minDistance=self._min_distance)
       
-      self.update_data()
+    self.update_data()
     
   def teardown_sensor(self):
     if RNS.vendor.platformutils.is_android():
       self.gps.stop()
-      self.data = None
+    
+    self.latitude = None
+    self.longtitude = None
+    self.altitude = None
+    self.speed = None
+    self.bearing = None
+    self.accuracy = None
+    self.data = None
 
   def android_location_callback(self, **kwargs):
     self._raw = kwargs
@@ -413,7 +500,23 @@ class Location(Sensor):
 
   def update_data(self):
     try:
-      if RNS.vendor.platformutils.is_android():
+      if self.synthesized:
+        if self.latitude != None and self.longtitude != None:
+          if self.altitude == None: self.altitude = 0.0
+          if self.accuracy == None: self.accuracy = 0.01
+          if self.speed == None: self.speed = 0.0
+          if self.bearing == None: self.bearing = 0.0
+          self.data = {
+            "latitude": round(self.latitude, 6),
+            "longtitude": round(self.longtitude, 6),
+            "altitude": round(self.altitude, 2),
+            "speed": round(self.speed, 2),
+            "bearing": round(self.bearing, 2),
+            "accuracy": round(self.accuracy, 2),
+            "last_update": int(time.time()),
+          }
+
+      elif RNS.vendor.platformutils.is_android():
         if "lat" in self._raw:
           self.latitude   = self._raw["lat"]
         if "lon" in self._raw:
@@ -481,6 +584,25 @@ class Location(Sensor):
     except:
       return None
 
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+    
+    rendered = {
+      "icon": "map-marker",
+      "name": "Location",
+      "values": {
+        "latitude": self.data["latitude"],
+        "longtitude": self.data["longtitude"],
+        "altitude": self.data["altitude"],
+        "speed": self.data["speed"],
+        "bearing": self.data["bearing"],
+        "accuracy": self.data["accuracy"],
+        "updated": self.data["last_update"],
+      },
+    }
+    return rendered
+
 class PhysicalLink(Sensor):
   SID = Sensor.SID_PHYSICAL_LINK
   STALE_TIME = 5
@@ -520,6 +642,23 @@ class PhysicalLink(Sensor):
     except:
       return None
 
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+    
+    q = self.data["q"]
+    rendered = {
+      "icon": "network-strength-outline",
+      "name": "Physical Link",
+      "values": { "rssi": self.data["rssi"], "snr": self.data["snr"], "q": q },
+    }
+    if q != None:
+      if q > 20: rendered["icon"] = "network-strength-1"
+      if q > 40: rendered["icon"] = "network-strength-2"
+      if q > 75: rendered["icon"] = "network-strength-3"
+      if q > 90: rendered["icon"] = "network-strength-4"
+    return rendered
+
 class Temperature(Sensor):
   SID = Sensor.SID_TEMPERATURE
   STALE_TIME = 5
@@ -554,16 +693,27 @@ class Temperature(Sensor):
     if d == None:
       return None
     else:
-      return d["percent_relative"]
+      return d["c"]
 
   def unpack(self, packed):
     try:
       if packed == None:
         return None
       else:
-        return {"percent_relative": packed}
+        return {"c": packed}
     except:
       return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+
+    rendered = {
+      "icon": "thermometer",
+      "name": "Temperature",
+      "values": { "c": self.data["c"] },
+    }
+    return rendered
 
 class Humidity(Sensor):
   SID = Sensor.SID_HUMIDITY
@@ -609,6 +759,17 @@ class Humidity(Sensor):
         return {"percent_relative": packed}
     except:
       return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+    
+    rendered = {
+      "icon": "water-percent",
+      "name": "Relative Humidity",
+      "values": { "percent": self.data["percent_relative"] },
+    }
+    return rendered
 
 class MagneticField(Sensor):
   SID = Sensor.SID_MAGNETIC_FIELD
@@ -700,6 +861,17 @@ class AmbientLight(Sensor):
         return {"lux": packed}
     except:
       return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+    
+    rendered = {
+      "icon": "white-balance-sunny",
+      "name": "Ambient Light",
+      "values": { "lux": self.data["lux"] },
+    }
+    return rendered
 
 class Gravity(Sensor):
   SID = Sensor.SID_GRAVITY
