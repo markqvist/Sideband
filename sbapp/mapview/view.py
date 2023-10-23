@@ -397,7 +397,10 @@ class MapView(Widget):
     _zoom = NumericProperty(0)
     _pause = BooleanProperty(False)
     _scale = 1.0
+    _allow_snap = False
     _disabled_count = 0
+    high_res = True
+    high_res_mode = 1
 
     __events__ = ["on_map_relocated"]
 
@@ -670,13 +673,14 @@ class MapView(Widget):
         pass
 
     def animated_diff_scale_at(self, d, x, y):
-        self._scale_target_time = 1.0
         self._scale_target_pos = x, y
         if self._scale_target_anim is False:
             self._scale_target_anim = True
             self._scale_target = d
         else:
             self._scale_target += d
+
+        # print(f"Scale = {self._scale}   Target begin = {self._scale_target}")
         Clock.unschedule(self._animate_scale)
         Clock.schedule_interval(self._animate_scale, 1 / 60.0)
 
@@ -687,19 +691,22 @@ class MapView(Widget):
             self._scale_target = 0
         else:
             self._scale_target -= diff
-        self._scale_target_time -= dt
-        self.diff_scale_at(diff, *self._scale_target_pos)
+
+        final = self._scale_target == 0
+        self.diff_scale_at(diff, *self._scale_target_pos, final = final)
+        # print(f"Scale = {self._scale}   Target now = {self._scale_target}   Diff = {diff}")
         ret = self._scale_target != 0
         if not ret:
             self._pause = False
         return ret
 
-    def diff_scale_at(self, d, x, y):
+    def diff_scale_at(self, d, x, y, final = False):
         scatter = self._scatter
         scale = scatter.scale * (2 ** d)
-        self.scale_at(scale, x, y)
+        self.scale_at(scale, x, y, final = final)
 
-    def scale_at(self, scale, x, y):
+    def scale_at(self, scale, x, y, final = False):
+        snap_digits = 1
         scatter = self._scatter
         scale = clamp(scale, scatter.scale_min, scatter.scale_max)
         rescale = scale * 1.0 / scatter.scale
@@ -708,18 +715,52 @@ class MapView(Widget):
             post_multiply=True,
             anchor=scatter.to_local(x, y),
         )
+        # Create a final transform to always land on well-
+        # defined scaling factors
+        if final and self._allow_snap:
+            int_diff = abs(self._scale-1.0)
+            diff = self._scale-1.0
+            if int_diff < 0.08:
+                target = scatter.scale-diff
+                factor = target/scatter.scale
+                
+                scatter.apply_transform(
+                    Matrix().scale(factor, factor, factor),
+                    post_multiply=True,
+                    anchor=scatter.to_local(x, y),
+                )
+                print(f"Snapped scale. Self = {self._scale}   Scale = {scale}")
+        else:
+            pass
+            # print(f"Self = {self._scale}   Scale = {scale}   Rescale = {rescale}   Zoom = {self.zoom}")
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return
         if self.pause_on_action:
             self._pause = True
+        # if "button" in touch.profile:
+        #     print(f"Scale = {self._scale}   Scatter = {self._scatter.scale}")
+
         if "button" in touch.profile and touch.button in ("scrolldown", "scrollup"):
-            d = 1 if touch.button == "scrolldown" else -1
+            self._allow_snap = False
+            if self.snap_to_zoom:
+                d = 1 if touch.button == "scrolldown" else -1
+            else:
+                d = 0.1 if touch.button == "scrolldown" else -0.1
+            
             self.animated_diff_scale_at(d, *touch.pos)
             return True
         elif touch.is_double_tap and self.double_tap_zoom:
-            self.animated_diff_scale_at(1, *touch.pos)
+            self._allow_snap = True
+            if self._scale < 1.0:
+                dz = (1/self._scale)-1
+            else:
+                next_scale = 2.0
+                dz = (next_scale/self._scale)-1.0
+
+            # print(f"Diff zoom {self._scale} factor = {dz}")
+            self.animated_diff_scale_at(dz, *touch.pos)
             return True
         touch.grab(self)
         self._touch_count += 1
@@ -733,13 +774,13 @@ class MapView(Widget):
             self._touch_count -= 1
             if self._touch_count == 0:
                 # animate to the closest zoom
-                zoom, scale = self._touch_zoom
-                cur_zoom = self.zoom
-                cur_scale = self._scale
-                if cur_zoom < zoom or round(cur_scale, 2) < scale:
-                    self.animated_diff_scale_at(1.0 - cur_scale, *touch.pos)
-                elif cur_zoom > zoom or round(cur_scale, 2) > scale:
-                    self.animated_diff_scale_at(2.0 - cur_scale, *touch.pos)
+                # zoom, scale = self._touch_zoom
+                # cur_zoom = self.zoom
+                # cur_scale = self._scale
+                # if cur_zoom < zoom or round(cur_scale, 2) < scale:
+                #     self.animated_diff_scale_at(1.0 - cur_scale, *touch.pos)
+                # elif cur_zoom > zoom or round(cur_scale, 2) > scale:
+                #     self.animated_diff_scale_at(2.0 - cur_scale, *touch.pos)
                 self._pause = False
             return True
         return super(MapView, self).on_touch_up(touch)
@@ -754,12 +795,39 @@ class MapView(Widget):
         zoom = self._zoom
         scatter = self._scatter
         scale = scatter.scale
-        if round(scale, 2) >= 2.0:
-            zoom += 1
-            scale /= 2.0
-        elif round(scale, 2) < 1.0:
-            zoom -= 1
-            scale *= 2.0
+        
+        if self.high_res:
+            if self.high_res_mode == 2:
+                # Double resolution mode
+                if round(scale, 2) >= 1.0:
+                    zoom += 1
+                    scale /= 2.0
+                elif round(scale, 2) < 0.5:
+                    zoom -= 1
+                    scale *= 2.0
+            elif self.high_res_mode == 1:
+                # Improved resolution mode
+                if round(scale, 2) >= 1.2:
+                    zoom += 1
+                    scale /= 2.0
+                elif round(scale, 2) < 0.6:
+                    zoom -= 1
+                    scale *= 2.0
+        else:
+            # if round(scale, 2) >= 2.0:
+            #     zoom += 1
+            #     scale /= 2.0
+            # elif round(scale, 2) < 1.0:
+            #     zoom -= 1
+            #     scale *= 2.0
+            if round(scale, 2) >= 1.75:
+                zoom += 1
+                scale /= 2.0
+            elif round(scale, 2) < 0.875:
+                zoom -= 1
+                scale *= 2.0
+
+
         zoom = clamp(zoom, map_source.min_zoom, map_source.max_zoom)
         if zoom != self._zoom:
             self.set_zoom_at(zoom, scatter.x, scatter.y, scale=scale)
