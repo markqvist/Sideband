@@ -165,13 +165,11 @@ def ellipsoid_distance(c1, c2):
 
 def azalt(c1, c2, ellipsoid=True):              
     c2rp = rotate_globe(c1, c2, ellipsoid=ellipsoid)
-    print(str(c2rp))
-
     altitude = None
     azimuth = None
     if (c2rp[2]*c2rp[2]) + (c2rp[1]*c2rp[1]) > 1e-6:
         theta = degrees(atan2(c2rp[2], c2rp[1]))
-        azimuth = 90.0 - theta
+        azimuth = 270 - theta
         if azimuth < 0: azimuth += 360
         if azimuth > 360: azimuth -= 360
         azimuth = round(azimuth,4)
