@@ -1,4 +1,3 @@
-import RNS
 import time
 from math import pi, sin, cos, acos, tan, atan, atan2
 from math import radians, degrees, sqrt
@@ -159,6 +158,7 @@ def orthodromic_distance(c1, c2, spherical=False):
         return ellipsoid_distance(c1, c2)
 
 # def tests():
+#     import RNS
 #     from geographiclib.geodesic import Geodesic
 #     geod = Geodesic.WGS84
 #     coords = [
