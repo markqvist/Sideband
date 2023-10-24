@@ -68,10 +68,15 @@ class ObjectDetails():
 
         latest_telemetry = self.app.sideband.peer_telemetry(source_dest, limit=1)
         if latest_telemetry != None and len(latest_telemetry) > 0:
+            own_address = self.app.sideband.lxmf_destination.hash
             telemeter = Telemeter.from_packed(latest_telemetry[0][1])
             self.raw_telemetry = telemeter.read_all()
 
-            rendered_telemetry = telemeter.render()
+            relative_to = None
+            if source_dest != own_address:
+                relative_to = self.app.sideband.telemeter
+
+            rendered_telemetry = telemeter.render(relative_to=relative_to)
             if "location" in telemeter.sensors:
                 def job(dt):
                     self.screen.ids.coordinates_button.disabled = False
@@ -86,6 +91,8 @@ class ObjectDetails():
                 self.screen.ids.telemetry_button.disabled = True
             Clock.schedule_once(job, 0.01)
             self.telemetry_list.update_source(None)
+
+        self.screen.ids.object_details_scrollview.effect_cls = ScrollEffect
 
     def reload(self):
         self.clear_widget()
@@ -143,49 +150,105 @@ class RVDetails(MDRecycleView):
             def pass_job(sender=None):
                 pass
             release_function = pass_job
+            formatted_values = None
             name = s["name"]
             if name == "Timestamp":
                 ts = s["values"]["UTC"]
-                ts_str = datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
-                formatted_values = f"Recorded: [b]{RNS.prettytime(time.time()-ts, compact=True)} ago[/b] ({ts_str})"
+                if ts != None:
+                    ts_str = datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
+                    formatted_values = f"Recorded: [b]{RNS.prettytime(time.time()-ts, compact=True)} ago[/b] ({ts_str})"
             elif name == "Battery":
                 p = s["values"]["percent"]
                 cs = s["values"]["_meta"]
-                formatted_values = f"{name}: [b]{p}%[/b] ({cs})"
+                if cs != None: cs_str = f" ({cs})"
+                if p != None: formatted_values = f"{name}: [b]{p}%[/b]"+cs_str
             elif name == "Ambient Pressure":
                 p = s["values"]["mbar"]
-                formatted_values = f"{name}: [b]{p} mbar[/b]"
+                if p != None: formatted_values = f"{name}: [b]{p} mbar[/b]"
+                dt = "mbar"
+                if "deltas" in s and dt in s["deltas"] and s["deltas"][dt] != None:
+                    d = s["deltas"][dt]
+                    formatted_values += f"  (Δ = {d} mbar)"
             elif name == "Ambient Temperature":
                 c = s["values"]["c"]
-                formatted_values = f"{name}: [b]{c}° C[/b]"
+                if c != None: formatted_values = f"{name}: [b]{c}° C[/b]"
+                dt = "c"
+                if "deltas" in s and dt in s["deltas"] and s["deltas"][dt] != None:
+                    d = s["deltas"][dt]
+                    formatted_values += f"  (Δ = {d}° C)"
             elif name == "Relative Humidity":
                 r = s["values"]["percent"]
-                formatted_values = f"{name}: [b]{r}%[/b]"
+                if r != None: formatted_values = f"{name}: [b]{r}%[/b]"
+                dt = "percent"
+                if "deltas" in s and dt in s["deltas"] and s["deltas"][dt] != None:
+                    d = s["deltas"][dt]
+                    formatted_values += f"  (Δ = {d}%)"
             elif name == "Physical Link":
-                rssi = s["values"]["rssi"]
-                snr = s["values"]["snr"]
-                q = s["values"]["q"]
-                formatted_values = f"Link Quality: [b]{q}%[/b], RSSI: [b]{rssi} dBm[/b], SNR: [b]{snr} dB[/b]"
+                rssi = s["values"]["rssi"]; rssi_str = None
+                snr = s["values"]["snr"]; snr_str = None
+                q = s["values"]["q"]; q_str = None
+                if q != None: q_str = f"Link Quality: [b]{q}%[/b]"
+                if rssi != None:
+                    rssi_str = f"RSSI: [b]{rssi} dBm[/b]"
+                    if q != None: rssi_str = ", "+rssi_str
+                if snr != None:
+                    snr_str = f"SNR: [b]{snr} dB[/b]"
+                    if q != None or rssi != None: snr_str = ", "+snr_str
+                if q_str or rssi_str or snr_str:
+                    formatted_values = q_str+rssi_str+snr_str
             elif name == "Location":
                 lat = s["values"]["latitude"]
                 lon = s["values"]["longtitude"]
                 alt = s["values"]["altitude"]
                 speed = s["values"]["speed"]
-                bearing = s["values"]["bearing"]
+                heading = s["values"]["heading"]
                 accuracy = s["values"]["accuracy"]
                 updated = s["values"]["updated"]
                 updated_str = f", Logged: [b]{RNS.prettytime(time.time()-updated, compact=True)} ago[/b]"
-                if speed > 0.01:
-                    speed_str = ", Speed: [b]{speed} Km/h[/b]"
-                else:
-                    speed_str = ""
+
                 coords = f"{lat}, {lon}"
                 self.delegate.coords = coords
-                formatted_values = f"Coordinates: [b]{coords}[/b], Altitude: [b]{alt} meters[/b]"+speed_str+f", Bearing: [b]{bearing}°[/b]"
+                formatted_values = f"Coordinates: [b]{coords}[/b], Altitude: [b]{alt} meters[/b]"
+                speed_formatted_values = f"Speed: [b]{speed} Km/h[/b], Heading: [b]{heading}°[/b]"
                 extra_formatted_values = f"Uncertainty: [b]{accuracy} meters[/b]"+updated_str
 
                 data = {"icon": s["icon"], "text": f"{formatted_values}"}
+                
+                if "distance" in s:
+                    distance_formatted_text = ""
+                    if "orthodromic" in s["distance"]:
+                        od = s["distance"]["orthodromic"]
+                        if od != None:
+                            od_text = f"Geodesic Distance: [b]{RNS.prettydistance(od)}[/b]"
+                            distance_formatted_text += od_text
+                    
+                    if "euclidian" in s["distance"]:
+                        ed = s["distance"]["euclidian"]
+                        if ed != None:
+                            ed_text = f"Euclidian Distance: [b]{RNS.prettydistance(ed)}[/b]"
+                            if len(distance_formatted_text) != 0: distance_formatted_text += ", "
+                            distance_formatted_text += ed_text
+
+                    extra_entries.append({"icon": "earth", "text": distance_formatted_text})
+
+                if "azalt" in s:
+                    azalt_formatted_text = ""
+                    if "azimuth" in s["azalt"]:
+                        az = s["azalt"]["azimuth"]
+                        az_text = f"Azimuth: [b]{round(az,4)}°[/b]"
+                        azalt_formatted_text += az_text
+                    
+                    if "altitude" in s["azalt"]:
+                        al = s["azalt"]["altitude"]
+                        al_text = f"Altitude: [b]{round(al,4)}°[/b]"
+                        if len(azalt_formatted_text) != 0: azalt_formatted_text += ", "
+                        azalt_formatted_text += al_text
+
+                    extra_entries.append({"icon": "compass-rose", "text": azalt_formatted_text})
+
                 extra_entries.append({"icon": "map-marker-question", "text": extra_formatted_values})
+                extra_entries.append({"icon": "speedometer", "text": speed_formatted_values})
+
                 def select(e=None):
                     geo_uri = f"geo:{lat},{lon}"
                     def lj():
@@ -198,13 +261,21 @@ class RVDetails(MDRecycleView):
                 for vn in s["values"]:
                     v = s["values"][vn]
                     formatted_values += f" [b]{v} {vn}[/b]"
-            
-            if release_function:
-                data = {"icon": s["icon"], "text": f"{formatted_values}", "on_release": release_function}
-            else:
-                data = {"icon": s["icon"], "text": f"{formatted_values}"}
 
-            self.entries.append(data)
+                    dt = vn
+                    if "deltas" in s and dt in s["deltas"] and s["deltas"][dt] != None:
+                        d = s["deltas"][dt]
+                        formatted_values += f"  (Δ = {d} {vn})"
+            
+            data = None
+            if formatted_values != None:
+                if release_function:
+                    data = {"icon": s["icon"], "text": f"{formatted_values}", "on_release": release_function}
+                else:
+                    data = {"icon": s["icon"], "text": f"{formatted_values}"}
+
+            if data != None:
+                self.entries.append(data)
             for extra in extra_entries:
                 self.entries.append(extra)
 
@@ -305,5 +376,6 @@ MDScreen:
             
         ScrollView:
             id: object_details_scrollview
+            effect_cls: "ScrollEffect"
                 
 """
