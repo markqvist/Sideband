@@ -5,6 +5,7 @@ import struct
 import threading
 
 from RNS.vendor import umsgpack as umsgpack
+from .geo import orthodromic_distance, euclidian_distance, azalt
 
 class Telemeter():
   @staticmethod
@@ -421,12 +422,26 @@ class Pressure(Sensor):
   def render(self, relative_to=None):
     if self.data == None:
       return None
+
+    delta = None
+    if relative_to and "pressure" in relative_to.sensors:
+      rs = relative_to.sensors["pressure"]
+      if "mbar" in rs.data and rs.data["mbar"] != None:
+        if self.data["mbar"] != None:
+          delta = round(rs.data["mbar"] - self.data["mbar"], 1)
     
+    # TODO: Remove
+    # RNS.log("OVERRIDING DELTA", RNS.LOG_WARNING)
+    # delta = round(740.1 - self.data["mbar"], 1)
+
     rendered = {
       "icon": "weather-cloudy",
       "name": "Ambient Pressure",
       "values": { "mbar": self.data["mbar"] },
     }
+    if delta != None:
+      rendered["deltas"] = {"mbar": delta}
+
     return rendered
 
 class Location(Sensor):
@@ -596,11 +611,31 @@ class Location(Sensor):
         "longtitude": self.data["longtitude"],
         "altitude": self.data["altitude"],
         "speed": self.data["speed"],
-        "bearing": self.data["bearing"],
+        "heading": self.data["bearing"],
         "accuracy": self.data["accuracy"],
         "updated": self.data["last_update"],
       },
     }
+
+    if relative_to != None and "location" in relative_to.sensors:
+      slat = self.data["latitude"]; slon = self.data["longtitude"]
+      salt = self.data["altitude"];
+      if salt == None: salt = 0
+      if slat != None and slon != None:
+        s = relative_to.sensors["location"]
+        d = s.data
+        if "latitude" in d and "longtitude" in d and "altitude" in d:
+          lat = d["latitude"]; lon = d["longtitude"]; alt = d["altitude"]
+          if lat != None and lon != None:
+            if alt == None: alt = 0
+            cs = (slat, slon, salt); cr = (lat, lon, alt)
+            ed = euclidian_distance(cs, cr)
+            od = orthodromic_distance(cs, cr)
+            aa = azalt(cs, cr)
+            rendered["distance"] = {"euclidian": ed, "orthodromic": od}
+            rendered["azalt"] = {"azimuth": aa[0], "altitude": aa[1]}
+
+
     return rendered
 
 class PhysicalLink(Sensor):
@@ -865,12 +900,26 @@ class AmbientLight(Sensor):
   def render(self, relative_to=None):
     if self.data == None:
       return None
+
+    delta = None
+    if relative_to and "ambient_light" in relative_to.sensors:
+      rs = relative_to.sensors["ambient_light"]
+      if "lux" in rs.data and rs.data["lux"] != None:
+        if self.data["lux"] != None:
+          delta = round(rs.data["lux"] - self.data["lux"], 2)
+    
+    # TODO: Remove
+    # RNS.log("OVERRIDING DELTA", RNS.LOG_WARNING)
+    # delta = round(2500 - self.data["lux"], 2)
     
     rendered = {
       "icon": "white-balance-sunny",
       "name": "Ambient Light",
       "values": { "lux": self.data["lux"] },
     }
+    if delta != None:
+      rendered["deltas"] = {"lux": delta}
+
     return rendered
 
 class Gravity(Sensor):
