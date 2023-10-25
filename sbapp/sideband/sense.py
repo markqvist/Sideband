@@ -36,6 +36,8 @@ class Telemeter():
   def __init__(self, from_packed=False):
     self.sids = {
       Sensor.SID_TIME: Time,
+      Sensor.SID_RECEIVED: Received,
+      Sensor.SID_INFORMATION: Information,
       Sensor.SID_BATTERY: Battery,
       Sensor.SID_PRESSURE: Pressure,
       Sensor.SID_LOCATION: Location,
@@ -51,6 +53,8 @@ class Telemeter():
     }
     self.available = {
       "time": Sensor.SID_TIME,
+      "information": Sensor.SID_INFORMATION,
+      "received": Sensor.SID_RECEIVED,
       "battery": Sensor.SID_BATTERY,
       "pressure": Sensor.SID_PRESSURE,
       "location": Sensor.SID_LOCATION,
@@ -154,6 +158,8 @@ class Sensor():
   SID_GRAVITY          = 0x0B
   SID_ANGULAR_VELOCITY = 0x0C
   SID_PROXIMITY        = 0x0E
+  SID_INFORMATION      = 0x0F
+  SID_RECEIVED         = 0x10
 
   def __init__(self, sid = None, stale_time = None):
     self._sid = sid or Sensor.SID_NONE
@@ -254,6 +260,113 @@ class Time(Sensor):
       "icon": "clock-time-ten-outline",
       "name": "Timestamp",
       "values": { "UTC": self.data["utc"] },
+    }
+
+    return rendered
+
+class Information(Sensor):
+  SID = Sensor.SID_INFORMATION
+  STALE_TIME = 5
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+    self.contents = ""
+
+  def setup_sensor(self):
+    self.update_data()
+
+  def teardown_sensor(self):
+    self.data = None
+
+  def update_data(self):
+    self.data = {"contents":str(self.contents)}
+
+  def pack(self):
+    if self.data == None:
+      return None
+    else:
+      return self.data["contents"]
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        return {"contents": str(packed)}
+    except:
+      return None
+
+  def render(self, relative_to=None):
+    rendered = {
+      "icon": "information-variant",
+      "name": "Information",
+      "values": { "contents": self.data["contents"] },
+    }
+
+    return rendered
+
+class Received(Sensor):
+  SID = Sensor.SID_RECEIVED
+  STALE_TIME = 5
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+    self.by = None
+    self.via = None
+    self.geodesic_distance = None
+    self.euclidian_distance = None
+
+  def setup_sensor(self):
+    self.update_data()
+
+  def teardown_sensor(self):
+    self.data = None
+
+  def set_distance(self, c1, c2):
+    self.euclidian_distance = euclidian_distance(c1, c2)
+    self.geodesic_distance = orthodromic_distance(c1, c2)
+    self.update_data()
+
+  def update_data(self):
+    self.data = {
+      "by":self.by,
+      "via":self.via,
+      "distance": {
+        "geodesic": self.geodesic_distance,
+        "euclidian": self.euclidian_distance,
+    }}
+
+  def pack(self):
+    if self.data == None:
+      return None
+    else:
+      return [
+        self.data["by"],
+        self.data["via"],
+        self.geodesic_distance,
+        self.euclidian_distance,
+      ]
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        return {
+          "by":packed[0],
+          "via":packed[1],
+          "distance": {
+            "geodesic": packed[2],
+            "euclidian": packed[3],
+        }}
+    except:
+      return None
+
+  def render(self, relative_to=None):
+    rendered = {
+      "icon": "arrow-down-bold-hexagon-outline",
+      "name": "Received",
+      "values": self.data,
     }
 
     return rendered
