@@ -1,5 +1,6 @@
 import time
-from math import pi, sin, cos, acos, tan, atan, atan2
+import RNS
+from math import pi, sin, cos, acos, asin, tan, atan, atan2
 from math import radians, degrees, sqrt
 
 # WGS84 Parameters
@@ -16,18 +17,6 @@ eccentricity_squared = 2*ellipsoid_flattening-pow(ellipsoid_flattening,2)
 ###############################
 
 mean_earth_radius    = (1/3)*(2*equatorial_radius+polar_radius)
-
-def central_angle(c1, c2):
-    lat1 = radians(c1[0]); lon1 = radians(c1[1])
-    lat2 = radians(c2[0]); lon2 = radians(c2[1])
-
-    d_lat = abs(lat1-lat2)
-    d_lon = abs(lon1-lon2)
-    ca    = acos(
-        sin(lat1) * sin(lat2) +
-        cos(lat1) * cos(lat2) * cos(d_lon)
-    )
-    return ca
 
 def geocentric_latitude(geodetic_latitude):
     e2  = eccentricity_squared
@@ -94,6 +83,21 @@ def euclidian_distance(c1, c2, ellipsoid=True):
         )
     else:
         return None
+
+def central_angle(c1, c2):
+    lat1 = radians(c1[0]); lon1 = radians(c1[1])
+    lat2 = radians(c2[0]); lon2 = radians(c2[1])
+
+    d_lat = abs(lat1-lat2)
+    d_lon = abs(lon1-lon2)
+    ca    = acos(
+        sin(lat1) * sin(lat2) +
+        cos(lat1) * cos(lat2) * cos(d_lon)
+    )
+    return ca
+
+def arc_length(central_angle, r=mean_earth_radius):
+    return r*central_angle;
 
 def spherical_distance(c1, c2, altitude=0, r=mean_earth_radius):
     d = (r+altitude)*central_angle(c1, c2)
@@ -243,20 +247,48 @@ def angle_to_horizon(c, ellipsoid=False):
     else:
         r = mean_earth_radius
         h = c[2]
+        if h < 0: h = 0
         return degrees(-acos(r/(r+h)))
 
-def radio_horizon(c1, c2, ellipsoid=False):
-    # dr = 4.12*(√h1 + √h2)
+def euclidian_horizon_distance(h):
+    r = mean_earth_radius
+    b = r
+    c = r+h
+    a = c**2 - b**2
+    return sqrt(a)
+
+def euclidian_horizon_arc(h):
+    r = mean_earth_radius
+    d = euclidian_horizon_distance(h)
+    a = d; b = r; c = r+h
+    arc = acos( (b**2+c**2-a**2) / (2*b*c) )
+    return arc
+
+def radio_horizon(h, rh=0, ellipsoid=False):
     if ellipsoid:
         raise NotImplementedError("Radio horizon on the ellipsoid is not yet implemented")
     else:
-        h1 = c1[2]
-        h2 = c2[2]
-        ed = euclidian_distance(c1,c2)
-        rh1 = 1e3*4.12*(sqrt(h1))
-        rh2 = 1e3*4.12*(sqrt(h2))
-        rhc = 1e3*4.12*(sqrt(h1) + sqrt(h2))
-        return (rh1, rh2, rhc, rhc > ed)
+        geocentric_angle_to_horizon = euclidian_horizon_arc(h)
+        geodesic_distance = arc_length(geocentric_angle_to_horizon, r=mean_earth_radius)
+
+        return geodesic_distance
+
+def shared_radio_horizon(c1, c2,):
+    lat1 = c1[0]; lon1 = c1[1]; h1 = c1[2]
+    lat2 = c2[0]; lon2 = c2[1]; h2 = c2[2]
+    
+    geodesic_distance = orthodromic_distance((lat1, lon1, 0.0), (lat2, lon2, 0.0) , ellipsoid=False)
+    antenna_distance = euclidian_distance(c1,c2,ellipsoid=False)
+    rh1 = radio_horizon(h1)
+    rh2 = radio_horizon(h2)
+    rhc = rh1+rh2
+
+    return {
+        "horizon1":rh1, "horizon2":rh2, "shared":rhc,
+        "within":rhc > geodesic_distance,
+        "geodesic_distance": geodesic_distance,
+        "antenna_distance": antenna_distance
+    }
 
 def tests():
     import RNS
