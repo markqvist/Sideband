@@ -770,7 +770,7 @@ class SidebandCore():
         if context_dest == self.lxmf_destination.hash and limit == 1:
             try:
                 return [[self.latest_telemetry["time"]["utc"], self.latest_packed_telemetry]]
-            except:
+            except Exception as e:
                 RNS.log("An error occurred while retrieving telemetry from the database: "+str(e), RNS.LOG_ERROR)
                 return []
 
