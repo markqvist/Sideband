@@ -156,29 +156,29 @@ class RVDetails(MDRecycleView):
                 ts = s["values"]["UTC"]
                 if ts != None:
                     ts_str = datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
-                    formatted_values = f"Recorded: [b]{RNS.prettytime(time.time()-ts, compact=True)} ago[/b] ({ts_str})"
+                    formatted_values = f"Recorded [b]{RNS.prettytime(time.time()-ts, compact=True)} ago[/b] ({ts_str})"
             elif name == "Battery":
                 p = s["values"]["percent"]
                 cs = s["values"]["_meta"]
                 if cs != None: cs_str = f" ({cs})"
-                if p != None: formatted_values = f"{name}: [b]{p}%[/b]"+cs_str
+                if p != None: formatted_values = f"{name} [b]{p}%[/b]"+cs_str
             elif name == "Ambient Pressure":
                 p = s["values"]["mbar"]
-                if p != None: formatted_values = f"{name}: [b]{p} mbar[/b]"
+                if p != None: formatted_values = f"{name} [b]{p} mbar[/b]"
                 dt = "mbar"
                 if "deltas" in s and dt in s["deltas"] and s["deltas"][dt] != None:
                     d = s["deltas"][dt]
                     formatted_values += f"  (Δ = {d} mbar)"
             elif name == "Ambient Temperature":
                 c = s["values"]["c"]
-                if c != None: formatted_values = f"{name}: [b]{c}° C[/b]"
+                if c != None: formatted_values = f"{name} [b]{c}° C[/b]"
                 dt = "c"
                 if "deltas" in s and dt in s["deltas"] and s["deltas"][dt] != None:
                     d = s["deltas"][dt]
                     formatted_values += f"  (Δ = {d}° C)"
             elif name == "Relative Humidity":
                 r = s["values"]["percent"]
-                if r != None: formatted_values = f"{name}: [b]{r}%[/b]"
+                if r != None: formatted_values = f"{name} [b]{r}%[/b]"
                 dt = "percent"
                 if "deltas" in s and dt in s["deltas"] and s["deltas"][dt] != None:
                     d = s["deltas"][dt]
@@ -187,12 +187,12 @@ class RVDetails(MDRecycleView):
                 rssi = s["values"]["rssi"]; rssi_str = None
                 snr = s["values"]["snr"]; snr_str = None
                 q = s["values"]["q"]; q_str = None
-                if q != None: q_str = f"Link Quality: [b]{q}%[/b]"
+                if q != None: q_str = f"Link Quality [b]{q}%[/b]"
                 if rssi != None:
-                    rssi_str = f"RSSI: [b]{rssi} dBm[/b]"
+                    rssi_str = f"RSSI [b]{rssi} dBm[/b]"
                     if q != None: rssi_str = ", "+rssi_str
                 if snr != None:
-                    snr_str = f"SNR: [b]{snr} dB[/b]"
+                    snr_str = f"SNR [b]{snr} dB[/b]"
                     if q != None or rssi != None: snr_str = ", "+snr_str
                 if q_str or rssi_str or snr_str:
                     formatted_values = q_str+rssi_str+snr_str
@@ -204,29 +204,32 @@ class RVDetails(MDRecycleView):
                 heading = s["values"]["heading"]
                 accuracy = s["values"]["accuracy"]
                 updated = s["values"]["updated"]
-                updated_str = f", Logged: [b]{RNS.prettytime(time.time()-updated, compact=True)} ago[/b]"
+                updated_str = f", logged [b]{RNS.prettytime(time.time()-updated, compact=True)} ago[/b]"
 
                 coords = f"{lat}, {lon}"
                 self.delegate.coords = coords
-                formatted_values = f"Coordinates: [b]{coords}[/b], Altitude: [b]{alt} meters[/b]"
-                speed_formatted_values = f"Speed: [b]{speed} Km/h[/b], Heading: [b]{heading}°[/b]"
-                extra_formatted_values = f"Uncertainty: [b]{accuracy} meters[/b]"+updated_str
+                formatted_values = f"Coordinates [b]{coords}[/b], altitude [b]{alt} meters[/b]"
+                speed_formatted_values = f"Speed [b]{speed} Km/h[/b], heading [b]{heading}°[/b]"
+                extra_formatted_values = f"Uncertainty [b]{accuracy} meters[/b]"+updated_str
 
                 data = {"icon": s["icon"], "text": f"{formatted_values}"}
-                
+
                 if "distance" in s:
                     distance_formatted_text = ""
                     if "orthodromic" in s["distance"]:
                         od = s["distance"]["orthodromic"]
                         if od != None:
-                            od_text = f"Geodesic Distance: [b]{RNS.prettydistance(od)}[/b]"
+                            od_text = f"Geodesic distance [b]{RNS.prettydistance(od)}[/b]"
                             distance_formatted_text += od_text
                     
                     if "euclidian" in s["distance"]:
                         ed = s["distance"]["euclidian"]
                         if ed != None:
-                            ed_text = f"Euclidian Distance: [b]{RNS.prettydistance(ed)}[/b]"
-                            if len(distance_formatted_text) != 0: distance_formatted_text += ", "
+                            ed_text = f"euclidian distance [b]{RNS.prettydistance(ed)}[/b]"
+                            if len(distance_formatted_text) != 0:
+                                distance_formatted_text += ", "
+                            else:
+                                ed_text = ed_text.replace("euclidian", "Euclidian")
                             distance_formatted_text += ed_text
 
                     extra_entries.append({"icon": "earth", "text": distance_formatted_text})
@@ -235,16 +238,31 @@ class RVDetails(MDRecycleView):
                     azalt_formatted_text = ""
                     if "azimuth" in s["azalt"]:
                         az = s["azalt"]["azimuth"]
-                        az_text = f"Azimuth: [b]{round(az,4)}°[/b]"
+                        az_text = f"Azimuth [b]{round(az,4)}°[/b]"
                         azalt_formatted_text += az_text
                     
                     if "altitude" in s["azalt"]:
                         al = s["azalt"]["altitude"]
-                        al_text = f"Altitude: [b]{round(al,4)}°[/b]"
+                        al_text = f"altitude [b]{round(al,4)}°[/b]"
                         if len(azalt_formatted_text) != 0: azalt_formatted_text += ", "
                         azalt_formatted_text += al_text
 
+                    if "above_horizon" in s["azalt"]:
+                        astr = "above" if s["azalt"]["above_horizon"] == True else "below"
+                        ah_text = f"object is [b]{astr}[/b] the horizon"
+                        if len(azalt_formatted_text) != 0: azalt_formatted_text += ", "
+                        azalt_formatted_text += ah_text
+
                     extra_entries.append({"icon": "compass-rose", "text": azalt_formatted_text})
+
+                if "radio_horizon" in s:
+                    crange_text = RNS.prettydistance(s["radio_horizon"]["combined_range"])
+                    if s["radio_horizon"]["within_range"]:
+                        rh_formatted_text = f"Object is [b]within[/b] combined radio horizon of [b]{crange_text}[/b]"
+                    else:
+                        rh_formatted_text = f"Object is [b]not within[/b] within combined radio horizon of [b]{crange_text}[/b]"
+                    
+                    extra_entries.append({"icon": "radio-tower", "text": rh_formatted_text})
 
                 extra_entries.append({"icon": "map-marker-question", "text": extra_formatted_values})
                 extra_entries.append({"icon": "speedometer", "text": speed_formatted_values})
@@ -257,7 +275,7 @@ class RVDetails(MDRecycleView):
 
                 release_function = select
             else:
-                formatted_values = f"{name}:"
+                formatted_values = f"{name}"
                 for vn in s["values"]:
                     v = s["values"][vn]
                     formatted_values += f" [b]{v} {vn}[/b]"
