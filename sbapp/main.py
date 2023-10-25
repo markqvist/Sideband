@@ -207,6 +207,7 @@ class SidebandApp(MDApp):
         self.telemetry_init()
         self.settings_init()
         self.connectivity_init()
+        self.object_details_screen = ObjectDetails(self)
 
         # Wait a little extra for user to react to permissions prompt
         # if RNS.vendor.platformutils.get_platform() == "android":
@@ -3048,10 +3049,13 @@ class SidebandApp(MDApp):
         self.sideband.config["telemetry_s_acceleration"] = self.telemetry_screen.ids.telemetry_s_accelerometer.active
         self.sideband.config["telemetry_s_proximity"] = self.telemetry_screen.ids.telemetry_s_proximity.active
 
+        run_telemetry_update = False
         try:
             alt = float(self.telemetry_screen.ids.telemetry_s_fixed_altitude.text.strip().replace(" ", ""))
             self.telemetry_screen.ids.telemetry_s_fixed_altitude.text = str(alt)
-            self.sideband.config["telemetry_s_fixed_altitude"] = alt
+            if self.sideband.config["telemetry_s_fixed_altitude"] != alt:
+                self.sideband.config["telemetry_s_fixed_altitude"] = alt
+                run_telemetry_update = True
         except:
             self.telemetry_screen.ids.telemetry_s_fixed_altitude.text = str(self.sideband.config["telemetry_s_fixed_altitude"])
 
@@ -3059,6 +3063,8 @@ class SidebandApp(MDApp):
             s = self.telemetry_screen.ids.telemetry_s_fixed_latlon.text
             l = s.strip().replace(" ","").split(",")
             lat = float(l[0]); lon = float(l[1])
+            if self.sideband.config["telemetry_s_fixed_latlon"] != [lat, lon]:
+                run_telemetry_update = True
             self.sideband.config["telemetry_s_fixed_latlon"] = [lat, lon]
             self.telemetry_screen.ids.telemetry_s_fixed_latlon.text = f"{lat}, {lon}"
         except:
@@ -3071,7 +3077,10 @@ class SidebandApp(MDApp):
                 self.telemetry_screen.ids.telemetry_s_fixed_latlon.text = "0.0, 0.0"
         
         self.sideband.save_configuration()
-        self.sideband.setstate("app.flags.last_telemetry", time.time())
+        if run_telemetry_update:
+            self.sideband.update_telemetry()
+        else:
+            self.sideband.setstate("app.flags.last_telemetry", time.time())
 
     def telemetry_action(self, sender=None, direction="left"):
         self.telemetry_init()
@@ -3266,10 +3275,12 @@ class SidebandApp(MDApp):
             if self.object_details_screen == None:
                 self.object_details_screen = ObjectDetails(self)
 
-            self.object_details_screen.set_source(sender.source_dest, from_conv=from_conv)
+            Clock.schedule_once(lambda dt: self.object_details_screen.set_source(sender.source_dest, from_conv=from_conv), 0.0)
 
-            self.root.ids.screen_manager.current = "object_details_screen"
-            self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+            def vj(dt):
+                self.root.ids.screen_manager.current = "object_details_screen"
+                self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+            Clock.schedule_once(vj, 0.15)
 
     def map_create_marker(self, source, telemetry, appearance):
         try:
