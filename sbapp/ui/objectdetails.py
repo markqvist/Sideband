@@ -29,6 +29,7 @@ class ObjectDetails():
         self.coords = None
         self.raw_telemetry = None
         self.from_conv = False
+        self.viewing_self = False
 
         if not self.app.root.ids.screen_manager.has_screen("object_details_screen"):
             self.screen = Builder.load_string(layou_object_details)
@@ -75,6 +76,9 @@ class ObjectDetails():
             relative_to = None
             if source_dest != own_address:
                 relative_to = self.app.sideband.telemeter
+                self.viewing_self = False
+            else:
+                self.viewing_self = True
 
             rendered_telemetry = telemeter.render(relative_to=relative_to)
             if "location" in telemeter.sensors:
@@ -207,64 +211,81 @@ class RVDetails(MDRecycleView):
                 updated_str = f", logged [b]{RNS.prettytime(time.time()-updated, compact=True)} ago[/b]"
 
                 coords = f"{lat}, {lon}"
+                fcoords = f"{round(lat,4)}, {round(lon,4)}"
                 self.delegate.coords = coords
-                formatted_values = f"Coordinates [b]{coords}[/b], altitude [b]{alt} meters[/b]"
+                formatted_values = f"Coordinates [b]{fcoords}[/b], altitude [b]{alt} meters[/b]"
                 speed_formatted_values = f"Speed [b]{speed} Km/h[/b], heading [b]{heading}°[/b]"
                 extra_formatted_values = f"Uncertainty [b]{accuracy} meters[/b]"+updated_str
 
                 data = {"icon": s["icon"], "text": f"{formatted_values}"}
 
+                extra_entries.append({"icon": "map-marker-question", "text": extra_formatted_values})
+
                 if "distance" in s:
-                    distance_formatted_text = ""
                     if "orthodromic" in s["distance"]:
                         od = s["distance"]["orthodromic"]
                         if od != None:
                             od_text = f"Geodesic distance [b]{RNS.prettydistance(od)}[/b]"
-                            distance_formatted_text += od_text
+                            extra_entries.append({"icon": "earth", "text": od_text})
                     
                     if "euclidian" in s["distance"]:
                         ed = s["distance"]["euclidian"]
                         if ed != None:
-                            ed_text = f"euclidian distance [b]{RNS.prettydistance(ed)}[/b]"
-                            if len(distance_formatted_text) != 0:
-                                distance_formatted_text += ", "
-                            else:
-                                ed_text = ed_text.replace("euclidian", "Euclidian")
-                            distance_formatted_text += ed_text
+                            ed_text = f"Euclidian distance [b]{RNS.prettydistance(ed)}[/b]"
+                            extra_entries.append({"icon": "axis-arrow", "text": ed_text})
 
-                    extra_entries.append({"icon": "earth", "text": distance_formatted_text})
+                if "angle_to_horizon" in s["values"]:
+                    oath = s["values"]["angle_to_horizon"]
+                    if oath != None:
+                        if self.delegate.viewing_self:
+                            oath_text = f"Local horizon is at [b]{round(oath,3)}°[/b]"
+                        else:
+                            oath_text = f"Object's horizon is at [b]{round(oath,3)}°[/b]"
+                        extra_entries.append({"icon": "arrow-split-horizontal", "text": oath_text})
+
+                if self.delegate.viewing_self and "radio_horizon" in s["values"]:
+                    orh = s["values"]["radio_horizon"]
+                    if orh != None:
+                        range_text = RNS.prettydistance(orh)
+                        rh_formatted_text = f"Radio horizon of [b]{range_text}[/b]"
+                        extra_entries.append({"icon": "radio-tower", "text": rh_formatted_text})
+
+                if "azalt" in s and "local_angle_to_horizon" in s["azalt"]:
+                    lath = s["azalt"]["local_angle_to_horizon"]
+                    if lath != None:
+                        lath_text = f"Local horizon is at [b]{round(lath,3)}°[/b]"
+                        extra_entries.append({"icon": "align-vertical-distribute", "text": lath_text})
 
                 if "azalt" in s:
                     azalt_formatted_text = ""
                     if "azimuth" in s["azalt"]:
                         az = s["azalt"]["azimuth"]
-                        az_text = f"Azimuth [b]{round(az,4)}°[/b]"
+                        az_text = f"Azimuth [b]{round(az,3)}°[/b]"
                         azalt_formatted_text += az_text
                     
                     if "altitude" in s["azalt"]:
                         al = s["azalt"]["altitude"]
-                        al_text = f"altitude [b]{round(al,4)}°[/b]"
+                        al_text = f"altitude [b]{round(al,3)}°[/b]"
                         if len(azalt_formatted_text) != 0: azalt_formatted_text += ", "
                         azalt_formatted_text += al_text
 
+                    extra_entries.append({"icon": "compass-rose", "text": azalt_formatted_text})
+
                     if "above_horizon" in s["azalt"]:
                         astr = "above" if s["azalt"]["above_horizon"] == True else "below"
-                        ah_text = f"object is [b]{astr}[/b] the horizon"
-                        if len(azalt_formatted_text) != 0: azalt_formatted_text += ", "
-                        azalt_formatted_text += ah_text
-
-                    extra_entries.append({"icon": "compass-rose", "text": azalt_formatted_text})
+                        dstr = str(round(s["azalt"]["altitude_delta"], 3))
+                        ah_text = f"Object is [b]{astr}[/b] the horizon (Δ = {dstr}°)"
+                        extra_entries.append({"icon": "angle-acute", "text": ah_text})
 
                 if "radio_horizon" in s:
                     crange_text = RNS.prettydistance(s["radio_horizon"]["combined_range"])
                     if s["radio_horizon"]["within_range"]:
-                        rh_formatted_text = f"Object is [b]within[/b] combined radio horizon of [b]{crange_text}[/b]"
+                        rh_formatted_text = f"[b]Within[/b] shared radio horizon of [b]{crange_text}[/b]"
                     else:
-                        rh_formatted_text = f"Object is [b]not within[/b] within combined radio horizon of [b]{crange_text}[/b]"
+                        rh_formatted_text = f"[b]Outside[/b] shared radio horizon of [b]{crange_text}[/b]"
                     
                     extra_entries.append({"icon": "radio-tower", "text": rh_formatted_text})
 
-                extra_entries.append({"icon": "map-marker-question", "text": extra_formatted_values})
                 extra_entries.append({"icon": "speedometer", "text": speed_formatted_values})
 
                 def select(e=None):

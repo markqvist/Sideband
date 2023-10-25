@@ -5,7 +5,8 @@ import struct
 import threading
 
 from RNS.vendor import umsgpack as umsgpack
-from .geo import orthodromic_distance, euclidian_distance, azalt, angle_to_horizon, radio_horizon
+from .geo import orthodromic_distance, euclidian_distance
+from .geo import azalt, angle_to_horizon, radio_horizon, shared_radio_horizon
 
 class Telemeter():
   @staticmethod
@@ -603,6 +604,13 @@ class Location(Sensor):
   def render(self, relative_to=None):
     if self.data == None:
       return None
+
+    obj_ath = None
+    obj_rh = None
+    if self.data["altitude"] != None and self.data["latitude"] != None and self.data["longtitude"] != None:
+      coords = (self.data["latitude"], self.data["longtitude"], self.data["altitude"])
+      obj_ath = angle_to_horizon(coords)
+      obj_rh = radio_horizon(self.data["altitude"])
     
     rendered = {
       "icon": "map-marker",
@@ -615,6 +623,8 @@ class Location(Sensor):
         "heading": self.data["bearing"],
         "accuracy": self.data["accuracy"],
         "updated": self.data["last_update"],
+        "angle_to_horizon": obj_ath,
+        "radio_horizon": obj_rh,
       },
     }
 
@@ -634,16 +644,25 @@ class Location(Sensor):
             od = orthodromic_distance(cs, cr)
             aa = azalt(cs, cr)
             ath = angle_to_horizon(cr)
-            rh = radio_horizon(cs, cr)
+            atd = aa[1]-ath
             above_horizon = None
             if aa[1] != None:
               if aa[1] > ath:
                 above_horizon = True
               else:
                 above_horizon = False
+            
+            srh = shared_radio_horizon(cs, cr)
+
             rendered["distance"] = {"euclidian": ed, "orthodromic": od}
-            rendered["azalt"] = {"azimuth": aa[0], "altitude": aa[1], "above_horizon": above_horizon}
-            rendered["radio_horizon"] = {"object_range": rh[0], "related_range": rh[1], "combined_range": rh[2], "within_range": rh[3]}
+            rendered["azalt"] = {
+              "azimuth": aa[0], "altitude": aa[1], "above_horizon": above_horizon,
+              "altitude_delta": atd, "local_angle_to_horizon": ath}
+            rendered["radio_horizon"] = {
+              "object_range": srh["horizon1"], "related_range": srh["horizon2"],
+              "combined_range": srh["shared"], "within_range": srh["within"],
+              "geodesic_distance": srh["geodesic_distance"],
+              "antenna_distance": srh["antenna_distance"]}
 
     return rendered
 
