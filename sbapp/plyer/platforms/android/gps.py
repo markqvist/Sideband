@@ -81,7 +81,8 @@ class AndroidGPS(GPS):
                 Looper.getMainLooper())
 
     def _stop(self):
-        self._location_manager.removeUpdates(self._location_listener)
+        if hasattr(self, "_location_manager") and self._location_manager != None:
+            self._location_manager.removeUpdates(self._location_listener)
 
 
 def instance():
