@@ -503,6 +503,10 @@ class SidebandCore():
             self.config["telemetry_s_fixed_latlon"] = [0.0, 0.0]
         if not "telemetry_s_fixed_altitude" in self.config:
             self.config["telemetry_s_fixed_altitude"] = 0.0
+        if not "telemetry_s_information" in self.config:
+            self.config["telemetry_s_information"] = False
+        if not "telemetry_s_information_text" in self.config:
+            self.config["telemetry_s_information_text"] = ""
 
         if not "map_history_limit" in self.config:
             self.config["map_history_limit"] = 7*24*60*60
@@ -1216,7 +1220,7 @@ class SidebandCore():
             
             return results
 
-    def _db_save_telemetry(self, context_dest, telemetry, physical_link = None):
+    def _db_save_telemetry(self, context_dest, telemetry, physical_link = None, source_dest = None):
         try:
             remote_telemeter = Telemeter.from_packed(telemetry)
             telemetry_timestamp = remote_telemeter.read_all()["time"]["utc"]
@@ -1238,12 +1242,35 @@ class SidebandCore():
                 if "q" in physical_link: remote_telemeter.sensors["physical_link"].q = physical_link["q"]
                 remote_telemeter.sensors["physical_link"].update_data()
                 telemetry = remote_telemeter.packed()
-            
+
+            if source_dest != None:
+                remote_telemeter.synthesize("received")
+                remote_telemeter.sensors["received"].by = self.lxmf_destination.hash
+                remote_telemeter.sensors["received"].via = source_dest
+
+                rl = remote_telemeter.read("location")
+                if rl and "latitude" in rl and "longtitude" in rl and "altitude" in rl:
+                    if self.latest_telemetry != None and "location" in self.latest_telemetry:
+                        ol = self.latest_telemetry["location"]
+                        if "latitude" in ol and "longtitude" in ol and "altitude" in ol:
+                            olat = ol["latitude"]; olon = ol["longtitude"]; oalt = ol["altitude"]
+                            rlat = rl["latitude"]; rlon = rl["longtitude"]; ralt = rl["altitude"]
+                            if olat != None and olon != None and oalt != None:
+                                if rlat != None and rlon != None and ralt != None:
+                                    remote_telemeter.sensors["received"].set_distance(
+                                        (olat, olon, oalt), (rlat, rlon, ralt)
+                                    )
+
+                remote_telemeter.sensors["received"].update_data()
+                telemetry = remote_telemeter.packed()
+                
             query = "INSERT INTO telemetry (dest_context, ts, data) values (?, ?, ?)"
             data = (context_dest, telemetry_timestamp, telemetry)
             dbc.execute(query, data)
             db.commit()
             self.setstate("app.flags.last_telemetry", time.time())
+
+            return telemetry
 
         except Exception as e:
             RNS.log("An error occurred while saving telemetry to database: "+str(e), RNS.LOG_ERROR)
@@ -1632,6 +1659,19 @@ class SidebandCore():
     def _db_save_lxm(self, lxm, context_dest, originator = False):
         state = lxm.state
 
+        packed_telemetry = None
+        if not originator and lxm.fields != None:
+            if LXMF.FIELD_ICON_APPEARANCE in lxm.fields:
+                self._db_update_appearance(context_dest, lxm.timestamp, lxm.fields[LXMF.FIELD_ICON_APPEARANCE])
+
+            if LXMF.FIELD_TELEMETRY in lxm.fields:
+                physical_link = {}
+                if lxm.rssi or lxm.snr or lxm.q:
+                    physical_link["rssi"] = lxm.rssi
+                    physical_link["snr"] = lxm.snr
+                    physical_link["q"] = lxm.q
+                packed_telemetry = self._db_save_telemetry(context_dest, lxm.fields[LXMF.FIELD_TELEMETRY], physical_link=physical_link, source_dest=context_dest)
+
         db = self.__db_connect()
         dbc = db.cursor()
 
@@ -1648,6 +1688,10 @@ class SidebandCore():
             extras["rssi"] = lxm.rssi
             extras["snr"] = lxm.snr
             extras["q"] = lxm.q
+
+        if packed_telemetry != None:
+            extras["packed_telemetry"] = packed_telemetry
+            
         extras = msgpack.packb(extras)
 
         query = "INSERT INTO lxm (lxm_hash, dest, source, title, tx_ts, rx_ts, state, method, t_encrypted, t_encryption, data, extra) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -1668,18 +1712,6 @@ class SidebandCore():
 
         dbc.execute(query, data)
         db.commit()
-
-        if not originator and lxm.fields != None:
-            if LXMF.FIELD_ICON_APPEARANCE in lxm.fields:
-                self._db_update_appearance(context_dest, lxm.timestamp, lxm.fields[LXMF.FIELD_ICON_APPEARANCE])
-
-            if LXMF.FIELD_TELEMETRY in lxm.fields:
-                physical_link = {}
-                if lxm.rssi or lxm.snr or lxm.q:
-                    physical_link["rssi"] = lxm.rssi
-                    physical_link["snr"] = lxm.snr
-                    physical_link["q"] = lxm.q
-                self._db_save_telemetry(context_dest, lxm.fields[LXMF.FIELD_TELEMETRY], physical_link=physical_link)
 
         self.__event_conversation_changed(context_dest)
 
@@ -1782,6 +1814,9 @@ class SidebandCore():
                 self.telemeter.sensors["location"].longtitude = self.config["telemetry_s_fixed_latlon"][1]
                 self.telemeter.sensors["location"].altitude = self.config["telemetry_s_fixed_altitude"]
 
+            if self.config["telemetry_s_information"]:
+                self.telemeter.synthesize("information")
+                self.telemeter.sensors["information"].contents = self.config["telemetry_s_information_text"]
 
     def get_telemetry(self):
         if self.config["telemetry_enabled"] == True:

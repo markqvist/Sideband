@@ -2981,6 +2981,12 @@ class SidebandApp(MDApp):
             
             self.telemetry_screen.ids.telemetry_s_proximity.active = self.sideband.config["telemetry_s_proximity"]
             self.telemetry_screen.ids.telemetry_s_proximity.bind(active=self.telemetry_save)
+            
+            self.telemetry_screen.ids.telemetry_s_information.active = self.sideband.config["telemetry_s_information"]
+            self.telemetry_screen.ids.telemetry_s_information.bind(active=self.telemetry_save)
+            self.telemetry_screen.ids.telemetry_s_information_text.text = str(self.sideband.config["telemetry_s_information_text"])
+            self.telemetry_screen.ids.telemetry_s_information_text.bind(focus=self.telemetry_save)
+
 
             self.telemetry_ready = True
 
@@ -3048,6 +3054,8 @@ class SidebandApp(MDApp):
         self.sideband.config["telemetry_s_angular_velocity"] = self.telemetry_screen.ids.telemetry_s_gyroscope.active
         self.sideband.config["telemetry_s_acceleration"] = self.telemetry_screen.ids.telemetry_s_accelerometer.active
         self.sideband.config["telemetry_s_proximity"] = self.telemetry_screen.ids.telemetry_s_proximity.active
+        self.sideband.config["telemetry_s_information"] = self.telemetry_screen.ids.telemetry_s_information.active
+        self.sideband.config["telemetry_s_information_text"] = self.telemetry_screen.ids.telemetry_s_information_text.text
 
         run_telemetry_update = False
         try:
@@ -3264,18 +3272,27 @@ class SidebandApp(MDApp):
     def map_display_telemetry(self, sender=None):
         self.object_details_action(sender)
 
+    def map_display_own_telemetry(self, sender=None):
+        self.object_details_action(source_dest=self.sideband.lxmf_destination.hash,from_telemetry=True)
+
     def close_sub_map_action(self, sender=None):
         self.map_action(direction="right")
 
-    def object_details_action(self, sender=None, from_conv=False):
+    def object_details_action(self, sender=None, from_conv=False, from_telemetry=False, source_dest=None):
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.nav_drawer.set_state("closed")
 
-        if sender != None and hasattr(sender, "source_dest") and sender.source_dest != None:
+        if source_dest != None:
+            telemetry_source = source_dest
+        else:
+            if sender != None and hasattr(sender, "source_dest") and sender.source_dest != None:
+                telemetry_source = sender.source_dest
+
+        if telemetry_source != None:
             if self.object_details_screen == None:
                 self.object_details_screen = ObjectDetails(self)
 
-            Clock.schedule_once(lambda dt: self.object_details_screen.set_source(sender.source_dest, from_conv=from_conv), 0.0)
+            Clock.schedule_once(lambda dt: self.object_details_screen.set_source(telemetry_source, from_conv=from_conv, from_telemetry=from_telemetry), 0.0)
 
             def vj(dt):
                 self.root.ids.screen_manager.current = "object_details_screen"

@@ -4,6 +4,7 @@ import RNS
 from kivy.metrics import dp,sp
 from kivy.lang.builder import Builder
 from kivy.core.clipboard import Clipboard
+from kivy.utils import escape_markup
 from kivymd.uix.recycleview import MDRecycleView
 from kivymd.uix.list import OneLineIconListItem
 from kivy.properties import StringProperty, BooleanProperty
@@ -28,6 +29,7 @@ class ObjectDetails():
         self.object_hash = object_hash
         self.coords = None
         self.raw_telemetry = None
+        self.from_telemetry = False
         self.from_conv = False
         self.viewing_self = False
 
@@ -45,23 +47,31 @@ class ObjectDetails():
             self.screen.ids.object_details_container.add_widget(self.telemetry_list)
 
     def close_action(self, sender=None):
-        if self.from_conv:
-            self.app.open_conversation(self.object_hash, direction="right")
+        if self.from_telemetry:
+            self.app.telemetry_action(direction="right")
         else:
-            self.app.close_sub_map_action()
+            if self.from_conv:
+                self.app.open_conversation(self.object_hash, direction="right")
+            else:
+                self.app.close_sub_map_action()
 
-    def set_source(self, source_dest, from_conv=False):
+    def set_source(self, source_dest, from_conv=False, from_telemetry=False):
         self.object_hash = source_dest
 
-        if from_conv:
-            self.from_conv = True
+        if from_telemetry:
+            self.from_telemetry = True
         else:
-            self.from_conv = False
+            self.from_telemetry = False
+            if from_conv:
+                self.from_conv = True
+            else:
+                self.from_conv = False
 
         self.coords = None
         self.telemetry_list.data = []
+        pds = self.app.sideband.peer_display_name(source_dest)
         appearance = self.app.sideband.peer_appearance(source_dest)
-        self.screen.ids.name_label.text = self.app.sideband.peer_display_name(source_dest)
+        self.screen.ids.name_label.text = pds
         self.screen.ids.coordinates_button.disabled = True
         self.screen.ids.object_appearance.icon = appearance[0]
         self.screen.ids.object_appearance.icon_color = appearance[1]
@@ -79,6 +89,7 @@ class ObjectDetails():
                 self.viewing_self = False
             else:
                 self.viewing_self = True
+                self.screen.ids.name_label.text = pds+" (this device)"
 
             rendered_telemetry = telemeter.render(relative_to=relative_to)
             if "location" in telemeter.sensors:
@@ -145,7 +156,9 @@ class RVDetails(MDRecycleView):
             "Relative Humidity": 50,
             "Ambient Pressure": 60,
             "Battery": 70,
-            "Timestamp": 80,    
+            "Timestamp": 80,
+            "Received": 90,
+            "Information": 100,
         }
         self.entries = []
         rendered_telemetry.sort(key=lambda s: sort[s["name"]] if s["name"] in sort else 1000)
@@ -161,6 +174,37 @@ class RVDetails(MDRecycleView):
                 if ts != None:
                     ts_str = datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
                     formatted_values = f"Recorded [b]{RNS.prettytime(time.time()-ts, compact=True)} ago[/b] ({ts_str})"
+            elif name == "Information":
+                info = s["values"]["contents"]
+                if info != None:
+                    istr = str(info)
+                    external_text = escape_markup(istr)
+                    formatted_values = f"[b]Information[/b]: {external_text}"
+            elif name == "Received":
+                formatted_values = ""
+                by = s["values"]["by"]; by_str = ""
+                if by != None:
+                    if by == self.app.sideband.lxmf_destination.hash:
+                        by_str = "Directly by [b]this device[/b]"
+                    else:
+                        dstr = self.app.sideband.peer_display_name(by)
+                        by_str = f"By [b]{dstr}[/b]"
+                    formatted_values+=by_str
+
+                via = s["values"]["via"]; via_str = ""
+                if via != None:
+                    if via == self.delegate.object_hash:
+                        via_str = "directly [b]from emitter[/b]"
+                    else:
+                        dstr = self.app.sideband.peer_display_name(by)
+                        via_str = f"via [b]{dstr}[/b]"
+                    if len(formatted_values) != 0: formatted_values += ", "
+                    formatted_values += via_str
+
+                if formatted_values != "":
+                    formatted_values = f"Collected {formatted_values}"
+                else:
+                    formatted_values = None
             elif name == "Battery":
                 p = s["values"]["percent"]
                 cs = s["values"]["_meta"]
@@ -213,7 +257,11 @@ class RVDetails(MDRecycleView):
                 coords = f"{lat}, {lon}"
                 fcoords = f"{round(lat,4)}, {round(lon,4)}"
                 self.delegate.coords = coords
-                formatted_values = f"Coordinates [b]{fcoords}[/b], altitude [b]{alt} meters[/b]"
+                if alt == 0:
+                    alt_str = "0"
+                else:
+                    alt_str = RNS.prettydistance(alt)
+                formatted_values = f"Coordinates [b]{fcoords}[/b], altitude [b]{alt_str}[/b]"
                 speed_formatted_values = f"Speed [b]{speed} Km/h[/b], heading [b]{heading}°[/b]"
                 extra_formatted_values = f"Uncertainty [b]{accuracy} meters[/b]"+updated_str
 
@@ -277,14 +325,23 @@ class RVDetails(MDRecycleView):
                         ah_text = f"Object is [b]{astr}[/b] the horizon (Δ = {dstr}°)"
                         extra_entries.append({"icon": "angle-acute", "text": ah_text})
 
+                if not self.delegate.viewing_self and "radio_horizon" in s["values"]:
+                    orh = s["values"]["radio_horizon"]
+                    if orh != None:
+                        range_text = RNS.prettydistance(orh)
+                        rh_formatted_text = f"Object's radio horizon is [b]{range_text}[/b]"
+                        extra_entries.append({"icon": "radio-tower", "text": rh_formatted_text})
+
                 if "radio_horizon" in s:
+                    rh_icon = "circle-outline"
                     crange_text = RNS.prettydistance(s["radio_horizon"]["combined_range"])
                     if s["radio_horizon"]["within_range"]:
                         rh_formatted_text = f"[b]Within[/b] shared radio horizon of [b]{crange_text}[/b]"
+                        rh_icon = "set-none"
                     else:
                         rh_formatted_text = f"[b]Outside[/b] shared radio horizon of [b]{crange_text}[/b]"
                     
-                    extra_entries.append({"icon": "radio-tower", "text": rh_formatted_text})
+                    extra_entries.append({"icon": rh_icon, "text": rh_formatted_text})
 
                 extra_entries.append({"icon": "speedometer", "text": speed_formatted_values})
 

@@ -927,10 +927,10 @@ MDScreen:
                     spacing: dp(24)
                     size_hint_y: None
                     padding: [dp(0),dp(24),dp(0),dp(0)]
-                    height: dp(160)
+                    height: dp(232)
 
                     MDRectangleFlatIconButton:
-                        id: telemetry_icons_button
+                        id: telemetry_send_update_button
                         icon: "upload-lock"
                         text: "Send Telemetry Update Now"
                         padding: [dp(0), dp(14), dp(0), dp(14)]
@@ -941,7 +941,7 @@ MDScreen:
                         disabled: False
 
                     MDRectangleFlatIconButton:
-                        id: telemetry_icons_button
+                        id: telemetry_request_button
                         icon: "arrow-down-bold-hexagon-outline"
                         text: "Request Telemetry From Collector"
                         padding: [dp(0), dp(14), dp(0), dp(14)]
@@ -952,7 +952,7 @@ MDScreen:
                         disabled: False
 
                     MDRectangleFlatIconButton:
-                        id: telemetry_icons_button
+                        id: telemetry_copy_button
                         icon: "content-copy"
                         text: "Copy Telemetry Data To Clipboard"
                         padding: [dp(0), dp(14), dp(0), dp(14)]
@@ -960,6 +960,17 @@ MDScreen:
                         font_size: dp(16)
                         size_hint: [1.0, None]
                         on_release: root.app.telemetry_copy(self)
+                        disabled: False
+
+                    MDRectangleFlatIconButton:
+                        id: telemetry_own_button
+                        icon: "database-eye-outline"
+                        text: "Display Own Telemetry"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.app.map_display_own_telemetry(self)
                         disabled: False
 
                 MDBoxLayout:
@@ -1331,6 +1342,37 @@ MDScreen:
                     height: dp(48)
                     
                     MDLabel:
+                        text: "Information"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_s_information
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    id: telemetry_information_fields
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    spacing: dp(16)
+                    height: dp(64)
+                    padding: [0, dp(0), 0, dp(0)]
+
+                    MDTextField:
+                        id: telemetry_s_information_text
+                        size_hint: [1.0, None]
+                        hint_text: "Custom information text"
+                        max_text_length: 256
+                        text: ""
+                        font_size: dp(24)
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
                         text: "Fixed Location"
                         font_style: "H6"
 
@@ -1660,7 +1702,7 @@ MDScreen:
                         height: dp(48)
                         
                         MDLabel:
-                            text: "Advanced Statistics"
+                            text: "Advanced Metrics"
                             font_style: "H6"
 
                         MDSwitch:

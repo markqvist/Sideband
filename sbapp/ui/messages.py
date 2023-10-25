@@ -42,6 +42,7 @@ class Messages():
         self.app = app
         self.context_dest = context_dest
         self.source_dest = context_dest
+        self.is_trusted = self.app.sideband.is_trusted(self.context_dest)
 
         self.screen = self.app.root.ids.screen_manager.get_screen("messages_screen")
         self.ids = self.screen.ids
@@ -178,6 +179,33 @@ class Messages():
                 rxstr = time.strftime(ts_format, time.localtime(m["received"]))
                 titlestr = ""
                 extra_telemetry = {}
+                telemeter = None
+                if "extras" in m and m["extras"] != None and "packed_telemetry" in m["extras"]:
+                    try:
+                        telemeter = Telemeter.from_packed(m["extras"]["packed_telemetry"])
+                    except Exception as e:
+                        pass
+
+                if telemeter == None and "lxm" in m and m["lxm"] and m["lxm"].fields != None and LXMF.FIELD_TELEMETRY in m["lxm"].fields:
+                    try:
+                        packed_telemetry = m["lxm"].fields[LXMF.FIELD_TELEMETRY]
+                        telemeter = Telemeter.from_packed(packed_telemetry)
+                    except Exception as e:
+                        pass
+
+                rcvd_d_str = ""
+                
+                trcvd = telemeter.read("received") if telemeter else None
+                if trcvd and "distance" in trcvd:
+                    d = trcvd["distance"]
+                    if "euclidian" in d:
+                        edst = d["euclidian"]
+                        if edst != None:
+                            rcvd_d_str = " [b]Distance[/b] "+RNS.prettydistance(edst)
+                    elif "geodesic" in d:
+                        gdst = d["geodesic"]
+                        if gdst != None:
+                            rcvd_d_str = " [b]Distance[/b] "+RNS.prettydistance(gdst)
 
                 phy_stats_str = ""
                 if "extras" in m and m["extras"] != None:
@@ -238,7 +266,12 @@ class Messages():
                     if phy_stats_str != "" and self.app.sideband.config["advanced_stats"]:
                         heading_str += phy_stats_str+"\n"
 
-                    heading_str += "[b]Received[/b] "+rxstr+"\n[b]Sent[/b] "+txstr
+                    heading_str += "[b]Received[/b] "+rxstr
+
+                    if rcvd_d_str != "" and self.app.sideband.config["advanced_stats"]:
+                        heading_str += rcvd_d_str
+
+                    heading_str += "\n[b]Sent[/b] "+txstr
 
                 item = ListLXMessageCard(
                     text=m["content"].decode("utf-8"),
@@ -253,6 +286,7 @@ class Messages():
                 item.ids.content_text.text_color = mt_color
                 item.ids.msg_submenu.theme_text_color = "Custom"
                 item.ids.msg_submenu.text_color = mt_color
+                item.ids.content_text.markup = self.is_trusted
 
                 def gen_del(mhash, item):
                     def x():
@@ -299,10 +333,10 @@ class Messages():
 
                     return x
 
-                def gen_copy_telemetry(packed_telemetry, extra_telemetry, item):
+                def gen_copy_telemetry(telemeter, extra_telemetry, item):
                     def x():
                         try:
-                            telemeter = Telemeter.from_packed(packed_telemetry)
+                            telemeter
                             if extra_telemetry and len(extra_telemetry) != 0:
                                 physical_link = extra_telemetry
                                 telemeter.synthesize("physical_link")
@@ -507,8 +541,7 @@ class Messages():
                             }
                         ]
                     else:
-                        if "lxm" in m and m["lxm"] and m["lxm"].fields != None and LXMF.FIELD_TELEMETRY in m["lxm"].fields:
-                            packed_telemetry = m["lxm"].fields[LXMF.FIELD_TELEMETRY]
+                        if telemeter != None:
                             dm_items = [
                                 {
                                     "viewclass": "OneLineListItem",
@@ -520,7 +553,7 @@ class Messages():
                                     "viewclass": "OneLineListItem",
                                     "text": "Copy telemetry",
                                     "height": dp(40),
-                                    "on_release": gen_copy_telemetry(packed_telemetry, extra_telemetry, item)
+                                    "on_release": gen_copy_telemetry(telemeter, extra_telemetry, item)
                                 },
                                 {
                                     "text": "Delete",
@@ -694,11 +727,9 @@ Builder.load_string("""
         MDLabel:
             id: content_text
             text: root.text
-            # adaptive_size: True
+            markup: False
             size_hint_y: None
             text_size: self.width, None
-            # theme_text_color: 'Custom'
-            # text_color: rgba(255,255,255,216)
             height: self.texture_size[1]
 
 <CustomOneLineIconListItem>
