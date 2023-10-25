@@ -5,7 +5,7 @@ import struct
 import threading
 
 from RNS.vendor import umsgpack as umsgpack
-from .geo import orthodromic_distance, euclidian_distance, azalt
+from .geo import orthodromic_distance, euclidian_distance, azalt, angle_to_horizon, radio_horizon
 
 class Telemeter():
   @staticmethod
@@ -95,7 +95,8 @@ class Telemeter():
   def stop_all(self):
     if not self.from_packed:
       for sensor in self.sensors:
-        self.sensors[sensor].stop()
+        if not sensor == "time":
+          self.sensors[sensor].stop()
 
   def read(self, sensor):
     if not self.from_packed:
@@ -632,9 +633,17 @@ class Location(Sensor):
             ed = euclidian_distance(cs, cr)
             od = orthodromic_distance(cs, cr)
             aa = azalt(cs, cr)
+            ath = angle_to_horizon(cr)
+            rh = radio_horizon(cs, cr)
+            above_horizon = None
+            if aa[1] != None:
+              if aa[1] > ath:
+                above_horizon = True
+              else:
+                above_horizon = False
             rendered["distance"] = {"euclidian": ed, "orthodromic": od}
-            rendered["azalt"] = {"azimuth": aa[0], "altitude": aa[1]}
-
+            rendered["azalt"] = {"azimuth": aa[0], "altitude": aa[1], "above_horizon": above_horizon}
+            rendered["radio_horizon"] = {"object_range": rh[0], "related_range": rh[1], "combined_range": rh[2], "within_range": rh[3]}
 
     return rendered
 
