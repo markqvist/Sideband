@@ -37,11 +37,11 @@ class ObjectDetails():
             self.ids = self.screen.ids
             self.app.root.ids.screen_manager.add_widget(self.screen)
 
-            self.screen.ids.object_details_scrollview.effect_cls = ScrollEffect
+            self.screen.ids.object_details_container.effect_cls = ScrollEffect
             self.telemetry_list = RVDetails()
             self.telemetry_list.delegate = self
             self.telemetry_list.app = self.app
-            self.screen.ids.object_details_scrollview.add_widget(self.telemetry_list)
+            self.screen.ids.object_details_container.add_widget(self.telemetry_list)
 
     def close_action(self, sender=None):
         if self.from_conv:
@@ -92,7 +92,7 @@ class ObjectDetails():
             Clock.schedule_once(job, 0.01)
             self.telemetry_list.update_source(None)
 
-        self.screen.ids.object_details_scrollview.effect_cls = ScrollEffect
+        self.telemetry_list.effect_cls = ScrollEffect
 
     def reload(self):
         self.clear_widget()
@@ -315,6 +315,8 @@ layou_object_details = """
 
 <RVDetails>:
     viewclass: "ODView"
+    effect_cls: "ScrollEffect"
+
     RecycleBoxLayout:
         default_size: None, dp(50)
         default_size_hint: 1, None
@@ -350,7 +352,7 @@ MDScreen:
 
             MDIconButton:
                 id: object_appearance
-                icon: "map-marker-star-outline"
+                icon: "account-question"
                 icon_color: [0,0,0,1]
                 md_bg_color: [1,1,1,1]
                 theme_icon_color: "Custom"
@@ -392,8 +394,8 @@ MDScreen:
                 on_release: root.delegate.copy_coordinates(self)
                 disabled: False
             
-        ScrollView:
-            id: object_details_scrollview
-            effect_cls: "ScrollEffect"
+        MDBoxLayout:
+            orientation: "vertical"
+            id: object_details_container
                 
 """
