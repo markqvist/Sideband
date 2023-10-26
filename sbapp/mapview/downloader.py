@@ -25,6 +25,7 @@ import logging
 # I tried it with a simpler one (just Mozilla/5.0) this also gets rejected
 USER_AGENT = 'Kivy-garden.mapview'
 
+import RNS
 
 class Downloader:
     _instance = None
@@ -51,6 +52,7 @@ class Downloader:
         self._futures = []
         Clock.schedule_interval(self._check_executor, 1 / 60.0)
         if not exists(self.cache_dir):
+            RNS.log("Creating cache dir "+str(self.cache_dir), RNS.LOG_WARNING)
             makedirs(self.cache_dir)
 
         logging.getLogger("urllib3").setLevel(logging.WARNING)

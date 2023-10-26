@@ -123,7 +123,7 @@ class Tile(Rectangle):
             cache_key=map_source.cache_key,
             **self.__dict__
         )
-        return join(self.cache_dir, fn)
+        return join(self.map_source.cache_dir, fn)
 
     def set_source(self, cache_fn):
         try:
