@@ -1,4 +1,4 @@
-__debug_build__ = True
+__debug_build__ = False
 __disable_shaders__ = False
 __version__ = "0.7.0"
 __variant__ = "beta"
@@ -3598,6 +3598,7 @@ class SidebandApp(MDApp):
         self.object_details_action(sender)
 
     def map_display_own_telemetry(self, sender=None):
+        self.sideband.update_telemetry()
         self.object_details_action(source_dest=self.sideband.lxmf_destination.hash,from_telemetry=True)
 
     def close_sub_map_action(self, sender=None):
