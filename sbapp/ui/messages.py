@@ -278,6 +278,9 @@ class Messages():
                     heading=heading_str,
                     md_bg_color=msg_color,
                 )
+                if not RNS.vendor.platformutils.is_android():
+                    item.radius = dp(5)
+
                 item.sb_uid = m["hash"]
                 item.m = m
                 item.ids.heading_text.theme_text_color = "Custom"
