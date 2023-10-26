@@ -58,28 +58,10 @@ MDNavigationLayout:
                             # _no_ripple_effect: True
                         
                             IconLeftWidget:
-                                icon: "email"
+                                icon: "comment-text-multiple"
                                 on_release: root.ids.screen_manager.app.conversations_action(self)
                                 
 
-                        OneLineIconListItem:
-                            text: "Announce Stream"
-                            on_release: root.ids.screen_manager.app.announces_action(self)
-                        
-                            IconLeftWidget:
-                                icon: "account-voice"
-                                on_release: root.ids.screen_manager.app.announces_action(self)
-
-                                                       
-                        OneLineIconListItem:
-                            text: "Local Broadcasts"
-                            on_release: root.ids.screen_manager.app.broadcasts_action(self)
-                        
-                            IconLeftWidget:
-                                icon: "radio-tower"
-                                on_release: root.ids.screen_manager.app.broadcasts_action(self)
-
-                                                       
                         OneLineIconListItem:
                             text: "Situation Map"
                             on_release: root.ids.screen_manager.app.map_action(self)
@@ -96,6 +78,24 @@ MDNavigationLayout:
                             IconLeftWidget:
                                 icon: "map-marker-path"
                                 on_release: root.ids.screen_manager.app.telemetry_action(self)
+
+                                                       
+                        OneLineIconListItem:
+                            text: "Announce Stream"
+                            on_release: root.ids.screen_manager.app.announces_action(self)
+                        
+                            IconLeftWidget:
+                                icon: "account-voice"
+                                on_release: root.ids.screen_manager.app.announces_action(self)
+
+                                                       
+                        OneLineIconListItem:
+                            text: "Local Broadcasts"
+                            on_release: root.ids.screen_manager.app.broadcasts_action(self)
+                        
+                            IconLeftWidget:
+                                icon: "radio-tower"
+                                on_release: root.ids.screen_manager.app.broadcasts_action(self)
 
                                                        
                         OneLineIconListItem:
@@ -1180,7 +1180,7 @@ MDScreen:
                     height: dp(48)
                     
                     MDLabel:
-                        text: "Always send custom display style"
+                        text: "Send display style to everyone"
                         font_style: "H6"
 
                     MDSwitch:
