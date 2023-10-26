@@ -516,6 +516,12 @@ class SidebandCore():
             self.config["map_lon"] = 0.0
         if not "map_zoom" in self.config:
             self.config["map_zoom"] = 3
+        if not "map_storage_external" in self.config:
+            self.config["map_storage_external"] = False
+        if not "map_storage_path" in self.config:
+            self.config["map_storage_path"] = None
+        if not "map_storage_file" in self.config:
+            self.config["map_storage_file"] = None
 
         # Make sure we have a database
         if not os.path.isfile(self.db_path):
@@ -1691,7 +1697,7 @@ class SidebandCore():
 
         if packed_telemetry != None:
             extras["packed_telemetry"] = packed_telemetry
-            
+
         extras = msgpack.packb(extras)
 
         query = "INSERT INTO lxm (lxm_hash, dest, source, title, tx_ts, rx_ts, state, method, t_encrypted, t_encryption, data, extra) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"

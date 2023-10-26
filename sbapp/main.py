@@ -1,4 +1,4 @@
-__debug_build__ = False
+__debug_build__ = True
 __disable_shaders__ = False
 __version__ = "0.7.0"
 __variant__ = "beta"
@@ -45,8 +45,12 @@ from kivymd.uix.list import OneLineIconListItem
 from kivy.properties import StringProperty
 from kivymd.uix.pickers import MDColorPicker
 from kivymd.uix.button import BaseButton, MDIconButton
+from kivymd.uix.filemanager import MDFileManager
+from kivymd.toast import toast
 from sideband.sense import Telemeter
 from mapview import CustomMapMarker
+from mapview.mbtsource import MBTilesMapSource
+from mapview.source import MapSource
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from sideband.core import SidebandCore
@@ -62,6 +66,7 @@ if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass
     from android import mActivity
     from android.permissions import request_permissions, check_permission
+    from android.storage import primary_external_storage_path, secondary_external_storage_path
 
     from kivymd.utils.set_bars_colors import set_bars_colors
     android_api_version = autoclass('android.os.Build$VERSION').SDK_INT
@@ -464,7 +469,7 @@ class SidebandApp(MDApp):
     def check_storage_permission(self):
         storage_permissions_ok = False
         if android_api_version < 30:
-            if check_permission("android.permission.WRITE_EXTERNAL_STORAGE"):
+            if check_permission("android.permission.WRITE_EXTERNAL_STORAGE") and check_permission("android.permission.READ_EXTERNAL_STORAGE"):
                 storage_permissions_ok = True
             else:
                 self.request_storage_permission()
@@ -478,7 +483,7 @@ class SidebandApp(MDApp):
                 ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                 dialog = MDDialog(
                     title="Storage Permission",
-                    text="Sideband needs permission to write to external storage to export, share and print paper messages.\n\nOn this Android version, the Manage All Files permission is needed, since normal external storage permission is no longer supported.\n\nSideband will only ever read and write to files in the \"Sideband\" folder of your external storage, and does not read any other data from your system.",
+                    text="Sideband needs external storage permission to to read offline map files.\n\nOn this Android version, the Manage All Files permission is needed, since normal external storage permission is no longer supported.\n\nSideband will only ever read and write to files you select, and does not read any other data from your system.",
                     buttons=[ ok_button ],
                 )
                 def dl_ok(s):
@@ -3215,6 +3220,75 @@ class SidebandApp(MDApp):
     ### Map Screen
     ######################################
 
+    def map_fm_got_path(self, path):
+        self.map_fm_exited()
+        # TODO: Remove
+        toast(path)
+        ###
+        try:
+            source = MBTilesMapSource(path)
+            self.map_update_source(source)
+            self.sideband.config["map_storage_file"] = path
+            self.sideband.save_configuration()
+        except Exception as e:
+            RNS.log(f"Error while loading map \"{path}\": "+str(e), RNS.LOG_ERROR)
+            selfmap_update_source()
+
+    def map_fm_exited(self, *args):
+        RNS.log("Closing file manager", RNS.LOG_DEBUG)
+        self.sideband.config["map_storage_file"] = None
+        self.sideband.save_configuration()
+        self.manager_open = False
+        self.file_manager.close()
+        self.map_update_source()
+
+    def map_get_source(self):
+        current_map_path = self.sideband.config["map_storage_file"]
+        source = None
+
+        if current_map_path:
+            try:
+                source = MBTilesMapSource(current_map_path)
+            except Exception as e:
+                RNS.log(f"Error while loading map from \"{current_map_path}\": "+str(e))
+                self.sideband.config["map_storage_file"] = None
+                self.sideband.save_configuration()
+        
+        if source == None:
+            source = MapSource.from_provider("osm")
+
+        return source
+
+    def map_update_source(self, source=None):
+        ns = source or self.map_get_source()
+        if self.map != None:
+            self.map.map_source = ns
+
+    def map_test_action(self, sender=None):
+        perm_ok = False
+        if RNS.vendor.platformutils.is_android():
+            perm_ok = self.check_storage_permission()
+
+            if self.sideband.config["map_storage_external"]:
+                path = secondary_external_storage_path()
+                if path == None: path = primary_external_storage_path()
+            else: 
+                path = primary_external_storage_path()
+
+        else:
+            perm_ok = True
+            path = os.path.expanduser("~")
+
+        if perm_ok and path != None:
+            self.file_manager = MDFileManager(
+                exit_manager=self.map_fm_exited,
+                select_path=self.map_fm_got_path,
+            )
+            self.file_manager.ext = [".mbtiles"]
+            self.file_manager.show(path)
+        else:
+            toast("No file access, check permissions!")
+
     def map_action(self, sender=None, direction="left"):
         if not self.root.ids.screen_manager.has_screen("map_screen"):
             self.map_screen = Builder.load_string(layout_map_screen)
@@ -3222,9 +3296,10 @@ class SidebandApp(MDApp):
             self.root.ids.screen_manager.add_widget(self.map_screen)
 
             from mapview import MapView
-            mapview = MapView(zoom=self.sideband.config["map_zoom"], lat=self.sideband.config["map_lat"], lon=self.sideband.config["map_lon"])
+            mapview = MapView(map_source=self.map_get_source(), zoom=self.sideband.config["map_zoom"], lat=self.sideband.config["map_lat"], lon=self.sideband.config["map_lon"])
             mapview.snap_to_zoom = False
             mapview.double_tap_zoom = True
+            self.map = mapview
             self.map_screen.ids.map_layout.map = mapview
             self.map_screen.ids.map_layout.add_widget(self.map_screen.ids.map_layout.map)
 
@@ -3244,11 +3319,16 @@ class SidebandApp(MDApp):
         if hasattr(self, "location_error_dialog") and self.location_error_dialog != None:
             self.location_error_dialog.dismiss()
 
+    def map_object_list(self, sender):
+        pass
+
     def map_show(self, location):
-        if hasattr(self.map_screen.ids.map_layout, "map") and self.map_screen.ids.map_layout.map:
-            self.map_screen.ids.map_layout.map.lat = location["latitude"]
-            self.map_screen.ids.map_layout.map.lon = location["longtitude"]
-            self.map_screen.ids.map_layout.map.zoom = 16
+        if hasattr(self, "map") and self.map:
+            self.map.center_on(location["latitude"],location["longtitude"])
+            # self.map.lat = location["latitude"]
+            # self.map.lon = location["longtitude"]
+            self.map.zoom = 16
+            self.map.trigger_update(True)
 
     def map_show_peer_location(self, context_dest):
         location = self.sideband.peer_location(context_dest)
@@ -3457,8 +3537,7 @@ class SidebandApp(MDApp):
 
         self.last_map_update = time.time()
         if changes:
-            mv = self.map_screen.ids.map_layout.map
-            mv.trigger_update(True)
+            self.map.trigger_update(True)
 
     ### Guide screen
     ######################################
