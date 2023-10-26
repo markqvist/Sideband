@@ -18,13 +18,18 @@ from .sense import Telemeter
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass, cast
+    # Squelch excessive method signature logging
     import jnius.reflect
     class redirect_log():
         def isEnabledFor(self, arg):
             return False
         def debug(self, arg):
             pass
+    def mod(method, name, signature):
+        pass
+    jnius.reflect.log_method = mod
     jnius.reflect.log = redirect_log()
+    ############################################
     
 
 class PropagationNodeDetector():
@@ -852,9 +857,6 @@ class SidebandCore():
         return self.getstate("app.active_conversation")
 
     def setstate(self, prop, val):
-        # TODO: remove
-        # us = time.time()
-
         if not RNS.vendor.platformutils.is_android():
             self.getstate_cache[prop] = val
             self._db_setstate(prop, val)
@@ -868,13 +870,6 @@ class SidebandCore():
                         self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
                     self.rpc_connection.send({"setstate": (prop, val)})
                     response = self.rpc_connection.recv()
-                    
-                    # TODO: Remove
-                    # if response:
-                    #     RNS.log("RPC setstate SUCCESS for "+str(prop)+"="+str(val)+" in "+RNS.prettytime(time.time()-us), RNS.LOG_WARNING)
-                    # else:
-                    #     RNS.log("RPC setstate FAIL for "+str(prop)+"="+str(val)+" in "+RNS.prettytime(time.time()-us), RNS.LOG_WARNING)
-
                     return response
                 except Exception as e:
                     RNS.log("Error while setting state over RPC: "+str(e), RNS.LOG_DEBUG)
@@ -897,6 +892,27 @@ class SidebandCore():
                     return response
                 except Exception as e:
                     RNS.log("Error while setting telemetry over RPC: "+str(e), RNS.LOG_DEBUG)
+                    return False
+
+    def service_rpc_set_debug(self, debug):
+        if not RNS.vendor.platformutils.is_android():
+            pass
+        else:
+            if self.is_service:
+                if debug:
+                    RNS.loglevel = 7
+                else:
+                    RNS.loglevel = 2                
+                return True
+            else:
+                try:
+                    if self.rpc_connection == None:
+                        self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
+                    self.rpc_connection.send({"set_debug": debug})
+                    response = self.rpc_connection.recv()
+                    return response
+                except Exception as e:
+                    RNS.log("Error while setting log level over RPC: "+str(e), RNS.LOG_DEBUG)
                     return False
 
     def getstate(self, prop, allow_cache=False):
@@ -960,6 +976,10 @@ class SidebandCore():
                                     self.latest_telemetry = t
                                     self.latest_packed_telemetry = p
                                     connection.send(True)
+                                elif "set_debug" in call:
+                                    self.service_rpc_set_debug(call["set_debug"])
+                                    connection.send(True)
+
                         except Exception as e:
                             RNS.log("Error on client RPC connection: "+str(e), RNS.LOG_ERROR)
                             connection.close()
@@ -2198,7 +2218,17 @@ class SidebandCore():
             self.interface_local = None
             self.interface_local_adding = False
 
-        
+    def _reticulum_log_debug(self, debug=False):
+        self.log_verbose = debug
+        if self.log_verbose:
+            selected_level = 7
+        else:
+            selected_level = 2
+
+        RNS.loglevel = selected_level
+        if self.is_client:
+            self.service_rpc_set_debug(debug)
+
     def __start_jobs_immediate(self):
         if self.log_verbose:
             selected_level = 7

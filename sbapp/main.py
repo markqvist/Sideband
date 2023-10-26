@@ -5,7 +5,7 @@ __variant__ = "beta"
 
 import sys
 import argparse
-parser = argparse.ArgumentParser(description="Reticulum Network Stack Daemon")
+parser = argparse.ArgumentParser(description="Sideband LXMF Client")
 parser.add_argument("-v", "--verbose", action='store_true', default=False, help="increase logging verbosity")
 parser.add_argument("--version", action="version", version="sideband {version}".format(version=__version__))
 args = parser.parse_args()
@@ -21,6 +21,27 @@ import threading
 import RNS.vendor.umsgpack as msgpack
 
 from kivy.logger import Logger, LOG_LEVELS
+
+# Squelch excessive method signature logging
+class redirect_log():
+    def isEnabledFor(self, arg):
+        return False
+    def debug(self, arg):
+        pass
+    def trace(self, arg):
+        pass
+    def warning(self, arg):
+        RNS.log("Kivy error: "+str(arg), RNS.LOG_WARNING)
+    def critical(self, arg):
+        RNS.log("Kivy error: "+str(arg), RNS.LOG_ERROR)
+
+if RNS.vendor.platformutils.get_platform() == "android":
+    import jnius.reflect
+    def mod(method, name, signature):
+        pass
+    jnius.reflect.log_method = mod
+    jnius.reflect.log = redirect_log()
+
 if __debug_build__ or args.verbose:
     Logger.setLevel(LOG_LEVELS["debug"])
 else:
@@ -51,18 +72,6 @@ from sideband.sense import Telemeter
 from mapview import CustomMapMarker
 from mapview.mbtsource import MBTilesMapSource
 from mapview.source import MapSource
-
-class redirect_log():
-    def isEnabledFor(self, arg):
-        return False
-    def debug(self, arg):
-        pass
-    def trace(self, arg):
-        pass
-    def warning(self, arg):
-        RNS.log("Kivy error: "+str(arg), RNS.LOG_WARNING)
-    def critical(self, arg):
-        RNS.log("Kivy error: "+str(arg), RNS.LOG_ERROR)
 
 import kivy.core.image
 kivy.core.image.Logger = redirect_log()
@@ -1388,6 +1397,7 @@ class SidebandApp(MDApp):
             def save_debug(sender=None, event=None):
                 self.sideband.config["debug"] = self.settings_screen.ids.settings_debug.active
                 self.sideband.save_configuration()
+                self.sideband._reticulum_log_debug(self.sideband.config["debug"])
 
             def save_print_command(sender=None, event=None):
                 if not sender.focus:

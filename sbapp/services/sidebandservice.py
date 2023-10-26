@@ -13,6 +13,20 @@ else:
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass, cast
+
+    # Squelch excessive method signature logging
+    import jnius.reflect
+    class redirect_log():
+        def isEnabledFor(self, arg):
+            return False
+        def debug(self, arg):
+            pass
+    def mod(method, name, signature):
+        pass
+    jnius.reflect.log_method = mod
+    jnius.reflect.log = redirect_log()
+    ############################################
+
     from android import python_act
     android_api_version = autoclass('android.os.Build$VERSION').SDK_INT
 
