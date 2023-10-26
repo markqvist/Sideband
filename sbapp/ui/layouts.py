@@ -989,9 +989,9 @@ MDScreen:
                 [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
             right_action_items:
                 [
-                ['format-list-bulleted-type', lambda x: root.app.map_object_list(self)],
-                ['arrow-down-bold-hexagon-outline', lambda x: root.app.telemetry_request_action(self)],
-                ['upload-lock', lambda x: root.app.telemetry_send_update(self)],
+                # ['format-list-bulleted-type', lambda x: root.app.map_object_list(self)], # Object List
+                # ['arrow-down-bold-hexagon-outline', lambda x: root.app.telemetry_request_action(self)], # Download telemetry
+                # ['upload-lock', lambda x: root.app.telemetry_send_update(self)], # Send telemetry update
                 ['layers', lambda x: root.app.map_layers_action(self)],
                 ['wrench-cog', lambda x: root.app.map_settings_action(self)],
                 ['close', lambda x: root.app.close_any_action(self)],
@@ -1063,7 +1063,7 @@ MDScreen:
                         font_size: dp(16)
                         size_hint: [1.0, None]
                         on_release: root.app.telemetry_send_update(self)
-                        disabled: False
+                        disabled: True
 
                     MDRectangleFlatIconButton:
                         id: telemetry_request_button
@@ -1074,7 +1074,7 @@ MDScreen:
                         font_size: dp(16)
                         size_hint: [1.0, None]
                         on_release: root.app.telemetry_request_action(self)
-                        disabled: False
+                        disabled: True
 
                     MDRectangleFlatIconButton:
                         id: telemetry_copy_button
