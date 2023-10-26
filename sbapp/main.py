@@ -750,6 +750,7 @@ class SidebandApp(MDApp):
     def keydown_event(self, instance, keyboard, keycode, text, modifiers):
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "q"):
             self.quit_action(self)
+        
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "w"):
             if self.root.ids.screen_manager.current == "conversations_screen":
                 self.quit_action(self)
@@ -757,19 +758,36 @@ class SidebandApp(MDApp):
                 self.object_details_screen.close_action()
             else:
                 self.open_conversations(direction="right")
+        
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "s" or text == "d"):
             if self.root.ids.screen_manager.current == "messages_screen":
                 self.message_send_action()
+        
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "l"):
             self.announces_action(self)
+        
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "m"):
-            self.map_action(self)
+            if self.root.ids.screen_manager.current == "messages_screen":
+                context_dest = self.messages_view.ids.messages_scrollview.active_conversation
+                self.map_show_peer_location(context_dest)
+            else:
+                self.map_action(self)
+        
+        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "p"):
+            self.settings_action(self)
+        
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "t"):
-            self.telemetry_action(self)
+            if self.root.ids.screen_manager.current == "messages_screen":
+                self.object_details_action(self.messages_view, from_conv=True)
+            else:
+                self.telemetry_action(self)
+
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "r"):
             self.conversations_action(self)
+        
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "g"):
             self.guide_action(self)
+        
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "n"):
             if self.root.ids.screen_manager.current == "conversations_screen":
                 if not hasattr(self, "dialog_open") or not self.dialog_open:
@@ -1386,6 +1404,10 @@ class SidebandApp(MDApp):
                 self.sideband.config["propagation_by_default"] = self.settings_screen.ids.settings_lxmf_delivery_by_default.active
                 self.sideband.save_configuration()
 
+            def save_lxmf_try_propagation_on_fail(sender=None, event=None):
+                self.sideband.config["lxmf_try_propagation_on_fail"] = self.settings_screen.ids.settings_lxmf_try_propagation_on_fail.active
+                self.sideband.save_configuration()
+
             def save_lxmf_ignore_unknown(sender=None, event=None):
                 self.sideband.config["lxmf_ignore_unknown"] = self.settings_screen.ids.settings_lxmf_ignore_unknown.active
                 self.sideband.save_configuration()
@@ -1472,6 +1494,9 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.settings_lxmf_delivery_by_default.active = self.sideband.config["propagation_by_default"]
             self.settings_screen.ids.settings_lxmf_delivery_by_default.bind(active=save_lxmf_delivery_by_default)
+
+            self.settings_screen.ids.settings_lxmf_try_propagation_on_fail.active = self.sideband.config["lxmf_try_propagation_on_fail"]
+            self.settings_screen.ids.settings_lxmf_try_propagation_on_fail.bind(active=save_lxmf_try_propagation_on_fail)
 
             self.settings_screen.ids.settings_lxmf_ignore_unknown.active = self.sideband.config["lxmf_ignore_unknown"]
             self.settings_screen.ids.settings_lxmf_ignore_unknown.bind(active=save_lxmf_ignore_unknown)

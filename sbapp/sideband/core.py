@@ -368,6 +368,8 @@ class SidebandCore():
             self.config["lxmf_ignore_unknown"] = False
         if not "lxmf_sync_interval" in self.config:
             self.config["lxmf_sync_interval"] = 43200
+        if not "lxmf_try_propagation_on_fail" in self.config:
+            self.config["lxmf_try_propagation_on_fail"] = True
         if not "notifications_on" in self.config:
             self.config["notifications_on"] = True
         if not "print_command" in self.config:
@@ -902,7 +904,7 @@ class SidebandCore():
                 if debug:
                     RNS.loglevel = 7
                 else:
-                    RNS.loglevel = 2                
+                    RNS.loglevel = 2
                 return True
             else:
                 try:
@@ -2681,7 +2683,8 @@ class SidebandCore():
             lxm.register_failed_callback(self.message_notification)
 
             if self.message_router.get_outbound_propagation_node() != None:
-                lxm.try_propagation_on_fail = True
+                if self.config["lxmf_try_propagation_on_fail"]:
+                    lxm.try_propagation_on_fail = True
 
             self.message_router.handle_outbound(lxm)
             self.lxm_ingest(lxm, originator=True)
