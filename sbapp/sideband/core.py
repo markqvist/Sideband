@@ -348,6 +348,19 @@ class SidebandCore():
 
         self.__save_config()
 
+    def clear_map_cache(self):
+        for entry in os.scandir(self.map_cache):
+            os.unlink(entry.path)
+            
+    def get_map_cache_size(self):
+        total = 0
+        for entry in os.scandir(self.map_cache):
+            if entry.is_dir(follow_symlinks=False):
+                pass
+            else:
+                total += entry.stat(follow_symlinks=False).st_size
+        return total
+
     def should_persist_data(self):
         if self.reticulum != None:
             self.reticulum._should_persist_data()

@@ -946,11 +946,12 @@ MDScreen:
                 MDBoxLayout:
                     orientation: "vertical"
                     size_hint_y: None
+                    spacing: dp(24)
                     height: self.minimum_height
                     padding: [0, dp(24), 0, 0]
 
                     MDRectangleFlatIconButton:
-                        id: telemetry_icons_button
+                        id: map_select_button
                         icon: "list-box-outline"
                         text: "Select MBTiles Map"
                         padding: [dp(0), dp(14), dp(0), dp(14)]
@@ -958,6 +959,17 @@ MDScreen:
                         font_size: dp(16)
                         size_hint: [1.0, None]
                         on_release: root.app.map_select_file_action(self)
+                        disabled: False
+
+                    MDRectangleFlatIconButton:
+                        id: map_cache_button
+                        icon: "map-clock-outline"
+                        text: "Clear map cache"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.app.map_clear_cache(self)
                         disabled: False
 """
 

@@ -783,7 +783,10 @@ class SidebandApp(MDApp):
                 self.map_action(self)
         
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "p"):
-            self.settings_action(self)
+            if self.root.ids.screen_manager.current == "map_screen":
+                self.map_settings_action()
+            else:
+                self.settings_action(self)
         
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "t"):
             if self.root.ids.screen_manager.current == "messages_screen":
@@ -3516,6 +3519,42 @@ class SidebandApp(MDApp):
         self.root.ids.screen_manager.current = "map_settings_screen"
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        def update_cache_size(dt):
+            size = self.sideband.get_map_cache_size()
+            size_str = RNS.prettysize(size)
+            self.map_settings_screen.ids.map_cache_button.text = f"Clear {size_str} map cache"
+            if size > 0.0:
+                self.map_settings_screen.ids.map_cache_button.disabled = False
+            else:
+                self.map_settings_screen.ids.map_cache_button.disabled = True
+                self.map_settings_screen.ids.map_cache_button.text = f"No data in map cache"
+
+        Clock.schedule_once(update_cache_size, 0.35)
+
+    def map_clear_cache(self, sender=None):
+        yes_button = MDRectangleFlatButton(text="Yes",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
+        no_button = MDRectangleFlatButton(text="No",font_size=dp(18))
+        dialog = MDDialog(
+            title="Clear map cache?",
+            buttons=[ yes_button, no_button ],
+            # elevation=0,
+        )
+        def dl_yes(s):
+            dialog.dismiss()
+            self.sideband.clear_map_cache()
+
+            def cb(dt):
+                self.map_settings_action()
+            self.map_settings_screen.ids.map_cache_button.disabled = True
+            Clock.schedule_once(cb, 1.2)
+
+        def dl_no(s):
+            dialog.dismiss()
+
+        yes_button.bind(on_release=dl_yes)
+        no_button.bind(on_release=dl_no)
+        dialog.open()
 
     def close_location_error_dialog(self, sender=None):
         if hasattr(self, "location_error_dialog") and self.location_error_dialog != None:
