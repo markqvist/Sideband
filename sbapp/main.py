@@ -760,6 +760,8 @@ class SidebandApp(MDApp):
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "w"):
             if self.root.ids.screen_manager.current == "conversations_screen":
                 self.quit_action(self)
+            elif self.root.ids.screen_manager.current == "map_settings_screen":
+                self.close_sub_map_action()
             elif self.root.ids.screen_manager.current == "object_details_screen":
                 self.object_details_screen.close_action()
             else:
@@ -821,8 +823,10 @@ class SidebandApp(MDApp):
                     self.close_sub_hardware_action()
                 elif self.root.ids.screen_manager.current == "hardware_serial_screen":
                     self.close_sub_hardware_action()
-                if self.root.ids.screen_manager.current == "object_details_screen":
+                elif self.root.ids.screen_manager.current == "object_details_screen":
                     self.object_details_screen.close_action()
+                elif self.root.ids.screen_manager.current == "map_settings_screen":
+                    self.close_sub_map_action()
                 else:
                     self.open_conversations(direction="right")
 
