@@ -171,8 +171,13 @@ class SidebandCore():
         try:
             if not os.path.isfile(self.config_path):
                 self.__init_config()
-            else:
                 self.__load_config()
+            else:
+                try:
+                    self.__load_config()
+                except Exception as e:
+                    self.__init_config()
+                    self.__load_config()
                 self.first_run = False
 
             if self.config["debug"]:
@@ -533,6 +538,13 @@ class SidebandCore():
             self.config["map_zoom"] = 3
         if not "map_storage_external" in self.config:
             self.config["map_storage_external"] = False
+        if not "map_use_offline" in self.config:
+            self.config["map_use_offline"] = False
+        if not "map_use_online" in self.config:
+            self.config["map_use_online"] = True
+        if not "map_layer" in self.config:
+            self.config["map_layer"] = None
+        
         if not "map_storage_path" in self.config:
             self.config["map_storage_path"] = None
         if not "map_storage_file" in self.config:
@@ -814,7 +826,7 @@ class SidebandCore():
         return []
 
     def peer_location(self, context_dest):
-        after_time = time.time()-24*60*60
+        after_time = time.time()-3*30*24*60*60
         pts = self.peer_telemetry(context_dest, after=after_time)
         for pt in pts:
             try:

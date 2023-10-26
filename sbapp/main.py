@@ -15,6 +15,7 @@ import RNS
 import LXMF
 import time
 import os
+import pathlib
 import plyer
 import base64
 import threading
@@ -149,7 +150,11 @@ class SidebandApp(MDApp):
 
         self.conversations_view = None
         self.messages_view = None
+        self.map = None
+        self.map_layer = None
         self.map_screen = None
+        self.offline_source = None
+        self.map_settings_screen = None
         self.object_details_screen = None
         self.sync_dialog = None
         self.settings_ready = False
@@ -3278,71 +3283,155 @@ class SidebandApp(MDApp):
 
     def map_fm_got_path(self, path):
         self.map_fm_exited()
-        # TODO: Remove
-        toast(path)
-        ###
         try:
             source = MBTilesMapSource(path)
-            self.map_update_source(source)
+            self.map_update_source()
             self.sideband.config["map_storage_file"] = path
+            self.sideband.config["map_storage_path"] = str(pathlib.Path(path).parent.resolve())
             self.sideband.save_configuration()
+            toast("Using \""+os.path.basename(path)+"\" as offline map")
         except Exception as e:
             RNS.log(f"Error while loading map \"{path}\": "+str(e), RNS.LOG_ERROR)
-            selfmap_update_source()
+            toast("Could not load map \""+os.path.basename(path)+"\"")
+            self.sideband.config["map_storage_file"] = None
+            self.sideband.config["map_use_offline"] = False
+            self.sideband.config["map_use_online"] = True
+            self.map_settings_load_states()
+            self.map_update_source()
 
     def map_fm_exited(self, *args):
-        RNS.log("Closing file manager", RNS.LOG_DEBUG)
-        self.sideband.config["map_storage_file"] = None
-        self.sideband.save_configuration()
         self.manager_open = False
         self.file_manager.close()
         self.map_update_source()
 
-    def map_get_source(self):
-        current_map_path = self.sideband.config["map_storage_file"]
-        source = None
-
-        if current_map_path:
+    def map_get_offline_source(self):
+        if self.offline_source != None:
+            return self.offline_source
+        else:
             try:
+                current_map_path = self.sideband.config["map_storage_file"]
+                if current_map_path == None:
+                    raise ValueError("Map path cannot be None")
                 source = MBTilesMapSource(current_map_path)
+                self.offline_source = source
+                return self.offline_source
+            
             except Exception as e:
                 RNS.log(f"Error while loading map from \"{current_map_path}\": "+str(e))
                 self.sideband.config["map_storage_file"] = None
+                self.sideband.config["map_use_offline"] = False
+                self.sideband.config["map_use_online"] = True
                 self.sideband.save_configuration()
+                self.map_settings_load_states()
+
+            return None
+
+    def map_get_source(self):
+        source = None
+        if self.sideband.config["map_use_offline"]:
+            source = self.map_get_offline_source()
         
         if source == None:
-            source = MapSource.from_provider("osm")
+            source = MapSource.from_provider("osm", quad_key=False)
 
         return source
 
     def map_update_source(self, source=None):
         ns = source or self.map_get_source()
         if self.map != None:
+            
+            if source != None:
+                maxz = source.max_zoom
+                minz = source.min_zoom
+                if self.map.zoom > maxz:
+                    self.map.zoom = maxz
+                
+                if self.map.zoom < minz:
+                    self.map.zoom = minz
+
+                m = self.map
+                RNS.log(f"Map {m.lat} {m.lon} {m.zoom}")
+                nlat = self.map.lat
+                nlon = self.map.lon
+                if nlat < -89: nlat = -89
+                if nlat > 89: nlat = 89
+                if nlon < -179: nlon = -179
+                if nlon > 179: nlon = 179
+                self.map.center_on(nlat,nlon)
+
+
             self.map.map_source = ns
 
-    def map_test_action(self, sender=None):
+    def map_layers_action(self, sender=None):
+        try:
+            ml = self.map_layer
+            layers = []
+            if self.sideband.config["map_use_offline"]:
+                layers.append("offline")
+
+            if self.sideband.config["map_use_online"]:
+                layers.append("osm")
+                layers.append("ve")
+
+            if ml == None: ml = layers[0]
+
+            if not ml in layers:
+                ml = layers[0]
+
+            mli = layers.index(ml)
+            mli = (mli+1)%len(layers)
+            ml = layers[mli]
+
+            source = None
+            if ml == "offline": source = self.map_get_offline_source()
+            if ml == "osm": source = MapSource.from_provider("osm", quad_key=False)
+            if ml == "ve": source = MapSource.from_provider("ve", quad_key=True)
+
+            if source != None:
+                self.map_layer = ml
+                self.map_update_source(source)
+        except Exception as e:
+            RNS.log("Error while switching map layer: "+str(e), RNS.LOG_ERROR)
+
+    def map_select_file_action(self, sender=None):
         perm_ok = False
-        if RNS.vendor.platformutils.is_android():
-            perm_ok = self.check_storage_permission()
+        if self.sideband.config["map_storage_path"] == None:
+            if RNS.vendor.platformutils.is_android():
+                perm_ok = self.check_storage_permission()
 
-            if self.sideband.config["map_storage_external"]:
-                path = secondary_external_storage_path()
-                if path == None: path = primary_external_storage_path()
-            else: 
-                path = primary_external_storage_path()
+                if self.sideband.config["map_storage_external"]:
+                    path = secondary_external_storage_path()
+                    if path == None: path = primary_external_storage_path()
+                else: 
+                    path = primary_external_storage_path()
 
+            else:
+                perm_ok = True
+                if self.sideband.config["map_storage_external"]:
+                    path = "/"
+                else:
+                    path = os.path.expanduser("~")
         else:
             perm_ok = True
-            path = os.path.expanduser("~")
+            path = self.sideband.config["map_storage_path"]
 
         if perm_ok and path != None:
-            self.file_manager = MDFileManager(
-                exit_manager=self.map_fm_exited,
-                select_path=self.map_fm_got_path,
-            )
-            self.file_manager.ext = [".mbtiles"]
-            self.file_manager.show(path)
+            try:
+                self.file_manager = MDFileManager(
+                    exit_manager=self.map_fm_exited,
+                    select_path=self.map_fm_got_path,
+                )
+                self.file_manager.ext = [".mbtiles"]
+                self.file_manager.show(path)
+
+            except Exception as e:
+                self.sideband.config["map_storage_path"] = None
+                self.sideband.save_configuration()
+                toast("Error reading directory, check permissions!")
+        
         else:
+            self.sideband.config["map_storage_path"] = None
+            self.sideband.save_configuration()
             toast("No file access, check permissions!")
 
     def map_action(self, sender=None, direction="left"):
@@ -3371,6 +3460,60 @@ class SidebandApp(MDApp):
             self.map_update_markers()
         Clock.schedule_once(am_job, 0.6)
 
+    def map_settings_load_states(self):
+        if self.map_settings_screen != None:
+            self.map_settings_screen.ids.map_use_online.active = self.sideband.config["map_use_online"]
+            self.map_settings_screen.ids.map_use_offline.active = self.sideband.config["map_use_offline"]
+            self.map_settings_screen.ids.map_storage_external.active = self.sideband.config["map_storage_external"]
+
+    def map_settings_init(self):
+        self.map_settings_load_states()
+        def map_settings_save(sender=None, event=None):
+            self.sideband.config["map_storage_external"] = self.map_settings_screen.ids.map_storage_external.active
+            self.sideband.config["map_use_online"] = self.map_settings_screen.ids.map_use_online.active
+            self.sideband.config["map_use_offline"] = self.map_settings_screen.ids.map_use_offline.active
+            self.sideband.save_configuration()
+
+        def external_toggle(sender=None, event=None):
+            self.sideband.config["map_storage_path"] = None
+            map_settings_save()
+
+        def offline_toggle(sender=None, event=None):
+            if self.map_settings_screen.ids.map_use_offline.active:
+                # self.map_settings_screen.ids.map_use_online.active = False
+                if self.sideband.config["map_storage_file"] == None:
+                    self.map_select_file_action()
+            else:
+                self.map_settings_screen.ids.map_use_online.active = True
+            map_settings_save(); self.map_update_source()
+
+        def online_toggle(sender=None, event=None):
+            if self.map_settings_screen.ids.map_use_online.active:
+                # self.map_settings_screen.ids.map_use_offline.active = False
+                pass
+            else:
+                self.map_settings_screen.ids.map_use_offline.active = True
+            map_settings_save(); self.map_update_source()
+
+
+        self.map_settings_screen.ids.map_use_offline.bind(active=offline_toggle)
+        self.map_settings_screen.ids.map_use_online.bind(active=online_toggle)
+        self.map_settings_screen.ids.map_storage_external.bind(active=external_toggle)
+
+    def map_settings_action(self, sender=None, direction="left"):
+        if not self.root.ids.screen_manager.has_screen("map_settings_screen"):
+            self.map_settings_screen = Builder.load_string(layout_map_settings_screen)
+            self.map_settings_screen.app = self
+            self.root.ids.screen_manager.add_widget(self.map_settings_screen)
+            self.map_settings_screen.ids.map_config_info.text = "\n\nSideband can use map sources from the Internet, or a map source stored locally on this device in MBTiles format."
+            self.map_settings_screen.ids.map_settings_scrollview.effect_cls = ScrollEffect
+            self.map_settings_init()
+
+        self.root.ids.screen_manager.transition.direction = direction
+        self.root.ids.screen_manager.current = "map_settings_screen"
+        self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
     def close_location_error_dialog(self, sender=None):
         if hasattr(self, "location_error_dialog") and self.location_error_dialog != None:
             self.location_error_dialog.dismiss()
@@ -3391,7 +3534,7 @@ class SidebandApp(MDApp):
         if not location:
             self.location_error_dialog = MDDialog(
                 title="No Location",
-                text="During the last 24 hours, no location updates have been received from this peer. You can use the the [b]Situation Map[/b] to manually search for earlier telemetry.",
+                text="No location updates have been received from this peer. You can use the the [b]Situation Map[/b] to manually search for earlier telemetry.",
                 buttons=[
                     MDRectangleFlatButton(
                         text="OK",

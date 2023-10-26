@@ -851,6 +851,117 @@ MDScreen:
                         height: dp(256)
 """
 
+layout_map_settings_screen = """
+MDScreen:
+    name: "map_settings_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Map Configuration"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_sub_map_action(self)],
+                ]
+
+        ScrollView:
+            id: map_settings_scrollview
+
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_y: None
+                height: self.minimum_height
+                padding: [dp(28), dp(48), dp(28), dp(16)]
+
+                MDLabel:
+                    text: "Configure Map"
+                    font_style: "H6"
+
+                MDLabel:
+                    id: map_config_info
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    markup: True
+                    text: "\\n"
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: [0,0,dp(24),0]
+                    size_hint_y: None
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Use online map sources"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: map_use_online
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: [0,0,dp(24),0]
+                    size_hint_y: None
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Use offline map source"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: map_use_offline
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: [0,0,dp(24),0]
+                    size_hint_y: None
+                    height: dp(48)
+                    
+                    MDLabel:
+                        id: map_storage_external_label
+                        text: "Use external storage path"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: map_storage_external
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [0, dp(24), 0, 0]
+
+                    MDRectangleFlatIconButton:
+                        id: telemetry_icons_button
+                        icon: "list-box-outline"
+                        text: "Select MBTiles Map"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.app.map_select_file_action(self)
+                        disabled: False
+"""
+
+
 layout_map_screen = """
 MDScreen:
     name: "map_screen"
@@ -869,7 +980,8 @@ MDScreen:
                 ['format-list-bulleted-type', lambda x: root.app.map_object_list(self)],
                 ['arrow-down-bold-hexagon-outline', lambda x: root.app.telemetry_request_action(self)],
                 ['upload-lock', lambda x: root.app.telemetry_send_update(self)],
-                ['wrench-cog', lambda x: root.app.map_test_action(self)],
+                ['layers', lambda x: root.app.map_layers_action(self)],
+                ['wrench-cog', lambda x: root.app.map_settings_action(self)],
                 ['close', lambda x: root.app.close_any_action(self)],
                 ]
 
