@@ -153,6 +153,7 @@ class SidebandApp(MDApp):
         self.map = None
         self.map_layer = None
         self.map_screen = None
+        self.map_cache = self.sideband.map_cache
         self.offline_source = None
         self.map_settings_screen = None
         self.object_details_screen = None
@@ -3315,7 +3316,7 @@ class SidebandApp(MDApp):
                 current_map_path = self.sideband.config["map_storage_file"]
                 if current_map_path == None:
                     raise ValueError("Map path cannot be None")
-                source = MBTilesMapSource(current_map_path)
+                source = MBTilesMapSource(current_map_path, cache_dir=self.map_cache)
                 self.offline_source = source
                 return self.offline_source
             
@@ -3335,7 +3336,7 @@ class SidebandApp(MDApp):
             source = self.map_get_offline_source()
         
         if source == None:
-            source = MapSource.from_provider("osm", quad_key=False)
+            source = MapSource.from_provider("osm", cache_dir=self.map_cache, quad_key=False)
 
         return source
 
@@ -3386,8 +3387,8 @@ class SidebandApp(MDApp):
 
             source = None
             if ml == "offline": source = self.map_get_offline_source()
-            if ml == "osm": source = MapSource.from_provider("osm", quad_key=False)
-            if ml == "ve": source = MapSource.from_provider("ve", quad_key=True)
+            if ml == "osm": source = MapSource.from_provider("osm", cache_dir=self.map_cache, quad_key=False)
+            if ml == "ve": source = MapSource.from_provider("ve", cache_dir=self.map_cache, quad_key=True)
 
             if source != None:
                 self.map_layer = ml
