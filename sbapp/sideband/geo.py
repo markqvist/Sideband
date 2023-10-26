@@ -173,7 +173,7 @@ def azalt(c1, c2, ellipsoid=True):
     azimuth = None
     if (c2rp[2]*c2rp[2]) + (c2rp[1]*c2rp[1]) > 1e-6:
         theta = degrees(atan2(c2rp[2], c2rp[1]))
-        azimuth = 270 - theta
+        azimuth = 90 - theta
         if azimuth < 0: azimuth += 360
         if azimuth > 360: azimuth -= 360
         azimuth = round(azimuth,4)
@@ -290,43 +290,44 @@ def shared_radio_horizon(c1, c2,):
         "antenna_distance": antenna_distance
     }
 
-def tests():
-    import RNS
-    import numpy as np
-    from geographiclib.geodesic import Geodesic
-    geod = Geodesic.WGS84
-    coords = [
-        [(51.2308, 4.38703, 0.0), (47.699437, 9.268651, 0.0)],
-        [(51.2308, 4.38703, 0.0), (47.699437, 9.268651, 30.0*1e3)],
-        # [(51.230800, 4.38703, 0.0), (51.230801, 4.38703, 0.0)],
-        # [(35.3524, 135.0302, 100), (35.3532,135.0305, 500)],
-        # [(57.758793, 22.605194, 0.0), (43.048838, -9.241343, 0.0)],
-        # [(0.0, 0.0, 0.0), (0.0, 0.0, 0.0)],
-        # [(-90.0, 0.0, 0.0), (90.0, 0.0, 0.0)],
-        # [(-90.0, 0.0, 0.0), (78.0, 0.0, 0.0)],
-        # [(0.0, 0.0, 0.0), (0.5, 179.5, 0.0)],
-        # [(0.7, 0.0, 0.0), (0.0, -180.0, 0.0)],
-    ]
-    for cs in coords:
-        c1 = cs[0]; c2 = cs[1]
-        print("Testing: "+str(c1)+"  ->  "+str(c2))
-        us = time.time()
-        ld = c1+c2; g = geod.Inverse(c1[0], c1[1], c2[0], c2[1])
-        print("Lib computed in "+str(round((time.time()-us)*1e6, 3))+"us")
-        us = time.time()        
-        eld = orthodromic_distance(c1,c2,ellipsoid=True)
-        if eld:
-            print("Own computed in "+str(round((time.time()-us)*1e6, 3))+"us")
-        else:
-            print("Own timed out in "+str(round((time.time()-us)*1e6, 3))+"us")
-        ed_own = euclidian_distance(c1,c2,ellipsoid=True)
-        sd_own = orthodromic_distance(c1,c2,ellipsoid=False)
-        aa = azalt(c1,c2,ellipsoid=True)
-        fac = 1
-        if eld: print("LibDiff   = "+RNS.prettydistance(g['s12']-eld)+f"  {fac*g['s12']-fac*eld}")
-        print("Spherical = "+RNS.prettydistance(sd_own)+f" {fac*sd_own}")
-        # print("EllipLib  = "+RNS.prettydistance(g['s12'])+f" {fac*g['s12']}")
-        if eld: print("Ellipsoid = "+RNS.prettydistance(eld)+f" {fac*eld}")
-        print("Euclidian = "+RNS.prettydistance(ed_own)+f" {fac*ed_own}")
-        print("AzAlt     = "+f" {aa[0]} / {aa[1]}")
-        print("")
+# def tests():
+#     import RNS
+#     import numpy as np
+#     from geographiclib.geodesic import Geodesic
+#     geod = Geodesic.WGS84
+#     coords = [
+#         [(51.2308, 4.38703, 0.0), (47.699437, 9.268651, 0.0)],
+#         [(51.2308, 4.38703, 0.0), (47.699437, 9.268651, 30.0*1e3)],
+#         [(0.0, 0.0, 0.0), (0.0, 1.0/60/60, 30.0)],
+#         # [(51.230800, 4.38703, 0.0), (51.230801, 4.38703, 0.0)],
+#         # [(35.3524, 135.0302, 100), (35.3532,135.0305, 500)],
+#         # [(57.758793, 22.605194, 0.0), (43.048838, -9.241343, 0.0)],
+#         # [(0.0, 0.0, 0.0), (0.0, 0.0, 0.0)],
+#         # [(-90.0, 0.0, 0.0), (90.0, 0.0, 0.0)],
+#         # [(-90.0, 0.0, 0.0), (78.0, 0.0, 0.0)],
+#         # [(0.0, 0.0, 0.0), (0.5, 179.5, 0.0)],
+#         # [(0.7, 0.0, 0.0), (0.0, -180.0, 0.0)],
+#     ]
+#     for cs in coords:
+#         c1 = cs[0]; c2 = cs[1]
+#         print("Testing: "+str(c1)+"  ->  "+str(c2))
+#         us = time.time()
+#         ld = c1+c2; g = geod.Inverse(c1[0], c1[1], c2[0], c2[1])
+#         print("Lib computed in "+str(round((time.time()-us)*1e6, 3))+"us")
+#         us = time.time()        
+#         eld = orthodromic_distance(c1,c2,ellipsoid=True)
+#         if eld:
+#             print("Own computed in "+str(round((time.time()-us)*1e6, 3))+"us")
+#         else:
+#             print("Own timed out in "+str(round((time.time()-us)*1e6, 3))+"us")
+#         ed_own = euclidian_distance(c1,c2,ellipsoid=True)
+#         sd_own = orthodromic_distance(c1,c2,ellipsoid=False)
+#         aa = azalt(c1,c2,ellipsoid=True)
+#         fac = 1
+#         if eld: print("LibDiff   = "+RNS.prettydistance(g['s12']-eld)+f"  {fac*g['s12']-fac*eld}")
+#         print("Spherical = "+RNS.prettydistance(sd_own)+f" {fac*sd_own}")
+#         # print("EllipLib  = "+RNS.prettydistance(g['s12'])+f" {fac*g['s12']}")
+#         if eld: print("Ellipsoid = "+RNS.prettydistance(eld)+f" {fac*eld}")
+#         print("Euclidian = "+RNS.prettydistance(ed_own)+f" {fac*ed_own}")
+#         print("AzAlt     = "+f" {aa[0]} / {aa[1]}")
+#         print("")

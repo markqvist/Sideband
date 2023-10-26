@@ -771,7 +771,7 @@ class Location(Sensor):
             cs = (slat, slon, salt); cr = (lat, lon, alt)
             ed = euclidian_distance(cs, cr)
             od = orthodromic_distance(cs, cr)
-            aa = azalt(cs, cr)
+            aa = azalt(cr, cs)
             ath = angle_to_horizon(cr)
             atd = aa[1]-ath
             above_horizon = None
