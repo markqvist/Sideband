@@ -16,6 +16,7 @@ from kivy.logger import LOG_LEVELS, Logger
 
 from mapview.constants import CACHE_DIR
 
+import logging
 # if "MAPVIEW_DEBUG_DOWNLOADER" in environ:
 #     Logger.setLevel(LOG_LEVELS['debug'])
 #     Logger.setLevel(LOG_LEVELS['error'])
@@ -51,6 +52,18 @@ class Downloader:
         Clock.schedule_interval(self._check_executor, 1 / 60.0)
         if not exists(self.cache_dir):
             makedirs(self.cache_dir)
+
+        logging.getLogger("urllib3").setLevel(logging.WARNING)
+        logging.getLogger("urllib3.response").setLevel(logging.WARNING)
+        logging.getLogger("urllib3.connection").setLevel(logging.WARNING)
+        logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
+        logging.getLogger("requests").setLevel(logging.WARNING)
+        
+        logging.getLogger("urllib3").propagate = True
+        logging.getLogger("requests").propagate = True
+        logging.getLogger("urllib3.response").propagate = True
+        logging.getLogger("urllib3.connection").propagate = True
+        logging.getLogger("urllib3.connectionpool").propagate = True
 
     def submit(self, f, *args, **kwargs):
         future = self.executor.submit(f, *args, **kwargs)

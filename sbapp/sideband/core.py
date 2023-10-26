@@ -18,6 +18,14 @@ from .sense import Telemeter
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass, cast
+    import jnius.reflect
+    class redirect_log():
+        def isEnabledFor(self, arg):
+            return False
+        def debug(self, arg):
+            pass
+    jnius.reflect.log = redirect_log()
+    
 
 class PropagationNodeDetector():
     EMITTED_DELTA_GRACE = 300

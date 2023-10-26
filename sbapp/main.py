@@ -52,6 +52,21 @@ from mapview import CustomMapMarker
 from mapview.mbtsource import MBTilesMapSource
 from mapview.source import MapSource
 
+class redirect_log():
+    def isEnabledFor(self, arg):
+        return False
+    def debug(self, arg):
+        pass
+    def trace(self, arg):
+        pass
+    def warning(self, arg):
+        RNS.log("Kivy error: "+str(arg), RNS.LOG_WARNING)
+    def critical(self, arg):
+        RNS.log("Kivy error: "+str(arg), RNS.LOG_ERROR)
+
+import kivy.core.image
+kivy.core.image.Logger = redirect_log()
+
 if RNS.vendor.platformutils.get_platform() == "android":
     from sideband.core import SidebandCore
 

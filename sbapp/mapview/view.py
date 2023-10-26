@@ -729,7 +729,7 @@ class MapView(Widget):
                     post_multiply=True,
                     anchor=scatter.to_local(x, y),
                 )
-                print(f"Snapped scale. Self = {self._scale}   Scale = {scale}")
+                # print(f"Snapped scale. Self = {self._scale}   Scale = {scale}")
         else:
             pass
             # print(f"Self = {self._scale}   Scale = {scale}   Rescale = {rescale}   Zoom = {self.zoom}")
