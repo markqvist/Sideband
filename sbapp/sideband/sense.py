@@ -190,6 +190,14 @@ class Sensor():
     self.last_update = time.time()
     self._data = value
 
+  @property
+  def stale_time(self):
+    return self._stale_time
+
+  @stale_time.setter
+  def stale_time(self, value):
+    self._stale_time = value
+
   def update_data(self):
     raise NotImplementedError()
 
@@ -485,7 +493,7 @@ class Battery(Sensor):
       if p >= 70: rendered["icon"] = "battery-70"
       if p >= 80: rendered["icon"] = "battery-80"
       if p >= 90: rendered["icon"] = "battery-90"
-      if p >= 100: rendered["icon"]= "battery-100"
+      if p >= 97: rendered["icon"] = "battery"
 
     return rendered
 
@@ -570,6 +578,7 @@ class Location(Sensor):
     super().__init__(type(self).SID, type(self).STALE_TIME)
 
     self._raw = None
+    self._last_update = None
     self._min_distance = Location.MIN_DISTANCE
     self._accuracy_target = Location.ACCURACY_TARGET
 
@@ -632,6 +641,13 @@ class Location(Sensor):
     try:
       if self.synthesized:
         if self.latitude != None and self.longtitude != None:
+
+          now = time.time()
+          if self._last_update == None:
+            self._last_update = now
+          elif now > self._last_update + self._stale_time:
+            self._last_update = now
+
           if self.altitude == None: self.altitude = 0.0
           if self.accuracy == None: self.accuracy = 0.01
           if self.speed == None: self.speed = 0.0
@@ -643,7 +659,7 @@ class Location(Sensor):
             "speed": round(self.speed, 2),
             "bearing": round(self.bearing, 2),
             "accuracy": round(self.accuracy, 2),
-            "last_update": int(time.time()),
+            "last_update": int(self._last_update),
           }
 
       elif RNS.vendor.platformutils.is_android():

@@ -1,4 +1,4 @@
-__debug_build__ = False
+__debug_build__ = True
 __disable_shaders__ = False
 __version__ = "0.7.0"
 __variant__ = "beta"
@@ -3059,10 +3059,16 @@ class SidebandApp(MDApp):
         self.sideband.config["telemetry_s_angular_velocity"] = self.telemetry_screen.ids.telemetry_s_gyroscope.active
         self.sideband.config["telemetry_s_acceleration"] = self.telemetry_screen.ids.telemetry_s_accelerometer.active
         self.sideband.config["telemetry_s_proximity"] = self.telemetry_screen.ids.telemetry_s_proximity.active
-        self.sideband.config["telemetry_s_information"] = self.telemetry_screen.ids.telemetry_s_information.active
-        self.sideband.config["telemetry_s_information_text"] = self.telemetry_screen.ids.telemetry_s_information_text.text
 
         run_telemetry_update = False
+        if self.sideband.config["telemetry_s_information"] != self.telemetry_screen.ids.telemetry_s_information.active:
+            self.sideband.config["telemetry_s_information"] = self.telemetry_screen.ids.telemetry_s_information.active
+            run_telemetry_update = True
+
+        if self.sideband.config["telemetry_s_information_text"] != self.telemetry_screen.ids.telemetry_s_information_text.text:
+            self.sideband.config["telemetry_s_information_text"] = self.telemetry_screen.ids.telemetry_s_information_text.text
+            run_telemetry_update = True
+
         try:
             alt = float(self.telemetry_screen.ids.telemetry_s_fixed_altitude.text.strip().replace(" ", ""))
             self.telemetry_screen.ids.telemetry_s_fixed_altitude.text = str(alt)

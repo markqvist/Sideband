@@ -779,7 +779,11 @@ class SidebandCore():
     def peer_telemetry(self, context_dest, after = None, before = None, limit = None):
         if context_dest == self.lxmf_destination.hash and limit == 1:
             try:
-                return [[self.latest_telemetry["time"]["utc"], self.latest_packed_telemetry]]
+                if self.latest_telemetry != None and self.latest_packed_telemetry != None:
+                    return [[self.latest_telemetry["time"]["utc"], self.latest_packed_telemetry]]
+                else:
+                    return []
+
             except Exception as e:
                 RNS.log("An error occurred while retrieving telemetry from the database: "+str(e), RNS.LOG_ERROR)
                 return []
@@ -868,6 +872,25 @@ class SidebandCore():
                     RNS.log("Error while setting state over RPC: "+str(e), RNS.LOG_DEBUG)
                     return False
 
+    def service_set_latest_telemetry(self, latest_telemetry, latest_packed_telemetry):
+        if not RNS.vendor.platformutils.is_android():
+            pass
+        else:
+            if self.is_service:
+                self.latest_telemetry = latest_telemetry
+                self.latest_packed_telemetry = latest_packed_telemetry
+                return True
+            else:
+                try:
+                    if self.rpc_connection == None:
+                        self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
+                    self.rpc_connection.send({"latest_telemetry": (latest_telemetry, latest_packed_telemetry)})
+                    response = self.rpc_connection.recv()
+                    return response
+                except Exception as e:
+                    RNS.log("Error while setting telemetry over RPC: "+str(e), RNS.LOG_DEBUG)
+                    return False
+
     def getstate(self, prop, allow_cache=False):
         # TODO: remove
         # us = time.time()
@@ -924,6 +947,11 @@ class SidebandCore():
                                 elif "setstate" in call:
                                     prop, val = call["setstate"]
                                     connection.send(self.setstate(prop, val))
+                                elif "latest_telemetry" in call:
+                                    t,p = call["latest_telemetry"]
+                                    self.latest_telemetry = t
+                                    self.latest_packed_telemetry = p
+                                    connection.send(True)
                         except Exception as e:
                             RNS.log("Error on client RPC connection: "+str(e), RNS.LOG_ERROR)
                             connection.close()
@@ -1770,6 +1798,7 @@ class SidebandCore():
     def stop_telemetry(self):
         self.telemetry_running = False
         self.telemeter.stop_all()
+        self.update_telemeter_config()
         self.setstate("app.flags.last_telemetry", time.time())
 
     def update_telemetry(self):
@@ -1793,11 +1822,26 @@ class SidebandCore():
                         else:
                             telemetry_changed = True
 
+                if self.latest_telemetry != None:
+                    for sn in self.latest_telemetry:
+                        if telemetry_changed:
+                            break
+
+                        if sn != "time":
+                            if not sn in telemetry:
+                                telemetry_changed = True
+
                 if telemetry_changed:
                     self.telemetry_changes += 1
                     self.latest_telemetry = telemetry
                     self.latest_packed_telemetry = packed_telemetry
                     self.setstate("app.flags.last_telemetry", time.time())
+
+                    if self.is_client:
+                        try:
+                            self.service_set_latest_telemetry(self.latest_telemetry, self.latest_packed_telemetry)
+                        except Exception as e:
+                            RNS.log("Error while sending latest telemetry to service: "+str(e), RNS.LOG_ERROR)
 
         except Exception as e:
             RNS.log("Error while updating telemetry: "+str(e), RNS.LOG_ERROR)
@@ -1807,35 +1851,56 @@ class SidebandCore():
             if self.telemeter == None:
                 self.telemeter = Telemeter()
 
-            sensors = ["location", "battery", "pressure", "temperature", "humidity", "magnetic_field", "ambient_light", "gravity", "angular_velocity", "acceleration", "proximity"]
+            sensors = ["location", "information", "battery", "pressure", "temperature", "humidity", "magnetic_field", "ambient_light", "gravity", "angular_velocity", "acceleration", "proximity"]
             for sensor in sensors:
                 if self.config["telemetry_s_"+sensor]:
                     self.telemeter.enable(sensor)
                 else:
-                    self.telemeter.disable(sensor)
+                    if sensor == "location":
+                        if "location" in self.telemeter.sensors:
+                            if self.telemeter.sensors["location"].active:
+                                if self.telemeter.sensors["location"].synthesized:
+                                    if not self.config["telemetry_s_fixed_location"]:
+                                        self.telemeter.disable(sensor)
+                                else:
+                                    self.telemeter.disable(sensor)
+                    else:
+                        self.telemeter.disable(sensor)
             
             if self.config["telemetry_s_fixed_location"]:
                 self.telemeter.synthesize("location")
                 self.telemeter.sensors["location"].latitude = self.config["telemetry_s_fixed_latlon"][0]
                 self.telemeter.sensors["location"].longtitude = self.config["telemetry_s_fixed_latlon"][1]
                 self.telemeter.sensors["location"].altitude = self.config["telemetry_s_fixed_altitude"]
+                self.telemeter.sensors["location"].stale_time = 30
 
             if self.config["telemetry_s_information"]:
                 self.telemeter.synthesize("information")
                 self.telemeter.sensors["information"].contents = self.config["telemetry_s_information_text"]
 
+        else:
+            self.telemeter = None
+            self.latest_telemetry = None
+            self.latest_packed_telemetry = None
+
     def get_telemetry(self):
         if self.config["telemetry_enabled"] == True:
             self.update_telemeter_config()
-            return self.telemeter.read_all()
+            if self.telemeter != None:
+                return self.telemeter.read_all()
+            else:
+                return {}
         else:
             return {}
 
     def get_packed_telemetry(self):
         if self.config["telemetry_enabled"] == True:
             self.update_telemeter_config()
-            packed = self.telemeter.packed()
-            return packed
+            if self.telemeter != None:
+                packed = self.telemeter.packed()
+                return packed
+            else:
+                return None
         else:
             return None
 
@@ -1988,7 +2053,7 @@ class SidebandCore():
                                     target_port = self.owner_app.usb_devices[0]["port"]
                                     RNS.Interfaces.Android.RNodeInterface.RNodeInterface.bluetooth_control(port=target_port, pairing_mode = True)
                                 except Exception as e:
-                                    self.setstate("hardware_operation.error", "An error ocurred while trying to communicate with the device. Please make sure that Sideband has been granted permissions to access the device.\n\nThe reported error was:\n\n[i]"+str(e)+"[/i]")                
+                                    self.setstate("hardware_operation.error", "An error occurred while trying to communicate with the device. Please make sure that Sideband has been granted permissions to access the device.\n\nThe reported error was:\n\n[i]"+str(e)+"[/i]")
                             else:
                                 RNS.log("Could not execute RNode Bluetooth control command, no USB devices available", RNS.LOG_ERROR)
                     self.setstate("executing.bt_pair", False)
@@ -2072,7 +2137,7 @@ class SidebandCore():
 
         if self.is_standalone or self.is_client:
             if self.config["telemetry_enabled"]:
-                self.latest_telemetry = self.run_telemetry()
+                self.run_telemetry()
 
     def __add_localinterface(self, delay=None):
         self.interface_local_adding = True

@@ -376,7 +376,7 @@ class RVDetails(MDRecycleView):
                 self.entries.append(extra)
 
         if len(self.entries) == 0:
-            self.entries.append({"icon": "account-question-outline", "text": f"No information known about this peer"})
+            self.entries.append({"icon": "timeline-question-outline", "text": f"No telemetry available for this device"})
 
         self.data = self.entries
 
