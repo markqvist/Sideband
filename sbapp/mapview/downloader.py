@@ -89,6 +89,21 @@ class Downloader:
         response.raise_for_status()
         return callback, (url, response)
 
+    def __to_quad(self, x, y, z):
+        quad_key = []
+        i = z
+        while i > 0:
+            digit = 0
+            mask = 1 << (i-1)
+            if (x & mask) != 0:
+                digit += 1
+            if (y & mask) != 0:
+                digit += 2
+            quad_key.append(str(digit))
+
+            i -= 1
+        return "".join(quad_key)
+
     def _load_tile(self, tile):
         if tile.state == "done":
             return
@@ -97,9 +112,16 @@ class Downloader:
             # Logger.debug("Downloader: use cache {}".format(cache_fn))
             return tile.set_source, (cache_fn,)
         tile_y = tile.map_source.get_row_count(tile.zoom) - tile.tile_y - 1
-        uri = tile.map_source.url.format(
-            z=tile.zoom, x=tile.tile_x, y=tile_y, s=choice(tile.map_source.subdomains)
-        )
+
+        if tile.map_source.quad_key:
+            uri = tile.map_source.url.format(
+                q=self.__to_quad(tile.tile_x,tile_y,tile.zoom), s=choice(tile.map_source.subdomains)
+            )
+        else:
+            uri = tile.map_source.url.format(
+                z=tile.zoom, x=tile.tile_x, y=tile_y, s=choice(tile.map_source.subdomains)
+            )
+
         # Logger.debug("Downloader: download(tile) {}".format(uri))
         response = requests.get(uri, headers={'User-agent': USER_AGENT}, timeout=5)
         try:
