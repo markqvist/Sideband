@@ -1,4 +1,4 @@
-__debug_build__ = False
+__debug_build__ = True
 __disable_shaders__ = False
 __version__ = "0.7.0"
 __variant__ = "beta"
@@ -3605,6 +3605,9 @@ class SidebandApp(MDApp):
         self.map_action(direction="right")
 
     def object_details_action(self, sender=None, from_conv=False, from_telemetry=False, source_dest=None):
+        if self.sideband.config["telemetry_enabled"] == True:
+            self.sideband.update_telemetry()
+
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.nav_drawer.set_state("closed")
 

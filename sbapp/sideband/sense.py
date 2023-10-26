@@ -782,8 +782,12 @@ class Location(Sensor):
                 above_horizon = False
             
             srh = shared_radio_horizon(cs, cr)
+            if self.data["altitude"] != None and d["altitude"] != None:
+              dalt = salt-alt
+            else:
+              dalt = None
 
-            rendered["distance"] = {"euclidian": ed, "orthodromic": od}
+            rendered["distance"] = {"euclidian": ed, "orthodromic": od, "vertical": dalt}
             rendered["azalt"] = {
               "azimuth": aa[0], "altitude": aa[1], "above_horizon": above_horizon,
               "altitude_delta": atd, "local_angle_to_horizon": ath}

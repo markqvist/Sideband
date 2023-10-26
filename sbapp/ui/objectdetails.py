@@ -281,6 +281,17 @@ class RVDetails(MDRecycleView):
                         if ed != None:
                             ed_text = f"Euclidian distance [b]{RNS.prettydistance(ed)}[/b]"
                             extra_entries.append({"icon": "axis-arrow", "text": ed_text})
+                    
+                    if "vertical" in s["distance"]:
+                        vd = s["distance"]["vertical"]
+                        if vd != None:
+                            if vd < 0:
+                                relstr = "lower"
+                                vd = abs(vd)
+                            else:
+                                relstr = "greater"
+                            vd_text = f"Altitude is [b]{RNS.prettydistance(vd)}[/b] {relstr} than this device"
+                            extra_entries.append({"icon": "altimeter", "text": vd_text})
 
                 if "angle_to_horizon" in s["values"]:
                     oath = s["values"]["angle_to_horizon"]
