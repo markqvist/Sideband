@@ -769,7 +769,10 @@ class SidebandApp(MDApp):
                 self.message_send_action()
         
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "l"):
-            self.announces_action(self)
+            if self.root.ids.screen_manager.current == "map_screen":
+                self.map_layers_action()
+            else:
+                self.announces_action(self)
         
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "m"):
             if self.root.ids.screen_manager.current == "messages_screen":
@@ -3350,7 +3353,6 @@ class SidebandApp(MDApp):
                     self.map.zoom = minz
 
                 m = self.map
-                RNS.log(f"Map {m.lat} {m.lon} {m.zoom}")
                 nlat = self.map.lat
                 nlon = self.map.lon
                 if nlat < -89: nlat = -89
