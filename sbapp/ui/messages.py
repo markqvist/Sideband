@@ -696,9 +696,8 @@ MDScreen:
 Builder.load_string("""
 <ListLXMessageCard>:
     style: "outlined"
-    elevation: 2
     padding: dp(8)
-    radius: [dp(4), dp(4), dp(4), dp(4)]
+    radius: dp(4)
     size_hint: 1.0, None
     height: content_text.height + heading_text.height + dp(32)
     pos_hint: {"center_x": .5, "center_y": .5}
