@@ -473,6 +473,7 @@ Builder.load_string("""
 
     MDProgressBar:
         id: sync_progress
+        type: "determinate"
         value: 0
 
     MDLabel:

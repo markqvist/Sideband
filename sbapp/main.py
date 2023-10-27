@@ -648,10 +648,16 @@ class SidebandApp(MDApp):
                     self.conversations_view.update()
 
             if self.sideband.getstate("app.flags.lxmf_sync_dialog_open", allow_cache=True) and self.sync_dialog != None:
-                self.sync_dialog.ids.sync_progress.value = self.sideband.get_sync_progress()*100
-                self.sync_dialog.ids.sync_status.text = self.sideband.get_sync_status()
-
                 state = self.sideband.message_router.propagation_transfer_state
+
+                dlg_sp = self.sideband.get_sync_progress()*100; dlg_ss = self.sideband.get_sync_status()
+                if state > LXMF.LXMRouter.PR_IDLE and state <= LXMF.LXMRouter.PR_COMPLETE:
+                    self.sync_dialog.ids.sync_progress.value = dlg_sp
+                else:
+                    self.sync_dialog.ids.sync_progress.value = 0.1
+
+                self.sync_dialog.ids.sync_status.text = dlg_ss
+
                 if state > LXMF.LXMRouter.PR_IDLE and state < LXMF.LXMRouter.PR_COMPLETE:
                     self.widget_hide(self.sync_dialog.stop_button, False)
                 else:
@@ -797,7 +803,10 @@ class SidebandApp(MDApp):
                 self.telemetry_action(self)
 
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "r"):
-            self.conversations_action(self)
+            if self.root.ids.screen_manager.current == "conversations_screen":
+                self.lxmf_sync_action(self)
+            else:
+                self.conversations_action(self)
         
         if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "g"):
             self.guide_action(self)
@@ -1112,9 +1121,9 @@ class SidebandApp(MDApp):
 
         else:
             if self.sideband.reticulum.is_connected_to_shared_instance:
-                connectivity_status = "Sideband is connected via a shared Reticulum instance running on this system. Use the rnstatus utility to obtain full connectivity info."
+                connectivity_status = "Sideband is connected via a shared Reticulum instance running on this system. Use the [b]rnstatus[/b] utility to obtain full connectivity info."
             else:
-                connectivity_status = "Sideband is currently running a standalone or master Reticulum instance on this system. Use the rnstatus utility to obtain full connectivity info."
+                connectivity_status = "Sideband is currently running a standalone or master Reticulum instance on this system. Use the [b]rnstatus[/b] utility to obtain full connectivity info."
 
         return connectivity_status
     
@@ -1216,42 +1225,61 @@ class SidebandApp(MDApp):
             else:
                 sl = None
 
-            self.sideband.setpersistent("lxmf.lastsync", time.time())
-            self.sideband.setpersistent("lxmf.syncretrying", False)
-            self.sideband.request_lxmf_sync(limit=sl)
+            if not hasattr(self, "message_sync_dialog") or self.message_sync_dialog == None:
+                close_button = MDRectangleFlatButton(text="Close",font_size=dp(18))
+                stop_button = MDRectangleFlatButton(text="Stop",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
 
-            close_button = MDRectangleFlatButton(text="Close",font_size=dp(18))
-            stop_button = MDRectangleFlatButton(text="Stop",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
-            dialog_content = MsgSync()
-            dialog = MDDialog(
-                title="LXMF Sync via "+RNS.prettyhexrep(self.sideband.message_router.get_outbound_propagation_node()),
-                type="custom",
-                content_cls=dialog_content,
-                buttons=[ stop_button, close_button ],
-                # elevation=0,
-            )
-            dialog.d_content = dialog_content
-            def dl_close(s):                
-                self.sideband.setstate("app.flags.lxmf_sync_dialog_open", False)
-                dialog.dismiss()
-                # self.sideband.cancel_lxmf_sync()
+                dialog_content = MsgSync()
+                dialog = MDDialog(
+                    title="LXMF Sync via "+RNS.prettyhexrep(self.sideband.message_router.get_outbound_propagation_node()),
+                    type="custom",
+                    content_cls=dialog_content,
+                    buttons=[ stop_button, close_button ],
+                    # elevation=0,
+                )
+                dialog.d_content = dialog_content
+                def dl_close(s):                
+                    self.sideband.setstate("app.flags.lxmf_sync_dialog_open", False)
+                    dialog.dismiss()
+                    self.message_sync_dialog.d_content.ids.sync_progress.value = 0.1
+                    self.message_sync_dialog.d_content.ids.sync_status.text = ""
 
-            def dl_stop(s):                
-                # self.sideband.setstate("app.flags.lxmf_sync_dialog_open", False)
-                # dialog.dismiss()
-                self.sideband.cancel_lxmf_sync()
-                def cb(dt):
-                    self.widget_hide(self.sync_dialog.stop_button, True)
-                Clock.schedule_once(cb, 0.25)
+                    # self.sideband.cancel_lxmf_sync()
 
-            close_button.bind(on_release=dl_close)
-            stop_button.bind(on_release=dl_stop)
+                def dl_stop(s):                
+                    # self.sideband.setstate("app.flags.lxmf_sync_dialog_open", False)
+                    # dialog.dismiss()
+                    self.sideband.cancel_lxmf_sync()
+                    def cb(dt):
+                        self.widget_hide(self.sync_dialog.stop_button, True)
+                    Clock.schedule_once(cb, 0.25)
+
+                close_button.bind(on_release=dl_close)
+                stop_button.bind(on_release=dl_stop)
+
+                self.message_sync_dialog = dialog
+                self.sync_dialog = dialog_content
+                self.sync_dialog.stop_button = stop_button
+               
+            s_state = self.sideband.message_router.propagation_transfer_state
+            if s_state > LXMF.LXMRouter.PR_PATH_REQUESTED and s_state <= LXMF.LXMRouter.PR_COMPLETE:
+                dsp = self.sideband.get_sync_progress()*100
+            else:
+                dsp = 0
+
             self.sideband.setstate("app.flags.lxmf_sync_dialog_open", True)
-            self.sync_dialog = dialog_content
-            self.sync_dialog.stop_button = stop_button
-            dialog.open()
-            dialog_content.ids.sync_progress.value = self.sideband.get_sync_progress()*100
-            dialog_content.ids.sync_status.text = self.sideband.get_sync_status()
+            self.message_sync_dialog.title = f"LXMF Sync via "+RNS.prettyhexrep(self.sideband.message_router.get_outbound_propagation_node())
+            self.message_sync_dialog.d_content.ids.sync_status.text = self.sideband.get_sync_status()
+            self.message_sync_dialog.d_content.ids.sync_progress.value = dsp
+            self.message_sync_dialog.d_content.ids.sync_progress.start()
+            self.sync_dialog.ids.sync_progress.stop()
+            self.message_sync_dialog.open()
+
+            def sij(dt):
+                self.sideband.setpersistent("lxmf.lastsync", time.time())
+                self.sideband.setpersistent("lxmf.syncretrying", False)
+                self.sideband.request_lxmf_sync(limit=sl)
+            Clock.schedule_once(sij, 0.1)
 
     def new_conversation_action(self, sender=None):
         def cb(dt):
@@ -1837,12 +1865,12 @@ class SidebandApp(MDApp):
 
                 if self.sideband.reticulum.is_connected_to_shared_instance:
                     info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
-                    info += "To get connectivity status, use the rnstatus utility.\n\n"
+                    info += "To get connectivity status, use the [b]rnstatus[/b] utility.\n\n"
                     info += "To configure connectivity, edit the configuration file located at:\n\n"
                     info += str(RNS.Reticulum.configpath)
                 else:
                     info =  "Sideband is currently running a standalone or master Reticulum instance on this system.\n\n"
-                    info += "To get connectivity status, use the rnstatus utility.\n\n"
+                    info += "To get connectivity status, use the [b]rnstatus[/b] utility.\n\n"
                     info += "To configure connectivity, edit the configuration file located at:\n\n"
                     info += str(RNS.Reticulum.configpath)
 

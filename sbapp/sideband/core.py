@@ -648,6 +648,8 @@ class SidebandCore():
 
     def log_announce(self, dest, app_data, dest_type):
         try:
+            if app_data == None:
+                app_data = b""
             RNS.log("Received "+str(dest_type)+" announce for "+RNS.prettyhexrep(dest)+" with data: "+app_data.decode("utf-8"))
             self._db_save_announce(dest, app_data, dest_type)
             self.setstate("app.flags.new_announces", True)
@@ -2905,7 +2907,7 @@ class SidebandCore():
             threading.Thread(target=webshare_job, daemon=True).start()
 
     def request_lxmf_sync(self, limit = None):
-        if self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_IDLE or self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_COMPLETE:
+        if self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_IDLE or self.message_router.propagation_transfer_state >= LXMF.LXMRouter.PR_COMPLETE:
             self.message_router.request_messages_from_propagation_node(self.identity, max_messages = limit)
             RNS.log("LXMF message sync requested from propagation node "+RNS.prettyhexrep(self.message_router.get_outbound_propagation_node())+" for "+str(self.identity))
             return True
@@ -2917,7 +2919,18 @@ class SidebandCore():
             self.message_router.cancel_propagation_node_requests()
 
     def get_sync_progress(self):
-        return self.message_router.propagation_transfer_progress
+        state = self.message_router.propagation_transfer_state
+        if state == LXMF.LXMRouter.PR_PATH_REQUESTED:
+            state_val = 0.05
+        elif state == LXMF.LXMRouter.PR_LINK_ESTABLISHING:
+            state_val = 0.1
+        elif state == LXMF.LXMRouter.PR_LINK_ESTABLISHED:
+            state_val = 0.15
+        elif state >= LXMF.LXMRouter.PR_REQUEST_SENT:
+            state_val = 0.2
+        else:
+            state_val = 0.0
+        return (self.message_router.propagation_transfer_progress*0.8)+state_val
 
     def lxmf_delivery(self, message):
         time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp))
@@ -2961,6 +2974,18 @@ class SidebandCore():
             return "Receiving messages"
         elif self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_RESPONSE_RECEIVED:
             return "Messages received"
+        elif self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_NO_PATH:
+            return "No path to propagation node"
+        elif self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_LINK_FAILED:
+            return "Link establisment failed"
+        elif self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_TRANSFER_FAILED:
+            return "Sync request failed"
+        elif self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_NO_IDENTITY_RCVD:
+            return "No identity received by remote"
+        elif self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_NO_ACCESS:
+            return "No access to specified node"
+        elif self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_FAILED:
+            return "Sync failed"
         elif self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_COMPLETE:
             new_msgs = self.message_router.propagation_transfer_last_result
             if new_msgs == 0:
