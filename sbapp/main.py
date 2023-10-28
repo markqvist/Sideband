@@ -811,6 +811,9 @@ class SidebandApp(MDApp):
                     if self.root.ids.screen_manager.current == "messages_screen":
                         context_dest = self.messages_view.ids.messages_scrollview.active_conversation
                         self.map_show_peer_location(context_dest)
+                    elif self.root.ids.screen_manager.current == "object_details_screen":
+                        context_dest = self.object_details_screen.object_hash
+                        self.map_show_peer_location(context_dest)
                     else:
                         self.map_action(self)
                 
@@ -823,16 +826,27 @@ class SidebandApp(MDApp):
                 if text == "t":
                     if self.root.ids.screen_manager.current == "messages_screen":
                         self.object_details_action(self.messages_view, from_conv=True)
+                    elif self.root.ids.screen_manager.current == "object_details_screen":
+                        self.object_details_screen.reload_telemetry()
                     else:
                         self.telemetry_action(self)
+
+                if text == "o":
+                    # if self.root.ids.screen_manager.current == "telemetry_screen":
+                    self.map_display_own_telemetry()
 
                 if text == "r":
                     if self.root.ids.screen_manager.current == "conversations_screen":
                         self.lxmf_sync_action(self)
                     elif self.root.ids.screen_manager.current == "telemetry_screen":
-                        self.converse_from_telemetry(self)
+                        self.conversations_action(self, direction="right")
+                    elif self.root.ids.screen_manager.current == "object_details_screen":
+                        if not self.object_details_screen.object_hash == self.sideband.lxmf_destination.hash:
+                            self.converse_from_telemetry(self)
+                        else:
+                            self.conversations_action(self, direction="right")
                     else:
-                        self.conversations_action(self)
+                        self.conversations_action(self, direction="right")
                 
                 if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "g"):
                     self.guide_action(self)
@@ -1063,6 +1077,9 @@ class SidebandApp(MDApp):
         if self.root.ids.screen_manager.current == "messages_screen":
             context_dest = self.messages_view.ids.messages_scrollview.active_conversation
             self.map_show_peer_location(context_dest)
+        if self.root.ids.screen_manager.current == "object_details_screen":
+            context_dest = self.object_details_screen.object_hash
+            self.map_show_peer_location(context_dest)
 
     def peer_show_telemetry_action(self, sender):
         if self.root.ids.screen_manager.current == "messages_screen":
@@ -1124,8 +1141,8 @@ class SidebandApp(MDApp):
 
     ### Conversations screen
     ######################################       
-    def conversations_action(self, sender=None):
-        self.open_conversations()
+    def conversations_action(self, sender=None, direction="left"):
+        self.open_conversations(direction=direction)
 
     def open_conversations(self, direction="left"):
         self.root.ids.screen_manager.transition.direction = direction
@@ -3252,8 +3269,11 @@ class SidebandApp(MDApp):
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
-    def converse_from_telemetry(self):
-        pass
+    def converse_from_telemetry(self, sender=None):
+        if self.object_details_screen != None:
+            context_dest = self.object_details_screen.object_hash
+            if not self.object_details_screen.object_hash == self.sideband.lxmf_destination.hash:
+                self.open_conversation(context_dest)
 
     def telemetry_copy(self, sender=None):
         Clipboard.copy(str(self.sideband.get_telemetry()))
@@ -3425,10 +3445,10 @@ class SidebandApp(MDApp):
                 maxz = source.max_zoom
                 minz = source.min_zoom
                 if self.map.zoom > maxz:
-                    self.map.zoom = maxz
+                    mz = maxz; px, py = self.map_get_zoom_center(); self.map.set_zoom_at(mz, px, py)
                 
                 if self.map.zoom < minz:
-                    self.map.zoom = minz
+                    mz = minz; px, py = self.map_get_zoom_center(); self.map.set_zoom_at(mz, px, py)
 
                 m = self.map
                 nlat = self.map.lat
@@ -3552,24 +3572,24 @@ class SidebandApp(MDApp):
             delta = (-span/self.map_nav_divisor)*modifier
             self.map.center_on(self.map.lat+delta, self.map.lon)
 
+    def map_get_zoom_center(self):
+        bb = self.map.get_bbox()
+        slat = (bb[2]-bb[0])/2; slon = (bb[3]-bb[1])/2            
+        zlat = bb[0]+slat; zlon = bb[1]+slon
+        return self.map.get_window_xy_from(zlat, zlon, self.map.zoom)
+
     def map_nav_zoom_out(self, sender=None, modifier=1.0):
         if self.map != None:
             zd = -self.map_nav_zoom*modifier
             if self.map.zoom+zd > self.map.map_source.min_zoom:
-                bb = self.map.get_bbox()
-                slat = (bb[2]-bb[0])/2; slon = (bb[3]-bb[1])/2            
-                zlat = bb[0]+slat; zlon = bb[1]+slon
-                px, py = self.map.get_window_xy_from(zlat, zlon, self.map.zoom)
+                px, py = self.map_get_zoom_center()
                 self.map.animated_diff_scale_at(zd, px, py)
 
     def map_nav_zoom_in(self, sender=None, modifier=1.0):
         if self.map != None:
             zd = self.map_nav_zoom*modifier
             if self.map.zoom+zd < self.map.map_source.max_zoom or self.map.scale < 3.0:
-                bb = self.map.get_bbox()
-                slat = (bb[2]-bb[0])/2; slon = (bb[3]-bb[1])/2            
-                zlat = bb[0]+slat; zlon = bb[1]+slon
-                px, py = self.map.get_window_xy_from(zlat, zlon, self.map.zoom)
+                px, py = self.map_get_zoom_center()
                 self.map.animated_diff_scale_at(zd, px, py)
 
     def map_action(self, sender=None, direction="left"):
@@ -3608,7 +3628,7 @@ class SidebandApp(MDApp):
 
         def am_job(dt):
             self.map_update_markers()
-        Clock.schedule_once(am_job, 0.6)
+        Clock.schedule_once(am_job, 0.15)
 
     def map_settings_load_states(self):
         if self.map_settings_screen != None:
@@ -3709,10 +3729,13 @@ class SidebandApp(MDApp):
 
     def map_show(self, location):
         if hasattr(self, "map") and self.map:
-            self.map.center_on(location["latitude"],location["longtitude"])
             # self.map.lat = location["latitude"]
             # self.map.lon = location["longtitude"]
-            self.map.zoom = 16
+            mz = 16
+            if mz > self.map.map_source.max_zoom: mz = self.map.map_source.max_zoom
+            if mz < self.map.map_source.min_zoom: mz = self.map.map_source.min_zoom
+            self.map.center_on(location["latitude"],location["longtitude"])
+            px, py = self.map_get_zoom_center(); self.map.set_zoom_at(mz, px, py)
             self.map.trigger_update(True)
 
     def map_show_peer_location(self, context_dest):

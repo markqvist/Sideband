@@ -846,7 +846,27 @@ class SidebandCore():
 
         return []
 
+    def owm_location(self):
+        return self.peer_location(self.lxmf_destination.hash)
+
     def peer_location(self, context_dest):
+        if context_dest == None:
+            return None
+
+        if context_dest == self.lxmf_destination.hash:
+            try:
+                if self.latest_telemetry != None:
+                    lt = self.latest_telemetry
+                    if "location" in lt and lt["location"] != None:
+                        l = lt["location"]
+                        if "latitude" in l and "longtitude" in l:
+                            if l["latitude"] != None and l["longtitude"] != None:
+                                return l
+                return None
+
+            except Exception as e:
+                RNS.log("Error while getting own location: "+str(e), RNS.LOG_ERROR)
+
         after_time = time.time()-3*30*24*60*60
         pts = self.peer_telemetry(context_dest, after=after_time)
         for pt in pts:

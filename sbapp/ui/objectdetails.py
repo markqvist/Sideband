@@ -14,6 +14,10 @@ from sideband.sense import Telemeter
 import threading
 import webbrowser
 
+from kivymd.uix.button import MDRectangleFlatButton
+from kivymd.uix.dialog import MDDialog
+from kivymd.toast import toast
+
 from datetime import datetime
 
 
@@ -27,11 +31,13 @@ class ObjectDetails():
         self.app = app
         self.widget = None
         self.object_hash = object_hash
+        self.lastest_timestamp = 0
         self.coords = None
         self.raw_telemetry = None
         self.from_telemetry = False
         self.from_conv = False
         self.viewing_self = False
+        self.delete_dialog = None
 
         if not self.app.root.ids.screen_manager.has_screen("object_details_screen"):
             self.screen = Builder.load_string(layou_object_details)
@@ -46,6 +52,16 @@ class ObjectDetails():
             self.telemetry_list.app = self.app
             self.screen.ids.object_details_container.add_widget(self.telemetry_list)
 
+            Clock.schedule_interval(self.reload_job, 2)
+
+    def reload_job(self, dt=None):
+        if self.app.root.ids.screen_manager.current == "object_details_screen":
+            latest_telemetry = self.app.sideband.peer_telemetry(self.object_hash, limit=1)
+            if latest_telemetry != None and len(latest_telemetry) > 0:
+                telemetry_timestamp = latest_telemetry[0][0]
+                if telemetry_timestamp > self.lastest_timestamp:
+                    self.reload_telemetry(notoast=True)
+
     def close_action(self, sender=None):
         if self.from_telemetry:
             self.app.telemetry_action(direction="right")
@@ -55,7 +71,41 @@ class ObjectDetails():
             else:
                 self.app.close_sub_map_action()
 
-    def set_source(self, source_dest, from_conv=False, from_telemetry=False):
+    def confirm_delete_telemetry(self, sender=None):
+        self.app.sideband.clear_telemetry(self.object_hash)
+
+    def delete_telemetry_action(self, sender=None):
+        if self.delete_dialog == None:
+            yes_button = MDRectangleFlatButton(text="Yes",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_reject, text_color=self.app.color_reject)
+            no_button = MDRectangleFlatButton(text="No",font_size=dp(18))
+            self.delete_dialog = MDDialog(
+                title="Clear telemetry?",
+                text="This will permanently delete all collected telemetry for this object.",
+                buttons=[ yes_button, no_button ],
+            )
+            def dl_yes(s):
+                self.delete_dialog.dismiss()
+                self.confirm_delete_telemetry()
+
+                def cb(dt):
+                    self.reload_telemetry(notoast=True)
+                Clock.schedule_once(cb, 0.2)
+
+            def dl_no(s):
+                self.delete_dialog.dismiss()
+
+            yes_button.bind(on_release=dl_yes)
+            no_button.bind(on_release=dl_no)
+        
+        self.delete_dialog.open()
+
+    def reload_telemetry(self, sender=None, notoast=False):
+        if self.object_hash != None:
+            self.set_source(self.object_hash, from_conv=self.from_conv, from_telemetry=self.from_telemetry)
+            if not notoast:
+                toast("Reloaded telemetry for object")
+
+    def set_source(self, source_dest, from_conv=False, from_telemetry=False, prefetched=None):
         self.object_hash = source_dest
 
         if from_telemetry:
@@ -76,9 +126,27 @@ class ObjectDetails():
         self.screen.ids.object_appearance.icon = appearance[0]
         self.screen.ids.object_appearance.icon_color = appearance[1]
         self.screen.ids.object_appearance.md_bg_color = appearance[2]
+        # self.screen.ids.delete_button.line_color = self.app.color_reject
+        # self.screen.ids.delete_button.text_color = self.app.color_reject
+        # self.screen.ids.delete_button.icon_color = self.app.color_reject
+        def djob(dt):
+            if self.viewing_self:
+                self.screen.ids.request_button.disabled = True
+                self.screen.ids.send_button.disabled = True
+            else:
+                self.screen.ids.request_button.disabled = False
+                self.screen.ids.send_button.disabled = False
+        Clock.schedule_once(djob, 0.0)
 
-        latest_telemetry = self.app.sideband.peer_telemetry(source_dest, limit=1)
+        if prefetched != None:
+            latest_telemetry = prefetched
+        else:
+            latest_telemetry = self.app.sideband.peer_telemetry(source_dest, limit=1)
+
         if latest_telemetry != None and len(latest_telemetry) > 0:
+            telemetry_timestamp = latest_telemetry[0][0]
+            self.lastest_timestamp = telemetry_timestamp
+
             own_address = self.app.sideband.lxmf_destination.hash
             telemeter = Telemeter.from_packed(latest_telemetry[0][1])
             self.raw_telemetry = telemeter.read_all()
@@ -428,6 +496,9 @@ MDScreen:
                 [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
             right_action_items:
                 [
+                ['map-search', lambda x: root.app.peer_show_location_action(root.delegate)],
+                ['refresh', lambda x: root.delegate.reload_telemetry()],
+                ['trash-can-outline', lambda x: root.delegate.delete_telemetry_action()],
                 ['close', lambda x: root.delegate.close_action()],
                 ]
 
@@ -446,6 +517,7 @@ MDScreen:
                 md_bg_color: [1,1,1,1]
                 theme_icon_color: "Custom"
                 icon_size: dp(32)
+                on_release: root.app.converse_from_telemetry()
 
             MDLabel:
                 id: name_label
@@ -454,12 +526,11 @@ MDScreen:
                 font_style: "H6"
 
         MDBoxLayout:
-            id: object_header
             orientation: "horizontal"
             spacing: dp(24)
             size_hint_y: None
             height: self.minimum_height
-            padding: [dp(24), dp(0), dp(24), dp(12)]
+            padding: [dp(24), dp(0), dp(24), dp(24)]
 
             MDRectangleFlatIconButton:
                 id: telemetry_button
@@ -482,9 +553,64 @@ MDScreen:
                 size_hint: [1.0, None]
                 on_release: root.delegate.copy_coordinates(self)
                 disabled: False
-            
+                
+        MDSeparator:
+            orientation: "horizontal"
+            height: dp(1)
+
         MDBoxLayout:
             orientation: "vertical"
             id: object_details_container
+                
+        MDSeparator:
+            orientation: "horizontal"
+            height: dp(1)
+
+        MDBoxLayout:
+            orientation: "horizontal"
+            spacing: dp(24)
+            size_hint_y: None
+            height: self.minimum_height
+            padding: [dp(24), dp(24), dp(24), dp(24)]
+
+            MDRectangleFlatIconButton:
+                id: request_button
+                icon: "arrow-down-bold-hexagon-outline"
+                text: "Request Update"
+                padding: [dp(0), dp(14), dp(0), dp(14)]
+                icon_size: dp(24)
+                font_size: dp(16)
+                size_hint: [1.0, None]
+                on_release: root.delegate.copy_telemetry(self)
+                disabled: False
+
+            MDRectangleFlatIconButton:
+                id: send_button
+                icon: "upload-lock"
+                text: "Send Update Now"
+                padding: [dp(0), dp(14), dp(0), dp(14)]
+                icon_size: dp(24)
+                font_size: dp(16)
+                size_hint: [1.0, None]
+                on_release: root.delegate.copy_coordinates(self)
+                disabled: False
+
+        # MDBoxLayout:
+        #     orientation: "horizontal"
+        #     spacing: dp(16)
+        #     size_hint_y: None
+        #     height: self.minimum_height
+        #     padding: [dp(24), dp(16), dp(24), dp(24)]
+
+        #     MDRectangleFlatIconButton:
+        #         id: delete_button
+        #         icon: "trash-can-outline"
+        #         text: "Delete All Telemetry"
+        #         padding: [dp(0), dp(14), dp(0), dp(14)]
+        #         icon_size: dp(24)
+        #         font_size: dp(16)
+        #         size_hint: [1.0, None]
+        #         on_release: root.delegate.copy_telemetry(self)
+        #         disabled: False
                 
 """
