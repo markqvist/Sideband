@@ -760,61 +760,81 @@ class SidebandApp(MDApp):
             fix_back_button()
 
     def keydown_event(self, instance, keyboard, keycode, text, modifiers):
-        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "q"):
-            self.quit_action(self)
-        
-        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "w"):
-            if self.root.ids.screen_manager.current == "conversations_screen":
-                self.quit_action(self)
-            elif self.root.ids.screen_manager.current == "map_settings_screen":
-                self.close_sub_map_action()
-            elif self.root.ids.screen_manager.current == "object_details_screen":
-                self.object_details_screen.close_action()
-            else:
-                self.open_conversations(direction="right")
-        
-        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "s" or text == "d"):
-            if self.root.ids.screen_manager.current == "messages_screen":
-                self.message_send_action()
-        
-        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "l"):
-            if self.root.ids.screen_manager.current == "map_screen":
-                self.map_layers_action()
-            else:
-                self.announces_action(self)
-        
-        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "m"):
-            if self.root.ids.screen_manager.current == "messages_screen":
-                context_dest = self.messages_view.ids.messages_scrollview.active_conversation
-                self.map_show_peer_location(context_dest)
-            else:
-                self.map_action(self)
-        
-        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "p"):
-            if self.root.ids.screen_manager.current == "map_screen":
-                self.map_settings_action()
-            else:
-                self.settings_action(self)
-        
-        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "t"):
-            if self.root.ids.screen_manager.current == "messages_screen":
-                self.object_details_action(self.messages_view, from_conv=True)
-            else:
-                self.telemetry_action(self)
+        if self.root.ids.screen_manager.current == "map_screen":
+            if not (len(modifiers) > 0 and "ctrl" in modifiers):
+                if len(modifiers) > 0 and "shift" in modifiers:
+                    nav_mod = 4
+                elif len(modifiers) > 0 and "alt" in modifiers:
+                    nav_mod = 0.25
+                else:
+                    nav_mod = 1.0
 
-        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "r"):
-            if self.root.ids.screen_manager.current == "conversations_screen":
-                self.lxmf_sync_action(self)
-            else:
-                self.conversations_action(self)
-        
-        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "g"):
-            self.guide_action(self)
-        
-        if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "n"):
-            if self.root.ids.screen_manager.current == "conversations_screen":
-                if not hasattr(self, "dialog_open") or not self.dialog_open:
-                    self.new_conversation_action(self)
+                if keycode == 79 or text == "d" or text == "l": self.map_nav_right(modifier=nav_mod)
+                if keycode == 80 or text == "a" or text == "h": self.map_nav_left(modifier=nav_mod)
+                if keycode == 81 or text == "s" or text == "j": self.map_nav_down(modifier=nav_mod)
+                if keycode == 82 or text == "w" or text == "k": self.map_nav_up(modifier=nav_mod)
+                if text == "q" or text == "-": self.map_nav_zoom_out(modifier=nav_mod)
+                if text == "e" or text == "+": self.map_nav_zoom_in(modifier=nav_mod)
+
+        if len(modifiers) > 0:
+            if modifiers[0] == "ctrl":
+                if text == "q":
+                    self.quit_action(self)
+                
+                if text == "w":
+                    if self.root.ids.screen_manager.current == "conversations_screen":
+                        self.quit_action(self)
+                    elif self.root.ids.screen_manager.current == "map_settings_screen":
+                        self.close_sub_map_action()
+                    elif self.root.ids.screen_manager.current == "object_details_screen":
+                        self.object_details_screen.close_action()
+                    else:
+                        self.open_conversations(direction="right")
+                
+                if text == "s" or text == "d":
+                    if self.root.ids.screen_manager.current == "messages_screen":
+                        self.message_send_action()
+                
+                if text == "l":
+                    if self.root.ids.screen_manager.current == "map_screen":
+                        self.map_layers_action()
+                    else:
+                        self.announces_action(self)
+                
+                if text == "m":
+                    if self.root.ids.screen_manager.current == "messages_screen":
+                        context_dest = self.messages_view.ids.messages_scrollview.active_conversation
+                        self.map_show_peer_location(context_dest)
+                    else:
+                        self.map_action(self)
+                
+                if text == "p":
+                    if self.root.ids.screen_manager.current == "map_screen":
+                        self.map_settings_action()
+                    else:
+                        self.settings_action(self)
+                
+                if text == "t":
+                    if self.root.ids.screen_manager.current == "messages_screen":
+                        self.object_details_action(self.messages_view, from_conv=True)
+                    else:
+                        self.telemetry_action(self)
+
+                if text == "r":
+                    if self.root.ids.screen_manager.current == "conversations_screen":
+                        self.lxmf_sync_action(self)
+                    elif self.root.ids.screen_manager.current == "telemetry_screen":
+                        self.converse_from_telemetry(self)
+                    else:
+                        self.conversations_action(self)
+                
+                if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "g"):
+                    self.guide_action(self)
+                
+                if text == "n":
+                    if self.root.ids.screen_manager.current == "conversations_screen":
+                        if not hasattr(self, "dialog_open") or not self.dialog_open:
+                            self.new_conversation_action(self)
             
     def keyboard_event(self, window, key, *largs):
         # Handle escape/back
@@ -3217,6 +3237,9 @@ class SidebandApp(MDApp):
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
+    def converse_from_telemetry(self):
+        pass
+
     def telemetry_copy(self, sender=None):
         Clipboard.copy(str(self.sideband.get_telemetry()))
         self.sideband.update_telemetry()
@@ -3476,14 +3499,84 @@ class SidebandApp(MDApp):
             self.sideband.save_configuration()
             toast("No file access, check permissions!")
 
+    map_nav_divisor = 12
+    map_nav_zoom = 0.25
+    def map_nav_left(self, sender=None, modifier=1.0):
+        if self.map != None:
+            bb = self.map.get_bbox()
+            lat_span = abs(bb[0] - bb[2])
+            lon_span = abs(bb[1] - bb[3])
+            span = min(lat_span, lon_span)
+            delta = (-span/self.map_nav_divisor)*modifier
+            self.map.center_on(self.map.lat, self.map.lon+delta)
+
+    def map_nav_right(self, sender=None, modifier=1.0):
+        if self.map != None:
+            bb = self.map.get_bbox()
+            lat_span = abs(bb[0] - bb[2])
+            lon_span = abs(bb[1] - bb[3])
+            span = min(lat_span, lon_span)
+            delta = (span/self.map_nav_divisor)*modifier
+            self.map.center_on(self.map.lat, self.map.lon+delta)
+
+    def map_nav_up(self, sender=None, modifier=1.0):
+        if self.map != None:
+            bb = self.map.get_bbox()
+            lat_span = abs(bb[0] - bb[2])
+            lon_span = abs(bb[1] - bb[3])
+            span = min(lat_span, lon_span)
+            delta = (span/self.map_nav_divisor)*modifier
+            self.map.center_on(self.map.lat+delta, self.map.lon)
+
+    def map_nav_down(self, sender=None, modifier=1.0):
+        if self.map != None:
+            bb = self.map.get_bbox()
+            lat_span = abs(bb[0] - bb[2])
+            lon_span = abs(bb[1] - bb[3])
+            span = min(lat_span, lon_span)
+            delta = (-span/self.map_nav_divisor)*modifier
+            self.map.center_on(self.map.lat+delta, self.map.lon)
+
+    def map_nav_zoom_out(self, sender=None, modifier=1.0):
+        if self.map != None:
+            zd = -self.map_nav_zoom*modifier
+            if self.map.zoom+zd > self.map.map_source.min_zoom:
+                bb = self.map.get_bbox()
+                slat = (bb[2]-bb[0])/2; slon = (bb[3]-bb[1])/2            
+                zlat = bb[0]+slat; zlon = bb[1]+slon
+                px, py = self.map.get_window_xy_from(zlat, zlon, self.map.zoom)
+                self.map.animated_diff_scale_at(zd, px, py)
+
+    def map_nav_zoom_in(self, sender=None, modifier=1.0):
+        if self.map != None:
+            zd = self.map_nav_zoom*modifier
+            if self.map.zoom+zd < self.map.map_source.max_zoom or self.map.scale < 3.0:
+                bb = self.map.get_bbox()
+                slat = (bb[2]-bb[0])/2; slon = (bb[3]-bb[1])/2            
+                zlat = bb[0]+slat; zlon = bb[1]+slon
+                px, py = self.map.get_window_xy_from(zlat, zlon, self.map.zoom)
+                self.map.animated_diff_scale_at(zd, px, py)
+
     def map_action(self, sender=None, direction="left"):
         if not self.root.ids.screen_manager.has_screen("map_screen"):
+            msource = self.map_get_source()
+            mzoom = self.sideband.config["map_zoom"]
+            mlat = self.sideband.config["map_lat"]; mlon = self.sideband.config["map_lon"]
+            if mzoom > msource.max_zoom: mzoom = msource.max_zoom
+            if mzoom < msource.min_zoom: mzoom = msource.min_zoom
+            if mlat < -89: mlat = -89
+            if mlat > 89: mlat = 89
+            if mlon < -179: mlon = -179
+            if mlon > 179: mlon = 179
+
+            RNS.log(f"zoom={mzoom}, lat={mlat}, lon={mlon}")
+
             self.map_screen = Builder.load_string(layout_map_screen)
             self.map_screen.app = self
             self.root.ids.screen_manager.add_widget(self.map_screen)
 
             from mapview import MapView
-            mapview = MapView(map_source=self.map_get_source(), zoom=self.sideband.config["map_zoom"], lat=self.sideband.config["map_lat"], lon=self.sideband.config["map_lon"])
+            mapview = MapView(map_source=msource, zoom=mzoom, lat=mlat, lon=mlon)
             mapview.snap_to_zoom = False
             mapview.double_tap_zoom = True
             self.map = mapview
