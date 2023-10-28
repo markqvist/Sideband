@@ -776,6 +776,12 @@ class SidebandApp(MDApp):
                 if text == "q" or text == "-": self.map_nav_zoom_out(modifier=nav_mod)
                 if text == "e" or text == "+": self.map_nav_zoom_in(modifier=nav_mod)
 
+        if self.root.ids.screen_manager.current == "conversations_screen":
+            if len(modifiers) > 0 and "ctrl" in modifiers:
+                if keycode < 40 and keycode > 29:
+                    c_index = keycode-29
+                    self.conversation_index_action(c_index)
+
         if len(modifiers) > 0:
             if modifiers[0] == "ctrl":
                 if text == "q":
@@ -936,9 +942,18 @@ class SidebandApp(MDApp):
 
         self.open_conversation(context_dest)
 
+    def conversation_index_action(self, index):
+        if self.conversations_view != None and self.conversations_view.list != None:
+            i = index-1
+            c = self.conversations_view.list.children
+            if len(c) > i:
+                item = c[(len(c)-1)-i]
+                self.conversation_action(item)
+
     def conversation_action(self, sender):
+        context_dest = sender.sb_uid
         def cb(dt):
-            self.open_conversation(sender.sb_uid)
+            self.open_conversation(context_dest)
         def cbu(dt):
             self.conversations_view.update()
         Clock.schedule_once(cb, 0.15)
