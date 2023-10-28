@@ -276,7 +276,7 @@ class SidebandApp(MDApp):
                 )
                 self.hw_error_dialog = MDDialog(
                     title="Hardware Error",
-                    text="When starting a connected RNode, Reticulum reported the following error:\n\n[i]"+description+"[/i]",
+                    text="When starting a connected RNode, Reticulum reported the following error:\n\n[i]"+str(description)+"[/i]",
                     buttons=[ yes_button ],
                     # elevation=0,
                 )
@@ -692,7 +692,7 @@ class SidebandApp(MDApp):
             ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
             dialog = MDDialog(
                 title="Message Scan",
-                text=info_text,
+                text=str(info_text),
                 buttons=[ ok_button ],
                 # elevation=0,
             )
@@ -708,7 +708,7 @@ class SidebandApp(MDApp):
             ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
             dialog = MDDialog(
                 title="Error",
-                text=info_text,
+                text=str(info_text),
                 buttons=[ ok_button ],
                 # elevation=0,
             )
@@ -1115,17 +1115,21 @@ class SidebandApp(MDApp):
         Clock.schedule_once(cb, 0.10)
 
     def get_connectivity_text(self):
-        connectivity_status = ""
-        if RNS.vendor.platformutils.get_platform() == "android":
-            connectivity_status = self.sideband.getstate("service.connectivity_status")
+        try:
+            connectivity_status = ""
+            if RNS.vendor.platformutils.get_platform() == "android":
+                connectivity_status = str(self.sideband.getstate("service.connectivity_status"))
 
-        else:
-            if self.sideband.reticulum.is_connected_to_shared_instance:
-                connectivity_status = "Sideband is connected via a shared Reticulum instance running on this system. Use the [b]rnstatus[/b] utility to obtain full connectivity info."
             else:
-                connectivity_status = "Sideband is currently running a standalone or master Reticulum instance on this system. Use the [b]rnstatus[/b] utility to obtain full connectivity info."
+                if self.sideband.reticulum.is_connected_to_shared_instance:
+                    connectivity_status = "Sideband is connected via a shared Reticulum instance running on this system. Use the [b]rnstatus[/b] utility to obtain full connectivity info."
+                else:
+                    connectivity_status = "Sideband is currently running a standalone or master Reticulum instance on this system. Use the [b]rnstatus[/b] utility to obtain full connectivity info."
 
-        return connectivity_status
+            return connectivity_status
+        except Exception as e:
+            RNS.log("An error occurred while retrieving connectivity status: "+str(e), RNS.LOG_ERROR)
+            return "Could not retrieve connectivity status"
     
     def connectivity_status(self, sender):
         hs = dp(22)
@@ -1133,12 +1137,12 @@ class SidebandApp(MDApp):
         yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
         dialog = MDDialog(
             title="Connectivity Status",
-            text=self.get_connectivity_text(),
+            text=str(self.get_connectivity_text()),
             buttons=[ yes_button ],
             # elevation=0,
         )
         def cs_updater(dt):
-            dialog.text = self.get_connectivity_text()
+            dialog.text = str(self.get_connectivity_text())
         def dl_yes(s):
             self.connectivity_updater.cancel()
             dialog.dismiss()
@@ -3946,6 +3950,7 @@ Thank you very much for using Free Communications Systems.
         self.root.ids.screen_manager.current = "broadcasts_screen"
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+        raise OSError("Just a test")
 
 class CustomOneLineIconListItem(OneLineIconListItem):
     icon = StringProperty()
@@ -3953,7 +3958,21 @@ class CustomOneLineIconListItem(OneLineIconListItem):
 class MDMapIconButton(MDIconButton):
     pass
 
+from kivy.base import ExceptionManager, ExceptionHandler
+class SidebandExceptionHandler(ExceptionHandler):
+    def handle_exception(self, e):
+        etype = type(e)
+        if etype != SystemExit:
+            import traceback
+            exception_info = "".join(traceback.TracebackException.from_exception(e).format())
+            RNS.log(f"An unhandled {str(type(e))} exception occurred: {str(e)}", RNS.LOG_ERROR)
+            RNS.log(exception_info)
+            return ExceptionManager.PASS
+        else:
+            return ExceptionManager.RAISE
+
 def run():
+    ExceptionManager.add_handler(SidebandExceptionHandler())
     SidebandApp().run()
 
 if __name__ == "__main__":
