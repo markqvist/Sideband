@@ -1,5 +1,6 @@
-__debug_build__ = True
+__debug_build__ = False
 
+import sys
 import time
 import RNS
 from os import environ
@@ -367,4 +368,19 @@ class SidebandService():
         self.sideband.cleanup()
         self.release_locks()
 
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    if exc_type == SystemExit:
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    import traceback
+    exc_text = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+    RNS.log(f"An unhandled {str(exc_type)} exception occurred: {str(exc_value)}", RNS.LOG_ERROR)
+    RNS.log(exc_text, RNS.LOG_ERROR)
+
+sys.excepthook = handle_exception
 SidebandService().start()

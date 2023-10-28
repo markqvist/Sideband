@@ -1,4 +1,4 @@
-__debug_build__ = True
+__debug_build__ = False
 __disable_shaders__ = False
 __version__ = "0.7.0"
 __variant__ = "beta"
@@ -4081,7 +4081,6 @@ Thank you very much for using Free Communications Systems.
         self.root.ids.screen_manager.current = "broadcasts_screen"
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
-        raise OSError("Just a test")
 
 class CustomOneLineIconListItem(OneLineIconListItem):
     icon = StringProperty()
@@ -4097,7 +4096,7 @@ class SidebandExceptionHandler(ExceptionHandler):
             import traceback
             exception_info = "".join(traceback.TracebackException.from_exception(e).format())
             RNS.log(f"An unhandled {str(type(e))} exception occurred: {str(e)}", RNS.LOG_ERROR)
-            RNS.log(exception_info)
+            RNS.log(exception_info, RNS.LOG_ERROR)
             return ExceptionManager.PASS
         else:
             return ExceptionManager.RAISE
