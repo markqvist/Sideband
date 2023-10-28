@@ -201,11 +201,11 @@ class Messages():
                     if "euclidian" in d:
                         edst = d["euclidian"]
                         if edst != None:
-                            rcvd_d_str = " [b]Distance[/b] "+RNS.prettydistance(edst)
+                            rcvd_d_str = "\n[b]Distance[/b] "+RNS.prettydistance(edst)
                     elif "geodesic" in d:
                         gdst = d["geodesic"]
                         if gdst != None:
-                            rcvd_d_str = " [b]Distance[/b] "+RNS.prettydistance(gdst)
+                            rcvd_d_str = "\n[b]Distance[/b] "+RNS.prettydistance(gdst) + " (geodesic)"
 
                 phy_stats_str = ""
                 if "extras" in m and m["extras"] != None:
@@ -266,12 +266,11 @@ class Messages():
                     if phy_stats_str != "" and self.app.sideband.config["advanced_stats"]:
                         heading_str += phy_stats_str+"\n"
 
-                    heading_str += "[b]Received[/b] "+rxstr
+                    heading_str += "[b]Sent[/b] "+txstr
+                    heading_str += "\n[b]Received[/b] "+rxstr
 
-                    if rcvd_d_str != "" and self.app.sideband.config["advanced_stats"]:
+                    if rcvd_d_str != "":
                         heading_str += rcvd_d_str
-
-                    heading_str += "\n[b]Sent[/b] "+txstr
 
                 item = ListLXMessageCard(
                     text=m["content"].decode("utf-8"),
