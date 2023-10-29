@@ -77,16 +77,26 @@ class Conversations():
 
     def trust_icon(self, context_dest, unread):
         trust_icon = "account-question"
-        if self.app.sideband.is_trusted(context_dest):
+        is_trusted = self.app.sideband.is_trusted(context_dest)
+        if self.app.sideband.requests_allowed_from(context_dest):
             if unread:
-                trust_icon = "email-seal"
+                if is_trusted:
+                    trust_icon = "email-seal"
+                else:
+                    trust_icon = "email"
             else:
-                trust_icon = "account-check"
+                trust_icon = "account-lock-open"
         else:
-            if unread:
-                trust_icon = "email"
+            if is_trusted:
+                if unread:
+                    trust_icon = "email-seal"
+                else:
+                    trust_icon = "account-check"
             else:
-                trust_icon = "account-question"
+                if unread:
+                    trust_icon = "email"
+                else:
+                    trust_icon = "account-question"
 
         return trust_icon
 

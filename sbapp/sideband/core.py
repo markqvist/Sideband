@@ -523,6 +523,10 @@ class SidebandCore():
             self.config["telemetry_receive_trusted_only"] = False
         if not "telemetry_send_all_to_collector" in self.config:
             self.config["telemetry_send_all_to_collector"] = False
+        if not "telemetry_use_propagation_only" in self.config:
+            self.config["telemetry_use_propagation_only"] = False
+        if not "telemetry_try_propagation_on_fail" in self.config:
+            self.config["telemetry_try_propagation_on_fail"] = True
 
         if not "telemetry_s_location" in self.config:
             self.config["telemetry_s_location"] = False
@@ -852,6 +856,77 @@ class SidebandCore():
             return result
         else:
             return None
+
+    def outbound_telemetry_finished(self, message):
+        if message.state == LXMF.LXMessage.FAILED and hasattr(message, "try_propagation_on_fail") and message.try_propagation_on_fail:
+            RNS.log("Direct delivery of telemetry update "+str(message)+" failed. Retrying as propagated message.", RNS.LOG_VERBOSE)
+            message.try_propagation_on_fail = None
+            message.delivery_attempts = 0
+            del message.next_delivery_attempt
+            message.packed = None
+            message.desired_method = LXMF.LXMessage.PROPAGATED
+            self.message_router.handle_outbound(message)
+        else:
+            if message.state == LXMF.LXMessage.DELIVERED:
+                self.setpersistent("telemetry.collector_last_send_success_timebase", message.telemetry_timebase)
+                self.telemetry_update_sending = False
+            else:
+                self.telemetry_update_sending = False
+
+    def request_latest_telemetry(self, from_addr=None):
+        pass
+
+    def send_latest_telemetry(self, to_addr=None):
+        if hasattr(self, "telemetry_update_sending") and self.telemetry_update_sending == True:
+            RNS.log("Not sending new telemetry update, since an earlier transfer is already in progress", RNS.LOG_VERBOSE)
+            return "in_progress"
+
+        if to_addr != None and self.latest_packed_telemetry != None and self.latest_telemetry != None:
+            dest_identity = RNS.Identity.recall(to_addr)
+            
+            if dest_identity == None:
+                RNS.log("The identity for "+RNS.prettyhexrep(to_addr)+" could not be recalled. Requesting identity from network...", RNS.LOG_VERBOSE)
+                RNS.Transport.request_path(to_addr)
+                return "destination_unknown"
+
+            else:
+                dest = RNS.Destination(dest_identity, RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
+                source = self.lxmf_destination
+                
+                if self.config["telemetry_use_propagation_only"] == True:
+                    desired_method = LXMF.LXMessage.PROPAGATED
+                else:
+                    desired_method = LXMF.LXMessage.DIRECT
+
+                lxm_fields = self.get_message_fields(to_addr)
+                if lxm_fields != None and LXMF.FIELD_TELEMETRY in lxm_fields:
+                    telemeter = Telemeter.from_packed(lxm_fields[LXMF.FIELD_TELEMETRY])
+                    telemetry_timebase = telemeter.read_all()["time"]["utc"]
+                    if telemetry_timebase > (self.getpersistent("telemetry.collector_last_send_success_timebase") or 0):
+                        lxm = LXMF.LXMessage(dest, source, "", desired_method=desired_method, fields = lxm_fields)
+                        lxm.telemetry_timebase = telemetry_timebase
+                        lxm.register_delivery_callback(self.outbound_telemetry_finished)
+                        lxm.register_failed_callback(self.outbound_telemetry_finished)
+
+                        if self.message_router.get_outbound_propagation_node() != None:
+                            if self.config["telemetry_try_propagation_on_fail"]:
+                                lxm.try_propagation_on_fail = True
+
+                        RNS.log(f"Sending telemetry update with timebase {telemetry_timebase}", RNS.LOG_VERBOSE)
+
+                        self.setpersistent("telemetry.collector_last_send_attempt", time.time())
+                        self.telemetry_update_sending = True
+                        self.message_router.handle_outbound(lxm)
+                        return "sent"
+                    
+                    else:
+                        RNS.log(f"Telemetry update with timebase {telemetry_timebase} was already successfully sent", RNS.LOG_VERBOSE)
+                        return "already_sent"
+
+        else:
+            RNS.log("A telemetry update was requested, but there was nothing to send.", RNS.LOG_WARNING)
+            return "not_sent"
+
 
     def list_telemetry(self, context_dest = None, after = None, before = None, limit = None):
         return self._db_telemetry(context_dest = context_dest, after = after, before = before, limit = limit) or []
@@ -1840,48 +1915,54 @@ class SidebandCore():
                         physical_link["q"] = lxm.q
                     packed_telemetry = self._db_save_telemetry(context_dest, lxm.fields[LXMF.FIELD_TELEMETRY], physical_link=physical_link, source_dest=context_dest)
 
-        db = self.__db_connect()
-        dbc = db.cursor()
+                if LXMF.FIELD_TELEMETRY_STREAM in lxm.fields:
+                    for telemetry_entry in lxm_fields[LXMF.FIELD_TELEMETRY_STREAM]:
+                        # TODO: Implement
+                        pass
 
-        if not lxm.packed:
-            lxm.pack()
+        if len(lxm.content) != 0 or len(lxm.title) != 0:
+            db = self.__db_connect()
+            dbc = db.cursor()
 
-        if lxm.method == LXMF.LXMessage.PAPER:
-            packed_lxm = msgpack.packb([lxm.packed, lxm.paper_packed])
-        else:
-            packed_lxm = lxm.packed
+            if not lxm.packed:
+                lxm.pack()
 
-        extras = {}
-        if lxm.rssi or lxm.snr or lxm.q:
-            extras["rssi"] = lxm.rssi
-            extras["snr"] = lxm.snr
-            extras["q"] = lxm.q
+            if lxm.method == LXMF.LXMessage.PAPER:
+                packed_lxm = msgpack.packb([lxm.packed, lxm.paper_packed])
+            else:
+                packed_lxm = lxm.packed
 
-        if packed_telemetry != None:
-            extras["packed_telemetry"] = packed_telemetry
+            extras = {}
+            if lxm.rssi or lxm.snr or lxm.q:
+                extras["rssi"] = lxm.rssi
+                extras["snr"] = lxm.snr
+                extras["q"] = lxm.q
 
-        extras = msgpack.packb(extras)
+            if packed_telemetry != None:
+                extras["packed_telemetry"] = packed_telemetry
 
-        query = "INSERT INTO lxm (lxm_hash, dest, source, title, tx_ts, rx_ts, state, method, t_encrypted, t_encryption, data, extra) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        data = (
-            lxm.hash,
-            lxm.destination_hash,
-            lxm.source_hash,
-            lxm.title,
-            lxm.timestamp,
-            time.time(),
-            state,
-            lxm.method,
-            lxm.transport_encrypted,
-            lxm.transport_encryption,
-            packed_lxm,
-            extras
-        )
+            extras = msgpack.packb(extras)
 
-        dbc.execute(query, data)
-        db.commit()
+            query = "INSERT INTO lxm (lxm_hash, dest, source, title, tx_ts, rx_ts, state, method, t_encrypted, t_encryption, data, extra) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            data = (
+                lxm.hash,
+                lxm.destination_hash,
+                lxm.source_hash,
+                lxm.title,
+                lxm.timestamp,
+                time.time(),
+                state,
+                lxm.method,
+                lxm.transport_encrypted,
+                lxm.transport_encryption,
+                packed_lxm,
+                extras
+            )
 
-        self.__event_conversation_changed(context_dest)
+            dbc.execute(query, data)
+            db.commit()
+
+            self.__event_conversation_changed(context_dest)
 
     def _db_save_announce(self, destination_hash, app_data, dest_type="lxmf.delivery"):
         db = self.__db_connect()
@@ -2255,6 +2336,10 @@ class SidebandCore():
                                     RNS.log("Retry of scheduled LXMF sync failed too, waiting until next scheduled sync to try again", RNS.LOG_DEBUG)
                                     self.setpersistent("lxmf.lastsync", time.time())
                                     self.setpersistent("lxmf.syncretrying", False)
+
+                if self.config["telemetry_enabled"]:
+                    if self.config["telemetry_send_to_collector"]:
+                        pass
 
     def __start_jobs_deferred(self):
         if self.is_service:
@@ -2724,9 +2809,9 @@ class SidebandCore():
         else:
             self.lxm_ingest(message, originator=True)
 
-    def get_message_fields(self, context_dest):
+    def get_message_fields(self, context_dest, telemetry_update=False):
         fields = None
-        send_telemetry = self.should_send_telemetry(context_dest)
+        send_telemetry = (telemetry_update == True) or self.should_send_telemetry(context_dest)
         send_appearance = self.config["telemetry_send_appearance"] or send_telemetry
         if send_telemetry or send_appearance:
             fields = {}
@@ -2850,6 +2935,7 @@ class SidebandCore():
     def lxm_ingest(self, message, originator = False):
         should_notify = False
         is_trusted = False
+        telemetry_only = False
         unread_reason_tx = False
 
         if originator:
@@ -2869,29 +2955,38 @@ class SidebandCore():
             if is_trusted:
                 should_notify = True
 
-        if self._db_conversation(context_dest) == None:
-            self._db_create_conversation(context_dest)
-            self.setstate("app.flags.new_conversations", True)
+            if len(message.content) == 0 and len(message.title) == 0:
+                if (LXMF.FIELD_TELEMETRY in message.fields or LXMF.FIELD_TELEMETRY_STREAM in message.fields):
+                    RNS.log("Squelching notification due to telemetry-only message", RNS.LOG_DEBUG)
+                    telemetry_only = True
 
-        if self.gui_display() == "messages_screen":
-            if self.gui_conversation() != context_dest:
+        if not telemetry_only:
+            if self._db_conversation(context_dest) == None:
+                self._db_create_conversation(context_dest)
+                self.setstate("app.flags.new_conversations", True)
+
+            if self.gui_display() == "messages_screen":
+                if self.gui_conversation() != context_dest:
+                    self.unread_conversation(context_dest, tx=unread_reason_tx)
+                    self.setstate("app.flags.unread_conversations", True)
+                else:
+                    self.txtime_conversation(context_dest)
+                    self.setstate("wants.viewupdate.conversations", True)
+                    if self.gui_foreground():
+                        RNS.log("Squelching notification since GUI is in foreground", RNS.LOG_DEBUG)
+                        should_notify = False
+            else:
                 self.unread_conversation(context_dest, tx=unread_reason_tx)
                 self.setstate("app.flags.unread_conversations", True)
-            else:
-                self.txtime_conversation(context_dest)
-                self.setstate("wants.viewupdate.conversations", True)
-                if self.gui_foreground():
-                    RNS.log("Squelching notification since GUI is in foreground", RNS.LOG_DEBUG)
-                    should_notify = False
-        else:
-            self.unread_conversation(context_dest, tx=unread_reason_tx)
-            self.setstate("app.flags.unread_conversations", True)
 
-            if RNS.vendor.platformutils.is_android():
-                if self.gui_display() == "conversations_screen" and self.gui_foreground():
-                    should_notify = False
+                if RNS.vendor.platformutils.is_android():
+                    if self.gui_display() == "conversations_screen" and self.gui_foreground():
+                        should_notify = False
 
         if self.is_client:
+            should_notify = False
+
+        if telemetry_only:
             should_notify = False
 
         if should_notify:

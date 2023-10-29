@@ -3153,11 +3153,42 @@ class SidebandApp(MDApp):
                 self.open_conversation(context_dest)
     
     def telemetry_send_update(self, sender=None):
-        # TODO: Implement
+        if not hasattr(self, "telemetry_info_dialog") or self.telemetry_info_dialog == None:
+            ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+            self.telemetry_info_dialog = MDDialog(
+                title="Info",
+                text="",
+                buttons=[ ok_button ],
+            )
+
+            def dl_ok(s):
+                self.telemetry_info_dialog.dismiss()
+            ok_button.bind(on_release=dl_ok)
+
+        result = self.sideband.send_latest_telemetry(to_addr=self.sideband.config["telemetry_collector"])
+        if result == "destination_unknown":
+            title_str = "Unknown Destination"
+            info_str  = "No keys known for the destination. Connected reticules have been queried for the keys."
+        elif result == "in_progress":
+            title_str = "Transfer In Progress"
+            info_str  = "There is already an outbound telemetry transfer in progress to the collector."
+        elif result == "already_sent":
+            title_str = "Already Delivered"
+            info_str  = "The current telemetry data was already sent and delivered to the collector or propagation network."
+        elif result == "sent":
+            title_str = "Update Sent"
+            info_str  = "A telemetry update was sent to the collector."
+        else:
+            title_str = "Unknown Status"
+            info_str  = "The status of the telemetry update is unknown."
+
+        self.telemetry_info_dialog.title = title_str
+        self.telemetry_info_dialog.text  = info_str
+        self.telemetry_info_dialog.open()
         pass
 
     def telemetry_request_action(self, sender=None):
-        # TODO: Implement
+        self.sideband.request_latest_telemetry(from_addr=self.sideband.config["telemetry_collector"])
         pass
 
     ### Map Screen

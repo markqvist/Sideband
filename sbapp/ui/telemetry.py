@@ -510,19 +510,6 @@ MDScreen:
                     height: self.texture_size[1]
 
                 MDBoxLayout:
-                    orientation: "vertical"
-                    size_hint_y: None
-                    height: self.minimum_height
-                    padding: [0, dp(0), 0, dp(0)]
-
-                    MDTextField:
-                        id: telemetry_collector
-                        max_text_length: 32
-                        hint_text: "Telemetry Collector LXMF Address"
-                        text: ""
-                        font_size: dp(24)
-
-                MDBoxLayout:
                     orientation: "horizontal"
                     padding: [0,0,dp(24),0]
                     size_hint_y: None
@@ -684,60 +671,83 @@ MDScreen:
                     #height: dp(232)
                     height: self.minimum_height
 
-                    MDRectangleFlatIconButton:
-                        id: telemetry_sensors_button
-                        icon: "sun-thermometer-outline"
-                        text: "Configure Sensors"
-                        padding: [dp(0), dp(14), dp(0), dp(14)]
-                        icon_size: dp(24)
-                        font_size: dp(16)
-                        size_hint: [1.0, None]
-                        on_release: root.delegate.sensors_action(self)
-                        disabled: False
+                    MDTextField:
+                        id: telemetry_collector
+                        max_text_length: 32
+                        hint_text: "Telemetry Collector LXMF Address"
+                        text: ""
+                        font_size: dp(24)
 
-                    MDRectangleFlatIconButton:
-                        id: telemetry_own_button
-                        icon: "database-eye-outline"
-                        text: "Display Own Telemetry"
-                        padding: [dp(0), dp(14), dp(0), dp(14)]
-                        icon_size: dp(24)
-                        font_size: dp(16)
-                        size_hint: [1.0, None]
-                        on_release: root.app.map_display_own_telemetry(self)
-                        disabled: False
+                
+                    # MDRectangleFlatIconButton:
+                    #     id: telemetry_copy_button
+                    #     icon: "content-copy"
+                    #     text: "Copy Own Telemetry"
+                    #     padding: [dp(0), dp(14), dp(0), dp(14)]
+                    #     icon_size: dp(24)
+                    #     font_size: dp(16)
+                    #     size_hint: [1.0, None]
+                    #     on_release: root.delegate.telemetry_copy(self)
+                    #     disabled: False
 
-                    MDRectangleFlatIconButton:
-                        id: telemetry_copy_button
-                        icon: "content-copy"
-                        text: "Copy Telemetry Data To Clipboard"
-                        padding: [dp(0), dp(14), dp(0), dp(14)]
-                        icon_size: dp(24)
-                        font_size: dp(16)
-                        size_hint: [1.0, None]
-                        on_release: root.delegate.telemetry_copy(self)
-                        disabled: False
 
-                    MDRectangleFlatIconButton:
-                        id: telemetry_send_update_button
-                        icon: "upload-lock"
-                        text: "Send Telemetry To Collector"
-                        padding: [dp(0), dp(14), dp(0), dp(14)]
-                        icon_size: dp(24)
-                        font_size: dp(16)
-                        size_hint: [1.0, None]
-                        on_release: root.app.telemetry_send_update(self)
-                        disabled: False
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        size_hint_y: None
+                        height: self.minimum_height
+                        spacing: dp(24)
 
-                    MDRectangleFlatIconButton:
-                        id: telemetry_request_button
-                        icon: "arrow-down-bold-hexagon-outline"
-                        text: "Request Telemetry From Collector"
-                        padding: [dp(0), dp(14), dp(0), dp(14)]
-                        icon_size: dp(24)
-                        font_size: dp(16)
-                        size_hint: [1.0, None]
-                        on_release: root.app.telemetry_request_action(self)
-                        disabled: False
+                        MDRectangleFlatIconButton:
+                            id: telemetry_send_update_button
+                            icon: "upload-lock"
+                            text: "Send Now"
+                            padding: [dp(0), dp(14), dp(0), dp(14)]
+                            icon_size: dp(24)
+                            font_size: dp(16)
+                            size_hint: [1.0, None]
+                            on_release: root.app.telemetry_send_update(self)
+                            disabled: False
+
+                        MDRectangleFlatIconButton:
+                            id: telemetry_request_button
+                            icon: "arrow-down-bold-hexagon-outline"
+                            text: "Request Now"
+                            padding: [dp(0), dp(14), dp(0), dp(14)]
+                            icon_size: dp(24)
+                            font_size: dp(16)
+                            size_hint: [1.0, None]
+                            on_release: root.app.telemetry_request_action(self)
+                            disabled: False
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        size_hint_y: None
+                        height: self.minimum_height
+                        spacing: dp(24)
+
+                        MDRectangleFlatIconButton:
+                            id: telemetry_sensors_button
+                            icon: "sun-thermometer-outline"
+                            text: "Configure Sensors"
+                            padding: [dp(0), dp(14), dp(0), dp(14)]
+                            icon_size: dp(24)
+                            font_size: dp(16)
+                            size_hint: [1.0, None]
+                            on_release: root.delegate.sensors_action(self)
+                            disabled: False
+
+                        MDRectangleFlatIconButton:
+                            id: telemetry_own_button
+                            icon: "database-eye-outline"
+                            text: "Display Own"
+                            padding: [dp(0), dp(14), dp(0), dp(14)]
+                            icon_size: dp(24)
+                            font_size: dp(16)
+                            size_hint: [1.0, None]
+                            on_release: root.app.map_display_own_telemetry(self)
+                            disabled: False
+
+                    
 
                 MDLabel:
                     text: "Display Options"
@@ -788,14 +798,13 @@ MDScreen:
                     orientation: "vertical"
                     size_hint_y: None
                     padding: [dp(0),dp(24),dp(0),dp(12)]
-                    height: dp(74)
+                    height: self.minimum_height
 
                     MDBoxLayout:
                         orientation: "horizontal"
-                        #size_hint_y: None
+                        size_hint_y: None
+                        height: self.minimum_height
                         spacing: dp(24)
-                        # padding: [0,0,dp(24),dp(0)]
-                        # height: dp(48)
 
                         MDRectangleFlatIconButton:
                             id: telemetry_icons_button

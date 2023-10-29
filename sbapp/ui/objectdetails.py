@@ -52,6 +52,17 @@ class ObjectDetails():
             self.telemetry_list.app = self.app
             self.screen.ids.object_details_container.add_widget(self.telemetry_list)
 
+            ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+            self.info_dialog = MDDialog(
+                title="Info",
+                text="",
+                buttons=[ ok_button ],
+            )
+
+            def dl_ok(s):
+                self.info_dialog.dismiss()
+            ok_button.bind(on_release=dl_ok)
+
             Clock.schedule_interval(self.reload_job, 2)
 
     def reload_job(self, dt=None):
@@ -107,6 +118,12 @@ class ObjectDetails():
 
     def set_source(self, source_dest, from_conv=False, from_telemetry=False, prefetched=None):
         self.object_hash = source_dest
+        own_address = self.app.sideband.lxmf_destination.hash
+        if source_dest == own_address:
+            self.viewing_self = True
+        else:
+            self.viewing_self = False
+
 
         if from_telemetry:
             self.from_telemetry = True
@@ -136,7 +153,6 @@ class ObjectDetails():
             else:
                 self.screen.ids.request_button.disabled = False
                 self.screen.ids.send_button.disabled = False
-        Clock.schedule_once(djob, 0.0)
 
         if prefetched != None:
             latest_telemetry = prefetched
@@ -147,16 +163,13 @@ class ObjectDetails():
             telemetry_timestamp = latest_telemetry[0][0]
             self.lastest_timestamp = telemetry_timestamp
 
-            own_address = self.app.sideband.lxmf_destination.hash
             telemeter = Telemeter.from_packed(latest_telemetry[0][1])
             self.raw_telemetry = telemeter.read_all()
 
             relative_to = None
             if source_dest != own_address:
                 relative_to = self.app.sideband.telemeter
-                self.viewing_self = False
             else:
-                self.viewing_self = True
                 self.screen.ids.name_label.text = pds+" (this device)"
 
             rendered_telemetry = telemeter.render(relative_to=relative_to)
@@ -176,10 +189,38 @@ class ObjectDetails():
             self.telemetry_list.update_source(None)
 
         self.telemetry_list.effect_cls = ScrollEffect
+        Clock.schedule_once(djob, 0.1)
 
     def reload(self):
         self.clear_widget()
         self.update()
+
+    def send_update(self):
+        if not self.viewing_self:
+            result = self.app.sideband.send_latest_telemetry(to_addr=self.object_hash)
+            if result == "destination_unknown":
+                title_str = "Unknown Destination"
+                info_str  = "No keys known for the destination. Connected reticules have been queried for the keys."
+            elif result == "in_progress":
+                title_str = "Transfer In Progress"
+                info_str  = "There is already an outbound telemetry transfer in progress for this peer."
+            elif result == "already_sent":
+                title_str = "Already Delivered"
+                info_str  = "The current telemetry data was already sent and delivered to the peer or propagation network."
+            elif result == "sent":
+                title_str = "Update Sent"
+                info_str  = "A telemetry update was sent to the peer."
+            else:
+                title_str = "Unknown Status"
+                info_str  = "The status of the telemetry update is unknown."
+            
+            self.info_dialog.title = title_str
+            self.info_dialog.text  = info_str
+            self.info_dialog.open()
+
+    def request_update(self):
+        if not self.viewing_self:
+            result = self.app.sideband.request_latest_telemetry(from_addr=self.object_hash)
 
     def clear_widget(self):
         pass
@@ -589,7 +630,7 @@ MDScreen:
                 icon_size: dp(24)
                 font_size: dp(16)
                 size_hint: [1.0, None]
-                on_release: root.delegate.copy_telemetry(self)
+                on_release: root.delegate.request_update()
                 disabled: False
 
             MDRectangleFlatIconButton:
@@ -600,7 +641,7 @@ MDScreen:
                 icon_size: dp(24)
                 font_size: dp(16)
                 size_hint: [1.0, None]
-                on_release: root.delegate.copy_coordinates(self)
+                on_release: root.delegate.send_update()
                 disabled: False
 
         # MDBoxLayout:
