@@ -8,6 +8,9 @@ from RNS.vendor import umsgpack as umsgpack
 from .geo import orthodromic_distance, euclidian_distance
 from .geo import azalt, angle_to_horizon, radio_horizon, shared_radio_horizon
 
+class Commands():
+  TELEMETRY_REQUEST = 0x01
+
 class Telemeter():
   @staticmethod
   def from_packed(packed):

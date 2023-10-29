@@ -3185,11 +3185,41 @@ class SidebandApp(MDApp):
         self.telemetry_info_dialog.title = title_str
         self.telemetry_info_dialog.text  = info_str
         self.telemetry_info_dialog.open()
-        pass
 
     def telemetry_request_action(self, sender=None):
-        self.sideband.request_latest_telemetry(from_addr=self.sideband.config["telemetry_collector"])
-        pass
+        if not hasattr(self, "telemetry_info_dialog") or self.telemetry_info_dialog == None:
+            ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+            self.telemetry_info_dialog = MDDialog(
+                title="Info",
+                text="",
+                buttons=[ ok_button ],
+            )
+
+            def dl_ok(s):
+                self.telemetry_info_dialog.dismiss()
+            ok_button.bind(on_release=dl_ok)
+
+        result = self.sideband.request_latest_telemetry(from_addr=self.sideband.config["telemetry_collector"])
+
+        if result == "destination_unknown":
+            title_str = "Unknown Destination"
+            info_str  = "No keys known for the destination. Connected reticules have been queried for the keys."
+        elif result == "in_progress":
+            title_str = "Transfer In Progress"
+            info_str  = "There is already a telemetry request transfer in progress for this peer."
+        elif result == "sent":
+            title_str = "Request Sent"
+            info_str  = "A telemetry request was sent to the peer. The peer should send any available telemetry shortly."
+        elif result == "not_sent":
+            title_str = "Not Sent"
+            info_str  = "A telemetry request could not be sent."
+        else:
+            title_str = "Unknown Status"
+            info_str  = "The status of the telemetry request is unknown."
+
+        self.telemetry_info_dialog.title = title_str
+        self.telemetry_info_dialog.text  = info_str
+        self.telemetry_info_dialog.open()
 
     ### Map Screen
     ######################################

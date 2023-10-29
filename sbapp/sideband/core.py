@@ -14,7 +14,7 @@ import RNS.Interfaces.Interface as Interface
 import multiprocessing.connection
 
 from .res import sideband_fb_data
-from .sense import Telemeter
+from .sense import Telemeter, Commands
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass, cast
@@ -125,6 +125,7 @@ class SidebandCore():
         self.pending_telemetry_send_maxtries = 2
         self.telemetry_send_blocked_until = 0
         self.pending_telemetry_request = False
+        self.telemetry_request_max_history = 3*24*60*60
         self.state_db = {}
         self.rpc_connection = None
 
@@ -883,8 +884,73 @@ class SidebandCore():
                 self.setstate(f"telemetry.{RNS.hexrep(message.destination_hash, delimit=False)}.update_sending", False)
 
 
+    def telemetry_request_finished(self, message):
+        if message.state == LXMF.LXMessage.FAILED and hasattr(message, "try_propagation_on_fail") and message.try_propagation_on_fail:
+            RNS.log("Direct delivery of telemetry request "+str(message)+" failed. Retrying as propagated message.", RNS.LOG_VERBOSE)
+            message.try_propagation_on_fail = None
+            message.delivery_attempts = 0
+            del message.next_delivery_attempt
+            message.packed = None
+            message.desired_method = LXMF.LXMessage.PROPAGATED
+            self.message_router.handle_outbound(message)
+        else:
+            if message.state == LXMF.LXMessage.DELIVERED:
+                self.setpersistent(f"telemetry.{RNS.hexrep(message.destination_hash, delimit=False)}.last_request_success_timebase", message.request_timebase)
+                self.setstate(f"telemetry.{RNS.hexrep(message.destination_hash, delimit=False)}.request_sending", False)
+                if message.destination_hash == self.config["telemetry_collector"]:
+                    self.pending_telemetry_request = False
+                    self.pending_telemetry_request_try = 0
+                    self.telemetry_request_blocked_until = 0
+            else:
+                self.setstate(f"telemetry.{RNS.hexrep(message.destination_hash, delimit=False)}.request_sending", False)
+
+
     def request_latest_telemetry(self, from_addr=None):
-        pass
+        if self.getstate(f"telemetry.{RNS.hexrep(from_addr, delimit=False)}.request_sending") == True:
+            RNS.log("Not sending new telemetry request, since an earlier transfer is already in progress", RNS.LOG_DEBUG)
+            return "in_progress"
+
+        if from_addr != None:
+            dest_identity = RNS.Identity.recall(from_addr)
+            
+            if dest_identity == None:
+                RNS.log("The identity for "+RNS.prettyhexrep(from_addr)+" could not be recalled. Requesting identity from network...", RNS.LOG_DEBUG)
+                RNS.Transport.request_path(from_addr)
+                return "destination_unknown"
+
+            else:
+                now = time.time()
+                dest = RNS.Destination(dest_identity, RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
+                source = self.lxmf_destination
+                
+                if self.config["telemetry_use_propagation_only"] == True:
+                    desired_method = LXMF.LXMessage.PROPAGATED
+                else:
+                    desired_method = LXMF.LXMessage.DIRECT
+
+                request_timebase = self.getpersistent(f"telemetry.{RNS.hexrep(from_addr, delimit=False)}.timebase") or now - self.telemetry_request_max_history
+                lxm_fields = { LXMF.FIELD_COMMANDS: [
+                    {Commands.TELEMETRY_REQUEST: request_timebase},
+                ]}
+
+                lxm = LXMF.LXMessage(dest, source, "", desired_method=desired_method, fields = lxm_fields)
+                lxm.request_timebase = request_timebase
+                lxm.register_delivery_callback(self.telemetry_request_finished)
+                lxm.register_failed_callback(self.telemetry_request_finished)
+
+                if self.message_router.get_outbound_propagation_node() != None:
+                    if self.config["telemetry_try_propagation_on_fail"]:
+                        lxm.try_propagation_on_fail = True
+
+                RNS.log(f"Sending telemetry request with timebase {request_timebase}", RNS.LOG_DEBUG)
+                self.setpersistent(f"telemetry.{RNS.hexrep(from_addr, delimit=False)}.last_request_attempt", time.time())
+                self.setstate(f"telemetry.{RNS.hexrep(from_addr, delimit=False)}.request_sending", True)
+                self.message_router.handle_outbound(lxm)
+                return "sent"
+
+        else:
+            return "not_sent"
+
 
     def send_latest_telemetry(self, to_addr=None):
         if self.getstate(f"telemetry.{RNS.hexrep(to_addr, delimit=False)}.update_sending") == True:

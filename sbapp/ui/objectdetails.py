@@ -226,6 +226,26 @@ class ObjectDetails():
         if not self.viewing_self:
             result = self.app.sideband.request_latest_telemetry(from_addr=self.object_hash)
 
+            if result == "destination_unknown":
+                title_str = "Unknown Destination"
+                info_str  = "No keys known for the destination. Connected reticules have been queried for the keys."
+            elif result == "in_progress":
+                title_str = "Transfer In Progress"
+                info_str  = "There is already a telemetry request transfer in progress for this peer."
+            elif result == "sent":
+                title_str = "Request Sent"
+                info_str  = "A telemetry request was sent to the peer. The peer should send any available telemetry shortly."
+            elif result == "not_sent":
+                title_str = "Not Sent"
+                info_str  = "A telemetry request could not be sent."
+            else:
+                title_str = "Unknown Status"
+                info_str  = "The status of the telemetry request is unknown."
+            
+            self.info_dialog.title = title_str
+            self.info_dialog.text  = info_str
+            self.info_dialog.open()
+
     def clear_widget(self):
         pass
 
@@ -627,6 +647,17 @@ MDScreen:
             padding: [dp(24), dp(24), dp(24), dp(24)]
 
             MDRectangleFlatIconButton:
+                id: send_button
+                icon: "upload-lock"
+                text: "Send Update"
+                padding: [dp(0), dp(14), dp(0), dp(14)]
+                icon_size: dp(24)
+                font_size: dp(16)
+                size_hint: [1.0, None]
+                on_release: root.delegate.send_update()
+                disabled: False
+
+            MDRectangleFlatIconButton:
                 id: request_button
                 icon: "arrow-down-bold-hexagon-outline"
                 text: "Request Update"
@@ -635,17 +666,6 @@ MDScreen:
                 font_size: dp(16)
                 size_hint: [1.0, None]
                 on_release: root.delegate.request_update()
-                disabled: False
-
-            MDRectangleFlatIconButton:
-                id: send_button
-                icon: "upload-lock"
-                text: "Send Update Now"
-                padding: [dp(0), dp(14), dp(0), dp(14)]
-                icon_size: dp(24)
-                font_size: dp(16)
-                size_hint: [1.0, None]
-                on_release: root.delegate.send_update()
                 disabled: False
 
         # MDBoxLayout:
