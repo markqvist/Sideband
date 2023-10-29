@@ -70,6 +70,7 @@ from sideband.sense import Telemeter
 from mapview import CustomMapMarker
 from mapview.mbtsource import MBTilesMapSource
 from mapview.source import MapSource
+import webbrowser
 
 import kivy.core.image
 kivy.core.image.Logger = redirect_log()
@@ -178,6 +179,7 @@ class SidebandApp(MDApp):
         self.connectivity_updater = None
         self.last_map_update = 0
         self.last_telemetry_received = 0
+        self.reposository_url = None
 
 
     #################################################
@@ -1411,7 +1413,6 @@ class SidebandApp(MDApp):
 
         def link_exec(sender=None, event=None):
             def lj():
-                import webbrowser
                 webbrowser.open("https://unsigned.io/donate")
             threading.Thread(target=lj, daemon=True).start()
 
@@ -1987,6 +1988,12 @@ class SidebandApp(MDApp):
 
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
+    def repository_link_action(self, sender=None, event=None):
+        if self.reposository_url != None:
+            def lj():
+                webbrowser.open(self.reposository_url)
+            threading.Thread(target=lj, daemon=True).start()
+
     def repository_update_info(self, sender=None):
         info =  "Sideband includes a small repository of useful software and guides related to the Sideband and Reticulum ecosystem. You can start this repository to allow other people on your local network to download software and information directly from this device, without needing an Internet connection.\n\n"
         info += "If you want to share the Sideband application itself via the repository server, you must first download it into the local repository, using the \"Update Content\" button below.\n\n"
@@ -2022,12 +2029,16 @@ class SidebandApp(MDApp):
                 ips = getIP()
                 if ips == None or len(ips) == 0:
                     info += "The repository server is running, but the local device IP address could not be determined.\n\nYou can access the repository by pointing a browser to: http://DEVICE_IP:4444/"
+                    self.reposository_url = None
                 else:
                     ipstr = ""
                     for ip in ips:
                         ipstr += "http://"+str(ip)+":4444/\n"
+                        self.reposository_url = ipstr
+
                     ms = "" if len(ips) == 1 else "es"
-                    info += "The repository server is running at the following address"+ms+":\n"+ipstr
+                    info += "The repository server is running at the following address"+ms+":\n [u][ref=link]"+ipstr+"[/ref][u]"
+                    self.repository_screen.ids.repository_info.bind(on_ref_press=self.repository_link_action)
 
             self.repository_screen.ids.repository_enable_button.disabled = True
             self.repository_screen.ids.repository_disable_button.disabled = False
@@ -2044,6 +2055,7 @@ class SidebandApp(MDApp):
         Clock.schedule_once(self.repository_update_info, 1.0)
 
     def repository_stop_action(self, sender=None):
+        self.reposository_url = None
         self.sideband.stop_webshare() 
         Clock.schedule_once(self.repository_update_info, 0.75)
 
@@ -3678,12 +3690,8 @@ class SidebandApp(MDApp):
 
         def link_exec(sender=None, event=None):
             def lj():
-                import webbrowser
                 webbrowser.open("https://unsigned.io/donate")
-            if not RNS.vendor.platformutils.is_android():
-                threading.Thread(target=lj, daemon=True).start()
-            else:
-                lj()
+            threading.Thread(target=lj, daemon=True).start()
 
         guide_text1 = """
 [size=18dp][b]Introduction[/b][/size][size=5dp]\n \n[/size]Welcome to [i]Sideband[/i], an LXMF client for Android, Linux and macOS. With Sideband, you can communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, or anything else Reticulum supports.
@@ -3773,12 +3781,8 @@ Thank you very much for using Free Communications Systems.
     def broadcasts_action(self, sender=None):
         def link_exec(sender=None, event=None):
             def lj():
-                import webbrowser
                 webbrowser.open("https://unsigned.io/donate")
-            if not RNS.vendor.platformutils.is_android():
-                threading.Thread(target=lj, daemon=True).start()
-            else:
-                lj()
+            threading.Thread(target=lj, daemon=True).start()
 
         if not self.root.ids.screen_manager.has_screen("broadcasts_screen"):
             self.broadcasts_screen = Builder.load_string(layout_broadcasts_screen)

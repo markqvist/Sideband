@@ -65,7 +65,7 @@ class Telemetry():
         self.screen.ids.telemetry_send_appearance.bind(active=self.telemetry_save)
 
         self.screen.ids.telemetry_scrollview.effect_cls = ScrollEffect
-        info  = "\nSideband allows you to securely share telemetry, such as location and sensor data, with people, custom programs, machines or other system over LXMF. You have complete control over what kind of telemetry to send, and who you share it with.\n\nTelemetry data is never sent to, via or processed by any external services or servers, but is carried exclusively within encrypted LXMF messages over Reticulum.\n\nWhen telemetry is enabled, it is possible to embed telemetry data in normal messages on a per-peer basis. You can control this from the [b]Conversations[/b] list, by selecting the [b]Edit[/b] option for the relevant peer.\n\nYou can also define a [b]Telemetry Collector[/b], that Sideband will automatically send telemetry to on a periodic basis - for example your Nomad Network home node.\n"
+        info  = "\nSideband allows you to securely share telemetry, such as location and sensor data, with people, custom programs, machines or other system over LXMF. You have complete control over what kind of telemetry to send, and who you share it with.\n\nTelemetry data is never sent to, via or processed by any external services or servers, but is carried exclusively within encrypted LXMF messages over Reticulum.\n\nWhen telemetry is enabled, it is possible to embed telemetry data in normal messages on a per-peer basis. You can control this from the [b]Conversations[/b] list, by selecting the [b]Edit[/b] option for the relevant peer.\n\nYou can also define a [b]Telemetry Collector[/b], that Sideband will automatically send telemetry to on a periodic basis.\n"
         if self.app.theme_cls.theme_style == "Dark":
             info = "[color=#"+self.app.dark_theme_text_color+"]"+info+"[/color]"
         
@@ -410,7 +410,7 @@ MDScreen:
                     
                     MDLabel:
                         id: telemetry_enabled_label
-                        text: "Enable Telemetry"
+                        text: "Enable telemetry"
                         font_style: "H6"
 
                     MDSwitch:
