@@ -519,6 +519,8 @@ class SidebandCore():
             self.config["telemetry_send_appearance"] = False
         if not "telemetry_display_trusted_only" in self.config:
             self.config["telemetry_display_trusted_only"] = False
+        if not "telemetry_receive_trusted_only" in self.config:
+            self.config["telemetry_receive_trusted_only"] = False
 
         if not "telemetry_s_location" in self.config:
             self.config["telemetry_s_location"] = False
@@ -1824,16 +1826,17 @@ class SidebandCore():
 
         packed_telemetry = None
         if not originator and lxm.fields != None:
-            if LXMF.FIELD_ICON_APPEARANCE in lxm.fields:
-                self._db_update_appearance(context_dest, lxm.timestamp, lxm.fields[LXMF.FIELD_ICON_APPEARANCE])
+            if self.config["telemetry_receive_trusted_only"] == False or (self.config["telemetry_receive_trusted_only"] == True and self.is_trusted(context_dest)):
+                if LXMF.FIELD_ICON_APPEARANCE in lxm.fields:
+                    self._db_update_appearance(context_dest, lxm.timestamp, lxm.fields[LXMF.FIELD_ICON_APPEARANCE])
 
-            if LXMF.FIELD_TELEMETRY in lxm.fields:
-                physical_link = {}
-                if lxm.rssi or lxm.snr or lxm.q:
-                    physical_link["rssi"] = lxm.rssi
-                    physical_link["snr"] = lxm.snr
-                    physical_link["q"] = lxm.q
-                packed_telemetry = self._db_save_telemetry(context_dest, lxm.fields[LXMF.FIELD_TELEMETRY], physical_link=physical_link, source_dest=context_dest)
+                if LXMF.FIELD_TELEMETRY in lxm.fields:
+                    physical_link = {}
+                    if lxm.rssi or lxm.snr or lxm.q:
+                        physical_link["rssi"] = lxm.rssi
+                        physical_link["snr"] = lxm.snr
+                        physical_link["q"] = lxm.q
+                    packed_telemetry = self._db_save_telemetry(context_dest, lxm.fields[LXMF.FIELD_TELEMETRY], physical_link=physical_link, source_dest=context_dest)
 
         db = self.__db_connect()
         dbc = db.cursor()

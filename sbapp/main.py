@@ -1,4 +1,4 @@
-__debug_build__ = False
+__debug_build__ = True
 __disable_shaders__ = False
 __version__ = "0.7.0"
 __variant__ = "beta"
@@ -7,6 +7,7 @@ import sys
 import argparse
 parser = argparse.ArgumentParser(description="Sideband LXMF Client")
 parser.add_argument("-v", "--verbose", action='store_true', default=False, help="increase logging verbosity")
+parser.add_argument("-d", "--daemon", action='store_true', default=False, help="run as a daemon, without user interface")
 parser.add_argument("--version", action="version", version="sideband {version}".format(version=__version__))
 args = parser.parse_args()
 sys.argv = [sys.argv[0]]
@@ -16,103 +17,122 @@ import LXMF
 import time
 import os
 import pathlib
-import plyer
 import base64
 import threading
 import RNS.vendor.umsgpack as msgpack
 
-from kivy.logger import Logger, LOG_LEVELS
+if not args.daemon:
+    import plyer
+    from kivy.logger import Logger, LOG_LEVELS
 
-# Squelch excessive method signature logging
-class redirect_log():
-    def isEnabledFor(self, arg):
-        return False
-    def debug(self, arg):
-        pass
-    def trace(self, arg):
-        pass
-    def warning(self, arg):
-        RNS.log("Kivy error: "+str(arg), RNS.LOG_WARNING)
-    def critical(self, arg):
-        RNS.log("Kivy error: "+str(arg), RNS.LOG_ERROR)
+    # Squelch excessive method signature logging
+    class redirect_log():
+        def isEnabledFor(self, arg):
+            return False
+        def debug(self, arg):
+            pass
+        def trace(self, arg):
+            pass
+        def warning(self, arg):
+            RNS.log("Kivy error: "+str(arg), RNS.LOG_WARNING)
+        def critical(self, arg):
+            RNS.log("Kivy error: "+str(arg), RNS.LOG_ERROR)
 
-if RNS.vendor.platformutils.get_platform() == "android":
-    import jnius.reflect
-    def mod(method, name, signature):
-        pass
-    jnius.reflect.log_method = mod
-    jnius.reflect.log = redirect_log()
+    if RNS.vendor.platformutils.get_platform() == "android":
+        import jnius.reflect
+        def mod(method, name, signature):
+            pass
+        jnius.reflect.log_method = mod
+        jnius.reflect.log = redirect_log()
 
-if __debug_build__ or args.verbose:
-    Logger.setLevel(LOG_LEVELS["debug"])
-else:
-    Logger.setLevel(LOG_LEVELS["error"])
+    if __debug_build__ or args.verbose:
+        Logger.setLevel(LOG_LEVELS["debug"])
+    else:
+        Logger.setLevel(LOG_LEVELS["error"])
 
-if RNS.vendor.platformutils.get_platform() != "android":
-    local = os.path.dirname(__file__)
-    sys.path.append(local)
+    if RNS.vendor.platformutils.get_platform() != "android":
+        local = os.path.dirname(__file__)
+        sys.path.append(local)
 
-from kivymd.app import MDApp
-from kivy.core.window import Window
-from kivy.core.clipboard import Clipboard
-from kivy.base import EventLoop
-from kivy.clock import Clock
-from kivy.lang.builder import Builder
-from kivy.effects.scroll import ScrollEffect
-from kivy.uix.screenmanager import ScreenManager
-from kivy.uix.screenmanager import FadeTransition, NoTransition
-from kivymd.uix.list import OneLineIconListItem
-from kivy.properties import StringProperty
-from kivymd.uix.button import BaseButton, MDIconButton
-from kivymd.uix.filemanager import MDFileManager
-from kivymd.toast import toast
-from sideband.sense import Telemeter
-from mapview import CustomMapMarker
-from mapview.mbtsource import MBTilesMapSource
-from mapview.source import MapSource
-import webbrowser
-
-import kivy.core.image
-kivy.core.image.Logger = redirect_log()
-
-if RNS.vendor.platformutils.get_platform() == "android":
-    from sideband.core import SidebandCore
-
-    from ui.layouts import *
-    from ui.conversations import Conversations, MsgSync, NewConv
-    from ui.telemetry import Telemetry
-    from ui.objectdetails import ObjectDetails
-    from ui.announces import Announces
-    from ui.messages import Messages, ts_format, messages_screen_kv
-    from ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
-
-    from jnius import cast
-    from jnius import autoclass
-    from android import mActivity
-    from android.permissions import request_permissions, check_permission
-    from android.storage import primary_external_storage_path, secondary_external_storage_path
-
-    from kivymd.utils.set_bars_colors import set_bars_colors
-    android_api_version = autoclass('android.os.Build$VERSION').SDK_INT
-
-else:
+if args.daemon:
     from .sideband.core import SidebandCore
+    class DaemonElement():
+        pass
+    class DaemonApp():
+        pass
 
-    from .ui.layouts import *
-    from .ui.conversations import Conversations, MsgSync, NewConv
-    from .ui.announces import Announces
-    from .ui.telemetry import Telemetry
-    from .ui.objectdetails import ObjectDetails
-    from .ui.messages import Messages, ts_format, messages_screen_kv
-    from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
+    MDApp = DaemonApp; OneLineIconListItem = DaemonElement; Window = DaemonElement; Clipboard = DaemonElement
+    EventLoop = DaemonElement; Clock = DaemonElement; Builder = DaemonElement; ScrollEffect = DaemonElement;
+    ScreenManager = DaemonElement; FadeTransition = DaemonElement; NoTransition = DaemonElement; OneLineIconListItem = DaemonElement;
+    StringProperty = DaemonElement; BaseButton = DaemonElement; MDIconButton = DaemonElement; MDFileManager = DaemonElement;
+    toast = DaemonElement; dp = DaemonElement; sp = DaemonElement; MDRectangleFlatButton = DaemonElement; MDDialog = DaemonElement;
+    colors = DaemonElement; Telemeter = DaemonElement; CustomMapMarker = DaemonElement; MBTilesMapSource = DaemonElement;
+    MapSource = DaemonElement; webbrowser = DaemonElement; Conversations = DaemonElement; MsgSync = DaemonElement;
+    NewConv = DaemonElement; Telemetry = DaemonElement; ObjectDetails = DaemonElement; Announces = DaemonElement;
+    Messages = DaemonElement; ts_format = DaemonElement; messages_screen_kv = DaemonElement; plyer = DaemonElement;
+    ContentNavigationDrawer = DaemonElement; DrawerList = DaemonElement; IconListItem = DaemonElement; 
 
-    from kivy.config import Config
-    Config.set('input', 'mouse', 'mouse,disable_multitouch')
+else:
+    from kivymd.app import MDApp
+    app_superclass = MDApp
+    from kivy.core.window import Window
+    from kivy.core.clipboard import Clipboard
+    from kivy.base import EventLoop
+    from kivy.clock import Clock
+    from kivy.lang.builder import Builder
+    from kivy.effects.scroll import ScrollEffect
+    from kivy.uix.screenmanager import ScreenManager
+    from kivy.uix.screenmanager import FadeTransition, NoTransition
+    from kivymd.uix.list import OneLineIconListItem
+    from kivy.properties import StringProperty
+    from kivymd.uix.button import BaseButton, MDIconButton
+    from kivymd.uix.filemanager import MDFileManager
+    from kivymd.toast import toast
+    from kivy.metrics import dp, sp
+    from kivymd.uix.button import MDRectangleFlatButton
+    from kivymd.uix.dialog import MDDialog
+    from kivymd.color_definitions import colors
+    from sideband.sense import Telemeter
+    from mapview import CustomMapMarker
+    from mapview.mbtsource import MBTilesMapSource
+    from mapview.source import MapSource
+    import webbrowser
+    import kivy.core.image
+    kivy.core.image.Logger = redirect_log()
 
-from kivy.metrics import dp, sp
-from kivymd.uix.button import MDRectangleFlatButton
-from kivymd.uix.dialog import MDDialog
-from kivymd.color_definitions import colors
+    if RNS.vendor.platformutils.get_platform() == "android":
+        from sideband.core import SidebandCore
+
+        from ui.layouts import *
+        from ui.conversations import Conversations, MsgSync, NewConv
+        from ui.telemetry import Telemetry
+        from ui.objectdetails import ObjectDetails
+        from ui.announces import Announces
+        from ui.messages import Messages, ts_format, messages_screen_kv
+        from ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
+
+        from jnius import cast
+        from jnius import autoclass
+        from android import mActivity
+        from android.permissions import request_permissions, check_permission
+        from android.storage import primary_external_storage_path, secondary_external_storage_path
+
+        from kivymd.utils.set_bars_colors import set_bars_colors
+        android_api_version = autoclass('android.os.Build$VERSION').SDK_INT
+
+    else:
+        from .sideband.core import SidebandCore
+
+        from .ui.layouts import *
+        from .ui.conversations import Conversations, MsgSync, NewConv
+        from .ui.announces import Announces
+        from .ui.telemetry import Telemetry
+        from .ui.objectdetails import ObjectDetails
+        from .ui.messages import Messages, ts_format, messages_screen_kv
+        from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
+
+        from kivy.config import Config
+        Config.set('input', 'mouse', 'mouse,disable_multitouch')
 
 dark_theme_text_color = "ddd"
 
@@ -3841,22 +3861,30 @@ class CustomOneLineIconListItem(OneLineIconListItem):
 class MDMapIconButton(MDIconButton):
     pass
 
-from kivy.base import ExceptionManager, ExceptionHandler
-class SidebandExceptionHandler(ExceptionHandler):
-    def handle_exception(self, e):
-        etype = type(e)
-        if etype != SystemExit:
-            import traceback
-            exception_info = "".join(traceback.TracebackException.from_exception(e).format())
-            RNS.log(f"An unhandled {str(type(e))} exception occurred: {str(e)}", RNS.LOG_ERROR)
-            RNS.log(exception_info, RNS.LOG_ERROR)
-            return ExceptionManager.PASS
-        else:
-            return ExceptionManager.RAISE
+if not args.daemon:
+    from kivy.base import ExceptionManager, ExceptionHandler
+    class SidebandExceptionHandler(ExceptionHandler):
+        def handle_exception(self, e):
+            etype = type(e)
+            if etype != SystemExit:
+                import traceback
+                exception_info = "".join(traceback.TracebackException.from_exception(e).format())
+                RNS.log(f"An unhandled {str(type(e))} exception occurred: {str(e)}", RNS.LOG_ERROR)
+                RNS.log(exception_info, RNS.LOG_ERROR)
+                return ExceptionManager.PASS
+            else:
+                return ExceptionManager.RAISE
 
 def run():
-    ExceptionManager.add_handler(SidebandExceptionHandler())
-    SidebandApp().run()
+    if args.daemon:
+        RNS.log("Starting Sideband in daemon mode")
+        sideband = SidebandCore(None, is_client=False, verbose=(args.verbose or __debug_build__))
+        sideband.start()
+        while True:
+            time.sleep(5)
+    else:
+        ExceptionManager.add_handler(SidebandExceptionHandler())
+        SidebandApp().run()
 
 if __name__ == "__main__":
     run()

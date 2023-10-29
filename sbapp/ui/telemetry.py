@@ -58,6 +58,9 @@ class Telemetry():
         self.screen.ids.telemetry_display_trusted_only.active = self.app.sideband.config["telemetry_display_trusted_only"]
         self.screen.ids.telemetry_display_trusted_only.bind(active=self.telemetry_save)
 
+        self.screen.ids.telemetry_receive_trusted_only.active = self.app.sideband.config["telemetry_receive_trusted_only"]
+        self.screen.ids.telemetry_receive_trusted_only.bind(active=self.telemetry_save)
+
         self.screen.ids.telemetry_send_appearance.active = self.app.sideband.config["telemetry_send_appearance"]
         self.screen.ids.telemetry_send_appearance.bind(active=self.telemetry_save)
 
@@ -212,6 +215,7 @@ class Telemetry():
         self.app.sideband.config["telemetry_send_to_trusted"] = self.screen.ids.telemetry_send_to_trusted.active
         self.app.sideband.config["telemetry_display_trusted_only"] = self.screen.ids.telemetry_display_trusted_only.active
         self.app.sideband.config["telemetry_send_appearance"] = self.screen.ids.telemetry_send_appearance.active
+        self.app.sideband.config["telemetry_receive_trusted_only"] = self.screen.ids.telemetry_receive_trusted_only.active
         
         self.app.sideband.save_configuration()
         if run_telemetry_update:
@@ -542,6 +546,21 @@ MDScreen:
 
                     MDSwitch:
                         id: telemetry_display_trusted_only
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Only receive from trusted"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_receive_trusted_only
                         pos_hint: {"center_y": 0.3}
                         active: False
 
