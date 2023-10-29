@@ -1355,9 +1355,9 @@ MDScreen:
                         height: dp(68)
 
                         MDSlider
-                            min: 300
-                            max: 172800
-                            value: 43200
+                            min: 1
+                            max: 214
+                            value: 150
                             id: settings_lxmf_sync_interval
                             sensitivity: "all"
                             hint: False

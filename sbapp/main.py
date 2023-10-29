@@ -1442,6 +1442,24 @@ class SidebandApp(MDApp):
         self.root.ids.screen_manager.current = "settings_screen"
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
 
+    def interval_to_slider_val(self, interval):
+        try:
+            mseg = 72; hseg = 84; sv = 0
+            mm = mseg*5*60; hm = hseg*60*30+mm
+
+            if interval <= mm:
+                sv = interval/60/5
+            elif interval > mm and interval <= hm:
+                half_hours = interval/(60*30)-(mm/(60*30))
+                sv = mseg+half_hours
+            else:
+                days = (interval/86400)-((hseg*60*30)/84600)-(mm/86400)
+                sv = 1+mseg+hseg+days
+        except Exception as e:
+            return 43200
+
+        return sv
+
     def settings_init(self, sender=None):
         if not self.settings_ready:
             if not self.root.ids.screen_manager.has_screen("settings_screen"):
@@ -1554,7 +1572,18 @@ class SidebandApp(MDApp):
                     self.sideband.save_configuration()
 
             def sync_interval_change(sender=None, event=None, save=True):
-                interval = (self.settings_screen.ids.settings_lxmf_sync_interval.value//300)*300
+                slider_val = int(self.settings_screen.ids.settings_lxmf_sync_interval.value)
+                mseg = 72; hseg = 84
+                if slider_val <= mseg:
+                    interval = slider_val*5*60
+                elif slider_val > mseg and slider_val <= mseg+hseg:
+                    h = (slider_val-mseg)/2; mm = mseg*5*60
+                    interval = h*60*60+mm
+                else:
+                    d = slider_val-hseg-mseg
+                    hm = (hseg/2)*60*60; mm = mseg*5*60
+                    interval = d*86400+hm+mm
+
                 interval_text = RNS.prettytime(interval)
                 pre = self.settings_screen.ids.settings_lxmf_sync_periodic.text
                 self.settings_screen.ids.settings_lxmf_sync_periodic.text = "Auto sync every "+interval_text
@@ -1619,7 +1648,7 @@ class SidebandApp(MDApp):
                 sync_interval_change(sender=sender, event=event, save=False)
             self.settings_screen.ids.settings_lxmf_sync_interval.bind(value=sync_interval_change_cb)
             self.settings_screen.ids.settings_lxmf_sync_interval.bind(on_touch_up=sync_interval_change)
-            self.settings_screen.ids.settings_lxmf_sync_interval.value = self.sideband.config["lxmf_sync_interval"]
+            self.settings_screen.ids.settings_lxmf_sync_interval.value = self.interval_to_slider_val(self.sideband.config["lxmf_sync_interval"])
             sync_interval_change(save=False)
 
             if self.sideband.config["lxmf_sync_limit"] == None or self.sideband.config["lxmf_sync_limit"] == False:
