@@ -52,9 +52,6 @@ class Telemetry():
         self.screen.ids.telemetry_enabled.active = self.app.sideband.config["telemetry_enabled"]
         self.screen.ids.telemetry_enabled.bind(active=self.telemetry_enabled_toggle)
 
-        self.screen.ids.telemetry_send_to_collector.active = self.app.sideband.config["telemetry_send_to_collector"]
-        self.screen.ids.telemetry_send_to_collector.bind(active=self.telemetry_save)
-
         self.screen.ids.telemetry_send_to_trusted.active = self.app.sideband.config["telemetry_send_to_trusted"]
         self.screen.ids.telemetry_send_to_trusted.bind(active=self.telemetry_save)
 
@@ -70,6 +67,126 @@ class Telemetry():
             info = "[color=#"+self.app.dark_theme_text_color+"]"+info+"[/color]"
         
         self.screen.ids.telemetry_info.text = info
+
+        def send_interval_change(sender=None, event=None, save=True):
+            slider_val = int(self.screen.ids.telemetry_send_interval.value)
+            mseg = 72; hseg = 84
+            if slider_val <= mseg:
+                interval = slider_val*5*60
+            elif slider_val > mseg and slider_val <= mseg+hseg:
+                h = (slider_val-mseg)/2; mm = mseg*5*60
+                interval = h*60*60+mm
+            else:
+                d = slider_val-hseg-mseg
+                hm = (hseg/2)*60*60; mm = mseg*5*60
+                interval = d*86400+hm+mm
+
+            interval_text = RNS.prettytime(interval)
+            if self.screen.ids.telemetry_send_to_collector.active:
+                self.screen.ids.telemetry_send_to_collector_label.text = "Auto send to collector every "+interval_text
+            else:
+                self.screen.ids.telemetry_send_to_collector_label.text = "Auto send to collector"
+
+            if save:
+                self.app.sideband.config["telemetry_send_interval"] = interval
+                self.app.sideband.save_configuration()
+
+        def save_send_to_collector(sender=None, event=None, save=True):
+            if self.screen.ids.telemetry_send_to_collector.active:
+                self.widget_hide(self.screen.ids.send_syncslider_container, False)
+            else:
+                self.widget_hide(self.screen.ids.send_syncslider_container, True)
+
+            if save:
+                self.app.sideband.config["telemetry_send_to_collector"] = self.screen.ids.telemetry_send_to_collector.active
+                self.app.sideband.save_configuration()
+
+            send_interval_change(save=False)
+
+        self.screen.ids.telemetry_send_to_collector.active = self.app.sideband.config["telemetry_send_to_collector"]
+        self.screen.ids.telemetry_send_to_collector.bind(active=save_send_to_collector)
+        save_send_to_collector(save=False)
+
+        def send_interval_change_cb(sender=None, event=None):
+            send_interval_change(sender=sender, event=event, save=False)
+        self.screen.ids.telemetry_send_interval.bind(value=send_interval_change_cb)
+        self.screen.ids.telemetry_send_interval.bind(on_touch_up=send_interval_change)
+        self.screen.ids.telemetry_send_interval.value = self.interval_to_slider_val(self.app.sideband.config["telemetry_send_interval"])
+        send_interval_change(save=False)
+
+        def request_interval_change(sender=None, event=None, save=True):
+            slider_val = int(self.screen.ids.telemetry_request_interval.value)
+            mseg = 72; hseg = 84
+            if slider_val <= mseg:
+                interval = slider_val*5*60
+            elif slider_val > mseg and slider_val <= mseg+hseg:
+                h = (slider_val-mseg)/2; mm = mseg*5*60
+                interval = h*60*60+mm
+            else:
+                d = slider_val-hseg-mseg
+                hm = (hseg/2)*60*60; mm = mseg*5*60
+                interval = d*86400+hm+mm
+
+            interval_text = RNS.prettytime(interval)
+            if self.screen.ids.telemetry_request_from_collector.active:
+                self.screen.ids.telemetry_request_from_collector_label.text = "Auto request from collector every "+interval_text
+            else:
+                self.screen.ids.telemetry_request_from_collector_label.text = "Auto request from collector"
+
+            if save:
+                self.app.sideband.config["telemetry_request_interval"] = interval
+                self.app.sideband.save_configuration()
+
+        def save_request_from_collector(sender=None, event=None, save=True):
+            if self.screen.ids.telemetry_request_from_collector.active:
+                self.widget_hide(self.screen.ids.request_syncslider_container, False)
+            else:
+                self.widget_hide(self.screen.ids.request_syncslider_container, True)
+
+            if save:
+                self.app.sideband.config["telemetry_request_from_collector"] = self.screen.ids.telemetry_request_from_collector.active
+                self.app.sideband.save_configuration()
+
+            request_interval_change(save=False)
+
+        self.screen.ids.telemetry_request_from_collector.active = self.app.sideband.config["telemetry_request_from_collector"]
+        self.screen.ids.telemetry_request_from_collector.bind(active=save_request_from_collector)
+        save_request_from_collector(save=False)
+
+        def request_interval_change_cb(sender=None, event=None):
+            request_interval_change(sender=sender, event=event, save=False)
+        self.screen.ids.telemetry_request_interval.bind(value=request_interval_change_cb)
+        self.screen.ids.telemetry_request_interval.bind(on_touch_up=request_interval_change)
+        self.screen.ids.telemetry_request_interval.value = self.interval_to_slider_val(self.app.sideband.config["telemetry_request_interval"])
+        request_interval_change(save=False)
+
+
+    def interval_to_slider_val(self, interval):
+        try:
+            mseg = 72; hseg = 84; sv = 0
+            mm = mseg*5*60; hm = hseg*60*30+mm
+
+            if interval <= mm:
+                sv = interval/60/5
+            elif interval > mm and interval <= hm:
+                half_hours = interval/(60*30)-(mm/(60*30))
+                sv = mseg+half_hours
+            else:
+                days = (interval/86400)-((hseg*60*30)/84600)-(mm/86400)
+                sv = 1+mseg+hseg+days
+        except Exception as e:
+            return 43200
+
+        return sv
+
+    def widget_hide(self, w, hide=True):
+        if hasattr(w, "saved_attrs"):
+            if not hide:
+                w.height, w.size_hint_y, w.opacity, w.disabled = w.saved_attrs
+                del w.saved_attrs
+        elif hide:
+            w.saved_attrs = w.height, w.size_hint_y, w.opacity, w.disabled
+            w.height, w.size_hint_y, w.opacity, w.disabled = 0, None, 0, True
 
     def telemetry_enabled_toggle(self, sender=None, event=None):
         self.telemetry_save()
@@ -101,12 +218,6 @@ class Telemetry():
             self.app.sideband.update_telemetry()
         else:
             self.app.sideband.setstate("app.flags.last_telemetry", time.time())
-
-    def converse_from_telemetry(self, sender=None):
-        if self.object_details_screen != None:
-            context_dest = self.object_details_screen.object_hash
-            if not self.object_details_screen.object_hash == self.app.sideband.lxmf_destination.hash:
-                self.open_conversation(context_dest)
 
     def telemetry_copy(self, sender=None):
         Clipboard.copy(str(self.app.sideband.get_telemetry()))
@@ -426,21 +537,6 @@ MDScreen:
                     height: dp(48)
                     
                     MDLabel:
-                        text: "Automatically send to collector"
-                        font_style: "H6"
-
-                    MDSwitch:
-                        id: telemetry_send_to_collector
-                        pos_hint: {"center_y": 0.3}
-                        active: False
-
-                MDBoxLayout:
-                    orientation: "horizontal"
-                    size_hint_y: None
-                    padding: [0,0,dp(24),dp(0)]
-                    height: dp(48)
-                    
-                    MDLabel:
                         text: "Only display from trusted"
                         font_style: "H6"
 
@@ -478,6 +574,68 @@ MDScreen:
                         id: telemetry_send_appearance
                         pos_hint: {"center_y": 0.3}
                         active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        id: telemetry_send_to_collector_label
+                        text: "Auto send to collector"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_send_to_collector
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    id: send_syncslider_container
+                    orientation: "vertical"
+                    size_hint_y: None
+                    padding: [0,0,dp(0),0]
+                    height: dp(68)
+
+                    MDSlider
+                        id: telemetry_send_interval
+                        min: 1
+                        max: 214
+                        value: 150
+                        sensitivity: "all"
+                        hint: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        id: telemetry_request_from_collector_label
+                        text: "Auto request from collector"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_request_from_collector
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    id: request_syncslider_container
+                    orientation: "vertical"
+                    size_hint_y: None
+                    padding: [0,0,dp(0),0]
+                    height: dp(68)
+
+                    MDSlider
+                        id: telemetry_request_interval
+                        min: 1
+                        max: 214
+                        value: 150
+                        sensitivity: "all"
+                        hint: False
 
                 MDBoxLayout:
                     orientation: "vertical"
@@ -529,7 +687,7 @@ MDScreen:
                         font_size: dp(16)
                         size_hint: [1.0, None]
                         on_release: root.app.telemetry_send_update(self)
-                        disabled: True
+                        disabled: False
 
                     MDRectangleFlatIconButton:
                         id: telemetry_request_button
@@ -540,7 +698,7 @@ MDScreen:
                         font_size: dp(16)
                         size_hint: [1.0, None]
                         on_release: root.app.telemetry_request_action(self)
-                        disabled: True
+                        disabled: False
 
                 MDLabel:
                     text: "Display Options"

@@ -502,6 +502,12 @@ class SidebandCore():
             self.config["telemetry_send_to_trusted"] = False
         if not "telemetry_send_to_collector" in self.config:
             self.config["telemetry_send_to_collector"] = False
+        if not "telemetry_request_from_collector" in self.config:
+            self.config["telemetry_request_from_collector"] = False
+        if not "telemetry_send_interval" in self.config:
+            self.config["telemetry_send_interval"] = 43200
+        if not "telemetry_request_interval" in self.config:
+            self.config["telemetry_request_interval"] = 43200
 
         if not "telemetry_icon" in self.config:
             self.config["telemetry_icon"] = SidebandCore.DEFAULT_APPEARANCE[0]
@@ -716,6 +722,22 @@ class SidebandCore():
             RNS.log("Error while checking telemetry sending for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
             return False
 
+    def requests_allowed_from(self, context_dest):
+        try:
+            existing_conv = self._db_conversation(context_dest)
+            if existing_conv != None:
+                cd = existing_conv["data"]
+                if cd != None and "allow_requests" in cd and cd["allow_requests"] == True:
+                    return True
+                else:
+                    return False
+            else:
+                return False
+
+        except Exception as e:
+            RNS.log("Error while checking request permissions for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
+            return False
+
     def raw_display_name(self, context_dest):
         try:
             existing_conv = self._db_conversation(context_dest)
@@ -810,6 +832,12 @@ class SidebandCore():
 
     def no_telemetry_in_conversation(self, context_dest):
         self._db_conversation_set_telemetry(context_dest, False)
+
+    def allow_requests_from(self, context_dest):
+        self._db_conversation_set_requests(context_dest, True)
+
+    def disallow_requests_from(self, context_dest):
+        self._db_conversation_set_requests(context_dest, False)
 
     def named_conversation(self, name, context_dest):
         self._db_conversation_set_name(context_dest, name)
@@ -1447,6 +1475,24 @@ class SidebandCore():
             data_dict = {}
 
         data_dict["telemetry"] = send_telemetry
+        packed_dict = msgpack.packb(data_dict)
+        
+        db = self.__db_connect()
+        dbc = db.cursor()
+        
+        query = "UPDATE conv set data = ? where dest_context = ?"
+        data = (packed_dict, context_dest)
+        dbc.execute(query, data)
+        result = dbc.fetchall()
+        db.commit()
+
+    def _db_conversation_set_requests(self, context_dest, allow_requests=False):
+        conv = self._db_conversation(context_dest)
+        data_dict = conv["data"]
+        if data_dict == None:
+            data_dict = {}
+
+        data_dict["allow_requests"] = allow_requests
         packed_dict = msgpack.packb(data_dict)
         
         db = self.__db_connect()

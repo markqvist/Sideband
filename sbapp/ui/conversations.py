@@ -28,6 +28,7 @@ class ConvSettings(BoxLayout):
     context_dest = StringProperty()
     trusted = BooleanProperty()
     telemetry = BooleanProperty()
+    allow_requests = BooleanProperty()
 
 class Conversations():
     def __init__(self, app):
@@ -130,10 +131,11 @@ class Conversations():
                             disp_name = self.app.sideband.raw_display_name(dest)
                             is_trusted = self.app.sideband.is_trusted(dest)
                             send_telemetry = self.app.sideband.should_send_telemetry(dest)
+                            allow_requests = self.app.sideband.requests_allowed_from(dest)
 
                             yes_button = MDRectangleFlatButton(text="Save",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_accept, text_color=self.app.color_accept)
                             no_button = MDRectangleFlatButton(text="Cancel",font_size=dp(18))
-                            dialog_content = ConvSettings(disp_name=disp_name, context_dest=RNS.hexrep(dest, delimit=False), trusted=is_trusted, telemetry=send_telemetry)
+                            dialog_content = ConvSettings(disp_name=disp_name, context_dest=RNS.hexrep(dest, delimit=False), trusted=is_trusted, telemetry=send_telemetry, allow_requests=allow_requests)
                             dialog = MDDialog(
                                 title="Edit Conversation",
                                 text= "With "+RNS.prettyhexrep(dest),
@@ -148,6 +150,7 @@ class Conversations():
                                     name = dialog.d_content.ids["name_field"].text
                                     trusted = dialog.d_content.ids["trusted_switch"].active
                                     telemetry = dialog.d_content.ids["telemetry_switch"].active
+                                    allow_requests = dialog.d_content.ids["allow_requests_switch"].active
                                     if trusted:
                                         self.app.sideband.trusted_conversation(dest)
                                     else:
@@ -157,6 +160,11 @@ class Conversations():
                                         self.app.sideband.send_telemetry_in_conversation(dest)
                                     else:
                                         self.app.sideband.no_telemetry_in_conversation(dest)
+
+                                    if allow_requests:
+                                        self.app.sideband.allow_requests_from(dest)
+                                    else:
+                                        self.app.sideband.disallow_requests_from(dest)
 
                                     self.app.sideband.named_conversation(name, dest)
 
@@ -434,10 +442,9 @@ Builder.load_string("""
 
     MDBoxLayout:
         orientation: "horizontal"
-        # spacing: "24dp"
         size_hint_y: None
         padding: [0,0,dp(8),0]
-        height: dp(48)
+        height: dp(32)
         MDLabel:
             id: trusted_switch_label
             text: "Trusted"
@@ -450,10 +457,9 @@ Builder.load_string("""
 
     MDBoxLayout:
         orientation: "horizontal"
-        # spacing: "24dp"
         size_hint_y: None
         padding: [0,0,dp(8),0]
-        height: dp(48)
+        height: dp(32)
         MDLabel:
             id: telemetry_switch_label
             text: "Include Telemetry"
@@ -463,6 +469,21 @@ Builder.load_string("""
             id: telemetry_switch
             pos_hint: {"center_y": 0.43}
             active: root.telemetry
+
+    MDBoxLayout:
+        orientation: "horizontal"
+        size_hint_y: None
+        padding: [0,0,dp(8),0]
+        height: dp(32)
+        MDLabel:
+            id: allow_requests_label
+            text: "Allow Requests"
+            font_style: "H6"
+
+        MDSwitch:
+            id: allow_requests_switch
+            pos_hint: {"center_y": 0.43}
+            active: root.allow_requests
 
 <MsgSync>
     orientation: "vertical"

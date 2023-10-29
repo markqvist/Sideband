@@ -3125,6 +3125,12 @@ class SidebandApp(MDApp):
 
     def close_sub_telemetry_action(self, sender=None):
         self.telemetry_action(direction="right")
+
+    def converse_from_telemetry(self, sender=None):
+        if self.object_details_screen != None:
+            context_dest = self.object_details_screen.object_hash
+            if not self.object_details_screen.object_hash == self.sideband.lxmf_destination.hash:
+                self.open_conversation(context_dest)
     
     def telemetry_send_update(self, sender=None):
         # TODO: Implement
