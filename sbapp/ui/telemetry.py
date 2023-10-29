@@ -169,6 +169,7 @@ class Telemetry():
         if self.app.theme_cls.theme_style == "Dark":
             info3 = "[color=#"+self.app.dark_theme_text_color+"]"+info3+"[/color]"            
         self.sensors_screen.ids.telemetry_info3.text = info3
+        self.sensors_screen.ids.sensors_scrollview.effect_cls = ScrollEffect
 
         try:
             lat = self.app.sideband.config["telemetry_s_fixed_latlon"][0]; lon = self.app.sideband.config["telemetry_s_fixed_latlon"][1]
