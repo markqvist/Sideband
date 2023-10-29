@@ -40,7 +40,7 @@ class ObjectDetails():
         self.delete_dialog = None
 
         if not self.app.root.ids.screen_manager.has_screen("object_details_screen"):
-            self.screen = Builder.load_string(layou_object_details)
+            self.screen = Builder.load_string(layout_object_details)
             self.screen.app = self.app
             self.screen.delegate = self
             self.ids = self.screen.ids
@@ -461,7 +461,7 @@ class RVDetails(MDRecycleView):
 
 
 
-layou_object_details = """
+layout_object_details = """
 #:import MDLabel kivymd.uix.label.MDLabel
 #:import OneLineIconListItem kivymd.uix.list.OneLineIconListItem
 #:import Button kivy.uix.button.Button
