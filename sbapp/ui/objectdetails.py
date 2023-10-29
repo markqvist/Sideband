@@ -119,6 +119,7 @@ class ObjectDetails():
     def set_source(self, source_dest, from_conv=False, from_telemetry=False, prefetched=None):
         self.object_hash = source_dest
         own_address = self.app.sideband.lxmf_destination.hash
+        telemetry_allowed = self.app.sideband.should_send_telemetry(source_dest)
         if source_dest == own_address:
             self.viewing_self = True
         else:
@@ -143,16 +144,16 @@ class ObjectDetails():
         self.screen.ids.object_appearance.icon = appearance[0]
         self.screen.ids.object_appearance.icon_color = appearance[1]
         self.screen.ids.object_appearance.md_bg_color = appearance[2]
-        # self.screen.ids.delete_button.line_color = self.app.color_reject
-        # self.screen.ids.delete_button.text_color = self.app.color_reject
-        # self.screen.ids.delete_button.icon_color = self.app.color_reject
         def djob(dt):
             if self.viewing_self:
                 self.screen.ids.request_button.disabled = True
                 self.screen.ids.send_button.disabled = True
             else:
                 self.screen.ids.request_button.disabled = False
-                self.screen.ids.send_button.disabled = False
+                if telemetry_allowed:
+                    self.screen.ids.send_button.disabled = False
+                else:
+                    self.screen.ids.send_button.disabled = True
 
         if prefetched != None:
             latest_telemetry = prefetched
@@ -210,6 +211,9 @@ class ObjectDetails():
             elif result == "sent":
                 title_str = "Update Sent"
                 info_str  = "A telemetry update was sent to the peer."
+            elif result == "not_sent":
+                title_str = "Not Sent"
+                info_str  = "A telemetry update could not be sent."
             else:
                 title_str = "Unknown Status"
                 info_str  = "The status of the telemetry update is unknown."

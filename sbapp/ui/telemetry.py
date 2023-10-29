@@ -532,7 +532,22 @@ MDScreen:
                     height: dp(48)
                     
                     MDLabel:
-                        text: "Only display from trusted"
+                        text: "Send display style to everyone"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_send_appearance
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Only display trusted on map"
                         font_style: "H6"
 
                     MDSwitch:
@@ -562,26 +577,11 @@ MDScreen:
                     height: dp(48)
                     
                     MDLabel:
-                        text: "Send to all trusted peers"
+                        text: "Send telemetry to all trusted"
                         font_style: "H6"
 
                     MDSwitch:
                         id: telemetry_send_to_trusted
-                        pos_hint: {"center_y": 0.3}
-                        active: False
-
-                MDBoxLayout:
-                    orientation: "horizontal"
-                    size_hint_y: None
-                    padding: [0,0,dp(24),dp(0)]
-                    height: dp(48)
-                    
-                    MDLabel:
-                        text: "Send display style to everyone"
-                        font_style: "H6"
-
-                    MDSwitch:
-                        id: telemetry_send_appearance
                         pos_hint: {"center_y": 0.3}
                         active: False
 
