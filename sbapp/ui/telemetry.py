@@ -64,8 +64,11 @@ class Telemetry():
         self.screen.ids.telemetry_send_appearance.active = self.app.sideband.config["telemetry_send_appearance"]
         self.screen.ids.telemetry_send_appearance.bind(active=self.telemetry_save)
 
+        self.screen.ids.telemetry_send_all_to_collector.active = self.app.sideband.config["telemetry_send_all_to_collector"]
+        self.screen.ids.telemetry_send_all_to_collector.bind(active=self.telemetry_save)
+
         self.screen.ids.telemetry_scrollview.effect_cls = ScrollEffect
-        info  = "\nSideband allows you to securely share telemetry, such as location and sensor data, with people, custom programs, machines or other system over LXMF. You have complete control over what kind of telemetry to send, and who you share it with.\n\nTelemetry data is never sent to, via or processed by any external services or servers, but is carried exclusively within encrypted LXMF messages over Reticulum.\n\nWhen telemetry is enabled, it is possible to embed telemetry data in normal messages on a per-peer basis. You can control this from the [b]Conversations[/b] list, by selecting the [b]Edit[/b] option for the relevant peer.\n\nYou can also define a [b]Telemetry Collector[/b], that Sideband will automatically send telemetry to on a periodic basis.\n"
+        info  = "\nSideband allows you to securely share telemetry, such as location and sensor data, with people, custom programs, machines or other system over LXMF. You have complete control over what kind of telemetry to send, and who you share it with.\n\nTelemetry data is never sent to, via or processed by any external services or servers, but is carried exclusively within encrypted LXMF messages over Reticulum, and only to the destinations you define.\n\nWhen telemetry is enabled, it is possible to embed telemetry data in normal messages on a per-peer basis. You can control this from the [b]Conversations[/b] list, by selecting the [b]Edit[/b] option for the relevant peer.\n\nYou can also define a [b]Telemetry Collector[/b], that Sideband can automatically send telemetry to on a periodic basis. By default, only your own telemetry will be sent to the collector, but by enabling the [b]Send all known to collector[/b] option, you can forward all known telemetry to the collector. This can also be used to aggregate telemetry from multiple different collectors, or create chains of transmission.\n"
         if self.app.theme_cls.theme_style == "Dark":
             info = "[color=#"+self.app.dark_theme_text_color+"]"+info+"[/color]"
         
@@ -216,6 +219,7 @@ class Telemetry():
         self.app.sideband.config["telemetry_display_trusted_only"] = self.screen.ids.telemetry_display_trusted_only.active
         self.app.sideband.config["telemetry_send_appearance"] = self.screen.ids.telemetry_send_appearance.active
         self.app.sideband.config["telemetry_receive_trusted_only"] = self.screen.ids.telemetry_receive_trusted_only.active
+        self.app.sideband.config["telemetry_send_all_to_collector"] = self.screen.ids.telemetry_send_all_to_collector.active
         
         self.app.sideband.save_configuration()
         if run_telemetry_update:
@@ -591,6 +595,22 @@ MDScreen:
 
                     MDSwitch:
                         id: telemetry_send_appearance
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        id: telemetry_send_all_to_collector_label
+                        text: "Send all known to collector"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_send_all_to_collector
                         pos_hint: {"center_y": 0.3}
                         active: False
 

@@ -521,6 +521,8 @@ class SidebandCore():
             self.config["telemetry_display_trusted_only"] = False
         if not "telemetry_receive_trusted_only" in self.config:
             self.config["telemetry_receive_trusted_only"] = False
+        if not "telemetry_send_all_to_collector" in self.config:
+            self.config["telemetry_send_all_to_collector"] = False
 
         if not "telemetry_s_location" in self.config:
             self.config["telemetry_s_location"] = False
