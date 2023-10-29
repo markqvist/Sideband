@@ -242,10 +242,18 @@ class RVDetails(MDRecycleView):
                 if ts != None:
                     ts_str = datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
                     formatted_values = f"Recorded [b]{RNS.prettytime(time.time()-ts, compact=True)} ago[/b] ({ts_str})"
+                    def copy_info(e=None):
+                        Clipboard.copy(ts_str)
+                        toast("Copied to clipboard")
+                    release_function = copy_info
             elif name == "Information":
                 info = s["values"]["contents"]
                 if info != None:
                     istr = str(info)
+                    def copy_info(e=None):
+                        Clipboard.copy(istr)
+                        toast("Copied to clipboard")
+                    release_function = copy_info
                     external_text = escape_markup(istr)
                     formatted_values = f"[b]Information[/b]: {external_text}"
             elif name == "Received":
