@@ -183,12 +183,11 @@ class Sensor():
 
   @property
   def data(self):
-    if not self.synthesized:
-      if self._data == None or (self._stale_time != None and time.time() > self.last_update+self._stale_time):
-        try:
-          self.update_data()
-        except:
-          pass
+    if self._data == None or (not self.synthesized and (self._stale_time != None and time.time() > self.last_update+self._stale_time)):
+      try:
+        self.update_data()
+      except:
+        pass
 
     self.last_read = time.time()
     return self._data
