@@ -193,13 +193,18 @@ class Messages():
                         pass
 
                 if "lxm" in m and m["lxm"] != None and m["lxm"].fields != None and LXMF.FIELD_COMMANDS in m["lxm"].fields:
-                    commands = m["lxm"].fields[LXMF.FIELD_COMMANDS]
-                    for command in commands:
-                        if Commands.ECHO in command:
-                            extra_content = "[font=RobotoMono-Regular]> echo "+command[Commands.ECHO].decode("utf-8")+"[/font]\n"
-                        if Commands.SIGNAL_REPORT in command:
-                            extra_content = "[font=RobotoMono-Regular]> sig[/font]\n"
-                    extra_content = extra_content[:-1]
+                    try:
+                        commands = m["lxm"].fields[LXMF.FIELD_COMMANDS]
+                        for command in commands:
+                            if Commands.ECHO in command:
+                                extra_content = "[font=RobotoMono-Regular]> echo "+command[Commands.ECHO].decode("utf-8")+"[/font]\n"
+                            if Commands.PING in command:
+                                extra_content = "[font=RobotoMono-Regular]> ping[/font]\n"
+                            if Commands.SIGNAL_REPORT in command:
+                                extra_content = "[font=RobotoMono-Regular]> sig[/font]\n"
+                        extra_content = extra_content[:-1]
+                    except Exception as e:
+                        RNS.log("Error while generating command display: "+str(e), RNS.LOG_ERROR)
 
                 if telemeter == None and "lxm" in m and m["lxm"] and m["lxm"].fields != None and LXMF.FIELD_TELEMETRY in m["lxm"].fields:
                     try:

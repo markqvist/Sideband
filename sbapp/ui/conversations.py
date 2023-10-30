@@ -472,7 +472,7 @@ Builder.load_string("""
         height: dp(32)
         MDLabel:
             id: telemetry_switch_label
-            text: "Include Telemetry"
+            text: "Send Telemetry"
             font_style: "H6"
 
         MDSwitch:

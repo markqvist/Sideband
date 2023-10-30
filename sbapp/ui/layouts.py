@@ -72,15 +72,6 @@ MDNavigationLayout:
 
                                                        
                         OneLineIconListItem:
-                            text: "Telemetry"
-                            on_release: root.ids.screen_manager.app.telemetry_action(self)
-                        
-                            IconLeftWidget:
-                                icon: "map-marker-path"
-                                on_release: root.ids.screen_manager.app.telemetry_action(self)
-
-                                                       
-                        OneLineIconListItem:
                             text: "Announce Stream"
                             on_release: root.ids.screen_manager.app.announces_action(self)
                         
@@ -96,6 +87,15 @@ MDNavigationLayout:
                             IconLeftWidget:
                                 icon: "radio-tower"
                                 on_release: root.ids.screen_manager.app.broadcasts_action(self)
+
+                                                       
+                        OneLineIconListItem:
+                            text: "Telemetry"
+                            on_release: root.ids.screen_manager.app.telemetry_action(self)
+                        
+                            IconLeftWidget:
+                                icon: "map-marker-path"
+                                on_release: root.ids.screen_manager.app.telemetry_action(self)
 
                                                        
                         OneLineIconListItem:

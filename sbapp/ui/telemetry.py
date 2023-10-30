@@ -67,6 +67,22 @@ class Telemetry():
         self.screen.ids.telemetry_send_all_to_collector.active = self.app.sideband.config["telemetry_send_all_to_collector"]
         self.screen.ids.telemetry_send_all_to_collector.bind(active=self.telemetry_save)
 
+        self.screen.ids.telemetry_use_propagation_only.active = self.app.sideband.config["telemetry_use_propagation_only"]
+        self.screen.ids.telemetry_use_propagation_only.bind(active=self.telemetry_save)
+
+        self.screen.ids.telemetry_try_propagation_on_fail.active = self.app.sideband.config["telemetry_try_propagation_on_fail"]
+        self.screen.ids.telemetry_try_propagation_on_fail.bind(active=self.telemetry_save)
+        
+        self.screen.ids.telemetry_requests_only_send_latest.active = self.app.sideband.config["telemetry_requests_only_send_latest"]
+        self.screen.ids.telemetry_requests_only_send_latest.bind(active=self.telemetry_save)
+        
+        self.screen.ids.telemetry_allow_requests_from_trusted.active = self.app.sideband.config["telemetry_allow_requests_from_trusted"]
+        self.screen.ids.telemetry_allow_requests_from_trusted.bind(active=self.telemetry_save)
+        
+        self.screen.ids.telemetry_allow_requests_from_anyone.active = self.app.sideband.config["telemetry_allow_requests_from_anyone"]
+        self.screen.ids.telemetry_allow_requests_from_anyone.bind(active=self.telemetry_save)
+        
+        
         self.screen.ids.telemetry_scrollview.effect_cls = ScrollEffect
         info  = "\nSideband allows you to securely share telemetry, such as location and sensor data, with people, custom programs, machines or other system over LXMF. You have complete control over what kind of telemetry to send, and who you share it with.\n\nTelemetry data is never sent to, via or processed by any external services or servers, but is carried exclusively within encrypted LXMF messages over Reticulum, and only to the destinations you define.\n\nWhen telemetry is enabled, it is possible to embed telemetry data in normal messages on a per-peer basis. You can control this from the [b]Conversations[/b] list, by selecting the [b]Edit[/b] option for the relevant peer.\n\nYou can also define a [b]Telemetry Collector[/b], that Sideband can automatically send telemetry to on a periodic basis. By default, only your own telemetry will be sent to the collector, but by enabling the [b]Send all known to collector[/b] option, you can forward all known telemetry to the collector. This can also be used to aggregate telemetry from multiple different collectors, or create chains of transmission.\n"
         if self.app.theme_cls.theme_style == "Dark":
@@ -89,9 +105,9 @@ class Telemetry():
 
             interval_text = RNS.prettytime(interval)
             if self.screen.ids.telemetry_send_to_collector.active:
-                self.screen.ids.telemetry_send_to_collector_label.text = "Auto send to collector every "+interval_text
+                self.screen.ids.telemetry_send_to_collector_label.text = "Auto sync to collector every "+interval_text
             else:
-                self.screen.ids.telemetry_send_to_collector_label.text = "Auto send to collector"
+                self.screen.ids.telemetry_send_to_collector_label.text = "Auto sync to collector"
 
             if save:
                 self.app.sideband.config["telemetry_send_interval"] = interval
@@ -135,9 +151,9 @@ class Telemetry():
 
             interval_text = RNS.prettytime(interval)
             if self.screen.ids.telemetry_request_from_collector.active:
-                self.screen.ids.telemetry_request_from_collector_label.text = "Auto request from collector every "+interval_text
+                self.screen.ids.telemetry_request_from_collector_label.text = "Auto sync from collector every "+interval_text
             else:
-                self.screen.ids.telemetry_request_from_collector_label.text = "Auto request from collector"
+                self.screen.ids.telemetry_request_from_collector_label.text = "Auto sync from collector"
 
             if save:
                 self.app.sideband.config["telemetry_request_interval"] = interval
@@ -220,6 +236,11 @@ class Telemetry():
         self.app.sideband.config["telemetry_send_appearance"] = self.screen.ids.telemetry_send_appearance.active
         self.app.sideband.config["telemetry_receive_trusted_only"] = self.screen.ids.telemetry_receive_trusted_only.active
         self.app.sideband.config["telemetry_send_all_to_collector"] = self.screen.ids.telemetry_send_all_to_collector.active
+        self.app.sideband.config["telemetry_use_propagation_only"] = self.screen.ids.telemetry_use_propagation_only.active
+        self.app.sideband.config["telemetry_try_propagation_on_fail"] = self.screen.ids.telemetry_try_propagation_on_fail.active
+        self.app.sideband.config["telemetry_requests_only_send_latest"] = self.screen.ids.telemetry_requests_only_send_latest.active
+        self.app.sideband.config["telemetry_allow_requests_from_trusted"] = self.screen.ids.telemetry_allow_requests_from_trusted.active
+        self.app.sideband.config["telemetry_allow_requests_from_anyone"] = self.screen.ids.telemetry_allow_requests_from_anyone.active
         
         self.app.sideband.save_configuration()
         if run_telemetry_update:
@@ -577,39 +598,8 @@ MDScreen:
                     height: dp(48)
                     
                     MDLabel:
-                        text: "Send telemetry to all trusted"
-                        font_style: "H6"
-
-                    MDSwitch:
-                        id: telemetry_send_to_trusted
-                        pos_hint: {"center_y": 0.3}
-                        active: False
-
-                MDBoxLayout:
-                    orientation: "horizontal"
-                    size_hint_y: None
-                    padding: [0,0,dp(24),dp(0)]
-                    height: dp(48)
-                    
-                    MDLabel:
-                        id: telemetry_send_all_to_collector_label
-                        text: "Send all known to collector"
-                        font_style: "H6"
-
-                    MDSwitch:
-                        id: telemetry_send_all_to_collector
-                        pos_hint: {"center_y": 0.3}
-                        active: False
-
-                MDBoxLayout:
-                    orientation: "horizontal"
-                    size_hint_y: None
-                    padding: [0,0,dp(24),dp(0)]
-                    height: dp(48)
-                    
-                    MDLabel:
                         id: telemetry_send_to_collector_label
-                        text: "Auto send to collector"
+                        text: "Auto sync to collector"
                         font_style: "H6"
 
                     MDSwitch:
@@ -640,7 +630,7 @@ MDScreen:
                     
                     MDLabel:
                         id: telemetry_request_from_collector_label
-                        text: "Auto request from collector"
+                        text: "Auto sync from collector"
                         font_style: "H6"
 
                     MDSwitch:
@@ -797,7 +787,7 @@ MDScreen:
                 MDBoxLayout:
                     orientation: "vertical"
                     size_hint_y: None
-                    padding: [dp(0),dp(24),dp(0),dp(12)]
+                    padding: [dp(0),dp(24),dp(0),dp(60)]
                     height: self.minimum_height
 
                     MDBoxLayout:
@@ -827,6 +817,125 @@ MDScreen:
                             size_hint: [1.0, None]
                             on_release: root.delegate.telemetry_bg_color(self)
                             disabled: False
+
+                MDLabel:
+                    text: "Advanced Configuration"
+                    font_style: "H6"
+
+                MDLabel:
+                    id: telemetry_info5
+                    markup: True
+                    text: "\\n[i]Read this section before enabling any advanced configuration options[/i]\\n\\nBy using the following options in combination with the basic settings above, it is possible to achieve a broad variety of telemetry collection, sharing and distribution systems. Both distributed, centralised, private and public configurations are possible. This section briefly explains the available options. For more details, refer to the full manual.\\n\\nIf the [b]Embed telemetry to all trusted[/b] option is enabled, Sideband will automatically embed telemetry data in outgoing messages to all peers marked as trusted.\\n\\nWith the [b]Sync all known telemetry to collector[/b] option enabled, Sideband will send not only its own, but all collected telemetry data to the specified collector address. This can be useful for aggregating data from many different areas onto collectors, and for distributed configurations.\\n\\nIf the [b]Always use propagation for telemetry[/b] option is enabled, Sideband will never attempt to directly delivery outbound telemetry, but will always send it via the active propagation node.\\n\\nThe [b]Try propagation if direct delivery fails[/b] option will make Sideband attempt to send outbound telemetry via the active propagation node, if direct delivery to the recipient fails.\\n\\nIf [b]Allow requests from all trusted[/b] is enabled, any peer marked as trusted will be able to perform requests on this Sideband instance.\\n\\n[b]Warning![/b] If the option [b]Allow requests from anyone[/b] is enabled, [i]any peer[/i], on [i]all reachable reticules[/i] will be able to query and access telemetry data stored on this instance. This can be very useful for emergency situations, rescue operations and public coordination, but should be used with [b]extreme caution[/b].\\n\\n[b]Requests[/b] enables remote peers to query telemetry data collected by this instance, and to run available statistics commands. Available commands are currently [b]ping[/b], which requests a small response message, [b]echo[/b] which requests an echo reply of the specified text, and [b]sig[/b] which requests a sigal report, if available.\\n"
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Embed telemetry to all trusted"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_send_to_trusted
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Sync all known telemetry to collector"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_send_all_to_collector
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Always use propagation for telemetry"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_use_propagation_only
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Try propagation if direct delivery fails"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_try_propagation_on_fail
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Requests receive only latest"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_requests_only_send_latest
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Allow requests from all trusted"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_allow_requests_from_trusted
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Allow requests from anyone"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_allow_requests_from_anyone
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                
 """
 
 layout_sensors_screen = """

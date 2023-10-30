@@ -3200,9 +3200,12 @@ class SidebandApp(MDApp):
             ok_button.bind(on_release=dl_ok)
 
         result = self.sideband.send_latest_telemetry(to_addr=self.sideband.config["telemetry_collector"])
-        if result == "destination_unknown":
+        if result == "no_address":
+            title_str = "Invalid Address"
+            info_str  = "You must specify a valid LXMF address for the collector you want to sent data to."
+        elif result == "destination_unknown":
             title_str = "Unknown Destination"
-            info_str  = "No keys known for the destination. Connected reticules have been queried for the keys."
+            info_str  = "No keys known for the destination. Connected reticules have been queried for the keys. Try again when an announce for the destination has arrived."
         elif result == "in_progress":
             title_str = "Transfer In Progress"
             info_str  = "There is already an outbound telemetry transfer in progress to the collector."
@@ -3235,9 +3238,12 @@ class SidebandApp(MDApp):
 
         result = self.sideband.request_latest_telemetry(from_addr=self.sideband.config["telemetry_collector"])
 
-        if result == "destination_unknown":
+        if result == "no_address":
+            title_str = "Invalid Address"
+            info_str  = "You must specify a valid LXMF address for the collector you want to request data from."
+        elif result == "destination_unknown":
             title_str = "Unknown Destination"
-            info_str  = "No keys known for the destination. Connected reticules have been queried for the keys."
+            info_str  = "No keys known for the destination. Connected reticules have been queried for the keys. Try again when an announce for the destination has arrived."
         elif result == "in_progress":
             title_str = "Transfer In Progress"
             info_str  = "There is already a telemetry request transfer in progress for this peer."
