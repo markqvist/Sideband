@@ -30,6 +30,7 @@ class Telemeter():
 
           if name != None:
             s.data = s.unpack(p[sid])
+            s.synthesized = True
             s.active = True
             t.sensors[name] = s
 
@@ -182,11 +183,12 @@ class Sensor():
 
   @property
   def data(self):
-    if self._data == None or (self._stale_time != None and time.time() > self.last_update+self._stale_time):
-      try:
-        self.update_data()
-      except:
-        pass
+    if not self.synthesized:
+      if self._data == None or (self._stale_time != None and time.time() > self.last_update+self._stale_time):
+        try:
+          self.update_data()
+        except:
+          pass
 
     self.last_read = time.time()
     return self._data
@@ -270,11 +272,14 @@ class Time(Sensor):
       return None
 
   def render(self, relative_to=None):
-    rendered = {
-      "icon": "clock-time-ten-outline",
-      "name": "Timestamp",
-      "values": { "UTC": self.data["utc"] },
-    }
+    if self.data != None:
+      rendered = {
+        "icon": "clock-time-ten-outline",
+        "name": "Timestamp",
+        "values": { "UTC": self.data["utc"] },
+      }
+    else:
+      rendered = None
 
     return rendered
 
@@ -558,10 +563,6 @@ class Pressure(Sensor):
       if "mbar" in rs.data and rs.data["mbar"] != None:
         if self.data["mbar"] != None:
           delta = round(rs.data["mbar"] - self.data["mbar"], 1)
-    
-    # TODO: Remove
-    # RNS.log("OVERRIDING DELTA", RNS.LOG_WARNING)
-    # delta = round(740.1 - self.data["mbar"], 1)
 
     rendered = {
       "icon": "weather-cloudy",
@@ -1074,10 +1075,6 @@ class AmbientLight(Sensor):
       if "lux" in rs.data and rs.data["lux"] != None:
         if self.data["lux"] != None:
           delta = round(rs.data["lux"] - self.data["lux"], 2)
-    
-    # TODO: Remove
-    # RNS.log("OVERRIDING DELTA", RNS.LOG_WARNING)
-    # delta = round(2500 - self.data["lux"], 2)
     
     rendered = {
       "icon": "white-balance-sunny",
