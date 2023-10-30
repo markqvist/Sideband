@@ -406,6 +406,8 @@ class SidebandCore():
             self.config["print_command"] = "lp"
         if not "eink_mode" in self.config:
             self.config["eink_mode"] = False
+        if not "display_style_in_contact_list" in self.config:
+            self.config["display_style_in_contact_list"] = False
 
         if not "connect_transport" in self.config:
             self.config["connect_transport"] = False
@@ -514,6 +516,8 @@ class SidebandCore():
             self.config["telemetry_send_interval"] = 43200
         if not "telemetry_request_interval" in self.config:
             self.config["telemetry_request_interval"] = 43200
+        if not "telemetry_collector_enabled" in self.config:
+            self.config["telemetry_collector_enabled"] = False
 
         if not "telemetry_icon" in self.config:
             self.config["telemetry_icon"] = SidebandCore.DEFAULT_APPEARANCE[0]
@@ -785,8 +789,8 @@ class SidebandCore():
             RNS.log("Error while getting peer name: "+str(e), RNS.LOG_ERROR)
             return ""
 
-    def peer_appearance(self, context_dest):
-        appearance = self._db_get_appearance(context_dest)
+    def peer_appearance(self, context_dest, conv=None):
+        appearance = self._db_get_appearance(context_dest, conv=conv)
         if appearance == None:
             return SidebandCore.DEFAULT_APPEARANCE
         for e in appearance:
@@ -924,7 +928,7 @@ class SidebandCore():
 
 
     def request_latest_telemetry(self, from_addr=None):
-        if from_addr == None:
+        if from_addr == None or from_addr == self.lxmf_destination.hash:
             return "no_address"
         else:
             if self.getstate(f"telemetry.{RNS.hexrep(from_addr, delimit=False)}.request_sending") == True:
@@ -974,7 +978,7 @@ class SidebandCore():
 
 
     def send_latest_telemetry(self, to_addr=None, stream=None):
-        if to_addr == None:
+        if to_addr == None or to_addr == self.lxmf_destination.hash:
             return "no_address"
         else:
             if self.getstate(f"telemetry.{RNS.hexrep(to_addr, delimit=False)}.update_sending") == True:
@@ -1633,11 +1637,13 @@ class SidebandCore():
             result = dbc.fetchall()
             db.commit()
 
-    def _db_get_appearance(self, context_dest):
+    def _db_get_appearance(self, context_dest, conv = None):
         if context_dest == self.lxmf_destination.hash:
             return [self.config["telemetry_icon"], self.config["telemetry_fg"], self.config["telemetry_bg"]]
         else:
-            conv = self._db_conversation(context_dest)
+            if conv == None:
+                conv = self._db_conversation(context_dest)
+
             if conv != None and "data" in conv:
                 data_dict = conv["data"]
                 try:
@@ -1728,6 +1734,11 @@ class SidebandCore():
                 last_rx = entry[1]
                 last_tx = entry[2]
                 last_activity = max(last_rx, last_tx)
+                data = None
+                try:
+                    data = msgpack.unpackb(entry[7])
+                except:
+                    pass
 
                 conv = {
                     "dest": entry[0],
@@ -1735,6 +1746,8 @@ class SidebandCore():
                     "last_rx": last_rx,
                     "last_tx": last_tx,
                     "last_activity": last_activity,
+                    "trust": entry[5],
+                    "data": data,
                 }
                 convs.append(conv)
 
@@ -2027,7 +2040,7 @@ class SidebandCore():
                     packed_telemetry = self._db_save_telemetry(context_dest, lxm.fields[LXMF.FIELD_TELEMETRY], physical_link=physical_link, source_dest=context_dest)
 
                 if LXMF.FIELD_TELEMETRY_STREAM in lxm.fields:
-                    for telemetry_entry in lxm_fields[LXMF.FIELD_TELEMETRY_STREAM]:
+                    for telemetry_entry in lxm.fields[LXMF.FIELD_TELEMETRY_STREAM]:
                         # TODO: Implement
                         RNS.log("TODO: Save this telemetry stream entry: "+str(telemetry_entry), RNS.LOG_WARNING)
 
@@ -2431,8 +2444,8 @@ class SidebandCore():
                         lastsync = self.getpersistent("lxmf.lastsync")
                         nextsync = lastsync+syncinterval
 
-                        RNS.log("Last sync was "+RNS.prettytime(now-lastsync)+" ago", RNS.LOG_DEBUG)
-                        RNS.log("Next sync is "+("in "+RNS.prettytime(nextsync-now) if nextsync-now > 0 else "now"), RNS.LOG_DEBUG)
+                        RNS.log("Last LXMF sync was "+RNS.prettytime(now-lastsync)+" ago", RNS.LOG_DEBUG)
+                        RNS.log("Next LXMF sync is "+("in "+RNS.prettytime(nextsync-now) if nextsync-now > 0 else "now"), RNS.LOG_DEBUG)
                         if now > nextsync:
                             if self.request_lxmf_sync():
                                 RNS.log("Scheduled LXMF sync succeeded", RNS.LOG_DEBUG)
@@ -2450,7 +2463,7 @@ class SidebandCore():
 
                 if self.config["telemetry_enabled"]:
                     if self.config["telemetry_send_to_collector"]:
-                        if self.config["telemetry_collector"] != None:
+                        if self.config["telemetry_collector"] != None and self.config["telemetry_collector"] != self.lxmf_destination.hash:
                             try:
                                 now = time.time()
                                 collector_address = self.config["telemetry_collector"]
@@ -2468,7 +2481,10 @@ class SidebandCore():
                                     if not self.pending_telemetry_send_try >= self.pending_telemetry_send_maxtries:
                                         self.pending_telemetry_send = True
                                         self.pending_telemetry_send_try += 1
-                                        self.send_latest_telemetry(to_addr=collector_address)
+                                        if self.config["telemetry_send_all_to_collector"]:
+                                            self.create_telemetry_collector_response(to_addr=collector_address)
+                                        else:
+                                            self.send_latest_telemetry(to_addr=collector_address)
                                     else:
                                         if self.telemetry_send_blocked_until < now:
                                             next_slot = now+send_interval
@@ -2481,7 +2497,7 @@ class SidebandCore():
                                 RNS.log("An error occurred while sending scheduled telemetry to collector: "+str(e), RNS.LOG_ERROR)
 
                     if self.config["telemetry_request_from_collector"]:
-                        if self.config["telemetry_collector"] != None:
+                        if self.config["telemetry_collector"] != None and self.config["telemetry_collector"] != self.lxmf_destination.hash:
                             try:
                                 now = time.time()
                                 collector_address = self.config["telemetry_collector"]
@@ -3385,7 +3401,12 @@ class SidebandCore():
                 if Commands.TELEMETRY_REQUEST in command:
                     timebase = int(command[Commands.TELEMETRY_REQUEST])
                     RNS.log("Handling telemetry request with timebase "+str(timebase), RNS.LOG_DEBUG)
-                    self.create_telemetry_response(to_addr=context_dest, timebase=timebase)
+                    if self.config["telemetry_collector_enabled"]:
+                        RNS.log(f"Collector requests enabled, returning complete telemetry response for all known objects since {timebase}", RNS.LOG_DEBUG)
+                        self.create_telemetry_collector_response(to_addr=context_dest, timebase=timebase)
+                    else:
+                        RNS.log("Responding with own latest telemetry", RNS.LOG_DEBUG)
+                        self.send_latest_telemetry(to_addr=context_dest)
                 
                 elif Commands.PING in command:
                     RNS.log("Handling ping request", RNS.LOG_DEBUG)
@@ -3415,7 +3436,7 @@ class SidebandCore():
         except Exception as e:
             RNS.log("Error while handling commands: "+str(e), RNS.LOG_ERROR)
 
-    def create_telemetry_response(self, to_addr, timebase):
+    def create_telemetry_collector_response(self, to_addr, timebase):
         sources = {}
         sources = self.list_telemetry(after=timebase)
         only_latest = self.config["telemetry_requests_only_send_latest"]

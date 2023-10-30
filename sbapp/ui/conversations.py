@@ -75,30 +75,73 @@ class Conversations():
         self.app.sideband.setstate("app.flags.new_conversations", False)
         self.app.sideband.setstate("wants.viewupdate.conversations", False)
 
-    def trust_icon(self, context_dest, unread):
+    def trust_icon(self, conv):
+        context_dest = conv["dest"]
+        unread = conv["unread"]
+        appearance = self.app.sideband.peer_appearance(context_dest, conv=conv)
+        # is_trusted = self.app.sideband.is_trusted(context_dest)
+        is_trusted = conv["trust"] == 1
+
         trust_icon = "account-question"
-        is_trusted = self.app.sideband.is_trusted(context_dest)
-        if self.app.sideband.requests_allowed_from(context_dest):
+        da = self.app.sideband.DEFAULT_APPEARANCE
+        if is_trusted and self.app.sideband.config["display_style_in_contact_list"] and appearance != None and appearance != da:
             if unread:
-                if is_trusted:
-                    trust_icon = "email-seal"
-                else:
-                    trust_icon = "email"
+                trust_icon = "email"
             else:
-                trust_icon = "account-lock-open"
+                trust_icon = appearance[0] or da[0];
+        
         else:
-            if is_trusted:
+            if self.app.sideband.requests_allowed_from(context_dest):
                 if unread:
-                    trust_icon = "email-seal"
+                    if is_trusted:
+                        trust_icon = "email-seal"
+                    else:
+                        trust_icon = "email"
                 else:
-                    trust_icon = "account-check"
+                    trust_icon = "account-lock-open"
             else:
-                if unread:
-                    trust_icon = "email"
+                if is_trusted:
+                    if unread:
+                        trust_icon = "email-seal"
+                    else:
+                        trust_icon = "account-check"
                 else:
-                    trust_icon = "account-question"
+                    if unread:
+                        trust_icon = "email"
+                    else:
+                        trust_icon = "account-question"
 
         return trust_icon
+
+    def get_icon(self, conv):
+        context_dest = conv["dest"]
+        unread = conv["unread"]
+        last_activity = conv["last_activity"]
+        trusted = conv["trust"] == 1
+        appearance = self.app.sideband.peer_appearance(context_dest, conv=conv)
+        da = self.app.sideband.DEFAULT_APPEARANCE
+        ic_s = 24; ic_p = 14
+
+        conv_icon = self.trust_icon(conv)
+        fg = None; bg = None; ti_color = None
+
+        if trusted and self.app.sideband.config["display_style_in_contact_list"] and appearance != None and appearance != da:
+            fg = appearance[1] or da[1]; bg = appearance[2] or da[2]
+            ti_color = "Custom"
+        else:
+            ti_color = None
+
+        iconl = IconLeftWidget(
+            icon=conv_icon, theme_icon_color=ti_color,
+            icon_color=fg, md_bg_color=bg,
+            on_release=self.app.conversation_action)
+
+        RNS.log("ICON "+str(iconl.md_bg_color))
+
+        iconl._default_icon_pad = dp(ic_p)
+        iconl.icon_size = dp(ic_s)
+
+        return iconl
 
     def update_widget(self):
         us = time.time()
@@ -123,8 +166,8 @@ class Conversations():
             unread = conv["unread"]
             last_activity = conv["last_activity"]
 
-            if not context_dest in self.added_item_dests:
-                iconl = IconLeftWidget(icon=self.trust_icon(context_dest, unread), on_release=self.app.conversation_action)
+            if not context_dest in self.added_item_dests:                
+                iconl = self.get_icon(conv)
                 item = OneLineAvatarIconListItem(text=self.app.sideband.peer_display_name(context_dest), on_release=self.app.conversation_action)
                 item.add_widget(iconl)
                 item.last_activity = last_activity
@@ -350,13 +393,28 @@ class Conversations():
                 for w in self.list.children:
                     if w.sb_uid == context_dest:
                         disp_name = self.app.sideband.peer_display_name(context_dest)
-                        trust_icon = self.trust_icon(context_dest, unread)
+                        trust_icon = self.trust_icon(conv)
+                        trusted = conv["trust"] == 1
+                        da = self.app.sideband.DEFAULT_APPEARANCE
+                        appearance = self.app.sideband.peer_appearance(context_dest, conv)
+                        if trusted and self.app.sideband.config["display_style_in_contact_list"] and appearance != None and appearance != da:
+                            fg = appearance[1] or da[1]; bg = appearance[2] or da[2]
+                            ti_color = "Custom"
+                        else:
+                            ti_color = None
+
                         w.last_activity = last_activity
-                        if w.iconl.icon != trust_icon:
-                            w.iconl.icon = trust_icon
-                            w.sb_unread = unread
-                        if w.text != disp_name:
-                            w.text = disp_name
+                        if ti_color != None:
+                            w.iconl.theme_icon_color = ti_color
+                            if bg != None: w.iconl.md_bg_color = bg
+                            if fg != None: w.iconl.icon_color = fg
+                        else:
+                            w.iconl.theme_icon_color = "Primary"
+                            w.iconl.md_bg_color = [0,0,0,0]
+
+                        if w.iconl.icon != trust_icon: w.iconl.icon = trust_icon
+                        if w.sb_unread != unread: w.sb_unread = unread
+                        if w.text != disp_name: w.text = disp_name
 
         self.list.children.sort(key=lambda w: (w.trusted, w.last_activity))
 

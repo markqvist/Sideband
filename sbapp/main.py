@@ -1570,6 +1570,11 @@ class SidebandApp(MDApp):
                 self.sideband.save_configuration()
                 self.update_ui_theme()
 
+            def save_display_style_in_contact_list(sender=None, event=None):
+                self.sideband.config["display_style_in_contact_list"] = self.settings_screen.ids.display_style_in_contact_list.active
+                self.sideband.save_configuration()
+                self.sideband.setstate("wants.viewupdate.conversations", True)
+
             def save_advanced_stats(sender=None, event=None):
                 self.sideband.config["advanced_stats"] = self.settings_screen.ids.settings_advanced_statistics.active
                 self.sideband.save_configuration()
@@ -1678,6 +1683,9 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.settings_eink_mode.active = self.sideband.config["eink_mode"]
             self.settings_screen.ids.settings_eink_mode.bind(active=save_eink_mode)
+
+            self.settings_screen.ids.display_style_in_contact_list.active = self.sideband.config["display_style_in_contact_list"]
+            self.settings_screen.ids.display_style_in_contact_list.bind(active=save_display_style_in_contact_list)
 
             self.settings_screen.ids.settings_advanced_statistics.active = self.sideband.config["advanced_stats"]
             self.settings_screen.ids.settings_advanced_statistics.bind(active=save_advanced_stats)

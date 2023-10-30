@@ -52,6 +52,9 @@ class Telemetry():
         self.screen.ids.telemetry_enabled.active = self.app.sideband.config["telemetry_enabled"]
         self.screen.ids.telemetry_enabled.bind(active=self.telemetry_enabled_toggle)
 
+        self.screen.ids.telemetry_collector_enabled.active = self.app.sideband.config["telemetry_collector_enabled"]
+        self.screen.ids.telemetry_collector_enabled.bind(active=self.telemetry_save)
+
         self.screen.ids.telemetry_send_to_trusted.active = self.app.sideband.config["telemetry_send_to_trusted"]
         self.screen.ids.telemetry_send_to_trusted.bind(active=self.telemetry_save)
 
@@ -84,7 +87,18 @@ class Telemetry():
         
         
         self.screen.ids.telemetry_scrollview.effect_cls = ScrollEffect
-        info  = "\nSideband allows you to securely share telemetry, such as location and sensor data, with people, custom programs, machines or other system over LXMF. You have complete control over what kind of telemetry to send, and who you share it with.\n\nTelemetry data is never sent to, via or processed by any external services or servers, but is carried exclusively within encrypted LXMF messages over Reticulum, and only to the destinations you define.\n\nWhen telemetry is enabled, it is possible to embed telemetry data in normal messages on a per-peer basis. You can control this from the [b]Conversations[/b] list, by selecting the [b]Edit[/b] option for the relevant peer.\n\nYou can also define a [b]Telemetry Collector[/b], that Sideband can automatically send telemetry to on a periodic basis. By default, only your own telemetry will be sent to the collector, but by enabling the [b]Send all known to collector[/b] option, you can forward all known telemetry to the collector. This can also be used to aggregate telemetry from multiple different collectors, or create chains of transmission.\n"
+        info  = "\nSideband allows you to securely share telemetry, such as location and sensor data, with people, custom programs, "
+        info += "machines or other systems over LXMF. You have complete control over what kind of telemetry to send, and who you share "
+        info += "it with.\n\nTelemetry data is never sent to, via or processed by any external services or servers, but is carried "
+        info += "exclusively within encrypted LXMF messages over Reticulum, and only to the destinations you define.\n\nWhen telemetry "
+        info += "is enabled, it is possible to embed telemetry data in normal messages on a per-peer basis. You can control this from "
+        info += "the [b]Conversations[/b] list, by selecting the [b]Edit[/b] option for the relevant peer.\n\nYou can also define a "
+        info += "[b]Telemetry Collector[/b], that Sideband can automatically send telemetry to on a periodic basis. By default, only "
+        info += "your own telemetry will be sent to the collector, but by enabling the [b]Send all known to collector[/b] option, you "
+        info += "can forward all known telemetry to the collector. This can also be used to aggregate telemetry from multiple different "
+        info += "collectors, or create chains of transmission.\n\nBy activating the [b]Enable collector[/b] option, this instance of "
+        info += "Sideband will become a Telemetry Collector, and other authorized peers will be able to query its collected data.\n"
+
         if self.app.theme_cls.theme_style == "Dark":
             info = "[color=#"+self.app.dark_theme_text_color+"]"+info+"[/color]"
         
@@ -241,6 +255,7 @@ class Telemetry():
         self.app.sideband.config["telemetry_requests_only_send_latest"] = self.screen.ids.telemetry_requests_only_send_latest.active
         self.app.sideband.config["telemetry_allow_requests_from_trusted"] = self.screen.ids.telemetry_allow_requests_from_trusted.active
         self.app.sideband.config["telemetry_allow_requests_from_anyone"] = self.screen.ids.telemetry_allow_requests_from_anyone.active
+        self.app.sideband.config["telemetry_collector_enabled"] = self.screen.ids.telemetry_collector_enabled.active
         
         self.app.sideband.save_configuration()
         if run_telemetry_update:
@@ -543,6 +558,21 @@ MDScreen:
 
                     MDSwitch:
                         id: telemetry_enabled
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: [0,0,dp(24),0]
+                    size_hint_y: None
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Enable collector"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_collector_enabled
                         pos_hint: {"center_y": 0.3}
                         active: False
 

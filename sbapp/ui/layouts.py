@@ -1243,6 +1243,21 @@ MDScreen:
                         height: dp(48)
                         
                         MDLabel:
+                            text: "Display styles in conversation list"
+                            font_style: "H6"
+
+                        MDSwitch:
+                            id: display_style_in_contact_list
+                            pos_hint: {"center_y": 0.3}
+                            active: False
+
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        size_hint_y: None
+                        padding: [0,0,dp(24),dp(0)]
+                        height: dp(48)
+                        
+                        MDLabel:
                             text: "Advanced Metrics"
                             font_style: "H6"
 
