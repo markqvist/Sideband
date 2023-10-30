@@ -1641,7 +1641,7 @@ class SidebandCore():
             RNS.log("An error occurred while saving telemetry to database: "+str(e), RNS.LOG_ERROR)
             self.db = None
 
-    def _db_update_appearance(self, context_dest, timestamp, appearance):
+    def _db_update_appearance(self, context_dest, timestamp, appearance, from_bulk_telemetry=False):
         conv = self._db_conversation(context_dest)
 
         if conv == None:
@@ -1650,27 +1650,28 @@ class SidebandCore():
             # Probably expire after 14 days or so.
             self.setpersistent("temp.peer_appearance."+RNS.hexrep(context_dest, delimit=False), ae)
         else:
-            data_dict = conv["data"]
-            if data_dict == None:
-                data_dict = {}
+            if not from_bulk_telemetry:
+                data_dict = conv["data"]
+                if data_dict == None:
+                    data_dict = {}
 
-            if not "appearance" in data_dict:
-                data_dict["appearance"] = None
+                if not "appearance" in data_dict:
+                    data_dict["appearance"] = None
 
-            if data_dict["appearance"] != appearance:
-                data_dict["appearance"] = appearance
-                packed_dict = msgpack.packb(data_dict)
-            
-                db = self.__db_connect()
-                dbc = db.cursor()
-            
-                query = "UPDATE conv set data = ? where dest_context = ?"
-                data = (packed_dict, context_dest)
-                dbc.execute(query, data)
-                result = dbc.fetchall()
-                db.commit()
+                if data_dict["appearance"] != appearance:
+                    data_dict["appearance"] = appearance
+                    packed_dict = msgpack.packb(data_dict)
+                
+                    db = self.__db_connect()
+                    dbc = db.cursor()
+                
+                    query = "UPDATE conv set data = ? where dest_context = ?"
+                    data = (packed_dict, context_dest)
+                    dbc.execute(query, data)
+                    result = dbc.fetchall()
+                    db.commit()
 
-    def _db_get_appearance(self, context_dest, conv = None):
+    def _db_get_appearance(self, context_dest, conv = None, raw=False):
         if context_dest == self.lxmf_destination.hash:
             return [self.config["telemetry_icon"], self.config["telemetry_fg"], self.config["telemetry_bg"]]
         else:
@@ -1686,7 +1687,11 @@ class SidebandCore():
                     data_dict = {}
                     apd = self.getpersistent("temp.peer_appearance."+RNS.hexrep(context_dest, delimit=False))
                     if apd != None:
-                        data_dict["appearance"] = apd
+                        try:
+                            data_dict["appearance"] = apd[0]
+                        except Exception as e:
+                            RNS.log("Could not get appearance data from database: "+str(e),RNS.LOG_ERROR)
+                            data_dict = None
 
             if data_dict != None:
                 try:
@@ -1698,7 +1703,10 @@ class SidebandCore():
                             b = round(struct.unpack("!B", bytes([cbytes[2]]))[0]*d, 4)
                             return [r,g,b]
 
-                        appearance = [data_dict["appearance"][0], htf(data_dict["appearance"][1]), htf(data_dict["appearance"][2])]
+                        if raw:
+                            appearance = data_dict["appearance"]
+                        else:
+                            appearance = [data_dict["appearance"][0], htf(data_dict["appearance"][1]), htf(data_dict["appearance"][2])]
                         
                         return appearance
                 except Exception as e:
@@ -2088,10 +2096,13 @@ class SidebandCore():
                     if lxm.fields[LXMF.FIELD_TELEMETRY_STREAM] != None and len(lxm.fields[LXMF.FIELD_TELEMETRY_STREAM]) > 0:
                         for telemetry_entry in lxm.fields[LXMF.FIELD_TELEMETRY_STREAM]:
                             tsource = telemetry_entry[0]
-                            ttstemp = telemetry_entry[1]
+                            ttstamp = telemetry_entry[1]
                             tpacked = telemetry_entry[2]
+                            appearance = telemetry_entry[3]
                             if self._db_save_telemetry(tsource, tpacked, via = context_dest):
                                 RNS.log("Saved telemetry stream entry from "+RNS.prettyhexrep(tsource), RNS.LOG_WARNING)
+                                if appearance != None:
+                                    self._db_update_appearance(tsource, ttstamp, appearance, from_bulk_telemetry=True)
 
                     else:
                         RNS.log("Received telemetry stream field with no data: "+str(lxm.fields[LXMF.FIELD_TELEMETRY_STREAM]), RNS.LOG_DEBUG)
@@ -3503,7 +3514,8 @@ class SidebandCore():
                 for entry in sources[source]:
                     elements += 1
                     timestamp = entry[0]; packed_telemetry = entry[1]
-                    te = [source, timestamp, packed_telemetry]
+                    appearance = self._db_get_appearance(source, raw=True)
+                    te = [source, timestamp, packed_telemetry, appearance]
                     if only_latest:
                         if not source in added_sources:
                             added_sources[source] = True
