@@ -1009,7 +1009,10 @@ class SidebandCore():
                     else:
                         desired_method = LXMF.LXMessage.DIRECT
 
-                    lxm_fields = self.get_message_fields(to_addr, is_authorized_telemetry_request=is_authorized_telemetry_request)
+                    lxm_fields = self.get_message_fields(to_addr, is_authorized_telemetry_request=is_authorized_telemetry_request, signal_already_sent=True)
+                    if lxm_fields == False:
+                        return "already_sent"
+
                     if stream != None and len(stream) > 0:
                         lxm_fields[LXMF.FIELD_TELEMETRY_STREAM] = stream
 
@@ -1044,7 +1047,7 @@ class SidebandCore():
                             RNS.log(f"Telemetry update with timebase {telemetry_timebase} was already successfully sent", RNS.LOG_DEBUG)
                             return "already_sent"
                     else:
-                        return "not_sent"
+                        return "nothing_to_send"
 
             else:
                 RNS.log("A telemetry update was requested, but there was nothing to send.", RNS.LOG_WARNING)
@@ -3046,7 +3049,7 @@ class SidebandCore():
                     except Exception as e:
                         RNS.log("Error while setting last successul telemetry timebase for "+RNS.prettyhexrep(message.destination_hash), RNS.LOG_DEBUG)
 
-    def get_message_fields(self, context_dest, telemetry_update=False, is_authorized_telemetry_request=False):
+    def get_message_fields(self, context_dest, telemetry_update=False, is_authorized_telemetry_request=False, signal_already_sent=False):
         fields = {}
         send_telemetry = (telemetry_update == True) or (self.should_send_telemetry(context_dest) or is_authorized_telemetry_request)
         send_appearance = self.config["telemetry_send_appearance"] or send_telemetry
@@ -3060,6 +3063,8 @@ class SidebandCore():
                 RNS.log("Not embedding telemetry in message since current telemetry is not newer than latest successful timebase", RNS.LOG_DEBUG)
                 send_telemetry = False
                 send_appearance = False
+                if signal_already_sent:
+                    return False
 
         else:
             RNS.log("Not embedding telemetry in message since no telemetry is available", RNS.LOG_DEBUG)
