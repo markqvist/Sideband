@@ -22,11 +22,11 @@ import subprocess
 import shlex
 
 if RNS.vendor.platformutils.get_platform() == "android":
-    from sideband.sense import Telemeter
+    from sideband.sense import Telemeter, Commands
     from ui.helpers import ts_format, file_ts_format, mdc
     from ui.helpers import color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
 else:
-    from sbapp.sideband.sense import Telemeter
+    from sbapp.sideband.sense import Telemeter, Commands
     from .helpers import ts_format, file_ts_format, mdc
     from .helpers import color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
 
@@ -178,13 +178,28 @@ class Messages():
                 txstr = time.strftime(ts_format, time.localtime(m["sent"]))
                 rxstr = time.strftime(ts_format, time.localtime(m["received"]))
                 titlestr = ""
+                extra_content = ""
                 extra_telemetry = {}
                 telemeter = None
+                signature_valid = False
+
+                if "lxm" in m and m["lxm"] != None and m["lxm"].signature_validated:
+                    signature_valid = True
+
                 if "extras" in m and m["extras"] != None and "packed_telemetry" in m["extras"]:
                     try:
                         telemeter = Telemeter.from_packed(m["extras"]["packed_telemetry"])
                     except Exception as e:
                         pass
+
+                if "lxm" in m and m["lxm"] != None and m["lxm"].fields != None and LXMF.FIELD_COMMANDS in m["lxm"].fields:
+                    commands = m["lxm"].fields[LXMF.FIELD_COMMANDS]
+                    for command in commands:
+                        if Commands.ECHO in command:
+                            extra_content = "[font=RobotoMono-Regular]> echo "+command[Commands.ECHO].decode("utf-8")+"[/font]\n"
+                        if Commands.SIGNAL_REPORT in command:
+                            extra_content = "[font=RobotoMono-Regular]> sig[/font]\n"
+                    extra_content = extra_content[:-1]
 
                 if telemeter == None and "lxm" in m and m["lxm"] and m["lxm"].fields != None and LXMF.FIELD_TELEMETRY in m["lxm"].fields:
                     try:
@@ -272,8 +287,12 @@ class Messages():
                     if rcvd_d_str != "":
                         heading_str += rcvd_d_str
 
+                pre_content = ""
+                if not signature_valid:
+                    pre_content += "[b]Warning![/b] The signature for this message could not be validated. Check that you have received an announce from this sender. If you already have, or other messages from the sender do not display this warning, [b]this message is likely to be fake[/b].\n\n"
+
                 item = ListLXMessageCard(
-                    text=m["content"].decode("utf-8"),
+                    text=pre_content+m["content"].decode("utf-8")+extra_content,
                     heading=heading_str,
                     md_bg_color=msg_color,
                 )

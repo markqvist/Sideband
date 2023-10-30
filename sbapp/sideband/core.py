@@ -1976,7 +1976,7 @@ class SidebandCore():
                 messages = messages[-limit:]
             return messages
 
-    def _db_save_lxm(self, lxm, context_dest, originator = False):
+    def _db_save_lxm(self, lxm, context_dest, originator = False, own_command = False):
         state = lxm.state
 
         packed_telemetry = None
@@ -1998,7 +1998,7 @@ class SidebandCore():
                         # TODO: Implement
                         pass
 
-        if len(lxm.content) != 0 or len(lxm.title) != 0:
+        if own_command or len(lxm.content) != 0 or len(lxm.title) != 0:
             db = self.__db_connect()
             dbc = db.cursor()
 
@@ -2977,7 +2977,7 @@ class SidebandCore():
             RNS.log("Error while creating paper message: "+str(e), RNS.LOG_ERROR)
             return False
 
-    def send_message(self, content, destination_hash, propagation):
+    def send_message(self, content, destination_hash, propagation, skip_fields=False):
         try:
             if content == "":
                 raise ValueError("Message content cannot be empty")
@@ -2991,7 +2991,54 @@ class SidebandCore():
             else:
                 desired_method = LXMF.LXMessage.DIRECT
 
-            lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = self.get_message_fields(destination_hash))
+            if skip_fields:
+                fields = {}
+            else:
+                fields = self.get_message_fields(destination_hash)
+
+            lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = fields)
+            lxm.register_delivery_callback(self.message_notification)
+            lxm.register_failed_callback(self.message_notification)
+
+            if self.message_router.get_outbound_propagation_node() != None:
+                if self.config["lxmf_try_propagation_on_fail"]:
+                    lxm.try_propagation_on_fail = True
+
+            self.message_router.handle_outbound(lxm)
+            self.lxm_ingest(lxm, originator=True)
+
+            return True
+
+        except Exception as e:
+            RNS.log("Error while sending message: "+str(e), RNS.LOG_ERROR)
+            return False
+
+    def send_command(self, content, destination_hash, propagation):
+        try:
+            if content == "":
+                return False
+
+            commands = []
+            if content.startswith("echo "):
+                echo_content = content.replace("echo ", "").encode("utf-8")
+                if len(echo_content) > 0:
+                    commands.append({Commands.ECHO: echo_content})
+            elif content.startswith("sig"):
+                commands.append({Commands.SIGNAL_REPORT: True})
+
+            if len(commands) == 0:
+                return False
+
+            dest_identity = RNS.Identity.recall(destination_hash)
+            dest = RNS.Destination(dest_identity, RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
+            source = self.lxmf_destination
+            
+            if propagation:
+                desired_method = LXMF.LXMessage.PROPAGATED
+            else:
+                desired_method = LXMF.LXMessage.DIRECT
+
+            lxm = LXMF.LXMessage(dest, source, "", title="", desired_method=desired_method, fields = {LXMF.FIELD_COMMANDS: commands})
             lxm.register_delivery_callback(self.message_notification)
             lxm.register_failed_callback(self.message_notification)
 
@@ -3060,6 +3107,7 @@ class SidebandCore():
         should_notify = False
         is_trusted = False
         telemetry_only = False
+        own_command = False
         unread_reason_tx = False
 
         if originator:
@@ -3069,18 +3117,21 @@ class SidebandCore():
             context_dest = message.source_hash
             is_trusted = self.is_trusted(context_dest)
 
+        if originator and LXMF.FIELD_COMMANDS in message.fields:
+            own_command = True
+
         if self._db_message(message.hash):
             RNS.log("Message exists, setting state to: "+str(message.state), RNS.LOG_DEBUG)
             self._db_message_set_state(message.hash, message.state)
         else:
             RNS.log("Message does not exist, saving", RNS.LOG_DEBUG)
-            self._db_save_lxm(message, context_dest, originator)
+            self._db_save_lxm(message, context_dest, originator, own_command=own_command)
 
             if is_trusted:
                 should_notify = True
 
             if len(message.content) == 0 and len(message.title) == 0:
-                if (LXMF.FIELD_TELEMETRY in message.fields or LXMF.FIELD_TELEMETRY_STREAM in message.fields):
+                if (LXMF.FIELD_TELEMETRY in message.fields or LXMF.FIELD_TELEMETRY_STREAM in message.fields or LXMF.FIELD_COMMANDS in message.fields):
                     RNS.log("Squelching notification due to telemetry-only message", RNS.LOG_DEBUG)
                     telemetry_only = True
 
@@ -3236,15 +3287,56 @@ class SidebandCore():
         RNS.log("LXMF delivery "+str(time_string)+". "+str(signature_string)+".", RNS.LOG_DEBUG)
 
         try:
+            context_dest = message.source_hash
             if self.config["lxmf_ignore_unknown"] == True:
-                context_dest = message.source_hash
                 if self._db_conversation(context_dest) == None:
                     RNS.log("Dropping message from unknown sender "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
                     return
 
-            self.lxm_ingest(message)
+            if message.signature_validated and LXMF.FIELD_COMMANDS in message.fields:
+                if self.requests_allowed_from(context_dest):
+                    commands = message.fields[LXMF.FIELD_COMMANDS]
+                    self.handle_commands(commands, message)
+
+            else:
+                self.lxm_ingest(message)
+
         except Exception as e:
             RNS.log("Error while ingesting LXMF message "+RNS.prettyhexrep(message.hash)+" to database: "+str(e))
+
+    def handle_commands(self, commands, message):
+        try:
+            context_dest = message.source_hash
+            RNS.log("Handling commands from "+str(context_dest), RNS.LOG_DEBUG)
+            for command in commands:
+                if Commands.TELEMETRY_REQUEST in command:
+                    timebase = int(command[Commands.TELEMETRY_REQUEST])
+                    RNS.log("Handling telemetry request with timebase "+str(timebase), RNS.LOG_DEBUG)
+                
+                elif Commands.ECHO in command:
+                    msg_content = "Echo reply: "+command[Commands.ECHO].decode("utf-8")
+                    RNS.log("Handling echo request", RNS.LOG_DEBUG)
+                    self.send_message(msg_content, context_dest, False, skip_fields=True)
+                
+                elif Commands.SIGNAL_REPORT in command:
+                    RNS.log("Handling signal report", RNS.LOG_DEBUG)
+                    phy_str = ""
+                    if message.q != None:
+                        phy_str += f"Link Quality: {message.q}%\n"
+                    if message.rssi != None:
+                        phy_str += f"RSSI: {message.rssi} dBm\n"
+                    if message.snr != None:
+                        phy_str += f"SNR: {message.rssi} dB\n"
+                    if len(phy_str) != 0:
+                        phy_str = phy_str[:-1]
+                    else:
+                        phy_str = "No reception info available"
+
+                    self.send_message(phy_str, context_dest, False, skip_fields=True)
+
+        except Exception as e:
+            RNS.log("Error while handling commands: "+str(e), RNS.LOG_ERROR)
+
 
     def get_display_name_bytes(self):
         return self.config["display_name"].encode("utf-8")

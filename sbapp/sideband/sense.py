@@ -10,6 +10,8 @@ from .geo import azalt, angle_to_horizon, radio_horizon, shared_radio_horizon
 
 class Commands():
   TELEMETRY_REQUEST = 0x01
+  ECHO              = 0x02
+  SIGNAL_REPORT     = 0x03
 
 class Telemeter():
   @staticmethod

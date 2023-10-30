@@ -829,7 +829,9 @@ class SidebandApp(MDApp):
                         self.message_send_action()
                 
                 if text == "l":
-                    if self.root.ids.screen_manager.current == "map_screen":
+                    if self.root.ids.screen_manager.current == "messages_screen":
+                        self.message_propagation_action(self)
+                    elif self.root.ids.screen_manager.current == "map_screen":
                         self.map_layers_action()
                     else:
                         self.announces_action(self)
@@ -1006,6 +1008,7 @@ class SidebandApp(MDApp):
 
     def open_conversation(self, context_dest, direction="left"):
         self.outbound_mode_paper = False
+        self.outbound_mode_command = False
         if self.sideband.config["propagation_by_default"]:
             self.outbound_mode_propagation = True
         else:
@@ -1075,7 +1078,26 @@ class SidebandApp(MDApp):
             else:
                 msg_content = self.messages_view.ids.message_text.text
                 context_dest = self.messages_view.ids.messages_scrollview.active_conversation
-                if self.outbound_mode_paper:
+                if self.outbound_mode_command:
+                    if self.sideband.send_command(msg_content, context_dest, False):
+                        self.messages_view.ids.message_text.text = ""
+                        self.messages_view.ids.messages_scrollview.scroll_y = 0
+                        self.jobs(0)
+                    else:
+                        self.messages_view.send_error_dialog = MDDialog(
+                            title="Error",
+                            text="Could not send the command. Check that the syntax is correct, and that the command is supported.",
+                            buttons=[
+                                MDRectangleFlatButton(
+                                    text="OK",
+                                    font_size=dp(18),
+                                    on_release=self.messages_view.close_send_error_dialog
+                                )
+                            ],
+                        )
+                        self.messages_view.send_error_dialog.open()
+
+                elif self.outbound_mode_paper:
                     if self.sideband.paper_message(msg_content, context_dest):
                         self.messages_view.ids.message_text.text = ""
                         self.messages_view.ids.messages_scrollview.scroll_y = 0
@@ -1117,16 +1139,24 @@ class SidebandApp(MDApp):
             self.object_details_action(self.messages_view, from_conv=True)
 
     def message_propagation_action(self, sender):
-        if self.outbound_mode_paper:
+        if self.outbound_mode_command:
             self.outbound_mode_paper = False
             self.outbound_mode_propagation = False
+            self.outbound_mode_command = False
         else:
-            if self.outbound_mode_propagation:
-                self.outbound_mode_paper = True
-                self.outbound_mode_propagation = False
-            else:
-                self.outbound_mode_propagation = True
+            if self.outbound_mode_paper:
                 self.outbound_mode_paper = False
+                self.outbound_mode_propagation = False
+                self.outbound_mode_command = True
+            else:
+                if self.outbound_mode_propagation:
+                    self.outbound_mode_paper = True
+                    self.outbound_mode_propagation = False
+                    self.outbound_mode_command = False
+                else:
+                    self.outbound_mode_propagation = True
+                    self.outbound_mode_paper = False
+                    self.outbound_mode_command = False
 
         self.update_message_widgets()
 
@@ -1138,13 +1168,17 @@ class SidebandApp(MDApp):
             mode_item.icon = "qrcode"
             self.messages_view.ids.message_text.hint_text = "Paper message"
         else:
-            if not self.outbound_mode_propagation:
-                mode_item.icon = "lan-connect"
-                self.messages_view.ids.message_text.hint_text = "Message for direct delivery"
+            if self.outbound_mode_command:
+                mode_item.icon = "console"
+                self.messages_view.ids.message_text.hint_text = "Send command or request"
             else:
-                mode_item.icon = "upload-network"
-                self.messages_view.ids.message_text.hint_text = "Message for propagation"
-                # self.root.ids.message_text.hint_text = "Write message for delivery via propagation nodes"
+                if not self.outbound_mode_propagation:
+                    mode_item.icon = "lan-connect"
+                    self.messages_view.ids.message_text.hint_text = "Message for direct delivery"
+                else:
+                    mode_item.icon = "upload-network"
+                    self.messages_view.ids.message_text.hint_text = "Message for propagation"
+            # self.root.ids.message_text.hint_text = "Write message for delivery via propagation nodes"
     
     def key_query_action(self, sender):
         context_dest = self.messages_view.ids.messages_scrollview.active_conversation
