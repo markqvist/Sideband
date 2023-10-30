@@ -2970,10 +2970,35 @@ class SidebandCore():
             if not no_display:
                 self.lxm_ingest(message, originator=True)
 
+            if message.fields != None and LXMF.FIELD_TELEMETRY in message.fields:
+                if len(message.fields[LXMF.FIELD_TELEMETRY]) > 0:
+                    try:
+                        telemeter = Telemeter.from_packed(message.fields[LXMF.FIELD_TELEMETRY])
+                        telemetry_timebase = telemeter.read_all()["time"]["utc"]
+                        RNS.log("Setting last successul telemetry timebase for "+RNS.prettyhexrep(message.destination_hash)+" to "+str(telemetry_timebase))
+                        self.setpersistent(f"telemetry.{RNS.hexrep(message.destination_hash, delimit=False)}.last_send_success_timebase", telemetry_timebase)
+                    except Exception as e:
+                        RNS.log("Error while setting last successul telemetry timebase for "+RNS.prettyhexrep(message.destination_hash), RNS.LOG_DEBUG)
+
     def get_message_fields(self, context_dest, telemetry_update=False):
         fields = {}
         send_telemetry = (telemetry_update == True) or self.should_send_telemetry(context_dest)
         send_appearance = self.config["telemetry_send_appearance"] or send_telemetry
+
+        if send_telemetry and self.latest_packed_telemetry != None:
+            telemeter = Telemeter.from_packed(self.latest_packed_telemetry)
+            telemetry_timebase = telemeter.read_all()["time"]["utc"]
+            if telemetry_timebase > (self.getpersistent(f"telemetry.{RNS.hexrep(context_dest, delimit=False)}.last_send_success_timebase") or 0):
+                RNS.log("Embedding telemetry in message since current telemetry is newer than latest successful timebase", RNS.LOG_DEBUG)
+            else:
+                RNS.log("Not embedding telemetry in message since current telemetry is not newer than latest successful timebase", RNS.LOG_DEBUG)
+                send_telemetry = False
+                send_appearance = False
+
+        else:
+            RNS.log("Not embedding telemetry in message since no telemetry is available", RNS.LOG_DEBUG)
+            send_telemetry = False
+
         if send_telemetry or send_appearance:
             if send_appearance:
                 def fth(c):
