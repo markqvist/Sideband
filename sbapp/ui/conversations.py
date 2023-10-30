@@ -136,8 +136,6 @@ class Conversations():
             icon_color=fg, md_bg_color=bg,
             on_release=self.app.conversation_action)
 
-        RNS.log("ICON "+str(iconl.md_bg_color))
-
         iconl._default_icon_pad = dp(ic_p)
         iconl.icon_size = dp(ic_s)
 

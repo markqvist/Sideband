@@ -3207,7 +3207,14 @@ class SidebandApp(MDApp):
                 self.telemetry_info_dialog.dismiss()
             ok_button.bind(on_release=dl_ok)
 
-        result = self.sideband.send_latest_telemetry(to_addr=self.sideband.config["telemetry_collector"])
+        collector_address = self.sideband.config["telemetry_collector"]
+
+        if self.sideband.config["telemetry_send_all_to_collector"]:
+            last_timebase = (self.sideband.getpersistent(f"telemetry.{RNS.hexrep(collector_address, delimit=False)}.last_send_success_timebase") or 0)
+            result = self.sideband.create_telemetry_collector_response(to_addr=collector_address, timebase=last_timebase, is_authorized_telemetry_request=True)
+        else:
+            result = self.sideband.send_latest_telemetry(to_addr=collector_address)
+
         if result == "no_address":
             title_str = "Invalid Address"
             info_str  = "You must specify a valid LXMF address for the collector you want to sent data to."
@@ -3223,9 +3230,15 @@ class SidebandApp(MDApp):
         elif result == "sent":
             title_str = "Update Sent"
             info_str  = "A telemetry update was sent to the collector."
+        elif result == "not_sent":
+            title_str = "Not Sent"
+            info_str  = "The telemetry update could not be sent."
+        elif result == "nothing_to_send":
+            title_str = "Nothing to Send"
+            info_str  = "There was no new data to send."
         else:
             title_str = "Unknown Status"
-            info_str  = "The status of the telemetry update is unknown."
+            info_str  = "The status of the telemetry update is unknown: "+str(result)
 
         self.telemetry_info_dialog.title = title_str
         self.telemetry_info_dialog.text  = info_str
@@ -3263,7 +3276,7 @@ class SidebandApp(MDApp):
             info_str  = "A telemetry request could not be sent."
         else:
             title_str = "Unknown Status"
-            info_str  = "The status of the telemetry request is unknown."
+            info_str  = "The status of the telemetry request is unknown: "+str(result)
 
         self.telemetry_info_dialog.title = title_str
         self.telemetry_info_dialog.text  = info_str

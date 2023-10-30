@@ -140,6 +140,12 @@ class ObjectDetails():
         pds = self.app.sideband.peer_display_name(source_dest)
         appearance = self.app.sideband.peer_appearance(source_dest)
         self.screen.ids.name_label.text = pds
+
+        if source_dest == own_address:
+            self.screen.ids.name_label.text = pds+" (this device)"
+        elif source_dest == self.app.sideband.config["telemetry_collector"]:
+            self.screen.ids.name_label.text = pds+" (collector)"
+
         self.screen.ids.coordinates_button.disabled = True
         self.screen.ids.object_appearance.icon = appearance[0]
         self.screen.ids.object_appearance.icon_color = appearance[1]
@@ -170,8 +176,6 @@ class ObjectDetails():
             relative_to = None
             if source_dest != own_address:
                 relative_to = self.app.sideband.telemeter
-            else:
-                self.screen.ids.name_label.text = pds+" (this device)"
 
             rendered_telemetry = telemeter.render(relative_to=relative_to)
             if "location" in telemeter.sensors:
@@ -291,7 +295,7 @@ class RVDetails(MDRecycleView):
             "Battery": 70,
             "Timestamp": 80,
             "Received": 90,
-            "Information": 100,
+            "Information": 5,
         }
         self.entries = []
         rendered_telemetry.sort(key=lambda s: sort[s["name"]] if s["name"] in sort else 1000)
@@ -323,29 +327,43 @@ class RVDetails(MDRecycleView):
                     formatted_values = f"[b]Information[/b]: {external_text}"
             elif name == "Received":
                 formatted_values = ""
-                by = s["values"]["by"]; by_str = ""
-                if by != None:
-                    if by == self.app.sideband.lxmf_destination.hash:
-                        by_str = "Directly by [b]this device[/b]"
-                    else:
-                        dstr = self.app.sideband.peer_display_name(by)
-                        by_str = f"By [b]{dstr}[/b]"
-                    formatted_values+=by_str
+                by = s["values"]["by"];
+                via = s["values"]["via"];
 
-                via = s["values"]["via"]; via_str = ""
-                if via != None:
+                if by == self.app.sideband.lxmf_destination.hash:
                     if via == self.delegate.object_hash:
-                        via_str = "directly [b]from emitter[/b]"
+                        formatted_values = "Collected directly by [b]this device[/b], directly [b]from emitter[/b]"
                     else:
-                        dstr = self.app.sideband.peer_display_name(by)
-                        via_str = f"via [b]{dstr}[/b]"
-                    if len(formatted_values) != 0: formatted_values += ", "
-                    formatted_values += via_str
-
-                if formatted_values != "":
-                    formatted_values = f"Collected {formatted_values}"
+                        via_str = self.app.sideband.peer_display_name(via)
+                        if via_str == None:
+                            via_str = "an [b]unknown peer[/b]"
+                        formatted_values = f"Collected directly by [b]this device[/b], via {via_str}"
                 else:
+                    if via != None and via == by:
+                        vstr = self.app.sideband.peer_display_name(via)
+                        formatted_values = f"Received from and collected by [b]{vstr}[/b]"
+                    
+                    else:
+                        if via != None:
+                            vstr = self.app.sideband.peer_display_name(via)
+                            via_str = f"Received from [b]{vstr}[/b]"
+                        else:
+                            via_str = "Received from an [b]unknown peer[/b]"
+                        
+                        if by != None:
+                            dstr = self.app.sideband.peer_display_name(by)
+                            by_str = f", collected by [b]{dstr}[/b]"
+                        else:
+                            by_str = f", collected by an [b]unknown peer[/b]"
+
+                        formatted_values = f"{via_str}{by_str}"
+
+                if formatted_values == "":
                     formatted_values = None
+
+                if not by == self.app.sideband.lxmf_destination.hash and not self.app.sideband.is_trusted(by):
+                    extra_entries.append({"icon": "alert", "text": "Collected by a [b]non-trusted[/b] peer"})
+                
             elif name == "Battery":
                 p = s["values"]["percent"]
                 cs = s["values"]["_meta"]
