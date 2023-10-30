@@ -125,7 +125,7 @@ class SidebandCore():
         self.pending_telemetry_send_maxtries = 2
         self.telemetry_send_blocked_until = 0
         self.pending_telemetry_request = False
-        self.telemetry_request_max_history = 3*24*60*60
+        self.telemetry_request_max_history = 7*24*60*60
         self.state_db = {}
         self.rpc_connection = None
 

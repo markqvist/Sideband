@@ -3655,6 +3655,8 @@ class SidebandApp(MDApp):
         else:
             if sender != None and hasattr(sender, "source_dest") and sender.source_dest != None:
                 telemetry_source = sender.source_dest
+            else:
+                telemetry_source = None
 
         if telemetry_source != None:
             if self.object_details_screen == None:
