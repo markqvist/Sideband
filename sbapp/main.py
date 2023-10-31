@@ -895,6 +895,17 @@ class SidebandApp(MDApp):
             w.saved_attrs = w.height, w.size_hint_y, w.opacity, w.disabled
             w.height, w.size_hint_y, w.opacity, w.disabled = 0, None, 0, True
 
+    def ui_clipboard_action(self, sender=None, event=None):
+        try:
+            if len(sender.text) == 0:
+                sender.text = Clipboard.paste()
+            else:
+                Clipboard.copy(sender.text)
+                action = "tap" if RNS.vendor.platformutils.is_android() else "click"
+                toast(f"Field copied, double-{action} any empty field to paste")
+        except Exception as e:
+            RNS.log("An error occurred while handling clipboard action: "+str(e), RNS.LOG_ERROR)
+
     def quit_action(self, sender):
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.should_persist_data()
@@ -1486,14 +1497,35 @@ class SidebandApp(MDApp):
 
         return sv
 
+    def bind_clipboard_actions(self, ids, force=False):
+        if force or RNS.vendor.platformutils.is_android():
+            BIND_CLASSES = ["kivymd.uix.textfield.textfield.MDTextField",]
+            for e in ids:
+                te = ids[e]
+                ts = str(te).split(" ")[0].replace("<", "")
+                if ts in BIND_CLASSES and not hasattr(e, "no_clipboard"):
+                    RNS.log("Binding clipboard action to "+str(e))
+                    te.bind(on_double_tap=self.ui_clipboard_action)
+
     def settings_init(self, sender=None):
         if not self.settings_ready:
             if not self.root.ids.screen_manager.has_screen("settings_screen"):
                 self.settings_screen = Builder.load_string(layout_settings_screen)
                 self.settings_screen.app = self
                 self.root.ids.screen_manager.add_widget(self.settings_screen)
+                self.bind_clipboard_actions(self.settings_screen.ids)
 
             self.settings_screen.ids.settings_scrollview.effect_cls = ScrollEffect
+
+            info1_text  = "\nYou can set your [b]Display Name[/b] to a custom value, or leave it as the default unspecified value. "
+            info1_text += "This name will be included in any announces you send, and will be visible to others on the network. "
+            info1_text += "\n\nYou can manually specify which [b]Propagation Node[/b] to use, but if none is specified, Sideband will "
+            info1_text += "automatically select one nearby."
+            if RNS.vendor.platformutils.is_android():
+                info1_text += "\n\nDouble-tap any field to copy its value, and double-tap an empty field to paste into it."
+
+            self.settings_screen.ids.settings_info1.text = info1_text
+
 
             def save_disp_name(sender=None, event=None):
                 if not sender.focus:
@@ -1717,6 +1749,7 @@ class SidebandApp(MDApp):
                 self.connectivity_screen = Builder.load_string(layout_connectivity_screen)
                 self.connectivity_screen.app = self
                 self.root.ids.screen_manager.add_widget(self.connectivity_screen)
+                self.bind_clipboard_actions(self.connectivity_screen.ids)
 
             self.connectivity_screen.ids.connectivity_scrollview.effect_cls = ScrollEffect
             def con_hide_settings():
@@ -3047,6 +3080,8 @@ class SidebandApp(MDApp):
             self.keys_screen = Builder.load_string(layout_keys_screen)
             self.keys_screen.app = self
             self.root.ids.screen_manager.add_widget(self.keys_screen)
+            self.bind_clipboard_actions(self.keys_screen.ids)
+
 
         self.keys_screen.ids.keys_scrollview.effect_cls = ScrollEffect
         info = "Your primary encryption keys are stored in a Reticulum Identity within the Sideband app. If you want to backup this Identity for later use on this or another device, you can export it as a plain text blob, with the key data encoded in Base32 format. This will allow you to restore your address in Sideband or other LXMF clients at a later point.\n\n[b]Warning![/b] Anyone that gets access to the key data will be able to control your LXMF address, impersonate you, and read your messages. In is [b]extremely important[/b] that you keep the Identity data secure if you export it.\n\nBefore displaying or exporting your Identity data, make sure that no machine or person in your vicinity is able to see, copy or record your device screen or similar."

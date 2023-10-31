@@ -1121,7 +1121,6 @@ MDScreen:
 
             MDGridLayout:
                 cols: 1
-                spacing: dp(16)
                 padding: [dp(28), dp(28), dp(28), dp(28)]
                 size_hint_y: None
                 height: self.minimum_height
@@ -1132,13 +1131,18 @@ MDScreen:
                     size_hint_y: None
                     height: self.texture_size[1]
 
-                MDBoxLayout:
-                    id: telemetry_information_fields
-                    orientation: "horizontal"
+                MDLabel:
+                    id: settings_info1
+                    markup: True
+                    text: ""
                     size_hint_y: None
-                    spacing: dp(16)
-                    height: dp(64)
-                    padding: [0, dp(0), 0, dp(0)]
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [0, dp(24), 0, dp(24)]
 
                     MDTextField:
                         id: settings_display_name
@@ -1147,20 +1151,20 @@ MDScreen:
                         max_text_length: 128
                         font_size: dp(24)
 
-                MDTextField:
-                    id: settings_propagation_node_address
-                    hint_text: "LXMF Propagation Node"
-                    text: ""
-                    max_text_length: 32
-                    font_size: dp(24)
-                    height: dp(64)
+                    MDTextField:
+                        id: settings_propagation_node_address
+                        hint_text: "LXMF Propagation Node"
+                        text: ""
+                        max_text_length: 32
+                        font_size: dp(24)
+                        height: dp(64)
 
-                MDTextField:
-                    id: settings_print_command
-                    hint_text: "Print Command"
-                    text: ""
-                    font_size: dp(24)
-                    height: dp(64)
+                    MDTextField:
+                        id: settings_print_command
+                        hint_text: "Print Command"
+                        text: ""
+                        font_size: dp(24)
+                        height: dp(64)
 
                 MDLabel:
                     text: "Address & Identity"
@@ -1169,27 +1173,33 @@ MDScreen:
                     height: self.texture_size[1]
 
                 MDLabel:
-                    id: settings_info1
+                    id: settings_info2
                     markup: True
-                    text: "\\nYour address and identity hashes are derived from your primary identity keys, and are therefore not editable, but these fields can be used to view and copy the hashes. If you want a new LXMF address, create or import a new primary identity."
+                    text: "\\nYour address and identity hashes are derived from your primary identity keys, and are therefore not editable, but these fields can be used to view and copy the hashes. If you want a new LXMF address, create or import a new primary identity.\\n"
                     size_hint_y: None
                     height: self.texture_size[1]
 
-                MDTextField:
-                    id: settings_lxmf_address
-                    hint_text: "Your LXMF Address"
-                    text: ""
-                    max_text_length: 32
-                    font_size: dp(24)
-                    height: dp(64)
+                MDBoxLayout:
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [0, dp(0), 0, dp(24)]
 
-                MDTextField:
-                    id: settings_identity_hash
-                    hint_text: "Your Identity Hash"
-                    text: ""
-                    max_text_length: 32
-                    font_size: dp(24)
-                    height: dp(64)
+                    MDTextField:
+                        id: settings_lxmf_address
+                        hint_text: "Your LXMF Address"
+                        text: ""
+                        max_text_length: 32
+                        font_size: dp(24)
+                        height: dp(64)
+
+                    MDTextField:
+                        id: settings_identity_hash
+                        hint_text: "Your Identity Hash"
+                        text: ""
+                        max_text_length: 32
+                        font_size: dp(24)
+                        height: dp(64)
 
                 MDBoxLayout:
                     orientation: "horizontal"
