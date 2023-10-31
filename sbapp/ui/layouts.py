@@ -1121,6 +1121,7 @@ MDScreen:
 
             MDGridLayout:
                 cols: 1
+                spacing: dp(16)
                 padding: [dp(28), dp(28), dp(28), dp(28)]
                 size_hint_y: None
                 height: self.minimum_height
@@ -1145,13 +1146,6 @@ MDScreen:
                         text: ""
                         max_text_length: 128
                         font_size: dp(24)
-
-                MDBoxLayout:
-                    md_bg_color: [0.2, 0.2, 0.8, 0.8]
-                    size_hint_y: 1.0
-                    MDLabel:
-                        id: filler
-                        text: "Test"
 
                 MDTextField:
                     id: settings_propagation_node_address
