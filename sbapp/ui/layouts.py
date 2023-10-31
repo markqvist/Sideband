@@ -973,7 +973,6 @@ MDScreen:
                         disabled: False
 """
 
-
 layout_map_screen = """
 MDScreen:
     name: "map_screen"
@@ -1101,6 +1100,7 @@ MDScreen:
         orientation: "vertical"
 
         MDTopAppBar:
+            id: settings_top_bar
             title: "Preferences"
             anchor_title: "left"
             elevation: 0
@@ -1111,31 +1111,55 @@ MDScreen:
                 ['close', lambda x: root.app.close_settings_action(self)],
                 ]
 
-        ScrollView:
+        MDScrollView:
             id: settings_scrollview
+            size_hint_x: 1
+            size_hint_y: None
+            size: [root.width, root.height-root.ids.settings_top_bar.height]
+            do_scroll_x: False
+            do_scroll_y: True
 
-            MDBoxLayout:
-                orientation: "vertical"
-                spacing: 0
+            MDGridLayout:
+                cols: 1
+                padding: [dp(28), dp(28), dp(28), dp(28)]
                 size_hint_y: None
                 height: self.minimum_height
-                padding: [0, 0, 0, 0]
+
+                MDLabel:
+                    text: "User Options"
+                    font_style: "H6"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    id: settings_info0
+                    markup: True
+                    text: "\\nTest - Remove"
+                    size_hint_y: None
+                    height: self.texture_size[1]
 
                 MDBoxLayout:
-                    orientation: "vertical"
-                    spacing: "16dp"
+                    orientation: "horizontal"
                     size_hint_y: None
-                    height: self.minimum_height
-                    padding: [dp(28), dp(16), dp(28), dp(16)]
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
                     
-
                     MDLabel:
-                        text: ""
+                        text: "Notifications"
                         font_style: "H6"
 
-                    MDLabel:
-                        text: "User Options"
-                        font_style: "H6"
+                    MDSwitch:
+                        id: settings_notifications_on
+                        pos_hint: {"center_y": 0.3}
+                        active: True
+
+                MDBoxLayout:
+                    id: telemetry_information_fields
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    spacing: dp(16)
+                    height: dp(64)
+                    padding: [0, dp(0), 0, dp(0)]
 
                     MDTextField:
                         id: settings_display_name
@@ -1144,270 +1168,274 @@ MDScreen:
                         max_text_length: 128
                         font_size: dp(24)
 
-                    MDTextField:
-                        id: settings_propagation_node_address
-                        hint_text: "LXMF Propagation Node"
-                        disabled: False
-                        text: ""
-                        max_text_length: 32
-                        font_size: dp(24)
-
-                    MDTextField:
-                        id: settings_print_command
-                        hint_text: "Print Command"
-                        disabled: False
-                        text: ""
-                        font_size: dp(24)
-
+                MDBoxLayout:
+                    md_bg_color: [0.2, 0.2, 0.8, 0.8]
+                    size_hint_y: 1.0
                     MDLabel:
-                        text: ""
-                        font_style: "H6"
+                        id: filler
+                        text: "Test"
 
-                    MDLabel:
-                        text: "Address & Identity"
-                        font_style: "H6"
+                MDTextField:
+                    id: settings_propagation_node_address
+                    hint_text: "LXMF Propagation Node"
+                    text: ""
+                    max_text_length: 32
+                    font_size: dp(24)
+                    height: dp(64)
 
-                    MDTextField:
-                        id: settings_lxmf_address
-                        hint_text: "Your LXMF Address"
-                        text: ""
-                        disabled: False
-                        max_text_length: 32
-                        font_size: dp(24)
+                MDTextField:
+                    id: settings_print_command
+                    hint_text: "Print Command"
+                    text: ""
+                    font_size: dp(24)
+                    height: dp(64)
 
-                    MDTextField:
-                        id: settings_identity_hash
-                        hint_text: "Your Identity Hash"
-                        text: ""
-                        disabled: False
-                        max_text_length: 32
-                        font_size: dp(24)
+                MDLabel:
+                    text: "Address & Identity"
+                    font_style: "H6"
+                    size_hint_y: None
+                    height: self.texture_size[1]
 
+                MDLabel:
+                    id: settings_info1
+                    markup: True
+                    text: "\\nYour address and identity hashes are derived from your primary identity keys, and are therefore not editable, but these fields can be used to view and copy the hashes. If you want a new LXMF address, create or import a new primary identity."
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
+                MDTextField:
+                    id: settings_lxmf_address
+                    hint_text: "Your LXMF Address"
+                    text: ""
+                    max_text_length: 32
+                    font_size: dp(24)
+                    height: dp(64)
+
+                MDTextField:
+                    id: settings_identity_hash
+                    hint_text: "Your Identity Hash"
+                    text: ""
+                    max_text_length: 32
+                    font_size: dp(24)
+                    height: dp(64)
 
                 MDBoxLayout:
-                    orientation: "vertical"
-                    # spacing: "24dp"
+                    orientation: "horizontal"
                     size_hint_y: None
-                    height: self.minimum_height
-                    padding: [dp(28), dp(16), dp(28), dp(16)]
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Notifications"
+                        font_style: "H6"
 
-                    MDBoxLayout:
-                        orientation: "horizontal"
-                        size_hint_y: None
-                        padding: [0,0,dp(24),dp(0)]
-                        height: dp(48)
-                        
-                        MDLabel:
-                            text: "Notifications"
-                            font_style: "H6"
+                    MDSwitch:
+                        id: settings_notifications_on
+                        pos_hint: {"center_y": 0.3}
+                        active: True
 
-                        MDSwitch:
-                            id: settings_notifications_on
-                            pos_hint: {"center_y": 0.3}
-                            active: True
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Dark Mode"
+                        font_style: "H6"
 
-                    MDBoxLayout:
-                        orientation: "horizontal"
-                        size_hint_y: None
-                        padding: [0,0,dp(24),dp(0)]
-                        height: dp(48)
-                        
-                        MDLabel:
-                            text: "Dark Mode"
-                            font_style: "H6"
+                    MDSwitch:
+                        id: settings_dark_ui
+                        pos_hint: {"center_y": 0.3}
+                        active: False
 
-                        MDSwitch:
-                            id: settings_dark_ui
-                            pos_hint: {"center_y": 0.3}
-                            active: False
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "E-Ink Mode"
+                        font_style: "H6"
 
-                    MDBoxLayout:
-                        orientation: "horizontal"
-                        size_hint_y: None
-                        padding: [0,0,dp(24),dp(0)]
-                        height: dp(48)
-                        
-                        MDLabel:
-                            text: "E-Ink Mode"
-                            font_style: "H6"
+                    MDSwitch:
+                        id: settings_eink_mode
+                        pos_hint: {"center_y": 0.3}
+                        active: False
 
-                        MDSwitch:
-                            id: settings_eink_mode
-                            pos_hint: {"center_y": 0.3}
-                            active: False
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Display styles in conversation list"
+                        font_style: "H6"
 
-                    MDBoxLayout:
-                        orientation: "horizontal"
-                        size_hint_y: None
-                        padding: [0,0,dp(24),dp(0)]
-                        height: dp(48)
-                        
-                        MDLabel:
-                            text: "Display styles in conversation list"
-                            font_style: "H6"
+                    MDSwitch:
+                        id: display_style_in_contact_list
+                        pos_hint: {"center_y": 0.3}
+                        active: False
 
-                        MDSwitch:
-                            id: display_style_in_contact_list
-                            pos_hint: {"center_y": 0.3}
-                            active: False
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Advanced Metrics"
+                        font_style: "H6"
 
-                    MDBoxLayout:
-                        orientation: "horizontal"
-                        size_hint_y: None
-                        padding: [0,0,dp(24),dp(0)]
-                        height: dp(48)
-                        
-                        MDLabel:
-                            text: "Advanced Metrics"
-                            font_style: "H6"
+                    MDSwitch:
+                        id: settings_advanced_statistics
+                        pos_hint: {"center_y": 0.3}
+                        active: False
 
-                        MDSwitch:
-                            id: settings_advanced_statistics
-                            pos_hint: {"center_y": 0.3}
-                            active: False
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Announce Automatically"
+                        font_style: "H6"
 
-                    MDBoxLayout:
-                        orientation: "horizontal"
-                        size_hint_y: None
-                        padding: [0,0,dp(24),dp(0)]
-                        height: dp(48)
-                        
-                        MDLabel:
-                            text: "Announce Automatically"
-                            font_style: "H6"
+                    MDSwitch:
+                        id: settings_start_announce
+                        pos_hint: {"center_y": 0.3}
+                        active: False
 
-                        MDSwitch:
-                            id: settings_start_announce
-                            pos_hint: {"center_y": 0.3}
-                            active: False
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Try Propagation Node on direct delivery failure"
+                        font_style: "H6"
 
-                    MDBoxLayout:
-                        orientation: "horizontal"
-                        size_hint_y: None
-                        padding: [0,0,dp(24),dp(0)]
-                        height: dp(48)
-                        
-                        MDLabel:
-                            text: "Try Propagation Node on direct delivery failure"
-                            font_style: "H6"
+                    MDSwitch:
+                        id: settings_lxmf_try_propagation_on_fail
+                        pos_hint: {"center_y": 0.3}
+                        disabled: False
+                        active: False
 
-                        MDSwitch:
-                            id: settings_lxmf_try_propagation_on_fail
-                            pos_hint: {"center_y": 0.3}
-                            disabled: False
-                            active: False
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Send via Propagation Node by default"
+                        font_style: "H6"
 
-                    MDBoxLayout:
-                        orientation: "horizontal"
-                        size_hint_y: None
-                        padding: [0,0,dp(24),dp(0)]
-                        height: dp(48)
-                        
-                        MDLabel:
-                            text: "Send via Propagation Node by default"
-                            font_style: "H6"
+                    MDSwitch:
+                        id: settings_lxmf_delivery_by_default
+                        pos_hint: {"center_y": 0.3}
+                        disabled: False
+                        active: False
 
-                        MDSwitch:
-                            id: settings_lxmf_delivery_by_default
-                            pos_hint: {"center_y": 0.3}
-                            disabled: False
-                            active: False
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Ignore unknown senders"
+                        font_style: "H6"
 
-                    MDBoxLayout:
-                        orientation: "horizontal"
-                        size_hint_y: None
-                        padding: [0,0,dp(24),dp(0)]
-                        height: dp(48)
-                        
-                        MDLabel:
-                            text: "Ignore unknown senders"
-                            font_style: "H6"
+                    MDSwitch:
+                        id: settings_lxmf_ignore_unknown
+                        pos_hint: {"center_y": 0.3}
+                        disabled: False
+                        active: False
 
-                        MDSwitch:
-                            id: settings_lxmf_ignore_unknown
-                            pos_hint: {"center_y": 0.3}
-                            disabled: False
-                            active: False
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Limit each sync to 3 messages"
+                        font_style: "H6"
 
-                    MDBoxLayout:
-                        orientation: "horizontal"
-                        size_hint_y: None
-                        padding: [0,0,dp(24),dp(0)]
-                        height: dp(48)
-                        
-                        MDLabel:
-                            text: "Limit each sync to 3 messages"
-                            font_style: "H6"
+                    MDSwitch:
+                        id: settings_lxmf_sync_limit
+                        pos_hint: {"center_y": 0.3}
+                        disabled: False
+                        active: False
 
-                        MDSwitch:
-                            id: settings_lxmf_sync_limit
-                            pos_hint: {"center_y": 0.3}
-                            disabled: False
-                            active: False
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        id: settings_lxmf_sync_periodic
+                        text: "Sync with Propagation Node periodically"
+                        font_style: "H6"
 
-                    MDBoxLayout:
-                        orientation: "horizontal"
-                        size_hint_y: None
-                        padding: [0,0,dp(24),dp(0)]
-                        height: dp(48)
-                        
-                        MDLabel:
-                            id: settings_lxmf_sync_periodic
-                            text: "Sync with Propagation Node periodically"
-                            font_style: "H6"
+                    MDSwitch:
+                        id: settings_lxmf_periodic_sync
+                        pos_hint: {"center_y": 0.3}
+                        disabled: False
+                        active: False
 
-                        MDSwitch:
-                            id: settings_lxmf_periodic_sync
-                            pos_hint: {"center_y": 0.3}
-                            disabled: False
-                            active: False
+                MDBoxLayout:
+                    id: lxmf_syncslider_container
+                    orientation: "vertical"
+                    size_hint_y: None
+                    padding: [0,0,dp(0),0]
+                    height: dp(68)
 
-                    MDBoxLayout:
-                        id: lxmf_syncslider_container
-                        orientation: "vertical"
-                        size_hint_y: None
-                        padding: [0,0,dp(0),0]
-                        height: dp(68)
+                    MDSlider
+                        min: 1
+                        max: 214
+                        value: 150
+                        id: settings_lxmf_sync_interval
+                        sensitivity: "all"
+                        hint: False
 
-                        MDSlider
-                            min: 1
-                            max: 214
-                            value: 150
-                            id: settings_lxmf_sync_interval
-                            sensitivity: "all"
-                            hint: False
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Use Home Node as Broadcast Repeater"
+                        font_style: "H6"
 
-                    MDBoxLayout:
-                        orientation: "horizontal"
-                        size_hint_y: None
-                        padding: [0,0,dp(24),dp(0)]
-                        height: dp(48)
-                        
-                        MDLabel:
-                            text: "Use Home Node as Broadcast Repeater"
-                            font_style: "H6"
+                    MDSwitch:
+                        id: settings_home_node_as_broadcast_repeater
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+                        disabled: True
 
-                        MDSwitch:
-                            id: settings_home_node_as_broadcast_repeater
-                            pos_hint: {"center_y": 0.3}
-                            active: False
-                            disabled: True
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Debug Logging"
+                        font_style: "H6"
 
-                    MDBoxLayout:
-                        orientation: "horizontal"
-                        size_hint_y: None
-                        padding: [0,0,dp(24),dp(0)]
-                        height: dp(48)
-                        
-                        MDLabel:
-                            text: "Debug Logging"
-                            font_style: "H6"
-
-                        MDSwitch:
-                            id: settings_debug
-                            pos_hint: {"center_y": 0.3}
-                            disabled: False
-                            active: False
+                    MDSwitch:
+                        id: settings_debug
+                        pos_hint: {"center_y": 0.3}
+                        disabled: False
+                        active: False
 """
 
 layout_repository_screen = """

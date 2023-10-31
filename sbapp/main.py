@@ -262,8 +262,8 @@ class SidebandApp(MDApp):
         self.update_loading_text()
         self.init_announces_view()
         self.announces_view.update()
-        self.telemetry_init()
-        self.settings_init()
+        # self.telemetry_init()
+        # self.settings_init()
         self.connectivity_init()
         self.object_details_screen = ObjectDetails(self)
 
