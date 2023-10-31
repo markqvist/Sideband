@@ -168,6 +168,7 @@ class SidebandApp(MDApp):
         self.android_service = None
         self.app_dir = plyer.storagepath.get_application_dir()
         self.shaders_disabled = __disable_shaders__
+        self.keyboard_enabled = False
 
         self.no_transition = NoTransition()
         self.slide_transition = SlideTransition()
@@ -289,7 +290,7 @@ class SidebandApp(MDApp):
             self.guide_action()
             def fp(delta_time):
                 self.request_permissions()
-            Clock.schedule_once(fp, 3)
+            Clock.schedule_once(fp, 5)
         else:
             self.open_conversations()
 
@@ -301,6 +302,7 @@ class SidebandApp(MDApp):
         self.app_state = SidebandApp.ACTIVE
         self.loading_updater.cancel()
         self.final_load_completed = True
+        self.keyboard_enabled = True
 
         def check_errors(dt):
             if self.sideband.getpersistent("startup.errors.rnode") != None:
@@ -769,136 +771,138 @@ class SidebandApp(MDApp):
         Clock.schedule_once(self.start_core, 0.25)
 
     def keydown_event(self, instance, keyboard, keycode, text, modifiers):
-        if self.root.ids.screen_manager.current == "map_screen":
-            if not (len(modifiers) > 0 and "ctrl" in modifiers):
-                if len(modifiers) > 0 and "shift" in modifiers:
-                    nav_mod = 4
-                elif len(modifiers) > 0 and "alt" in modifiers:
-                    nav_mod = 0.25
-                else:
-                    nav_mod = 1.0
+        if self.keyboard_enabled:
+            if self.root.ids.screen_manager.current == "map_screen":
+                if not (len(modifiers) > 0 and "ctrl" in modifiers):
+                    if len(modifiers) > 0 and "shift" in modifiers:
+                        nav_mod = 4
+                    elif len(modifiers) > 0 and "alt" in modifiers:
+                        nav_mod = 0.25
+                    else:
+                        nav_mod = 1.0
 
-                if keycode == 79 or text == "d" or text == "l": self.map_nav_right(modifier=nav_mod)
-                if keycode == 80 or text == "a" or text == "h": self.map_nav_left(modifier=nav_mod)
-                if keycode == 81 or text == "s" or text == "j": self.map_nav_down(modifier=nav_mod)
-                if keycode == 82 or text == "w" or text == "k": self.map_nav_up(modifier=nav_mod)
-                if text == "q" or text == "-": self.map_nav_zoom_out(modifier=nav_mod)
-                if text == "e" or text == "+": self.map_nav_zoom_in(modifier=nav_mod)
+                    if keycode == 79 or text == "d" or text == "l": self.map_nav_right(modifier=nav_mod)
+                    if keycode == 80 or text == "a" or text == "h": self.map_nav_left(modifier=nav_mod)
+                    if keycode == 81 or text == "s" or text == "j": self.map_nav_down(modifier=nav_mod)
+                    if keycode == 82 or text == "w" or text == "k": self.map_nav_up(modifier=nav_mod)
+                    if text == "q" or text == "-": self.map_nav_zoom_out(modifier=nav_mod)
+                    if text == "e" or text == "+": self.map_nav_zoom_in(modifier=nav_mod)
 
-        if self.root.ids.screen_manager.current == "conversations_screen":
-            if len(modifiers) > 0 and "ctrl" in modifiers:
-                if keycode < 40 and keycode > 29:
-                    c_index = keycode-29
-                    self.conversation_index_action(c_index)
+            if self.root.ids.screen_manager.current == "conversations_screen":
+                if len(modifiers) > 0 and "ctrl" in modifiers:
+                    if keycode < 40 and keycode > 29:
+                        c_index = keycode-29
+                        self.conversation_index_action(c_index)
 
-        if len(modifiers) > 0:
-            if modifiers[0] == "ctrl":
-                if text == "q":
-                    self.quit_action(self)
-                
-                if text == "w":
-                    if self.root.ids.screen_manager.current == "conversations_screen":
+            if len(modifiers) > 0:
+                if modifiers[0] == "ctrl":
+                    if text == "q":
                         self.quit_action(self)
-                    elif self.root.ids.screen_manager.current == "map_settings_screen":
-                        self.close_sub_map_action()
+                    
+                    if text == "w":
+                        if self.root.ids.screen_manager.current == "conversations_screen":
+                            self.quit_action(self)
+                        elif self.root.ids.screen_manager.current == "map_settings_screen":
+                            self.close_sub_map_action()
+                        elif self.root.ids.screen_manager.current == "object_details_screen":
+                            self.object_details_screen.close_action()
+                        elif self.root.ids.screen_manager.current == "sensors_screen":
+                            self.close_sub_telemetry_action()
+                        elif self.root.ids.screen_manager.current == "icons_screen":
+                            self.close_sub_telemetry_action()
+                        else:
+                            self.open_conversations(direction="right")
+                    
+                    if text == "s" or text == "d":
+                        if self.root.ids.screen_manager.current == "messages_screen":
+                            self.message_send_action()
+                    
+                    if text == "l":
+                        if self.root.ids.screen_manager.current == "messages_screen":
+                            self.message_propagation_action(self)
+                        elif self.root.ids.screen_manager.current == "map_screen":
+                            self.map_layers_action()
+                        else:
+                            self.announces_action(self)
+                    
+                    if text == "m":
+                        if self.root.ids.screen_manager.current == "messages_screen":
+                            context_dest = self.messages_view.ids.messages_scrollview.active_conversation
+                            self.map_show_peer_location(context_dest)
+                        elif self.root.ids.screen_manager.current == "object_details_screen":
+                            context_dest = self.object_details_screen.object_hash
+                            self.map_show_peer_location(context_dest)
+                        else:
+                            self.map_action(self)
+                    
+                    if text == "p":
+                        if self.root.ids.screen_manager.current == "map_screen":
+                            self.map_settings_action()
+                        else:
+                            self.settings_action(self)
+                    
+                    if text == "t":
+                        if self.root.ids.screen_manager.current == "messages_screen":
+                            self.object_details_action(self.messages_view, from_conv=True)
+                        elif self.root.ids.screen_manager.current == "object_details_screen":
+                            self.object_details_screen.reload_telemetry()
+                        else:
+                            self.telemetry_action(self)
+
+                    if text == "o":
+                        # if self.root.ids.screen_manager.current == "telemetry_screen":
+                        self.map_display_own_telemetry()
+
+                    if text == "r":
+                        if self.root.ids.screen_manager.current == "conversations_screen":
+                            self.lxmf_sync_action(self)
+                        elif self.root.ids.screen_manager.current == "telemetry_screen":
+                            self.conversations_action(self, direction="right")
+                        elif self.root.ids.screen_manager.current == "object_details_screen":
+                            if not self.object_details_screen.object_hash == self.sideband.lxmf_destination.hash:
+                                self.converse_from_telemetry(self)
+                            else:
+                                self.conversations_action(self, direction="right")
+                        else:
+                            self.conversations_action(self, direction="right")
+                    
+                    if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "g"):
+                        self.guide_action(self)
+                    
+                    if text == "n":
+                        if self.root.ids.screen_manager.current == "conversations_screen":
+                            if not hasattr(self, "dialog_open") or not self.dialog_open:
+                                self.new_conversation_action(self)
+            
+    def keyboard_event(self, window, key, *largs):
+        if self.keyboard_enabled:
+            # Handle escape/back
+            if key == 27:
+                if self.root.ids.screen_manager.current == "conversations_screen":
+                    if time.time() - self.last_exit_event < 2:
+                        self.quit_action(self)
+                    else:
+                        self.last_exit_event = time.time()
+
+                else:
+                    if self.root.ids.screen_manager.current == "hardware_rnode_screen":
+                        self.close_sub_hardware_action()
+                    elif self.root.ids.screen_manager.current == "hardware_modem_screen":
+                        self.close_sub_hardware_action()
+                    elif self.root.ids.screen_manager.current == "hardware_serial_screen":
+                        self.close_sub_hardware_action()
                     elif self.root.ids.screen_manager.current == "object_details_screen":
                         self.object_details_screen.close_action()
+                    elif self.root.ids.screen_manager.current == "map_settings_screen":
+                        self.close_sub_map_action()
                     elif self.root.ids.screen_manager.current == "sensors_screen":
                         self.close_sub_telemetry_action()
                     elif self.root.ids.screen_manager.current == "icons_screen":
                         self.close_sub_telemetry_action()
                     else:
                         self.open_conversations(direction="right")
-                
-                if text == "s" or text == "d":
-                    if self.root.ids.screen_manager.current == "messages_screen":
-                        self.message_send_action()
-                
-                if text == "l":
-                    if self.root.ids.screen_manager.current == "messages_screen":
-                        self.message_propagation_action(self)
-                    elif self.root.ids.screen_manager.current == "map_screen":
-                        self.map_layers_action()
-                    else:
-                        self.announces_action(self)
-                
-                if text == "m":
-                    if self.root.ids.screen_manager.current == "messages_screen":
-                        context_dest = self.messages_view.ids.messages_scrollview.active_conversation
-                        self.map_show_peer_location(context_dest)
-                    elif self.root.ids.screen_manager.current == "object_details_screen":
-                        context_dest = self.object_details_screen.object_hash
-                        self.map_show_peer_location(context_dest)
-                    else:
-                        self.map_action(self)
-                
-                if text == "p":
-                    if self.root.ids.screen_manager.current == "map_screen":
-                        self.map_settings_action()
-                    else:
-                        self.settings_action(self)
-                
-                if text == "t":
-                    if self.root.ids.screen_manager.current == "messages_screen":
-                        self.object_details_action(self.messages_view, from_conv=True)
-                    elif self.root.ids.screen_manager.current == "object_details_screen":
-                        self.object_details_screen.reload_telemetry()
-                    else:
-                        self.telemetry_action(self)
 
-                if text == "o":
-                    # if self.root.ids.screen_manager.current == "telemetry_screen":
-                    self.map_display_own_telemetry()
-
-                if text == "r":
-                    if self.root.ids.screen_manager.current == "conversations_screen":
-                        self.lxmf_sync_action(self)
-                    elif self.root.ids.screen_manager.current == "telemetry_screen":
-                        self.conversations_action(self, direction="right")
-                    elif self.root.ids.screen_manager.current == "object_details_screen":
-                        if not self.object_details_screen.object_hash == self.sideband.lxmf_destination.hash:
-                            self.converse_from_telemetry(self)
-                        else:
-                            self.conversations_action(self, direction="right")
-                    else:
-                        self.conversations_action(self, direction="right")
-                
-                if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "g"):
-                    self.guide_action(self)
-                
-                if text == "n":
-                    if self.root.ids.screen_manager.current == "conversations_screen":
-                        if not hasattr(self, "dialog_open") or not self.dialog_open:
-                            self.new_conversation_action(self)
-            
-    def keyboard_event(self, window, key, *largs):
-        # Handle escape/back
-        if key == 27:
-            if self.root.ids.screen_manager.current == "conversations_screen":
-                if time.time() - self.last_exit_event < 2:
-                    self.quit_action(self)
-                else:
-                    self.last_exit_event = time.time()
-
-            else:
-                if self.root.ids.screen_manager.current == "hardware_rnode_screen":
-                    self.close_sub_hardware_action()
-                elif self.root.ids.screen_manager.current == "hardware_modem_screen":
-                    self.close_sub_hardware_action()
-                elif self.root.ids.screen_manager.current == "hardware_serial_screen":
-                    self.close_sub_hardware_action()
-                elif self.root.ids.screen_manager.current == "object_details_screen":
-                    self.object_details_screen.close_action()
-                elif self.root.ids.screen_manager.current == "map_settings_screen":
-                    self.close_sub_map_action()
-                elif self.root.ids.screen_manager.current == "sensors_screen":
-                    self.close_sub_telemetry_action()
-                elif self.root.ids.screen_manager.current == "icons_screen":
-                    self.close_sub_telemetry_action()
-                else:
-                    self.open_conversations(direction="right")
-
-            return True
+                return True
 
     def widget_hide(self, w, hide=True):
         if hasattr(w, "saved_attrs"):
