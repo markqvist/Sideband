@@ -1515,10 +1515,19 @@ class SidebandApp(MDApp):
             self.information_screen.ids.information_info.bind(on_ref_press=link_exec)
 
     def information_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "information_screen"
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
 
     def close_information_action(self, sender=None):
         self.open_conversations(direction="right")
