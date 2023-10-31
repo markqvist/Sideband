@@ -748,39 +748,11 @@ class SidebandApp(MDApp):
 
         EventLoop.window.bind(on_keyboard=self.keyboard_event)
         EventLoop.window.bind(on_key_down=self.keydown_event)
-        
-        # This incredibly hacky hack circumvents a bug in SDL2
-        # that prevents focus from being correctly released from
-        # the software keyboard on Android. Without this the back
-        # button/gesture does not work after the soft-keyboard has
-        # appeared for the first time.
-        if RNS.vendor.platformutils.is_android():
-            BIND_CLASSES = ["kivymd.uix.textfield.textfield.MDTextField",]
-            
-            for e in self.root.ids:
-                te = self.root.ids[e]
-                ts = str(te).split(" ")[0].replace("<", "")
-
-                if ts in BIND_CLASSES:
-                    te.bind(focus=self.android_focus_fix)
 
         self.root.ids.screen_manager.app = self
         self.root.ids.app_version_info.text = "Sideband v"+__version__+" "+__variant__
         self.root.ids.nav_scrollview.effect_cls = ScrollEffect
         Clock.schedule_once(self.start_core, 0.25)
-    
-    # Part of the focus hack fix
-    def android_focus_fix(self, sender, val):
-        if not val:
-            @run_on_ui_thread
-            def fix_back_button():
-                self.sideband.setstate("flag.focusfix_pause", True)
-                self.sideband.setstate("flag.focusfix_resume", True)
-                activity = autoclass('org.kivy.android.PythonActivity').mActivity
-                activity.onWindowFocusChanged(False)
-                activity.onWindowFocusChanged(True)
-
-            fix_back_button()
 
     def keydown_event(self, instance, keyboard, keycode, text, modifiers):
         if self.root.ids.screen_manager.current == "map_screen":
