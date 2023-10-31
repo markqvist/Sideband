@@ -976,6 +976,7 @@ MDScreen:
         orientation: "vertical"
 
         MDTopAppBar:
+            id: top_bar
             title: "Sensors"
             anchor_title: "left"
             elevation: 0
@@ -986,25 +987,31 @@ MDScreen:
                 ['close', lambda x: root.app.close_sub_telemetry_action(self)],
                 ]
 
-        ScrollView:
+        MDScrollView:
             id: sensors_scrollview
+            size_hint_x: 1
+            size_hint_y: None
+            size: [root.width, root.height-root.ids.top_bar.height]
+            do_scroll_x: False
+            do_scroll_y: True
 
-            MDBoxLayout:
-                orientation: "vertical"
+            MDGridLayout:
+                cols: 1
+                padding: [dp(28), dp(28), dp(28), dp(28)]
                 size_hint_y: None
                 height: self.minimum_height
-                padding: [dp(28), dp(48), dp(28), dp(16)]
 
                 MDLabel:
                     text: "Sensor Types"
                     font_style: "H6"
+                    size_hint_y: None
+                    height: self.texture_size[1]
 
                 MDLabel:
                     id: telemetry_info3
                     markup: True
                     text: ""
                     size_hint_y: None
-                    text_size: self.width, None
                     height: self.texture_size[1]
 
                 MDBoxLayout:
@@ -1241,12 +1248,6 @@ MDScreen:
                         text: ""
                         font_size: dp(24)
 
-                MDLabel:
-                    markup: True
-                    text: "\\n"
-                    size_hint_y: None
-                    text_size: self.width, None
-                    height: self.texture_size[1]
 """
 
 layout_icons_screen = """
