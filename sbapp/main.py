@@ -61,8 +61,8 @@ if args.daemon:
     class DaemonApp():
         pass
 
-    MDApp = DaemonApp; OneLineIconListItem = DaemonElement; Window = DaemonElement; Clipboard = DaemonElement
-    EventLoop = DaemonElement; Clock = DaemonElement; Builder = DaemonElement; ScrollEffect = DaemonElement;
+    MDApp = DaemonApp; OneLineIconListItem = DaemonElement; Window = DaemonElement; Clipboard = DaemonElement;
+    EventLoop = DaemonElement; Clock = DaemonElement; Builder = DaemonElement; ScrollEffect = DaemonElement; SlideTransition = DaemonElement;
     ScreenManager = DaemonElement; FadeTransition = DaemonElement; NoTransition = DaemonElement; OneLineIconListItem = DaemonElement;
     StringProperty = DaemonElement; BaseButton = DaemonElement; MDIconButton = DaemonElement; MDFileManager = DaemonElement;
     toast = DaemonElement; dp = DaemonElement; sp = DaemonElement; MDRectangleFlatButton = DaemonElement; MDDialog = DaemonElement;
@@ -82,7 +82,7 @@ else:
     from kivy.lang.builder import Builder
     from kivy.effects.scroll import ScrollEffect
     from kivy.uix.screenmanager import ScreenManager
-    from kivy.uix.screenmanager import FadeTransition, NoTransition
+    from kivy.uix.screenmanager import FadeTransition, NoTransition, SlideTransition
     from kivymd.uix.list import OneLineIconListItem
     from kivy.properties import StringProperty
     from kivymd.uix.button import BaseButton, MDIconButton
@@ -140,6 +140,14 @@ if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass
     from android.runnable import run_on_ui_thread
 
+TRANSITION_DURATION = 0.25
+if RNS.vendor.platformutils.is_android():
+    ll_ot = 0.55
+    ll_ft = 0.275
+else:
+    ll_ot = 0.4
+    ll_ft = 0.275
+
 class SidebandApp(MDApp):
     STARTING = 0x00
     ACTIVE   = 0x01
@@ -160,6 +168,9 @@ class SidebandApp(MDApp):
         self.android_service = None
         self.app_dir = plyer.storagepath.get_application_dir()
         self.shaders_disabled = __disable_shaders__
+
+        self.no_transition = NoTransition()
+        self.slide_transition = SlideTransition()
 
         if RNS.vendor.platformutils.get_platform() == "android":
             self.sideband = SidebandCore(self, is_client=True, android_app_dir=self.app_dir, verbose=__debug_build__)
@@ -260,12 +271,14 @@ class SidebandApp(MDApp):
 
         # Pre-load announce stream widgets
         self.update_loading_text()
-        self.init_announces_view()
-        self.announces_view.update()
-        # self.telemetry_init()
-        # self.settings_init()
-        self.connectivity_init()
-        self.object_details_screen = ObjectDetails(self)
+        
+        self.loader_init()
+        if not RNS.vendor.platformutils.is_android():
+            self.telemetry_init()
+            self.settings_init()
+            self.information_init()
+
+        self.object_details_screen = None
 
         # Wait a little extra for user to react to permissions prompt
         # if RNS.vendor.platformutils.get_platform() == "android":
@@ -743,7 +756,8 @@ class SidebandApp(MDApp):
 
     def on_start(self):
         self.last_exit_event = time.time()
-        self.root.ids.screen_manager.transition.duration = 0.25
+        self.root.ids.screen_manager.transition = self.slide_transition
+        self.root.ids.screen_manager.transition.duration = TRANSITION_DURATION
         self.root.ids.screen_manager.transition.bind(on_complete=self.screen_transition_complete)
 
         EventLoop.window.bind(on_keyboard=self.keyboard_event)
@@ -905,6 +919,21 @@ class SidebandApp(MDApp):
                 toast(f"Field copied, double-{action} any empty field to paste")
         except Exception as e:
             RNS.log("An error occurred while handling clipboard action: "+str(e), RNS.LOG_ERROR)
+
+    def loader_init(self, sender=None):
+        if not self.root.ids.screen_manager.has_screen("loader_screen"):
+            self.loader_screen = Builder.load_string(layout_loader_screen)
+            self.root.ids.screen_manager.add_widget(self.loader_screen)
+
+    def loader_action(self, target=None, direction="left"):
+        if not self.root.ids.screen_manager.has_screen("loader_screen"):
+            self.loader_init()
+
+        self.root.ids.screen_manager.transition = self.slide_transition
+        self.root.ids.screen_manager.transition.direction = direction
+
+        self.root.ids.screen_manager.current = "loader_screen"
+        self.root.ids.nav_drawer.set_state("closed")
 
     def quit_action(self, sender):
         self.root.ids.nav_drawer.set_state("closed")
@@ -1189,8 +1218,17 @@ class SidebandApp(MDApp):
 
     ### Conversations screen
     ######################################       
-    def conversations_action(self, sender=None, direction="left"):
+    def conversations_action(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
         self.open_conversations(direction=direction)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
 
     def open_conversations(self, direction="left"):
         self.root.ids.screen_manager.transition.direction = direction
@@ -1442,23 +1480,37 @@ class SidebandApp(MDApp):
 
     ### Information/version screen
     ######################################
-    def information_action(self, sender=None):
+    def information_action(self, sender=None, direction="left"):
+        if self.root.ids.screen_manager.has_screen("information_screen"):
+            self.information_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.information_init()
+                def o(dt):
+                    self.information_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
+
+    def information_init(self):
         if not self.root.ids.screen_manager.has_screen("information_screen"):
             self.information_screen = Builder.load_string(layout_information_screen)
             self.information_screen.app = self
             self.root.ids.screen_manager.add_widget(self.information_screen)
 
-        def link_exec(sender=None, event=None):
-            def lj():
-                webbrowser.open("https://unsigned.io/donate")
-            threading.Thread(target=lj, daemon=True).start()
+            def link_exec(sender=None, event=None):
+                def lj():
+                    webbrowser.open("https://unsigned.io/donate")
+                threading.Thread(target=lj, daemon=True).start()
 
-        self.information_screen.ids.information_scrollview.effect_cls = ScrollEffect
-        self.information_screen.ids.information_logo.icon = self.sideband.asset_dir+"/rns_256.png"
+            self.information_screen.ids.information_scrollview.effect_cls = ScrollEffect
+            self.information_screen.ids.information_logo.icon = self.sideband.asset_dir+"/rns_256.png"
 
-        info = "This is Sideband v"+__version__+" "+__variant__+", on RNS v"+RNS.__version__+" and LXMF v"+LXMF.__version__+".\n\nHumbly build using the following open components:\n\n - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)\n - [b]Kivy[/b] (MIT License)\n - [b]Python[/b] (PSF License)"+"\n\nGo to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2022 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of Sideband v"+__version__+" "+__variant__+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - SIDEBAND COMES WITH ABSOLUTELY NO WARRANTY - USE AT YOUR OWN RISK AND RESPONSIBILITY"
-        self.information_screen.ids.information_info.text = info
-        self.information_screen.ids.information_info.bind(on_ref_press=link_exec)
+            info = "This is Sideband v"+__version__+" "+__variant__+", on RNS v"+RNS.__version__+" and LXMF v"+LXMF.__version__+".\n\nHumbly build using the following open components:\n\n - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)\n - [b]Kivy[/b] (MIT License)\n - [b]Python[/b] (PSF License)"+"\n\nGo to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2022 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of Sideband v"+__version__+" "+__variant__+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - SIDEBAND COMES WITH ABSOLUTELY NO WARRANTY - USE AT YOUR OWN RISK AND RESPONSIBILITY"
+            self.information_screen.ids.information_info.text = info
+            self.information_screen.ids.information_info.bind(on_ref_press=link_exec)
+
+    def information_open(self, sender=None, direction="left", no_transition=False):
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "information_screen"
         self.root.ids.nav_drawer.set_state("closed")
@@ -1470,14 +1522,33 @@ class SidebandApp(MDApp):
 
     ### Settings screen
     ######################################
-    def settings_action(self, sender=None):
-        self.settings_init()
-        self.root.ids.screen_manager.transition.direction = "left"
+    def settings_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
         self.root.ids.nav_drawer.set_state("closed")
         if self.sideband.active_propagation_node != None:
             self.settings_screen.ids.settings_propagation_node_address.text = RNS.hexrep(self.sideband.active_propagation_node, delimit=False)
         self.root.ids.screen_manager.current = "settings_screen"
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
+
+    def settings_action(self, sender=None, direction="left"):
+        if self.settings_ready:
+            self.settings_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.settings_init()
+                def o(dt):
+                    self.settings_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
 
     def interval_to_slider_val(self, interval):
         try:
@@ -1736,12 +1807,33 @@ class SidebandApp(MDApp):
 
     ### Connectivity screen
     ######################################
-    def connectivity_action(self, sender=None):
+    def connectivity_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.nav_drawer.set_state("closed")
         self.connectivity_init()
         self.root.ids.screen_manager.current = "connectivity_screen"
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
+
+    def connectivity_action(self, sender=None, direction="left"):
+        if self.root.ids.screen_manager.has_screen("connectivity_screen"):
+            self.connectivity_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.connectivity_init()
+                def o(dt):
+                    self.connectivity_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
 
     def connectivity_init(self, sender=None):
         if not self.connectivity_ready:
@@ -2071,18 +2163,31 @@ class SidebandApp(MDApp):
     ### Repository screen
     ######################################
     def repository_action(self, sender=None, direction="left"):
-        self.repository_init()
-        self.root.ids.screen_manager.transition.direction = direction
+        if self.repository_ready:
+            self.repository_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.repository_init()
+                def o(dt):
+                    self.repository_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
+
+    def repository_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
+        self.repository_screen.ids.repository_update.text = ""
         self.root.ids.screen_manager.current = "repository_screen"
         self.root.ids.nav_drawer.set_state("closed")
-        if not RNS.vendor.platformutils.is_android():
-            self.widget_hide(self.repository_screen.ids.repository_enable_button)
-            self.widget_hide(self.repository_screen.ids.repository_disable_button)
-            self.widget_hide(self.repository_screen.ids.repository_download_button)
-            self.repository_screen.ids.repository_info.text = "\nThe [b]Repository Webserver[/b] feature is currently only available on mobile devices."
-
-
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
 
     def repository_link_action(self, sender=None, event=None):
         if self.reposository_url != None:
@@ -2211,8 +2316,13 @@ class SidebandApp(MDApp):
                                 
             self.repository_update_info()
 
-        self.repository_screen.ids.repository_update.text = ""
-        self.repository_ready = True
+            if not RNS.vendor.platformutils.is_android():
+                self.widget_hide(self.repository_screen.ids.repository_enable_button)
+                self.widget_hide(self.repository_screen.ids.repository_disable_button)
+                self.widget_hide(self.repository_screen.ids.repository_download_button)
+                self.repository_screen.ids.repository_info.text = "\nThe [b]Repository Webserver[/b] feature is currently only available on mobile devices."
+
+            self.repository_ready = True
 
     def close_repository_action(self, sender=None):
         self.open_conversations(direction="right")
@@ -2220,11 +2330,32 @@ class SidebandApp(MDApp):
     ### Hardware screen
     ######################################
     def hardware_action(self, sender=None, direction="left"):
+        if self.hardware_ready:
+            self.hardware_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.hardware_init()
+                def o(dt):
+                    self.hardware_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
+
+    def hardware_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
         self.hardware_init()
         self.root.ids.screen_manager.transition.direction = direction
         self.root.ids.screen_manager.current = "hardware_screen"
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
 
     def close_sub_hardware_action(self, sender=None):
         self.hardware_action(direction="right")
@@ -2242,14 +2373,6 @@ class SidebandApp(MDApp):
                 self.widget_hide(self.hardware_screen.ids.hardware_rnode_button)
                 self.widget_hide(self.hardware_screen.ids.hardware_modem_button)
                 self.widget_hide(self.hardware_screen.ids.hardware_serial_button)
-
-            # def con_collapse_local(collapse=True):
-            #     self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
-                                
-            # def save_connectivity(sender=None, event=None):
-            #     # self.sideband.config["connect_local"] = self.root.ids.connectivity_use_local.active
-            #     con_collapse_local(collapse=not self.root.ids.connectivity_use_local.active)
-            #     self.sideband.save_configuration()
 
             if RNS.vendor.platformutils.get_platform() == "android":
                 if not self.sideband.getpersistent("service.is_controlling_connectivity"):
@@ -2286,12 +2409,32 @@ class SidebandApp(MDApp):
         self.open_conversations(direction="right")
 
     ## RNode hardware screen
-    def hardware_rnode_action(self, sender=None):
-        self.hardware_rnode_init()
+    def hardware_rnode_action(self, sender=None, direction="left"):
+        if self.hardware_rnode_ready:
+            self.hardware_rnode_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.hardware_rnode_init()
+                def o(dt):
+                    self.hardware_rnode_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
+
+    def hardware_rnode_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "hardware_rnode_screen"
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
 
     def hardware_rnode_save(self):
         try:
@@ -2399,8 +2542,7 @@ class SidebandApp(MDApp):
             self.sideband.config["hw_rnode_bluetooth"] = False
 
         self.sideband.save_configuration()
-
-    
+   
     def hardware_rnode_framebuffer_toggle_action(self, sender=None, event=None):
         if sender.active:
             self.sideband.config["hw_rnode_enable_framebuffer"] = True
@@ -2408,7 +2550,6 @@ class SidebandApp(MDApp):
             self.sideband.config["hw_rnode_enable_framebuffer"] = False
 
         self.sideband.save_configuration()
-
     
     def hardware_rnode_init(self, sender=None):
         if not self.hardware_rnode_ready:
@@ -2500,6 +2641,7 @@ class SidebandApp(MDApp):
             self.hardware_rnode_screen.ids.hardware_rnode_bluetooth.bind(active=self.hardware_rnode_bt_toggle_action)
             self.hardware_rnode_screen.ids.hardware_rnode_framebuffer.bind(active=self.hardware_rnode_framebuffer_toggle_action)
 
+            self.hardware_rnode_ready = True
 
     def hardware_rnode_validate(self, sender=None):
         valid = True        
@@ -2691,12 +2833,34 @@ class SidebandApp(MDApp):
             dialog.open()
     
     ## Modem hardware screen
-    def hardware_modem_action(self, sender=None):
+    
+    def hardware_modem_action(self, sender=None, direction="left"):
+        if self.hardware_modem_ready:
+            self.hardware_modem_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.hardware_modem_init()
+                def o(dt):
+                    self.hardware_modem_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
+
+    def hardware_modem_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
         self.hardware_modem_init()
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "hardware_modem_screen"
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
 
     def hardware_modem_init(self, sender=None):
         if not self.hardware_modem_ready:
@@ -2794,6 +2958,8 @@ class SidebandApp(MDApp):
             self.hardware_modem_screen.ids.hardware_modem_tail.bind(on_text_validate=save_connectivity)
             self.hardware_modem_screen.ids.hardware_modem_persistence.bind(on_text_validate=save_connectivity)
             self.hardware_modem_screen.ids.hardware_modem_slottime.bind(on_text_validate=save_connectivity)
+
+            self.hardware_modem_ready = True
     
     def hardware_modem_save(self):
         self.sideband.config["hw_modem_baudrate"] = int(self.hardware_modem_screen.ids.hardware_modem_baudrate.text)
@@ -2921,12 +3087,32 @@ class SidebandApp(MDApp):
         return valid
     
     ## Serial hardware screen
-    def hardware_serial_action(self, sender=None):
-        self.hardware_serial_init()
+    def hardware_serial_action(self, sender=None, direction="left"):
+        if self.hardware_serial_ready:
+            self.hardware_serial_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.hardware_serial_init()
+                def o(dt):
+                    self.hardware_serial_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
+
+    def hardware_serial_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "hardware_serial_screen"
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
 
     def hardware_serial_init(self, sender=None):
         if not self.hardware_serial_ready:
@@ -2977,6 +3163,8 @@ class SidebandApp(MDApp):
             self.hardware_serial_screen.ids.hardware_serial_databits.bind(on_text_validate=save_connectivity)
             self.hardware_serial_screen.ids.hardware_serial_parity.bind(on_text_validate=save_connectivity)
             self.hardware_serial_screen.ids.hardware_serial_stopbits.bind(on_text_validate=save_connectivity)
+
+            self.hardware_serial_ready = True
 
     def hardware_serial_validate(self, sender=None):
         valid = True        
@@ -3050,16 +3238,37 @@ class SidebandApp(MDApp):
             self.announces_view.ids.announces_scrollview.effect_cls = ScrollEffect
             self.announces_view.ids.announces_scrollview.add_widget(self.announces_view.get_widget())
 
-    def announces_action(self, sender=None):
-        self.root.ids.screen_manager.transition.direction = "left"
+            self.announces_view.update()
+
+    def announces_action(self, sender=None, direction="left"):
+        if self.announces_view:
+            self.announces_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.init_announces_view()
+                def o(dt):
+                    self.announces_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
+
+    def announces_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
         self.root.ids.nav_drawer.set_state("closed")
         
         if self.sideband.getstate("app.flags.new_announces"):
-            self.init_announces_view()
             self.announces_view.update()
 
         self.root.ids.screen_manager.current = "announces_screen"
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
 
     def close_announces_action(self, sender=None):
         self.open_conversations(direction="right")
@@ -3075,25 +3284,48 @@ class SidebandApp(MDApp):
 
     ### Keys screen
     ######################################
-    def keys_action(self, sender=None):
+    
+    def keys_action(self, sender=None, direction="left"):
+        if self.root.ids.screen_manager.has_screen("keys_screen"):
+            self.keys_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.keys_init()
+                def o(dt):
+                    self.keys_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
+
+    def keys_init(self):
         if not self.root.ids.screen_manager.has_screen("keys_screen"):
             self.keys_screen = Builder.load_string(layout_keys_screen)
             self.keys_screen.app = self
             self.root.ids.screen_manager.add_widget(self.keys_screen)
             self.bind_clipboard_actions(self.keys_screen.ids)
 
+            self.keys_screen.ids.keys_scrollview.effect_cls = ScrollEffect
+            info = "Your primary encryption keys are stored in a Reticulum Identity within the Sideband app. If you want to backup this Identity for later use on this or another device, you can export it as a plain text blob, with the key data encoded in Base32 format. This will allow you to restore your address in Sideband or other LXMF clients at a later point.\n\n[b]Warning![/b] Anyone that gets access to the key data will be able to control your LXMF address, impersonate you, and read your messages. In is [b]extremely important[/b] that you keep the Identity data secure if you export it.\n\nBefore displaying or exporting your Identity data, make sure that no machine or person in your vicinity is able to see, copy or record your device screen or similar."
 
-        self.keys_screen.ids.keys_scrollview.effect_cls = ScrollEffect
-        info = "Your primary encryption keys are stored in a Reticulum Identity within the Sideband app. If you want to backup this Identity for later use on this or another device, you can export it as a plain text blob, with the key data encoded in Base32 format. This will allow you to restore your address in Sideband or other LXMF clients at a later point.\n\n[b]Warning![/b] Anyone that gets access to the key data will be able to control your LXMF address, impersonate you, and read your messages. In is [b]extremely important[/b] that you keep the Identity data secure if you export it.\n\nBefore displaying or exporting your Identity data, make sure that no machine or person in your vicinity is able to see, copy or record your device screen or similar."
+            if not RNS.vendor.platformutils.get_platform() == "android":
+                self.widget_hide(self.keys_screen.ids.keys_share)
 
-        if not RNS.vendor.platformutils.get_platform() == "android":
-            self.widget_hide(self.keys_screen.ids.keys_share)
+            self.keys_screen.ids.keys_info.text = info
 
-        self.keys_screen.ids.keys_info.text = info
+    def keys_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
         self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.screen_manager.current = "keys_screen"
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
 
     def close_keys_action(self, sender=None):
         self.open_conversations(direction="right")
@@ -3185,12 +3417,31 @@ class SidebandApp(MDApp):
             self.telemetry_screen = Telemetry(self)
             self.telemetry_ready = True
     
-    def telemetry_action(self, sender=None, direction="left"):
-        self.telemetry_init()
-        self.root.ids.screen_manager.transition.direction = direction
+    def telemetry_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
         self.root.ids.screen_manager.current = "telemetry_screen"
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
+
+    def telemetry_action(self, sender=None, direction="left"):
+        if self.telemetry_ready:
+            self.telemetry_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.telemetry_init()
+                def o(dt):
+                    self.telemetry_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
 
     def close_sub_telemetry_action(self, sender=None):
         self.telemetry_action(direction="right")
@@ -3503,6 +3754,18 @@ class SidebandApp(MDApp):
                 self.map.animated_diff_scale_at(zd, px, py)
 
     def map_action(self, sender=None, direction="left"):
+        if self.root.ids.screen_manager.has_screen("map_screen"):
+            self.map_open(sender=sender, direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.map_init()
+                def o(dt):
+                    self.map_open(sender=sender, no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
+
+    def map_init(self):
         if not self.root.ids.screen_manager.has_screen("map_screen"):
             msource = self.map_get_source()
             mzoom = self.sideband.config["map_zoom"]
@@ -3528,6 +3791,13 @@ class SidebandApp(MDApp):
             self.map_screen.ids.map_layout.map = mapview
             self.map_screen.ids.map_layout.add_widget(self.map_screen.ids.map_layout.map)
 
+    def map_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
         self.root.ids.screen_manager.transition.direction = direction
         self.root.ids.screen_manager.current = "map_screen"
         self.root.ids.nav_drawer.set_state("closed")
@@ -3539,6 +3809,9 @@ class SidebandApp(MDApp):
         def am_job(dt):
             self.map_update_markers()
         Clock.schedule_once(am_job, 0.15)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
 
     def map_settings_load_states(self):
         if self.map_settings_screen != None:
@@ -3677,11 +3950,31 @@ class SidebandApp(MDApp):
     def close_sub_map_action(self, sender=None):
         self.map_action(direction="right")
 
-    def object_details_action(self, sender=None, from_conv=False, from_telemetry=False, source_dest=None):
+    def object_details_action(self, sender=None, from_conv=False, from_telemetry=False, source_dest=None, direction="left"):
+        if self.root.ids.screen_manager.has_screen("object_details_screen"):
+            self.object_details_open(sender=sender, from_conv=from_conv, from_telemetry=from_telemetry, source_dest=source_dest, no_transition=True)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.object_details_init()
+                def o(dt):
+                    self.object_details_open(sender=sender, from_conv=from_conv, from_telemetry=from_telemetry, source_dest=source_dest, no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
+
+    def object_details_init(self):
+        self.object_details_screen = ObjectDetails(self)
+
+    def object_details_open(self, sender=None, from_conv=False, from_telemetry=False, source_dest=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
         if self.sideband.config["telemetry_enabled"] == True:
             self.sideband.update_telemetry()
 
-        self.root.ids.screen_manager.transition.direction = "left"
         self.root.ids.nav_drawer.set_state("closed")
 
         if source_dest != None:
@@ -3692,7 +3985,9 @@ class SidebandApp(MDApp):
             else:
                 telemetry_source = None
 
-        if telemetry_source != None:
+        if telemetry_source == None:
+            self.conversations_action(direction="right")
+        else:
             if self.object_details_screen == None:
                 self.object_details_screen = ObjectDetails(self)
 
@@ -3701,6 +3996,8 @@ class SidebandApp(MDApp):
             def vj(dt):
                 self.root.ids.screen_manager.current = "object_details_screen"
                 self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+                if no_transition:
+                    self.root.ids.screen_manager.transition = self.slide_transition
             Clock.schedule_once(vj, 0.15)
 
     def map_create_marker(self, source, telemetry, appearance):
@@ -3867,49 +4164,75 @@ class SidebandApp(MDApp):
     ######################################
     def close_guide_action(self, sender=None):
         self.open_conversations(direction="right")
-    
-    def guide_action(self, sender=None):
+
+    def guide_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
+        self.root.ids.screen_manager.current = "guide_screen"
+        self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
+
+    def guide_action(self, sender=None, direction="left"):
+        if self.root.ids.screen_manager.has_screen("guide_screen"):
+            self.guide_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.guide_init()
+                def o(dt):
+                    self.guide_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
+
+    def guide_init(self):
         if not self.root.ids.screen_manager.has_screen("guide_screen"):
             self.guide_screen = Builder.load_string(layout_guide_screen)
             self.guide_screen.app = self
             self.root.ids.screen_manager.add_widget(self.guide_screen)
 
-        def link_exec(sender=None, event=None):
-            def lj():
-                webbrowser.open("https://unsigned.io/donate")
-            threading.Thread(target=lj, daemon=True).start()
+            def link_exec(sender=None, event=None):
+                def lj():
+                    webbrowser.open("https://unsigned.io/donate")
+                threading.Thread(target=lj, daemon=True).start()
 
-        guide_text1 = """
+            guide_text1 = """
 [size=18dp][b]Introduction[/b][/size][size=5dp]\n \n[/size]Welcome to [i]Sideband[/i], an LXMF client for Android, Linux and macOS. With Sideband, you can communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, or anything else Reticulum supports.
 
 This short guide will give you a basic introduction to the concepts that underpin Sideband and LXMF (which is the protocol that Sideband uses to communicate). If you are not already familiar with LXMF and Reticulum, it is probably a good idea to read this guide, since Sideband is very different from other messaging apps."""
-        guide_text2 = """
+            guide_text2 = """
 [size=18dp][b]Communication Without Subjection[/b][/size][size=5dp]\n \n[/size]Sideband is completely free, permission-less, anonymous and infrastructure-less. Sideband uses the peer-to-peer and distributed messaging system LXMF. There is no sign-up, no service providers, no "end-user license agreements", no data theft and no surveillance. You own the system.
 
 This also means that Sideband operates differently than what you might be used to. It does not need a connection to a server on the Internet to function, and you do not have an account anywhere."""
-        
-        guide_text3 = """
+            
+            guide_text3 = """
 [size=18dp][b]Operating Principles[/b][/size][size=5dp]\n \n[/size]When Sideband is started on your device for the first time, it randomly generates a set of cryptographic keys. These keys are then used to create an LXMF address for your use. Any other endpoint in [i]any[/i] Reticulum network will be able to send data to this address, as long as there is [i]some sort of physical connection[/i] between your device and the remote endpoint. You can also move around to other Reticulum networks with this address, even ones that were never connected to the network the address was created on, or that didn't exist when the address was created. The address is yours to keep and control for as long (or short) a time you need it, and you can always delete it and create a new one."""
         
-        guide_text4 = """
+            guide_text4 = """
 [size=18dp][b]Becoming Reachable[/b][/size][size=5dp]\n \n[/size]To establish reachability for any Reticulum address on a network, an [i]announce[/i] must be sent. Sideband does not do this automatically by default, but can be configured to do so every time the program starts. To send an announce manually, press the [i]Announce[/i] button in the [i]Conversations[/i] section of the program. When you send an announce, you make your LXMF address reachable for real-time messaging to the entire network you are connected to. Even in very large networks, you can expect global reachability for your address to be established in under a minute.
 
 If you don't move to other places in the network, and keep connected through the same hubs or gateways, it is generally not necessary to send an announce more often than once every week. If you change your entry point to the network, you may want to send an announce, or you may just want to stay quiet."""
 
-        guide_text5 = """
+            guide_text5 = """
 [size=18dp][b]Relax & Disconnect[/b][/size][size=5dp]\n \n[/size]If you are not connected to the network, it is still possible for other people to message you, as long as one or more [i]Propagation Nodes[/i] exist on the network. These nodes pick up and hold encrypted in-transit messages for offline users. Messages are always encrypted before leaving the originators device, and nobody else than the intended recipient can decrypt messages in transit.
 
 The Propagation Nodes also distribute copies of messages between each other, such that even the failure of almost every node in the network will still allow users to sync their waiting messages. If all Propagation Nodes disappear or are destroyed, users can still communicate directly. Reticulum and LXMF will degrade gracefully all the way down to single users communicating directly via long-range data radios. Anyone can start up new propagation nodes and integrate them into existing networks without permission or coordination. Even a small and cheap device like a Rasperry Pi can handle messages for millions of users. LXMF networks are designed to be quite resilient, as long as there are people using them."""
 
-        guide_text6 = """
+            guide_text6 = """
 [size=18dp][b]Packets Find A Way[/b][/size][size=5dp]\n \n[/size]Connections in Reticulum networks can be wired or wireless, span many intermediary hops, run over fast links or ultra-low bandwidth radio, tunnel over the Invisible Internet (I2P), private networks, satellite connections, serial lines or anything else that Reticulum can carry data over. In most cases it will not be possible to know what path data takes in a Reticulum network, and no transmitted packets carries any identifying characteristics, apart from a destination address. There is no source addresses in Reticulum. As long as you do not reveal any connecting details between your person and your LXMF address, you can remain anonymous. Sending messages to others does not reveal [i]your[/i] address to anyone else than the intended recipient."""
 
-        guide_text7 = """
+            guide_text7 = """
 [size=18dp][b]Be Yourself, Be Unknown, Stay Free[/b][/size][size=5dp]\n \n[/size]Even with the above characteristics in mind, you [b]must remember[/b] that LXMF and Reticulum is not a technology that can guarantee anonymising connections that are already de-anonymised! If you use Sideband to connect to TCP Reticulum hubs over the clear Internet, from a network that can be tied to your personal identity, an adversary may learn that you are generating LXMF traffic. If you want to avoid this, it is recommended to use I2P to connect to Reticulum hubs on the Internet. Or only connecting from within pure Reticulum networks, that take one or more hops to reach connections that span the Internet. This is a complex topic, with many more nuances than can be covered here. You are encouraged to ask on the various Reticulum discussion forums if you are in doubt.
 
 If you use Reticulum and LXMF on hardware that does not carry any identifiers tied to you, it is possible to establish a completely free and anonymous communication system with Reticulum and LXMF clients."""
         
-        guide_text8 = """
+            guide_text8 = """
 [size=18dp][b]Keyboard Shortcuts[/b][/size][size=5dp]\n \n[/size] - Ctrl+Q or Ctrl-W Shut down Sideband
  - Ctrl-D or Ctrl-S Send message
  - Ctrl-R Show Conversations
@@ -3918,73 +4241,92 @@ If you use Reticulum and LXMF on hardware that does not carry any identifiers ti
  - Ctrl-T Show Telemetry Setup
  - Ctrl-N New conversation
  - Ctrl-G Show guide"""
-        
-        guide_text9 = """
+
+            guide_text9 = """
 [size=18dp][b]Sow Seeds Of Freedom[/b][/size][size=5dp]\n \n[/size]It took me more than seven years to design and built the entire ecosystem of software and hardware that makes this possible. If this project is valuable to you, please go to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project with a donation. Every donation directly makes the entire Reticulum project possible.
 
 Thank you very much for using Free Communications Systems.
 """
-        info1 = guide_text1
-        info2 = guide_text2
-        info3 = guide_text3
-        info4 = guide_text4
-        info5 = guide_text5
-        info6 = guide_text6
-        info7 = guide_text7
-        info8 = guide_text8
-        info9 = guide_text9
+            info1 = guide_text1
+            info2 = guide_text2
+            info3 = guide_text3
+            info4 = guide_text4
+            info5 = guide_text5
+            info6 = guide_text6
+            info7 = guide_text7
+            info8 = guide_text8
+            info9 = guide_text9
 
-        if self.theme_cls.theme_style == "Dark":
-            info1 = "[color=#"+dark_theme_text_color+"]"+info1+"[/color]"
-            info2 = "[color=#"+dark_theme_text_color+"]"+info2+"[/color]"
-            info3 = "[color=#"+dark_theme_text_color+"]"+info3+"[/color]"
-            info4 = "[color=#"+dark_theme_text_color+"]"+info4+"[/color]"
-            info5 = "[color=#"+dark_theme_text_color+"]"+info5+"[/color]"
-            info6 = "[color=#"+dark_theme_text_color+"]"+info6+"[/color]"
-            info7 = "[color=#"+dark_theme_text_color+"]"+info7+"[/color]"
-            info8 = "[color=#"+dark_theme_text_color+"]"+info8+"[/color]"
-            info9 = "[color=#"+dark_theme_text_color+"]"+info9+"[/color]"
-        self.guide_screen.ids.guide_info1.text = info1
-        self.guide_screen.ids.guide_info2.text = info2
-        self.guide_screen.ids.guide_info3.text = info3
-        self.guide_screen.ids.guide_info4.text = info4
-        self.guide_screen.ids.guide_info5.text = info5
-        self.guide_screen.ids.guide_info6.text = info6
-        self.guide_screen.ids.guide_info7.text = info7
-        self.guide_screen.ids.guide_info8.text = info8
-        self.guide_screen.ids.guide_info9.text = info9
-        self.guide_screen.ids.guide_info9.bind(on_ref_press=link_exec)
-        self.guide_screen.ids.guide_scrollview.effect_cls = ScrollEffect
-        self.root.ids.screen_manager.transition.direction = "left"
-        self.root.ids.screen_manager.current = "guide_screen"
-        self.root.ids.nav_drawer.set_state("closed")
-        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+            if self.theme_cls.theme_style == "Dark":
+                info1 = "[color=#"+dark_theme_text_color+"]"+info1+"[/color]"
+                info2 = "[color=#"+dark_theme_text_color+"]"+info2+"[/color]"
+                info3 = "[color=#"+dark_theme_text_color+"]"+info3+"[/color]"
+                info4 = "[color=#"+dark_theme_text_color+"]"+info4+"[/color]"
+                info5 = "[color=#"+dark_theme_text_color+"]"+info5+"[/color]"
+                info6 = "[color=#"+dark_theme_text_color+"]"+info6+"[/color]"
+                info7 = "[color=#"+dark_theme_text_color+"]"+info7+"[/color]"
+                info8 = "[color=#"+dark_theme_text_color+"]"+info8+"[/color]"
+                info9 = "[color=#"+dark_theme_text_color+"]"+info9+"[/color]"
+            self.guide_screen.ids.guide_info1.text = info1
+            self.guide_screen.ids.guide_info2.text = info2
+            self.guide_screen.ids.guide_info3.text = info3
+            self.guide_screen.ids.guide_info4.text = info4
+            self.guide_screen.ids.guide_info5.text = info5
+            self.guide_screen.ids.guide_info6.text = info6
+            self.guide_screen.ids.guide_info7.text = info7
+            self.guide_screen.ids.guide_info8.text = info8
+            self.guide_screen.ids.guide_info9.text = info9
+            self.guide_screen.ids.guide_info9.bind(on_ref_press=link_exec)
+            self.guide_screen.ids.guide_scrollview.effect_cls = ScrollEffect
+
 
     #################################################
     # Unimplemented Screens                         #
     #################################################
+    def broadcasts_action(self, sender=None, direction="left"):
+        if self.root.ids.screen_manager.has_screen("broadcasts_screen"):
+            self.broadcasts_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.broadcasts_init()
+                def o(dt):
+                    self.broadcasts_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
 
-    def broadcasts_action(self, sender=None):
-        def link_exec(sender=None, event=None):
-            def lj():
-                webbrowser.open("https://unsigned.io/donate")
-            threading.Thread(target=lj, daemon=True).start()
+    def broadcasts_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
 
-        if not self.root.ids.screen_manager.has_screen("broadcasts_screen"):
-            self.broadcasts_screen = Builder.load_string(layout_broadcasts_screen)
-            self.broadcasts_screen.app = self
-            self.root.ids.screen_manager.add_widget(self.broadcasts_screen)
-
-        self.broadcasts_screen.ids.broadcasts_scrollview.effect_cls = ScrollEffect
         info = "The [b]Local Broadcasts[/b] feature will allow you to send and listen for local broadcast transmissions on connected radio, LoRa and WiFi interfaces.\n\n[b]Local Broadcasts[/b] makes it easy to establish public information exchange with anyone in direct radio range, or even with large areas far away using the [i]Remote Broadcast Repeater[/i] feature.\n\nThese features are not yet implemented in Sideband.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project."
         if self.theme_cls.theme_style == "Dark":
             info = "[color=#"+dark_theme_text_color+"]"+info+"[/color]"
         self.broadcasts_screen.ids.broadcasts_info.text = info
-        self.broadcasts_screen.ids.broadcasts_info.bind(on_ref_press=link_exec)
-        self.root.ids.screen_manager.transition.direction = "left"
+
         self.root.ids.screen_manager.current = "broadcasts_screen"
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
+
+    def broadcasts_init(self):
+        if not self.root.ids.screen_manager.has_screen("broadcasts_screen"):
+            def link_exec(sender=None, event=None):
+                def lj():
+                    webbrowser.open("https://unsigned.io/donate")
+                threading.Thread(target=lj, daemon=True).start()
+
+            self.broadcasts_screen = Builder.load_string(layout_broadcasts_screen)
+            self.broadcasts_screen.app = self
+            self.root.ids.screen_manager.add_widget(self.broadcasts_screen)
+
+            self.broadcasts_screen.ids.broadcasts_scrollview.effect_cls = ScrollEffect
+            self.broadcasts_screen.ids.broadcasts_info.bind(on_ref_press=link_exec)
 
 class CustomOneLineIconListItem(OneLineIconListItem):
     icon = StringProperty()

@@ -366,12 +366,31 @@ class Telemetry():
         self.sensors_screen.ids.telemetry_s_information_text.text = str(self.app.sideband.config["telemetry_s_information_text"])
         self.sensors_screen.ids.telemetry_s_information_text.bind(focus=self.sensors_save)
 
-    def sensors_action(self, sender=None):
-        self.sensors_init()
-        self.app.root.ids.screen_manager.transition.direction = "left"
+    def sensors_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.app.root.ids.screen_manager.transition = self.app.no_transition
+        else:
+            self.app.root.ids.screen_manager.transition = self.app.slide_transition
+            self.app.root.ids.screen_manager.transition.direction = direction
+
         self.app.root.ids.screen_manager.current = "sensors_screen"
         self.app.root.ids.nav_drawer.set_state("closed")
         self.app.sideband.setstate("app.displaying", self.app.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.app.root.ids.screen_manager.transition = self.app.slide_transition
+
+    def sensors_action(self, sender=None):
+        if self.app.root.ids.screen_manager.has_screen("sensors_screen"):
+            self.sensors_open()
+        else:
+            self.app.loader_action()
+            def final(dt):
+                self.sensors_init()
+                def o(dt):
+                    self.sensors_open(no_transition=True)
+                Clock.schedule_once(o, 0.45)
+            Clock.schedule_once(final, 0.275)
 
     def telemetry_location_toggle(self, sender=None, event=None):
         if sender == self.sensors_screen.ids.telemetry_s_location:

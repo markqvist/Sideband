@@ -9,7 +9,6 @@ MDNavigationLayout:
     ScreenManager:
         id: screen_manager
         transition: SlideTransition()
-        # transition: NoTransition()
 
         MDScreen:
             name: "starting_screen"
@@ -239,6 +238,39 @@ MDScreen:
                 halign: "center"
                 text: "Dissolving Reticulum"
                 font_size: "32dp"
+"""
+
+layout_loader_screen = """
+MDScreen:
+    name: "loader_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: ""
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', None ]]
+            right_action_items:
+                [
+                ]
+
+        AnchorLayout:
+            padding: [dp(0), dp(72), dp(0), dp(0)]
+            anchor_x: "center"
+            anchor_y: "center"
+
+            BoxLayout:
+                spacing: dp(36)
+                orientation: 'vertical'
+                size_hint_y: None
+
+                MDIconButton:
+                    pos_hint: {"center_x": .5, "center_y": .5}
+                    icon: "dots-horizontal"
+                    icon_size: "64dp"
 """
 
 layout_connectivity_screen = """
