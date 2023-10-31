@@ -3491,7 +3491,7 @@ class SidebandCore():
                     if message.rssi != None:
                         phy_str += f"RSSI: {message.rssi} dBm\n"
                     if message.snr != None:
-                        phy_str += f"SNR: {message.rssi} dB\n"
+                        phy_str += f"SNR: {message.snr} dB\n"
                     if len(phy_str) != 0:
                         phy_str = phy_str[:-1]
                     else:
