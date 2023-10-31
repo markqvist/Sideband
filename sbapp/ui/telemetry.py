@@ -320,7 +320,7 @@ class Telemetry():
             self.sensors_screen.app = self.app
             self.sensors_screen.delegate = self
             self.app.root.ids.screen_manager.add_widget(self.sensors_screen)
-            self.bind_clipboard_actions(self.sensors_screen.ids)
+            self.app.bind_clipboard_actions(self.sensors_screen.ids)
 
         info3 = "\nTo include a specific type of telemetry data while sending, it must be enabled below. Please note that some sensor types are not supported on all devices. Sideband will only be able to read a specific type of sensor if your device actually includes hardware for it.\n"
         if self.app.theme_cls.theme_style == "Dark":
