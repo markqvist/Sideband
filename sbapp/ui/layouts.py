@@ -1131,28 +1131,6 @@ MDScreen:
                     size_hint_y: None
                     height: self.texture_size[1]
 
-                MDLabel:
-                    id: settings_info0
-                    markup: True
-                    text: "\\nTest - Remove"
-                    size_hint_y: None
-                    height: self.texture_size[1]
-
-                MDBoxLayout:
-                    orientation: "horizontal"
-                    size_hint_y: None
-                    padding: [0,0,dp(24),dp(0)]
-                    height: dp(48)
-                    
-                    MDLabel:
-                        text: "Notifications"
-                        font_style: "H6"
-
-                    MDSwitch:
-                        id: settings_notifications_on
-                        pos_hint: {"center_y": 0.3}
-                        active: True
-
                 MDBoxLayout:
                     id: telemetry_information_fields
                     orientation: "horizontal"
