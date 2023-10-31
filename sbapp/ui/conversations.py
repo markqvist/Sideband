@@ -39,8 +39,6 @@ class Conversations():
         self.ids = None
 
         if not self.app.root.ids.screen_manager.has_screen("conversations_screen"):
-            # TODO: Remove
-            RNS.log("Adding conversations screen", RNS.LOG_WARNING)
             self.screen = Builder.load_string(conv_screen_kv)
             self.screen.app = self.app
             self.ids = self.screen.ids

@@ -293,8 +293,15 @@ class Messages():
                         heading_str += rcvd_d_str
 
                 pre_content = ""
+                force_markup = False
                 if not signature_valid:
-                    pre_content += "[b]Warning![/b] The signature for this message could not be validated. Check that you have received an announce from this sender. If you already have, or other messages from the sender do not display this warning, [b]this message is likely to be fake[/b].\n\n"
+                    identity_known = False
+                    if RNS.Identity.recall(m["hash"]) != None:
+                        identity_known = True
+
+                    if identity_known == True:
+                        pre_content += "[b]Warning![/b] The signature for this message could not be validated. [b]This message is likely to be fake[/b].\n\n"
+                        force_markup = True
 
                 item = ListLXMessageCard(
                     text=pre_content+m["content"].decode("utf-8")+extra_content,
@@ -312,7 +319,7 @@ class Messages():
                 item.ids.content_text.text_color = mt_color
                 item.ids.msg_submenu.theme_text_color = "Custom"
                 item.ids.msg_submenu.text_color = mt_color
-                item.ids.content_text.markup = self.is_trusted
+                item.ids.content_text.markup = self.is_trusted or force_markup
 
                 def gen_del(mhash, item):
                     def x():
