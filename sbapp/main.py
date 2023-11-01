@@ -3970,7 +3970,7 @@ class SidebandApp(MDApp):
 
     def object_details_action(self, sender=None, from_conv=False, from_telemetry=False, source_dest=None, direction="left"):
         if self.root.ids.screen_manager.has_screen("object_details_screen"):
-            self.object_details_open(sender=sender, from_conv=from_conv, from_telemetry=from_telemetry, source_dest=source_dest, no_transition=True)
+            self.object_details_open(sender=sender, from_conv=from_conv, from_telemetry=from_telemetry, source_dest=source_dest, direction=direction)
         else:
             self.loader_action(direction=direction)
             def final(dt):
@@ -3993,8 +3993,6 @@ class SidebandApp(MDApp):
         if self.sideband.config["telemetry_enabled"] == True:
             self.sideband.update_telemetry()
 
-        self.root.ids.nav_drawer.set_state("closed")
-
         if source_dest != None:
             telemetry_source = source_dest
         else:
@@ -4003,12 +4001,12 @@ class SidebandApp(MDApp):
             else:
                 telemetry_source = None
 
+        self.root.ids.nav_drawer.set_state("closed")
+
         if telemetry_source == None:
             self.conversations_action(direction="right")
-        else:
-            if self.object_details_screen == None:
-                self.object_details_screen = ObjectDetails(self)
 
+        else:
             Clock.schedule_once(lambda dt: self.object_details_screen.set_source(telemetry_source, from_conv=from_conv, from_telemetry=from_telemetry), 0.0)
 
             def vj(dt):
