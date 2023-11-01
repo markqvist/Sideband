@@ -3790,8 +3790,6 @@ class SidebandApp(MDApp):
             if mlon < -179: mlon = -179
             if mlon > 179: mlon = 179
 
-            RNS.log(f"zoom={mzoom}, lat={mlat}, lon={mlon}")
-
             self.map_screen = Builder.load_string(layout_map_screen)
             self.map_screen.app = self
             self.root.ids.screen_manager.add_widget(self.map_screen)
