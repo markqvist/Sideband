@@ -611,7 +611,7 @@ class SidebandCore():
             self.__db_indices()
 
     def __reload_config(self):
-        RNS.log("Reloading Sideband configuration... "+str(self.config_path), RNS.LOG_DEBUG)
+        RNS.log("Reloading Sideband configuration... ", RNS.LOG_DEBUG)
         with open(self.config_path, "rb") as config_file:
             config_data = config_file.read()
 
