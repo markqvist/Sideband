@@ -333,8 +333,12 @@ class SidebandApp(MDApp):
     def set_ui_theme(self):
         self.theme_cls.material_style = "M3"
         self.theme_cls.widget_style = "android"
-        self.theme_cls.primary_palette = "BlueGray"
         self.theme_cls.accent_palette = "Orange"
+
+        if self.sideband.config["telemetry_allow_requests_from_anyone"]:
+            self.theme_cls.primary_palette = "DeepOrange"
+        else:
+            self.theme_cls.primary_palette = "BlueGray"
 
         if self.sideband.config["dark_ui"]:
             self.theme_cls.theme_style = "Dark"

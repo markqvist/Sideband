@@ -244,6 +244,10 @@ class Telemetry():
                 self.screen.ids.telemetry_collector.text = ""
                 self.app.sideband.config["telemetry_collector"] = None
 
+        run_ui_update = False
+        if self.screen.ids.telemetry_allow_requests_from_anyone.active != self.app.sideband.config["telemetry_allow_requests_from_anyone"]:
+            run_ui_update = True
+
         self.app.sideband.config["telemetry_enabled"] = self.screen.ids.telemetry_enabled.active
         self.app.sideband.config["telemetry_send_to_collector"] = self.screen.ids.telemetry_send_to_collector.active
         self.app.sideband.config["telemetry_send_to_trusted"] = self.screen.ids.telemetry_send_to_trusted.active
@@ -263,6 +267,9 @@ class Telemetry():
             self.app.sideband.update_telemetry()
         else:
             self.app.sideband.setstate("app.flags.last_telemetry", time.time())
+
+        if run_ui_update:
+            self.app.set_ui_theme()
 
     def telemetry_copy(self, sender=None):
         Clipboard.copy(str(self.app.sideband.get_telemetry()))
