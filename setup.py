@@ -53,6 +53,7 @@ package_data = {
     "kivymd/fonts/*",
     "kivymd/images/*",
     "kivymd/*",
+    "mapview/icons/*",
     *glob_paths(".kv")
     ]
 }
@@ -81,7 +82,7 @@ setuptools.setup(
             'sideband=sbapp:main.run',
         ]
     },
-    install_requires=["rns>=0.6.2", "lxmf>=0.3.6", "kivy>=2.2.1", "plyer", "pillow", "qrcode", "materialyoucolor"],
+    install_requires=["rns>=0.6.3", "lxmf>=0.3.7", "kivy>=2.2.1", "plyer", "pillow", "qrcode", "materialyoucolor"],
     extras_require={
         "macos": ["pyobjus"],
     },
