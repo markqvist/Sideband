@@ -1135,16 +1135,20 @@ class SidebandCore():
             return []
 
     def service_available(self):
+        now = time.time()
         service_heartbeat = self.getstate("service.heartbeat")
         if not service_heartbeat:
+            RNS.log("No service heartbeat available at "+str(now), RNS.LOG_DEBUG)
             return False
         else:
             try:
-                if time.time() - service_heartbeat > 2.5:
+                if now - service_heartbeat > 4.0:
+                    RNS.log("Stale service heartbeat at "+str(now), RNS.LOG_DEBUG)
                     return False
                 else:
                     return True
-            except:
+            except Exception as e:
+                RNS.log("Error while getting service heartbeat: "+str(e), RNS.LOG_ERROR)
                 return False
 
     def gui_foreground(self):
@@ -2608,8 +2612,11 @@ class SidebandCore():
 
         if self.is_standalone or self.is_service:            
             if self.config["start_announce"]:
-                self.lxmf_announce()
-                self.last_if_change_announce = time.time()
+                def da():
+                    time.sleep(8)
+                    self.lxmf_announce()
+                    self.last_if_change_announce = time.time()
+                threading.Thread(target=da, daemon=True).start()
 
             self.periodic_thread = threading.Thread(target=self._periodic_jobs, daemon=True)
             self.periodic_thread.start()
@@ -3547,6 +3554,9 @@ class SidebandCore():
                     else:
                         telemetry_stream.append(te)
                         added += 1
+
+        if len(telemetry_stream) == 0:
+            RNS.log(f"No new telemetry for request with timebase {timebase}", RNS.LOG_DEBUG)
 
         return self.send_latest_telemetry(
             to_addr=to_addr,
