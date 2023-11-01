@@ -341,7 +341,7 @@ class RVDetails(MDRecycleView):
                 else:
                     if via != None and via == by:
                         vstr = self.app.sideband.peer_display_name(via)
-                        formatted_values = f"Received from and collected by [b]{vstr}[/b]"
+                        formatted_values = f"Received from, and collected by [b]{vstr}[/b]"
                     
                     else:
                         if via != None:
@@ -421,12 +421,20 @@ class RVDetails(MDRecycleView):
                 else:
                     alt_str = RNS.prettydistance(alt)
                 formatted_values = f"Coordinates [b]{fcoords}[/b], altitude [b]{alt_str}[/b]"
-                speed_formatted_values = f"Speed [b]{speed} Km/h[/b], heading [b]{heading}°[/b]"
+                if speed != None:
+                    if speed > 0.000001:
+                        speed_formatted_values = f"Speed [b]{speed} Km/h[/b], heading [b]{heading}°[/b]"
+                    else:
+                        speed_formatted_values = f"Speed [b]0 Km/h[/b]"
+                else:
+                    speed_formatted_values = None
                 extra_formatted_values = f"Uncertainty [b]{accuracy} meters[/b]"+updated_str
 
                 data = {"icon": s["icon"], "text": f"{formatted_values}"}
 
                 extra_entries.append({"icon": "map-marker-question", "text": extra_formatted_values})
+                if speed_formatted_values != None:
+                    extra_entries.append({"icon": "speedometer", "text": speed_formatted_values})
 
                 if "distance" in s:
                     if "orthodromic" in s["distance"]:
@@ -512,8 +520,6 @@ class RVDetails(MDRecycleView):
                         rh_formatted_text = f"[b]Outside[/b] shared radio horizon of [b]{crange_text}[/b]"
                     
                     extra_entries.append({"icon": rh_icon, "text": rh_formatted_text})
-
-                extra_entries.append({"icon": "speedometer", "text": speed_formatted_values})
 
                 def select(e=None):
                     geo_uri = f"geo:{lat},{lon}"

@@ -728,8 +728,9 @@ class SidebandApp(MDApp):
             if self.conversations_view != None:
                 self.conversations_view.update()
 
-        if self.sideband.getstate("lxm_uri_ingest.result", allow_cache=True):
-            info_text = self.sideband.getstate("lxm_uri_ingest.result", allow_cache=True)
+        imr = self.sideband.getstate("lxm_uri_ingest.result", allow_cache=True)
+        if imr != None and imr != "None":
+            info_text = str(imr)
             self.sideband.setstate("lxm_uri_ingest.result", False)
             ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
             dialog = MDDialog(
@@ -744,8 +745,9 @@ class SidebandApp(MDApp):
             ok_button.bind(on_release=dl_ok)
             dialog.open()
 
-        if self.sideband.getstate("hardware_operation.error", allow_cache=True):
-            info_text = self.sideband.getstate("hardware_operation.error", allow_cache=True)
+        hwe = self.sideband.getstate("hardware_operation.error", allow_cache=True)
+        if hwe != None and hwe != "None":
+            info_text = str(hwe)
             self.sideband.setstate("hardware_operation.error", False)
             ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
             dialog = MDDialog(
@@ -3467,6 +3469,12 @@ class SidebandApp(MDApp):
         if self.object_details_screen != None:
             context_dest = self.object_details_screen.object_hash
             if not self.object_details_screen.object_hash == self.sideband.lxmf_destination.hash:
+                if self.sideband.has_conversation(context_dest):
+                    pass
+                else:
+                    self.sideband.create_conversation(context_dest)
+                    self.sideband.setstate("app.flags.new_conversations", True)
+                    
                 self.open_conversation(context_dest)
     
     def telemetry_send_update(self, sender=None):

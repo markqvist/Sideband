@@ -29,8 +29,6 @@ class Announces():
         self.list = None
 
         if not self.app.root.ids.screen_manager.has_screen("announces_screen"):
-            # TODO: Remove
-            RNS.log("Adding announces screen", RNS.LOG_WARNING)
             self.screen = Builder.load_string(layout_announces_screen)
             self.screen.app = self.app
             self.ids = self.screen.ids

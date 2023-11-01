@@ -119,6 +119,7 @@ class SidebandCore():
         self.telemeter = None
         self.telemetry_running = False
         self.latest_telemetry = None
+        self.latest_packed_telemetry = None
         self.telemetry_changes = 0
         self.pending_telemetry_send = False
         self.pending_telemetry_send_try = 0
@@ -735,16 +736,20 @@ class SidebandCore():
 
     def should_send_telemetry(self, context_dest):
         try:
-            existing_conv = self._db_conversation(context_dest)
-            if existing_conv != None:
-                cd = existing_conv["data"]
-                if cd != None and "telemetry" in cd and cd["telemetry"] == True:
-                    return True
-                else:
-                    if self.is_trusted(context_dest, conv_data=existing_conv) and self.config["telemetry_send_to_trusted"]:
+            if self.config["telemetry_enabled"]:
+                existing_conv = self._db_conversation(context_dest)
+                if existing_conv != None:
+                    cd = existing_conv["data"]
+                    if cd != None and "telemetry" in cd and cd["telemetry"] == True:
                         return True
                     else:
-                        return False
+                        if self.is_trusted(context_dest, conv_data=existing_conv) and self.config["telemetry_send_to_trusted"]:
+                            return True
+                        else:
+                            return False
+                else:
+                    return False
+
             else:
                 return False
 
@@ -1015,13 +1020,15 @@ class SidebandCore():
                         desired_method = LXMF.LXMessage.DIRECT
 
                     lxm_fields = self.get_message_fields(to_addr, is_authorized_telemetry_request=is_authorized_telemetry_request, signal_already_sent=True)
-                    if lxm_fields == False:
+                    if lxm_fields == False and stream == None:
                         return "already_sent"
 
                     if stream != None and len(stream) > 0:
+                        if lxm_fields == False:
+                            lxm_fields = {}
                         lxm_fields[LXMF.FIELD_TELEMETRY_STREAM] = stream
 
-                    if lxm_fields != None and (LXMF.FIELD_TELEMETRY in lxm_fields or LXMF.FIELD_TELEMETRY_STREAM in lxm_fields):
+                    if lxm_fields != None and lxm_fields != False and (LXMF.FIELD_TELEMETRY in lxm_fields or LXMF.FIELD_TELEMETRY_STREAM in lxm_fields):
                         if LXMF.FIELD_TELEMETRY in lxm_fields:
                             telemeter = Telemeter.from_packed(lxm_fields[LXMF.FIELD_TELEMETRY])
                             telemetry_timebase = telemeter.read_all()["time"]["utc"]
@@ -1654,27 +1661,31 @@ class SidebandCore():
             # TODO: Clean out these temporary values at some interval.
             # Probably expire after 14 days or so.
             self.setpersistent("temp.peer_appearance."+RNS.hexrep(context_dest, delimit=False), ae)
+        
         else:
-            if not from_bulk_telemetry:
-                data_dict = conv["data"]
-                if data_dict == None:
-                    data_dict = {}
+            data_dict = conv["data"]
+            if data_dict == None:
+                data_dict = {}
 
-                if not "appearance" in data_dict:
-                    data_dict["appearance"] = None
+            if not "appearance" in data_dict:
+                data_dict["appearance"] = None
 
-                if data_dict["appearance"] != appearance:
-                    data_dict["appearance"] = appearance
-                    packed_dict = msgpack.packb(data_dict)
-                
-                    db = self.__db_connect()
-                    dbc = db.cursor()
-                
-                    query = "UPDATE conv set data = ? where dest_context = ?"
-                    data = (packed_dict, context_dest)
-                    dbc.execute(query, data)
-                    result = dbc.fetchall()
-                    db.commit()
+            if from_bulk_telemetry and data_dict["appearance"] != SidebandCore.DEFAULT_APPEARANCE:
+                RNS.log("Aborting appearance update from bulk transfer, since conversation already has appearance set: "+str(appearance)+" / "+str(data_dict["appearance"]), RNS.LOG_DEBUG)
+                return
+
+            if data_dict["appearance"] != appearance:
+                data_dict["appearance"] = appearance
+                packed_dict = msgpack.packb(data_dict)
+            
+                db = self.__db_connect()
+                dbc = db.cursor()
+            
+                query = "UPDATE conv set data = ? where dest_context = ?"
+                data = (packed_dict, context_dest)
+                dbc.execute(query, data)
+                result = dbc.fetchall()
+                db.commit()
 
     def _db_get_appearance(self, context_dest, conv = None, raw=False):
         if context_dest == self.lxmf_destination.hash:
@@ -1690,6 +1701,9 @@ class SidebandCore():
                     data_dict = conv["data"]
                 else:
                     data_dict = {}
+
+            if data_dict != None:
+                if not "appearance" in data_dict or data_dict["appearance"] == None:
                     apd = self.getpersistent("temp.peer_appearance."+RNS.hexrep(context_dest, delimit=False))
                     if apd != None:
                         try:
@@ -1698,7 +1712,6 @@ class SidebandCore():
                             RNS.log("Could not get appearance data from database: "+str(e),RNS.LOG_ERROR)
                             data_dict = None
 
-            if data_dict != None:
                 try:
                     if data_dict != None and "appearance" in data_dict:
                         def htf(cbytes):
@@ -2098,16 +2111,21 @@ class SidebandCore():
                     packed_telemetry = self._db_save_telemetry(context_dest, lxm.fields[LXMF.FIELD_TELEMETRY], physical_link=physical_link, source_dest=context_dest)
 
                 if LXMF.FIELD_TELEMETRY_STREAM in lxm.fields:
+                    max_timebase = self.getpersistent(f"telemetry.{RNS.hexrep(context_dest, delimit=False)}.timebase") or 0
                     if lxm.fields[LXMF.FIELD_TELEMETRY_STREAM] != None and len(lxm.fields[LXMF.FIELD_TELEMETRY_STREAM]) > 0:
                         for telemetry_entry in lxm.fields[LXMF.FIELD_TELEMETRY_STREAM]:
                             tsource = telemetry_entry[0]
                             ttstamp = telemetry_entry[1]
                             tpacked = telemetry_entry[2]
                             appearance = telemetry_entry[3]
+                            max_timebase = max(max_timebase, ttstamp)
                             if self._db_save_telemetry(tsource, tpacked, via = context_dest):
-                                RNS.log("Saved telemetry stream entry from "+RNS.prettyhexrep(tsource), RNS.LOG_WARNING)
+                                RNS.log("Saved telemetry stream entry from "+RNS.prettyhexrep(tsource), RNS.LOG_DEBUG)
                                 if appearance != None:
                                     self._db_update_appearance(tsource, ttstamp, appearance, from_bulk_telemetry=True)
+                                    RNS.log("Updated appearance entry from "+RNS.prettyhexrep(tsource), RNS.LOG_DEBUG)
+
+                        self.setpersistent(f"telemetry.{RNS.hexrep(context_dest, delimit=False)}.timebase", max_timebase)
 
                     else:
                         RNS.log("Received telemetry stream field with no data: "+str(lxm.fields[LXMF.FIELD_TELEMETRY_STREAM]), RNS.LOG_DEBUG)
@@ -3074,9 +3092,9 @@ class SidebandCore():
             telemeter = Telemeter.from_packed(self.latest_packed_telemetry)
             telemetry_timebase = telemeter.read_all()["time"]["utc"]
             if telemetry_timebase > (self.getpersistent(f"telemetry.{RNS.hexrep(context_dest, delimit=False)}.last_send_success_timebase") or 0):
-                RNS.log("Embedding telemetry in message since current telemetry is newer than latest successful timebase", RNS.LOG_DEBUG)
+                RNS.log("Embedding own telemetry in message since current telemetry is newer than latest successful timebase", RNS.LOG_DEBUG)
             else:
-                RNS.log("Not embedding telemetry in message since current telemetry is not newer than latest successful timebase", RNS.LOG_DEBUG)
+                RNS.log("Not embedding own telemetry in message since current telemetry is not newer than latest successful timebase", RNS.LOG_DEBUG)
                 send_telemetry = False
                 send_appearance = False
                 if signal_already_sent:
