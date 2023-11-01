@@ -788,7 +788,7 @@ class SidebandApp(MDApp):
                     if text == "q" or text == "-": self.map_nav_zoom_out(modifier=nav_mod)
                     if text == "e" or text == "+": self.map_nav_zoom_in(modifier=nav_mod)
 
-            if self.root.ids.screen_manager.current == "conversations_screen":
+            if True or self.root.ids.screen_manager.current == "conversations_screen":
                 if len(modifiers) > 0 and "ctrl" in modifiers:
                     if keycode < 40 and keycode > 29:
                         c_index = keycode-29
@@ -3921,16 +3921,23 @@ class SidebandApp(MDApp):
     def map_object_list(self, sender):
         pass
 
-    def map_show(self, location):
+    def map_show(self, location, retry=0):
+        max_tries = 6
         if hasattr(self, "map") and self.map:
-            # self.map.lat = location["latitude"]
-            # self.map.lon = location["longtitude"]
             mz = 16
+            lat = location["latitude"]
+            lon = location["longtitude"]
             if mz > self.map.map_source.max_zoom: mz = self.map.map_source.max_zoom
             if mz < self.map.map_source.min_zoom: mz = self.map.map_source.min_zoom
-            self.map.center_on(location["latitude"],location["longtitude"])
-            px, py = self.map_get_zoom_center(); self.map.set_zoom_at(mz, px, py)
+            self.map.zoom = mz
             self.map.trigger_update(True)
+            self.map.center_on(lat,lon)
+            self.map.trigger_update(True)
+        else:
+            if retry < max_tries:
+                def j(dt):
+                    self.map_show(location, retry=retry+1)
+                Clock.schedule_once(j, 0.5)
 
     def map_show_peer_location(self, context_dest):
         location = self.sideband.peer_location(context_dest)
