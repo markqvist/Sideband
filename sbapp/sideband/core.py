@@ -612,11 +612,16 @@ class SidebandCore():
 
     def __reload_config(self):
         RNS.log("Reloading Sideband configuration... "+str(self.config_path), RNS.LOG_DEBUG)
-        config_file = open(self.config_path, "rb")
-        self.config = msgpack.unpackb(config_file.read())
-        config_file.close()
+        with open(self.config_path, "rb") as config_file:
+            config_data = config_file.read()
 
-        self.update_active_lxmf_propagation_node()
+        try:
+            unpacked_config = msgpack.unpackb(config_data)
+            if unpacked_config != None and len(unpacked_config) != 0:
+                self.config = unpacked_config
+                self.update_active_lxmf_propagation_node()
+        except Exception as e:
+            RNS.log("Error while reloading configuration: "+str(e), RNS.LOG_ERROR)
 
     def __save_config(self):
         RNS.log("Saving Sideband configuration...", RNS.LOG_DEBUG)
