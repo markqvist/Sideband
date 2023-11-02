@@ -1169,15 +1169,22 @@ class SidebandCore():
                 self.state_db[prop] = val
                 return True
             else:
-                try:
+                def set():
                     if self.rpc_connection == None:
                         self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
                     self.rpc_connection.send({"setstate": (prop, val)})
                     response = self.rpc_connection.recv()
                     return response
+
+                try:
+                    set()
                 except Exception as e:
-                    RNS.log("Error while setting state over RPC: "+str(e), RNS.LOG_DEBUG)
-                    return False
+                    RNS.log("Error while setting state over RPC: "+str(e)+". Retrying once.", RNS.LOG_DEBUG)
+                    try:
+                        set()
+                    except Exception as e:
+                        RNS.log("Error on retry as well: "+str(e)+". Giving up.", RNS.LOG_DEBUG)
+                        return False
 
     def service_set_latest_telemetry(self, latest_telemetry, latest_packed_telemetry):
         if not RNS.vendor.platformutils.is_android():
