@@ -13,6 +13,7 @@ import RNS.Interfaces.Interface as Interface
 
 import multiprocessing.connection
 
+from threading import Lock
 from .res import sideband_fb_data
 from .sense import Telemeter, Commands
 
@@ -128,7 +129,9 @@ class SidebandCore():
         self.pending_telemetry_request = False
         self.telemetry_request_max_history = 7*24*60*60
         self.state_db = {}
+        self.state_lock = Lock()
         self.rpc_connection = None
+        self.service_stopped = False
 
         self.app_dir       = plyer.storagepath.get_home_dir()+"/.config/sideband"
         self.cache_dir     = self.app_dir+"/cache"
@@ -178,8 +181,6 @@ class SidebandCore():
         self.last_if_change_announce = 0
         self.interface_local_adding = False
         self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN))
-
-        self.getstate_cache = {}
 
         try:
             if not os.path.isfile(self.config_path):
@@ -1149,6 +1150,7 @@ class SidebandCore():
                     return True
             except Exception as e:
                 RNS.log("Error while getting service heartbeat: "+str(e), RNS.LOG_ERROR)
+                RNS.log("Response was: "+str(service_heartbeat), RNS.LOG_ERROR)
                 return False
 
     def gui_foreground(self):
@@ -1161,30 +1163,32 @@ class SidebandCore():
         return self.getstate("app.active_conversation")
 
     def setstate(self, prop, val):
-        if not RNS.vendor.platformutils.is_android():
-            self.getstate_cache[prop] = val
-            self._db_setstate(prop, val)
-        else:
-            if self.is_service:
-                self.state_db[prop] = val
-                return True
-            else:
-                def set():
-                    if self.rpc_connection == None:
-                        self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
-                    self.rpc_connection.send({"setstate": (prop, val)})
-                    response = self.rpc_connection.recv()
-                    return response
+        with self.state_lock:
+            if not self.service_stopped:
+                if not RNS.vendor.platformutils.is_android():
+                    self.state_db[prop] = val
+                    return True
+                else:
+                    if self.is_service:
+                        self.state_db[prop] = val
+                        return True
+                    else:
+                        def set():
+                            if self.rpc_connection == None:
+                                self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
+                            self.rpc_connection.send({"setstate": (prop, val)})
+                            response = self.rpc_connection.recv()
+                            return response
 
-                try:
-                    set()
-                except Exception as e:
-                    RNS.log("Error while setting state over RPC: "+str(e)+". Retrying once.", RNS.LOG_DEBUG)
-                    try:
-                        set()
-                    except Exception as e:
-                        RNS.log("Error on retry as well: "+str(e)+". Giving up.", RNS.LOG_DEBUG)
-                        return False
+                        try:
+                            set()
+                        except Exception as e:
+                            RNS.log("Error while setting state over RPC: "+str(e)+". Retrying once.", RNS.LOG_DEBUG)
+                            try:
+                                set()
+                            except Exception as e:
+                                RNS.log("Error on retry as well: "+str(e)+". Giving up.", RNS.LOG_DEBUG)
+                                return False
 
     def service_set_latest_telemetry(self, latest_telemetry, latest_packed_telemetry):
         if not RNS.vendor.platformutils.is_android():
@@ -1227,31 +1231,36 @@ class SidebandCore():
                     return False
 
     def getstate(self, prop, allow_cache=False):
-        # TODO: remove
-        # us = time.time()
+        with self.state_lock:
+            if not self.service_stopped:
+                # TODO: remove
+                # us = time.time()
 
-        if not RNS.vendor.platformutils.is_android():
-            return self._db_getstate(prop)
-        else:
-            if self.is_service:
-                if prop in self.state_db:
-                    return self.state_db[prop]
+                if not RNS.vendor.platformutils.is_android():
+                    if prop in self.state_db:
+                        return self.state_db[prop]
+                    else:
+                        return None
                 else:
-                    return None
-            else:
-                try:
-                    if self.rpc_connection == None:
-                        self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
-                    self.rpc_connection.send({"getstate": prop})
-                    response = self.rpc_connection.recv()
-                    # TODO: Remove
-                    # RNS.log("RPC getstate result for "+str(prop)+"="+str(response)+" in "+RNS.prettytime(time.time()-us), RNS.LOG_WARNING)
-                    return response
+                    if self.is_service:
+                        if prop in self.state_db:
+                            return self.state_db[prop]
+                        else:
+                            return None
+                    else:
+                        try:
+                            if self.rpc_connection == None:
+                                self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
+                            self.rpc_connection.send({"getstate": prop})
+                            response = self.rpc_connection.recv()
+                            # TODO: Remove
+                            # RNS.log("RPC getstate result for "+str(prop)+"="+str(response)+" in "+RNS.prettytime(time.time()-us), RNS.LOG_WARNING)
+                            return response
 
-                except Exception as e:
-                    RNS.log("Error while retrieving state "+str(prop)+" over RPC: "+str(e), RNS.LOG_DEBUG)
-                    self.rpc_connection = None
-                    return None
+                        except Exception as e:
+                            RNS.log("Error while retrieving state "+str(prop)+" over RPC: "+str(e), RNS.LOG_DEBUG)
+                            self.rpc_connection = None
+                            return None
     
     def __start_rpc_listener(self):
         try:
@@ -1293,7 +1302,11 @@ class SidebandCore():
 
                         except Exception as e:
                             RNS.log("Error on client RPC connection: "+str(e), RNS.LOG_ERROR)
-                            connection.close()
+                            try:
+                                connection.close()
+                            except:
+                                pass
+
                     return rpc_client_job
 
                 threading.Thread(target=job_factory(rpc_connection), daemon=True).start()
@@ -1373,74 +1386,74 @@ class SidebandCore():
         db.commit()
 
     def _db_initstate(self):
-        db = self.__db_connect()
-        dbc = db.cursor()
+        # db = self.__db_connect()
+        # dbc = db.cursor()
 
-        dbc.execute("DROP TABLE IF EXISTS state")
-        dbc.execute("CREATE TABLE state (property BLOB PRIMARY KEY, value BLOB)")
-        db.commit()
-        self._db_setstate("database_ready", True)
+        # dbc.execute("DROP TABLE IF EXISTS state")
+        # dbc.execute("CREATE TABLE state (property BLOB PRIMARY KEY, value BLOB)")
+        # db.commit()
+        self.setstate("database_ready", True)
 
-    def _db_getstate(self, prop):
-        try:
-            db = self.__db_connect()
-            dbc = db.cursor()
+    # def _db_getstate(self, prop):
+    #     try:
+    #         db = self.__db_connect()
+    #         dbc = db.cursor()
 
-            query = "select * from state where property=:uprop"
-            dbc.execute(query, {"uprop": prop.encode("utf-8")})
+    #         query = "select * from state where property=:uprop"
+    #         dbc.execute(query, {"uprop": prop.encode("utf-8")})
             
-            result = dbc.fetchall()
+    #         result = dbc.fetchall()
 
-            if len(result) < 1:
-                return None
-            else:
-                try:
-                    entry = result[0]
-                    val = msgpack.unpackb(entry[1])
+    #         if len(result) < 1:
+    #             return None
+    #         else:
+    #             try:
+    #                 entry = result[0]
+    #                 val = msgpack.unpackb(entry[1])
                     
-                    return val
-                except Exception as e:
-                    RNS.log("Could not unpack state value from database for property \""+str(prop)+"\". The contained exception was: "+str(e), RNS.LOG_ERROR)
-                    return None
+    #                 return val
+    #             except Exception as e:
+    #                 RNS.log("Could not unpack state value from database for property \""+str(prop)+"\". The contained exception was: "+str(e), RNS.LOG_ERROR)
+    #                 return None
 
-        except Exception as e:
-            RNS.log("An error occurred during getstate database operation: "+str(e), RNS.LOG_ERROR)
-            self.db = None
+    #     except Exception as e:
+    #         RNS.log("An error occurred during getstate database operation: "+str(e), RNS.LOG_ERROR)
+    #         self.db = None
 
-    def _db_setstate(self, prop, val):
-        try:
-            uprop = prop.encode("utf-8")
-            bval = msgpack.packb(val)
+    # def _db_setstate(self, prop, val):
+    #     try:
+    #         uprop = prop.encode("utf-8")
+    #         bval = msgpack.packb(val)
 
-            if self._db_getstate(prop) == None:
-                try:
-                    db = self.__db_connect()
-                    dbc = db.cursor()
-                    query = "INSERT INTO state (property, value) values (?, ?)"
-                    data = (uprop, bval)
-                    dbc.execute(query, data)
-                    db.commit()
+    #         if self._db_getstate(prop) == None:
+    #             try:
+    #                 db = self.__db_connect()
+    #                 dbc = db.cursor()
+    #                 query = "INSERT INTO state (property, value) values (?, ?)"
+    #                 data = (uprop, bval)
+    #                 dbc.execute(query, data)
+    #                 db.commit()
 
-                except Exception as e:
-                    RNS.log("Error while setting state property "+str(prop)+" in DB: "+str(e), RNS.LOG_ERROR)
-                    RNS.log("Retrying as update query...", RNS.LOG_ERROR)
-                    db = self.__db_connect()
-                    dbc = db.cursor()
-                    query = "UPDATE state set value=:bval where property=:uprop;"
-                    dbc.execute(query, {"bval": bval, "uprop": uprop})
-                    db.commit()
+    #             except Exception as e:
+    #                 RNS.log("Error while setting state property "+str(prop)+" in DB: "+str(e), RNS.LOG_ERROR)
+    #                 RNS.log("Retrying as update query...", RNS.LOG_ERROR)
+    #                 db = self.__db_connect()
+    #                 dbc = db.cursor()
+    #                 query = "UPDATE state set value=:bval where property=:uprop;"
+    #                 dbc.execute(query, {"bval": bval, "uprop": uprop})
+    #                 db.commit()
 
-            else:
-                db = self.__db_connect()
-                dbc = db.cursor()
-                query = "UPDATE state set value=:bval where property=:uprop;"
-                dbc.execute(query, {"bval": bval, "uprop": uprop})
-                db.commit()
+    #         else:
+    #             db = self.__db_connect()
+    #             dbc = db.cursor()
+    #             query = "UPDATE state set value=:bval where property=:uprop;"
+    #             dbc.execute(query, {"bval": bval, "uprop": uprop})
+    #             db.commit()
 
 
-        except Exception as e:
-            RNS.log("An error occurred during setstate database operation: "+str(e), RNS.LOG_ERROR)
-            self.db = None
+    #     except Exception as e:
+    #         RNS.log("An error occurred during setstate database operation: "+str(e), RNS.LOG_ERROR)
+    #         self.db = None
 
     def _db_initpersistent(self):
         db = self.__db_connect()
@@ -3369,7 +3382,7 @@ class SidebandCore():
         thread.setDaemon(True)
         thread.start()
 
-        self._db_setstate("core.started", True)
+        self.setstate("core.started", True)
         RNS.log("Sideband Core "+str(self)+" started")
 
     def stop_webshare(self):

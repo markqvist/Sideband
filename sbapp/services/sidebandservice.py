@@ -1,4 +1,4 @@
-__debug_build__ = False
+__debug_build__ = True
 
 import sys
 import time
@@ -351,6 +351,7 @@ class SidebandService():
             self.sideband.setstate("service.connectivity_status", self.get_connectivity_status())
 
             if self.sideband.getstate("wants.service_stop"):
+                self.sideband.service_stopped = True
                 self.should_run = False
                 sleep_time = 0
 

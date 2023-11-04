@@ -1,4 +1,4 @@
-__debug_build__ = False
+__debug_build__ = True
 __disable_shaders__ = False
 __version__ = "0.7.2"
 __variant__ = "beta"
@@ -438,43 +438,35 @@ class SidebandApp(MDApp):
 
     def on_pause(self):
         if self.sideband:
-            if self.sideband.getstate("flag.focusfix_pause"):
-                self.sideband.setstate("flag.focusfix_pause", False)
-                return True
-            else:
-                RNS.log("App pausing...", RNS.LOG_DEBUG)
-                self.sideband.setstate("app.running", True)
-                self.sideband.setstate("app.foreground", False)
-                self.app_state = SidebandApp.PAUSED
-                self.sideband.should_persist_data()
-                if self.conversations_view != None:
-                    self.conversations_view.ids.conversations_scrollview.effect_cls = ScrollEffect
-                    self.conversations_view.ids.conversations_scrollview.scroll = 1
+            RNS.log("App pausing...", RNS.LOG_DEBUG)
+            self.sideband.setstate("app.running", True)
+            self.sideband.setstate("app.foreground", False)
+            self.app_state = SidebandApp.PAUSED
+            self.sideband.should_persist_data()
+            if self.conversations_view != None:
+                self.conversations_view.ids.conversations_scrollview.effect_cls = ScrollEffect
+                self.conversations_view.ids.conversations_scrollview.scroll = 1
 
-                RNS.log("App paused", RNS.LOG_DEBUG)
-                return True
+            RNS.log("App paused", RNS.LOG_DEBUG)
+            return True
         else:
             return True
 
     def on_resume(self):
         if self.sideband:
-            if self.sideband.getstate("flag.focusfix_resume"):
-                self.sideband.setstate("flag.focusfix_resume", False)
-                return True
+            RNS.log("App resuming...", RNS.LOG_DEBUG)
+            self.sideband.setstate("app.running", True)
+            self.sideband.setstate("app.foreground", True)
+            self.sideband.setstate("wants.clear_notifications", True)
+            self.app_state = SidebandApp.ACTIVE
+            if self.conversations_view != None:
+                self.conversations_view.ids.conversations_scrollview.effect_cls = ScrollEffect
+                self.conversations_view.ids.conversations_scrollview.scroll = 1
+                
             else:
-                RNS.log("App resuming...", RNS.LOG_DEBUG)
-                self.sideband.setstate("app.running", True)
-                self.sideband.setstate("app.foreground", True)
-                self.sideband.setstate("wants.clear_notifications", True)
-                self.app_state = SidebandApp.ACTIVE
-                if self.conversations_view != None:
-                    self.conversations_view.ids.conversations_scrollview.effect_cls = ScrollEffect
-                    self.conversations_view.ids.conversations_scrollview.scroll = 1
-                    
-                else:
-                    RNS.log("Conversations view did not exist", RNS.LOG_DEBUG)
+                RNS.log("Conversations view did not exist", RNS.LOG_DEBUG)
 
-                RNS.log("App resumed", RNS.LOG_DEBUG)
+            RNS.log("App resumed", RNS.LOG_DEBUG)
 
     def on_stop(self):
         RNS.log("App stopping...", RNS.LOG_DEBUG)
@@ -728,39 +720,47 @@ class SidebandApp(MDApp):
             if self.conversations_view != None:
                 self.conversations_view.update()
 
+        invalid_values = ["None", "False", "True", True, False, None]
         imr = self.sideband.getstate("lxm_uri_ingest.result", allow_cache=True)
-        if imr and imr != "None" and imr != "False":
-            info_text = str(imr)
-            self.sideband.setstate("lxm_uri_ingest.result", False)
-            ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
-            dialog = MDDialog(
-                title="Message Scan",
-                text=str(info_text),
-                buttons=[ ok_button ],
-                # elevation=0,
-            )
-            def dl_ok(s):
-                dialog.dismiss()
-            
-            ok_button.bind(on_release=dl_ok)
-            dialog.open()
+        if imr:
+            if imr in invalid_values:
+                self.sideband.setstate("lxm_uri_ingest.result", False)
+            else:
+                info_text = str(imr)
+                self.sideband.setstate("lxm_uri_ingest.result", False)
+                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                dialog = MDDialog(
+                    title="Message Scan",
+                    text=info_text,
+                    buttons=[ ok_button ],
+                    # elevation=0,
+                )
+                def dl_ok(s):
+                    dialog.dismiss()
+                
+                ok_button.bind(on_release=dl_ok)
+                dialog.open()
 
+        invalid_values = ["None", "False", "True", True, False, None]
         hwe = self.sideband.getstate("hardware_operation.error", allow_cache=True)
-        if hwe and hwe != "None" and hwe != "False":
-            info_text = str(hwe)
-            self.sideband.setstate("hardware_operation.error", False)
-            ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
-            dialog = MDDialog(
-                title="Error",
-                text=str(info_text),
-                buttons=[ ok_button ],
-                # elevation=0,
-            )
-            def dl_ok(s):
-                dialog.dismiss()
-            
-            ok_button.bind(on_release=dl_ok)
-            dialog.open()
+        if hwe:
+            if hwe in invalid_values:
+                self.sideband.setstate("hardware_operation.error", False)
+            else:
+                info_text = str(hwe)
+                self.sideband.setstate("hardware_operation.error", False)
+                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                dialog = MDDialog(
+                    title="Error",
+                    text=info_text,
+                    buttons=[ ok_button ],
+                    # elevation=0,
+                )
+                def dl_ok(s):
+                    dialog.dismiss()
+                
+                ok_button.bind(on_release=dl_ok)
+                dialog.open()
 
     def on_start(self):
         self.last_exit_event = time.time()
@@ -966,6 +966,7 @@ class SidebandApp(MDApp):
             while self.sideband.service_available():
                 time.sleep(0.2)
             RNS.log("Service stopped")
+            self.sideband.service_stopped = True
 
             if RNS.vendor.platformutils.is_android():
                 RNS.log("Finishing activity")
@@ -1594,7 +1595,6 @@ class SidebandApp(MDApp):
                 te = ids[e]
                 ts = str(te).split(" ")[0].replace("<", "")
                 if ts in BIND_CLASSES and not hasattr(e, "no_clipboard"):
-                    RNS.log("Binding clipboard action to "+str(e))
                     te.bind(on_double_tap=self.ui_clipboard_action)
 
     def settings_init(self, sender=None):
