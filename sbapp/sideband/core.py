@@ -2382,11 +2382,25 @@ class SidebandCore():
                 time.sleep(SidebandCore.SERVICE_JOB_INTERVAL)
                 now = time.time()
 
-                if self.interface_local.carrier_changed:
-                    RNS.log("AutoInterface carrier change detected, retaking wake locks", RNS.LOG_DEBUG)
-                    self.owner_service.take_locks(force_multicast=True)
-                    self.interface_local.carrier_changed = False
-                    last_multicast_lock_check = now
+                if hasattr(self, "interface_local"):
+                    if self.interface_local != None:
+                        if self.interface_local.carrier_changed:
+                            RNS.log("AutoInterface carrier change detected, retaking wake locks", RNS.LOG_DEBUG)
+                            self.owner_service.take_locks(force_multicast=True)
+                            self.interface_local.carrier_changed = False
+                            last_multicast_lock_check = now
+
+                    if (self.interface_local != None and len(self.interface_local.adopted_interfaces) == 0) or (self.config["connect_local"] and self.interface_local == None):
+                        if not self.interface_local_adding:
+                            RNS.log("No suitable interfaces on AutoInterface, scheduling re-init", RNS.LOG_DEBUG)
+                            if self.interface_local in RNS.Transport.interfaces:
+                                RNS.Transport.interfaces.remove(self.interface_local)
+                            del self.interface_local
+                            self.interface_local = None
+                            self.interface_local_adding = True
+                            def job():
+                                self.__add_localinterface(delay=60)
+                            threading.Thread(target=job, daemon=True).start()
 
                 if (now - last_multicast_lock_check > 120):
                     RNS.log("Checking multicast and wake locks", RNS.LOG_DEBUG)
@@ -2417,19 +2431,6 @@ class SidebandCore():
                                 needs_if_change_announce = True
 
                         self.interface_local.had_peers = have_peers
-
-                        if len(self.interface_local.adopted_interfaces) == 0:
-                            if not self.interface_local_adding:
-                                RNS.log("No suitable interfaces on AutoInterface, scheduling re-init", RNS.LOG_DEBUG)
-                                if self.interface_local in RNS.Transport.interfaces:
-                                    RNS.Transport.interfaces.remove(self.interface_local)
-                                del self.interface_local
-                                self.interface_local = None
-                                def job():
-                                    self.__add_localinterface(delay=60)
-                                threading.Thread(target=job, daemon=True).start()
-                        else:
-                            pass
 
                     for interface in RNS.Transport.interfaces:
                         if not hasattr(self, "interface_local") or interface != self.interface_local:
