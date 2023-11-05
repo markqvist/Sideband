@@ -194,6 +194,7 @@ class SidebandService():
     def take_locks(self, force_multicast=False):
         if RNS.vendor.platformutils.get_platform() == "android":
             if self.multicast_lock == None or force_multicast:
+                RNS.log("Creating multicast lock", RNS.LOG_DEBUG)
                 self.multicast_lock = self.wifi_manager.createMulticastLock("sideband_service")
 
             if not self.multicast_lock.isHeld():
@@ -203,6 +204,7 @@ class SidebandService():
                 RNS.log("Multicast lock already held", RNS.LOG_DEBUG)
 
             if self.wake_lock == None:
+                RNS.log("Creating wake lock", RNS.LOG_DEBUG)
                 self.wake_lock = self.power_manager.newWakeLock(self.power_manager.PARTIAL_WAKE_LOCK, "sideband_service")
 
             if not self.wake_lock.isHeld():

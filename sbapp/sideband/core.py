@@ -2377,9 +2377,21 @@ class SidebandCore():
     def _service_jobs(self):
         if self.is_service:
             last_usb_discovery = time.time()
+            last_multicast_lock_check = time.time()
             while True:
                 time.sleep(SidebandCore.SERVICE_JOB_INTERVAL)
                 now = time.time()
+
+                if self.interface_local.carrier_changed:
+                    RNS.log("AutoInterface carrier change detected, retaking wake locks", RNS.LOG_DEBUG)
+                    self.owner_service.take_locks(force_multicast=True)
+                    self.interface_local.carrier_changed = False
+                    last_multicast_lock_check = now
+
+                if (now - last_multicast_lock_check > 120):
+                    RNS.log("Checking multicast and wake locks", RNS.LOG_DEBUG)
+                    self.owner_service.take_locks()
+                    last_multicast_lock_check = now
 
                 announce_wanted = self.getstate("wants.announce")
                 announce_attached_interface = None
@@ -2392,10 +2404,6 @@ class SidebandCore():
 
                     if hasattr(self, "interface_local") and self.interface_local != None:
                         have_peers = len(self.interface_local.peers) > 0
-                        if self.interface_local.carrier_changed:
-                            RNS.log("AutoInterface carrier change detected, retaking wake locks", RNS.LOG_DEBUG)
-                            self.owner_service.take_locks(force_multicast=True)
-                            self.interface_local.carrier_changed = False
 
                         if hasattr(self.interface_local, "had_peers"):
                             if not self.interface_local.had_peers and have_peers:
