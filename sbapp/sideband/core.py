@@ -1215,7 +1215,7 @@ class SidebandCore():
         else:
             if self.is_service:
                 if debug:
-                    RNS.loglevel = 7
+                    RNS.loglevel = 6
                 else:
                     RNS.loglevel = 2
                 return True
@@ -2382,30 +2382,37 @@ class SidebandCore():
                 time.sleep(SidebandCore.SERVICE_JOB_INTERVAL)
                 now = time.time()
 
-                if hasattr(self, "interface_local"):
-                    if self.interface_local != None:
-                        if self.interface_local.carrier_changed:
-                            RNS.log("AutoInterface carrier change detected, retaking wake locks", RNS.LOG_DEBUG)
-                            self.owner_service.take_locks(force_multicast=True)
-                            self.interface_local.carrier_changed = False
-                            last_multicast_lock_check = now
+                try:
+                    if hasattr(self, "interface_local"):
+                        if self.interface_local != None:
+                            if self.interface_local.carrier_changed:
+                                RNS.log("AutoInterface carrier change detected, retaking wake locks", RNS.LOG_DEBUG)
+                                self.owner_service.take_locks(force_multicast=True)
+                                self.interface_local.carrier_changed = False
+                                last_multicast_lock_check = now
 
-                    if (self.interface_local != None and len(self.interface_local.adopted_interfaces) == 0) or (self.config["connect_local"] and self.interface_local == None):
-                        if not self.interface_local_adding:
-                            RNS.log("No suitable interfaces on AutoInterface, scheduling re-init", RNS.LOG_DEBUG)
-                            if self.interface_local in RNS.Transport.interfaces:
-                                RNS.Transport.interfaces.remove(self.interface_local)
-                            del self.interface_local
-                            self.interface_local = None
-                            self.interface_local_adding = True
-                            def job():
-                                self.__add_localinterface(delay=60)
-                            threading.Thread(target=job, daemon=True).start()
+                        if (self.interface_local != None and len(self.interface_local.adopted_interfaces) == 0) or (self.config["connect_local"] and self.interface_local == None):
+                            if not self.interface_local_adding:
+                                RNS.log("No suitable interfaces on AutoInterface, scheduling re-init", RNS.LOG_DEBUG)
+                                if self.interface_local in RNS.Transport.interfaces:
+                                    RNS.Transport.interfaces.remove(self.interface_local)
+                                del self.interface_local
+                                self.interface_local = None
+                                self.interface_local_adding = True
+                                def job():
+                                    self.__add_localinterface(delay=60)
+                                threading.Thread(target=job, daemon=True).start()
 
-                if (now - last_multicast_lock_check > 120):
-                    RNS.log("Checking multicast and wake locks", RNS.LOG_DEBUG)
-                    self.owner_service.take_locks()
-                    last_multicast_lock_check = now
+                    if (now - last_multicast_lock_check > 120):
+                        RNS.log("Checking multicast and wake locks", RNS.LOG_DEBUG)
+                        self.owner_service.take_locks()
+                        last_multicast_lock_check = now
+
+                except Exception as e:
+                    import traceback
+                    exception_info = "".join(traceback.TracebackException.from_exception(e).format())
+                    RNS.log(f"An {str(type(e))} occurred while running interface checks: {str(e)}", RNS.LOG_ERROR)
+                    RNS.log(exception_info, RNS.LOG_ERROR)
 
                 announce_wanted = self.getstate("wants.announce")
                 announce_attached_interface = None
@@ -2563,8 +2570,8 @@ class SidebandCore():
                         lastsync = self.getpersistent("lxmf.lastsync")
                         nextsync = lastsync+syncinterval
 
-                        RNS.log("Last LXMF sync was "+RNS.prettytime(now-lastsync)+" ago", RNS.LOG_DEBUG)
-                        RNS.log("Next LXMF sync is "+("in "+RNS.prettytime(nextsync-now) if nextsync-now > 0 else "now"), RNS.LOG_DEBUG)
+                        RNS.log("Last LXMF sync was "+RNS.prettytime(now-lastsync)+" ago", RNS.LOG_EXTREME)
+                        RNS.log("Next LXMF sync is "+("in "+RNS.prettytime(nextsync-now) if nextsync-now > 0 else "now"), RNS.LOG_EXTREME)
                         if now > nextsync:
                             if self.request_lxmf_sync():
                                 RNS.log("Scheduled LXMF sync succeeded", RNS.LOG_DEBUG)
@@ -2592,8 +2599,8 @@ class SidebandCore():
 
                                 scheduled = next_send-now; blocked = self.telemetry_send_blocked_until-now
                                 next_send_in = max(scheduled, blocked)
-                                RNS.log("Last telemetry send was "+RNS.prettytime(now-last_send_timebase)+" ago", RNS.LOG_DEBUG)
-                                RNS.log("Next telemetry send is "+("in "+RNS.prettytime(next_send_in) if next_send_in > 0 else "now"), RNS.LOG_DEBUG)
+                                RNS.log("Last telemetry send was "+RNS.prettytime(now-last_send_timebase)+" ago", RNS.LOG_EXTREME)
+                                RNS.log("Next telemetry send is "+("in "+RNS.prettytime(next_send_in) if next_send_in > 0 else "now"), RNS.LOG_EXTREME)
 
                                 if now > last_send_timebase+send_interval and now > self.telemetry_send_blocked_until:
                                     RNS.log("Initiating telemetry send to collector", RNS.LOG_DEBUG)
@@ -2625,8 +2632,8 @@ class SidebandCore():
                                 request_interval = self.config["telemetry_request_interval"]
                                 next_request = last_request_timebase+request_interval
 
-                                RNS.log("Last telemetry request was "+RNS.prettytime(now-last_request_timebase)+" ago", RNS.LOG_DEBUG)
-                                RNS.log("Next telemetry request is "+("in "+RNS.prettytime(next_request-now) if next_request-now > 0 else "now"), RNS.LOG_DEBUG)
+                                RNS.log("Last telemetry request was "+RNS.prettytime(now-last_request_timebase)+" ago", RNS.LOG_EXTREME)
+                                RNS.log("Next telemetry request is "+("in "+RNS.prettytime(next_request-now) if next_request-now > 0 else "now"), RNS.LOG_EXTREME)
 
                                 if now > last_request_timebase+request_interval:
                                     RNS.log("Initiating telemetry request to collector", RNS.LOG_DEBUG)
@@ -2708,7 +2715,7 @@ class SidebandCore():
     def _reticulum_log_debug(self, debug=False):
         self.log_verbose = debug
         if self.log_verbose:
-            selected_level = 7
+            selected_level = 6
         else:
             selected_level = 2
 
@@ -2718,7 +2725,7 @@ class SidebandCore():
 
     def __start_jobs_immediate(self):
         if self.log_verbose:
-            selected_level = 7
+            selected_level = 6
         else:
             selected_level = 2
 
