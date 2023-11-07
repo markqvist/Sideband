@@ -1021,8 +1021,8 @@ MDScreen:
             right_action_items:
                 [
                 #['format-list-bulleted-type', lambda x: root.app.map_object_list(self)], # Object List
-                #['arrow-down-bold-hexagon-outline', lambda x: root.app.telemetry_request_action(self)], # Download telemetry
-                #['upload-lock', lambda x: root.app.telemetry_send_update(self)], # Send telemetry update
+                ['arrow-down-bold-hexagon-outline', lambda x: root.app.telemetry_request_action(self)], # Download telemetry
+                ['upload-lock', lambda x: root.app.telemetry_send_update(self)], # Send telemetry update
                 ['layers', lambda x: root.app.map_layers_action(self)],
                 ['wrench-cog', lambda x: root.app.map_settings_action(self)],
                 ['close', lambda x: root.app.close_any_action(self)],
