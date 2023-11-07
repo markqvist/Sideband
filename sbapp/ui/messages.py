@@ -181,6 +181,7 @@ class Messages():
                 extra_content = ""
                 extra_telemetry = {}
                 telemeter = None
+                force_markup = False
                 signature_valid = False
 
                 if "lxm" in m and m["lxm"] != None and m["lxm"].signature_validated:
@@ -203,6 +204,7 @@ class Messages():
                             if Commands.SIGNAL_REPORT in command:
                                 extra_content = "[font=RobotoMono-Regular]> sig[/font]\n"
                         extra_content = extra_content[:-1]
+                        force_markup = True
                     except Exception as e:
                         RNS.log("Error while generating command display: "+str(e), RNS.LOG_ERROR)
 
@@ -293,7 +295,6 @@ class Messages():
                         heading_str += rcvd_d_str
 
                 pre_content = ""
-                force_markup = False
                 if not signature_valid:
                     identity_known = False
                     if RNS.Identity.recall(m["hash"]) != None:
