@@ -3938,7 +3938,7 @@ class SidebandApp(MDApp):
         if hasattr(self, "map") and self.map:
             mz = 16
             lat = location["latitude"]
-            lon = location["longtitude"]
+            lon = location["longitude"]
             if mz > self.map.map_source.max_zoom: mz = self.map.map_source.max_zoom
             if mz < self.map.map_source.min_zoom: mz = self.map.map_source.min_zoom
             self.map.zoom = mz
@@ -4033,7 +4033,7 @@ class SidebandApp(MDApp):
             l = telemetry["location"]
             a_icon = appearance[0]
             a_fg = appearance[1]; a_bg = appearance[2]
-            marker = CustomMapMarker(lat=l["latitude"], lon=l["longtitude"], icon_bg=a_bg)
+            marker = CustomMapMarker(lat=l["latitude"], lon=l["longitude"], icon_bg=a_bg)
             marker.app = self
             marker.source_dest = source
             marker.location_time = l["last_update"]
@@ -4094,7 +4094,7 @@ class SidebandApp(MDApp):
                 pass
 
         try:
-            if own_telemetry != None and "location" in own_telemetry and own_telemetry["location"] != None and own_telemetry["location"]["latitude"] != None and own_telemetry["location"]["longtitude"] != None:
+            if own_telemetry != None and "location" in own_telemetry and own_telemetry["location"] != None and own_telemetry["location"]["latitude"] != None and own_telemetry["location"]["longitude"] != None:
                 retain_own = True
                 
                 if not own_address in self.map_markers:
@@ -4110,7 +4110,7 @@ class SidebandApp(MDApp):
                     if o["last_update"] > marker.location_time or (hasattr(self, "own_appearance_changed") and self.own_appearance_changed):
                         marker.location_time = o["last_update"]
                         marker.lat = o["latitude"]
-                        marker.lon = o["longtitude"]
+                        marker.lon = o["longitude"]
                         marker.icon.icon = own_appearance[0]
                         marker.icon.icon_color = own_appearance[1]
                         marker.icon.md_bg_color = own_appearance[2]
@@ -4158,7 +4158,7 @@ class SidebandApp(MDApp):
                         t = Telemeter.from_packed(telemetry_data)
                         if t != None:
                             telemetry = t.read_all()
-                            if "location" in telemetry and telemetry["location"] != None and telemetry["location"]["latitude"] != None and telemetry["location"]["longtitude"] != None:
+                            if "location" in telemetry and telemetry["location"] != None and telemetry["location"]["latitude"] != None and telemetry["location"]["longitude"] != None:
                                 latest_viewable = telemetry
                                 break
 
@@ -4174,7 +4174,7 @@ class SidebandApp(MDApp):
                             marker = self.map_markers[telemetry_source]
                             marker.location_time = latest_viewable["time"]["utc"]
                             marker.lat = l["latitude"]
-                            marker.lon = l["longtitude"]
+                            marker.lon = l["longitude"]
                             appearance = self.sideband.peer_appearance(telemetry_source)
                             marker.icon.icon = appearance[0]
                             marker.icon.icon_color = appearance[1]

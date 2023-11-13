@@ -1105,8 +1105,8 @@ class SidebandCore():
                     lt = self.latest_telemetry
                     if "location" in lt and lt["location"] != None:
                         l = lt["location"]
-                        if "latitude" in l and "longtitude" in l:
-                            if l["latitude"] != None and l["longtitude"] != None:
+                        if "latitude" in l and "longitude" in l:
+                            if l["latitude"] != None and l["longitude"] != None:
                                 return l
                 return None
 
@@ -1120,8 +1120,8 @@ class SidebandCore():
                 t = Telemeter.from_packed(pt[1]).read_all()
                 if "location" in t and t["location"] != None:
                     l = t["location"]
-                    if "latitude" in l and "longtitude" in l:
-                        if l["latitude"] != None and l["longtitude"] != None:
+                    if "latitude" in l and "longitude" in l:
+                        if l["latitude"] != None and l["longitude"] != None:
                             return l
             except:
                 pass
@@ -1636,12 +1636,12 @@ class SidebandCore():
                 remote_telemeter.sensors["received"].via = source_dest
 
                 rl = remote_telemeter.read("location")
-                if rl and "latitude" in rl and "longtitude" in rl and "altitude" in rl:
+                if rl and "latitude" in rl and "longitude" in rl and "altitude" in rl:
                     if self.latest_telemetry != None and "location" in self.latest_telemetry:
                         ol = self.latest_telemetry["location"]
-                        if "latitude" in ol and "longtitude" in ol and "altitude" in ol:
-                            olat = ol["latitude"]; olon = ol["longtitude"]; oalt = ol["altitude"]
-                            rlat = rl["latitude"]; rlon = rl["longtitude"]; ralt = rl["altitude"]
+                        if "latitude" in ol and "longitude" in ol and "altitude" in ol:
+                            olat = ol["latitude"]; olon = ol["longitude"]; oalt = ol["altitude"]
+                            rlat = rl["latitude"]; rlon = rl["longitude"]; ralt = rl["altitude"]
                             if olat != None and olon != None and oalt != None:
                                 if rlat != None and rlon != None and ralt != None:
                                     remote_telemeter.sensors["received"].set_distance(
@@ -2319,7 +2319,7 @@ class SidebandCore():
             if self.config["telemetry_s_fixed_location"]:
                 self.telemeter.synthesize("location")
                 self.telemeter.sensors["location"].latitude = self.config["telemetry_s_fixed_latlon"][0]
-                self.telemeter.sensors["location"].longtitude = self.config["telemetry_s_fixed_latlon"][1]
+                self.telemeter.sensors["location"].longitude = self.config["telemetry_s_fixed_latlon"][1]
                 self.telemeter.sensors["location"].altitude = self.config["telemetry_s_fixed_altitude"]
                 self.telemeter.sensors["location"].stale_time = 30
 

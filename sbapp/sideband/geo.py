@@ -39,13 +39,13 @@ def ellipsoid_radius_at(latitude):
     )
     return r
 
-def euclidian_point(latitude, longtitude, altitude=0, ellipsoid=True):
-    # Convert latitude and longtitude to radians
+def euclidian_point(latitude, longitude, altitude=0, ellipsoid=True):
+    # Convert latitude and longitude to radians
     # and get ellipsoid or sphere radius
-    lat   = radians(latitude); lon = radians(longtitude)
+    lat   = radians(latitude); lon = radians(longitude)
     r     = ellipsoid_radius_at(latitude) if ellipsoid else mean_earth_radius
 
-    # Calculate euclidian coordinates from longtitude
+    # Calculate euclidian coordinates from longitude
     # and geocentric latitude.
     gclat = radians(geocentric_latitude(latitude)) if ellipsoid else lat
     x = cos(lon)*cos(gclat)*r

@@ -1266,7 +1266,7 @@ MDScreen:
                     MDTextField:
                         id: telemetry_s_fixed_latlon
                         size_hint: [0.618, None]
-                        hint_text: "Latitude, longtitude"
+                        hint_text: "Latitude, longitude"
                         text: ""
                         font_size: dp(24)
 

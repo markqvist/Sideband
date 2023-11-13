@@ -405,7 +405,7 @@ class RVDetails(MDRecycleView):
                     formatted_values = q_str+rssi_str+snr_str
             elif name == "Location":
                 lat = s["values"]["latitude"]
-                lon = s["values"]["longtitude"]
+                lon = s["values"]["longitude"]
                 alt = s["values"]["altitude"]
                 speed = s["values"]["speed"]
                 heading = s["values"]["heading"]

@@ -589,7 +589,7 @@ class Location(Sensor):
     self._accuracy_target = Location.ACCURACY_TARGET
 
     self.latitude = None
-    self.longtitude = None
+    self.longitude = None
     self.altitude = None
     self.speed = None
     self.bearing = None
@@ -632,7 +632,7 @@ class Location(Sensor):
       self.gps.stop()
     
     self.latitude = None
-    self.longtitude = None
+    self.longitude = None
     self.altitude = None
     self.speed = None
     self.bearing = None
@@ -646,7 +646,7 @@ class Location(Sensor):
   def update_data(self):
     try:
       if self.synthesized:
-        if self.latitude != None and self.longtitude != None:
+        if self.latitude != None and self.longitude != None:
 
           now = time.time()
           if self._last_update == None:
@@ -660,7 +660,7 @@ class Location(Sensor):
           if self.bearing == None: self.bearing = 0.0
           self.data = {
             "latitude": round(self.latitude, 6),
-            "longtitude": round(self.longtitude, 6),
+            "longitude": round(self.longitude, 6),
             "altitude": round(self.altitude, 2),
             "speed": round(self.speed, 2),
             "bearing": round(self.bearing, 2),
@@ -672,7 +672,7 @@ class Location(Sensor):
         if "lat" in self._raw:
           self.latitude   = self._raw["lat"]
         if "lon" in self._raw:
-          self.longtitude = self._raw["lon"]
+          self.longitude = self._raw["lon"]
         if "altitude" in self._raw:
           self.altitude   = self._raw["altitude"]
         if "speed" in self._raw:
@@ -689,7 +689,7 @@ class Location(Sensor):
         if self.accuracy != None and self.accuracy <= self._accuracy_target:        
           self.data = {
             "latitude": round(self.latitude, 6),
-            "longtitude": round(self.longtitude, 6),
+            "longitude": round(self.longitude, 6),
             "altitude": round(self.altitude, 2),
             "speed": round(self.speed, 2),
             "bearing": round(self.bearing, 2),
@@ -708,7 +708,7 @@ class Location(Sensor):
       try:
         return [
           struct.pack("!i", int(round(d["latitude"], 6)*1e6)),
-          struct.pack("!i", int(round(d["longtitude"], 6)*1e6)),
+          struct.pack("!i", int(round(d["longitude"], 6)*1e6)),
           struct.pack("!I", int(round(d["altitude"], 2)*1e2)),
           struct.pack("!I", int(round(d["speed"], 2)*1e2)),
           struct.pack("!I", int(round(d["bearing"], 2)*1e2)),
@@ -726,7 +726,7 @@ class Location(Sensor):
       else:
         return {
           "latitude": struct.unpack("!i", packed[0])[0]/1e6,
-          "longtitude": struct.unpack("!i", packed[1])[0]/1e6,
+          "longitude": struct.unpack("!i", packed[1])[0]/1e6,
           "altitude": struct.unpack("!I", packed[2])[0]/1e2,
           "speed": struct.unpack("!I", packed[3])[0]/1e2,
           "bearing": struct.unpack("!I", packed[4])[0]/1e2,
@@ -742,8 +742,8 @@ class Location(Sensor):
 
     obj_ath = None
     obj_rh = None
-    if self.data["altitude"] != None and self.data["latitude"] != None and self.data["longtitude"] != None:
-      coords = (self.data["latitude"], self.data["longtitude"], self.data["altitude"])
+    if self.data["altitude"] != None and self.data["latitude"] != None and self.data["longitude"] != None:
+      coords = (self.data["latitude"], self.data["longitude"], self.data["altitude"])
       obj_ath = angle_to_horizon(coords)
       obj_rh = radio_horizon(self.data["altitude"])
     
@@ -752,7 +752,7 @@ class Location(Sensor):
       "name": "Location",
       "values": {
         "latitude": self.data["latitude"],
-        "longtitude": self.data["longtitude"],
+        "longitude": self.data["longitude"],
         "altitude": self.data["altitude"],
         "speed": self.data["speed"],
         "heading": self.data["bearing"],
@@ -764,14 +764,14 @@ class Location(Sensor):
     }
 
     if relative_to != None and "location" in relative_to.sensors:
-      slat = self.data["latitude"]; slon = self.data["longtitude"]
+      slat = self.data["latitude"]; slon = self.data["longitude"]
       salt = self.data["altitude"];
       if salt == None: salt = 0
       if slat != None and slon != None:
         s = relative_to.sensors["location"]
         d = s.data
-        if "latitude" in d and "longtitude" in d and "altitude" in d:
-          lat = d["latitude"]; lon = d["longtitude"]; alt = d["altitude"]
+        if "latitude" in d and "longitude" in d and "altitude" in d:
+          lat = d["latitude"]; lon = d["longitude"]; alt = d["altitude"]
           if lat != None and lon != None:
             if alt == None: alt = 0
             cs = (slat, slon, salt); cr = (lat, lon, alt)
