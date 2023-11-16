@@ -547,7 +547,7 @@ class SidebandApp(MDApp):
                 ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                 dialog = MDDialog(
                     title="Storage Permission",
-                    text="Sideband needs external storage permission to to read offline map files.\n\nOn this Android version, the Manage All Files permission is needed, since normal external storage permission is no longer supported.\n\nSideband will only ever read and write to files you select, and does not read any other data from your system.",
+                    text="Sideband needs external storage permission to read offline map files.\n\nOn this Android version, the Manage All Files permission is needed, since normal external storage permission is no longer supported.\n\nSideband will only ever read and write to files you select, and does not read any other data from your system.",
                     buttons=[ ok_button ],
                 )
                 def dl_ok(s):
