@@ -90,6 +90,7 @@ class SidebandCore():
     PERIODIC_JOBS_INTERVAL = 60
     PERIODIC_SYNC_RETRY = 360
     TELEMETRY_INTERVAL = 60
+    SERVICE_TELEMETRY_INTERVAL = 300
 
     IF_CHANGE_ANNOUNCE_MIN_INTERVAL = 6    # In seconds
     AUTO_ANNOUNCE_RANDOM_MIN        = 90   # In minutes
@@ -103,7 +104,7 @@ class SidebandCore():
         # stream logger
         self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter)
 
-    def __init__(self, owner_app, is_service=False, is_client=False, android_app_dir=None, verbose=False):
+    def __init__(self, owner_app, is_service=False, is_client=False, android_app_dir=None, verbose=False, owner_service=None, service_context=None):
         self.is_service = is_service
         self.is_client = is_client
         self.db = None
@@ -132,6 +133,8 @@ class SidebandCore():
         self.state_lock = Lock()
         self.rpc_connection = None
         self.service_stopped = False
+        self.service_context = service_context
+        self.owner_service = owner_service
 
         self.app_dir       = plyer.storagepath.get_home_dir()+"/.config/sideband"
         self.cache_dir     = self.app_dir+"/cache"
@@ -2244,6 +2247,23 @@ class SidebandCore():
 
             threading.Thread(target=telemetry_job, daemon=True).start()
 
+    def run_service_telemetry(self):
+        if not self.telemetry_running:
+            self.telemetry_running = True
+            def telemetry_job():
+                while self.telemetry_running:
+                    try:
+                        self.update_telemetry()
+                    except Exception as e:
+                        import traceback
+                        exception_info = "".join(traceback.TracebackException.from_exception(e).format())
+                        RNS.log(f"An {str(type(e))} occurred while updating service telemetry: {str(e)}", RNS.LOG_ERROR)
+                        RNS.log(exception_info, RNS.LOG_ERROR)
+
+                    time.sleep(SidebandCore.SERVICE_TELEMETRY_INTERVAL)
+
+            threading.Thread(target=telemetry_job, daemon=True).start()
+
     def stop_telemetry(self):
         self.telemetry_running = False
         self.telemeter.stop_all()
@@ -2298,7 +2318,10 @@ class SidebandCore():
     def update_telemeter_config(self):
         if self.config["telemetry_enabled"] == True:
             if self.telemeter == None:
-                self.telemeter = Telemeter()
+                if self.service_context == None:
+                    self.telemeter = Telemeter()
+                else:
+                    self.telemeter = Telemeter(android_context=self.service_context, service=True, location_provider=self.owner_service)
 
             sensors = ["location", "information", "battery", "pressure", "temperature", "humidity", "magnetic_field", "ambient_light", "gravity", "angular_velocity", "acceleration", "proximity"]
             for sensor in sensors:
@@ -2561,6 +2584,8 @@ class SidebandCore():
         if self.is_service or self.is_standalone:
             while True:
                 time.sleep(SidebandCore.PERIODIC_JOBS_INTERVAL)
+                self.owner_service.update_location_provider()
+
                 if self.config["lxmf_periodic_sync"] == True:
                     if self.getpersistent("lxmf.lastsync") == None:
                         self.setpersistent("lxmf.lastsync", time.time())
@@ -2660,6 +2685,8 @@ class SidebandCore():
         if self.is_standalone or self.is_client:
             if self.config["telemetry_enabled"]:
                 self.run_telemetry()
+        elif self.is_service:
+            self.run_service_telemetry()
 
     def __add_localinterface(self, delay=None):
         self.interface_local_adding = True

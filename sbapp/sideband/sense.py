@@ -40,7 +40,7 @@ class Telemeter():
       RNS.log("An error occurred while unpacking telemetry. The contained exception was: "+str(e), RNS.LOG_ERROR)
       return None
 
-  def __init__(self, from_packed=False):
+  def __init__(self, from_packed=False, android_context=None, service=False, location_provider=None):
     self.sids = {
       Sensor.SID_TIME: Time,
       Sensor.SID_RECEIVED: Received,
@@ -80,10 +80,15 @@ class Telemeter():
     if not self.from_packed:
       self.enable("time")
 
+    self.location_provider = location_provider
+    self.android_context = android_context
+    self.service = service
+
   def synthesize(self, sensor):
       if sensor in self.available:
         if not sensor in self.sensors:
           self.sensors[sensor] = self.sids[self.available[sensor]]()
+          self.sensors[sensor]._telemeter = self
           self.sensors[sensor].active = True
           self.sensors[sensor].synthesized = True
 
@@ -92,6 +97,7 @@ class Telemeter():
       if sensor in self.available:
         if not sensor in self.sensors:
           self.sensors[sensor] = self.sids[self.available[sensor]]()
+          self.sensors[sensor]._telemeter = self
         if not self.sensors[sensor].active:
           self.sensors[sensor].start()
   
@@ -150,6 +156,28 @@ class Telemeter():
 
     return rendered
 
+  def check_permission(self, permission):
+    if RNS.vendor.platformutils.is_android():
+      if self.android_context != None:
+        try:
+            result = self.android_context.checkSelfPermission("android.permission."+permission)
+            if result == 0:
+                return True
+
+        except Exception as e:
+            RNS.log("Error while checking permission: "+str(e), RNS.LOG_ERROR)
+        
+        return False
+      
+      else:
+        from android.permissions import check_permission
+        return check_permission("android.permission."+permission)
+
+    else:
+      return False
+
+
+
 class Sensor():
   SID_NONE             = 0x00
   SID_TIME             = 0x01
@@ -169,6 +197,7 @@ class Sensor():
   SID_RECEIVED         = 0x10
 
   def __init__(self, sid = None, stale_time = None):
+    self._telemeter = None
     self._sid = sid or Sensor.SID_NONE
     self._stale_time = stale_time
     self._data = None
@@ -237,6 +266,13 @@ class Sensor():
 
   def render(self, relative_to=None):
     return None
+
+  def check_permission(self, permission):
+    if self._telemeter != None:
+      return self._telemeter.check_permission(permission)
+    else:
+      from android.permissions import check_permission
+      return check_permission("android.permission."+permission)
 
 class Time(Sensor):
   SID = Sensor.SID_TIME
@@ -587,6 +623,7 @@ class Location(Sensor):
     self._last_update = None
     self._min_distance = Location.MIN_DISTANCE
     self._accuracy_target = Location.ACCURACY_TARGET
+    self._query_method = None
 
     self.latitude = None
     self.longitude = None
@@ -619,12 +656,15 @@ class Location(Sensor):
 
   def setup_sensor(self):
     if RNS.vendor.platformutils.is_android():
-      from android.permissions import request_permissions, check_permission
 
-      if check_permission("android.permission.ACCESS_COARSE_LOCATION") and check_permission("android.permission.ACCESS_FINE_LOCATION"):
-        self.gps.configure(on_location=self.android_location_callback)
-        self.gps.start(minTime=self._stale_time, minDistance=self._min_distance)
-      
+      if self._telemeter and self._telemeter.service:
+        self._location_provider = self._telemeter.location_provider
+      else:
+        if self.check_permission("ACCESS_COARSE_LOCATION") and self.check_permission("ACCESS_FINE_LOCATION"):
+          self.gps.configure(on_location=self.android_location_callback)
+          self.gps.start(minTime=self._stale_time, minDistance=self._min_distance)
+          self._location_provider = self
+
     self.update_data()
     
   def teardown_sensor(self):
@@ -669,33 +709,37 @@ class Location(Sensor):
           }
 
       elif RNS.vendor.platformutils.is_android():
-        if "lat" in self._raw:
-          self.latitude   = self._raw["lat"]
-        if "lon" in self._raw:
-          self.longitude = self._raw["lon"]
-        if "altitude" in self._raw:
-          self.altitude   = self._raw["altitude"]
-        if "speed" in self._raw:
-          self.speed      = self._raw["speed"]
-          if self.speed < 0:
-            self.speed = 0
-        if "bearing" in self._raw:
-          self.bearing    = self._raw["bearing"]
-        if "accuracy" in self._raw:
-          self.accuracy   = self._raw["accuracy"]
-          if self.accuracy < 0:
-            self.accuracy = 0
+        if self._location_provider != None:
+          if self._location_provider != self:
+            self._last_update, self._raw = self._location_provider.get_location()
 
-        if self.accuracy != None and self.accuracy <= self._accuracy_target:        
-          self.data = {
-            "latitude": round(self.latitude, 6),
-            "longitude": round(self.longitude, 6),
-            "altitude": round(self.altitude, 2),
-            "speed": round(self.speed, 2),
-            "bearing": round(self.bearing, 2),
-            "accuracy": round(self.accuracy, 2),
-            "last_update": int(self._last_update),
-            }
+          if "lat" in self._raw:
+            self.latitude   = self._raw["lat"]
+          if "lon" in self._raw:
+            self.longitude = self._raw["lon"]
+          if "altitude" in self._raw:
+            self.altitude   = self._raw["altitude"]
+          if "speed" in self._raw:
+            self.speed      = self._raw["speed"]
+            if self.speed < 0:
+              self.speed = 0
+          if "bearing" in self._raw:
+            self.bearing    = self._raw["bearing"]
+          if "accuracy" in self._raw:
+            self.accuracy   = self._raw["accuracy"]
+            if self.accuracy < 0:
+              self.accuracy = 0
+
+          if self.accuracy != None and self.accuracy <= self._accuracy_target:
+            self.data = {
+              "latitude": round(self.latitude, 6),
+              "longitude": round(self.longitude, 6),
+              "altitude": round(self.altitude, 2),
+              "speed": round(self.speed, 2),
+              "bearing": round(self.bearing, 2),
+              "accuracy": round(self.accuracy, 2),
+              "last_update": int(self._last_update),
+              }
     
     except:
       self.data = None
