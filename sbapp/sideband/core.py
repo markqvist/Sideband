@@ -2253,7 +2253,8 @@ class SidebandCore():
             def telemetry_job():
                 while self.telemetry_running:
                     try:
-                        self.update_telemetry()
+                        if self.owner_service._gps_started:
+                            self.update_telemetry()
                     except Exception as e:
                         import traceback
                         exception_info = "".join(traceback.TracebackException.from_exception(e).format())
@@ -2313,7 +2314,10 @@ class SidebandCore():
                             RNS.log("Error while sending latest telemetry to service: "+str(e), RNS.LOG_ERROR)
 
         except Exception as e:
-            RNS.log("Error while updating telemetry: "+str(e), RNS.LOG_ERROR)
+            import traceback
+            exception_info = "".join(traceback.TracebackException.from_exception(e).format())
+            RNS.log(f"An {str(type(e))} occurred while updating telemetry: {str(e)}", RNS.LOG_ERROR)
+            RNS.log(exception_info, RNS.LOG_ERROR)
 
     def update_telemeter_config(self):
         if self.config["telemetry_enabled"] == True:
