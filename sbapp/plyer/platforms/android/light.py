@@ -44,7 +44,7 @@ class AndroidLight(Light):
     listener = None
 
     def _get_illumination(self):
-        if self.listener and self.listener.value:
+        if self.listener and self.listener.value != None:
             light = self.listener.value
             return light
 
