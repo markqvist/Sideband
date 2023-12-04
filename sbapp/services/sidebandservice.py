@@ -190,8 +190,8 @@ class SidebandService():
         self.should_run = False
         self.gps = None
         self._gps_started = False
-        self._gps_stale_time = 299
-        self._gps_min_distance = 25
+        self._gps_stale_time = 300-1
+        self._gps_min_distance = 3
         self._raw_gps = None
 
         self.android_service = None
