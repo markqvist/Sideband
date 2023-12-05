@@ -290,6 +290,20 @@ def shared_radio_horizon(c1, c2,):
         "antenna_distance": antenna_distance
     }
 
+def ghtest():
+    import pygeodesy
+    from pygeodesy.ellipsoidalKarney import LatLon
+    ginterpolator = pygeodesy.GeoidKarney("./assets/geoids/egm2008-5.pgm")
+
+    # Make an example location
+    lat=51.416422
+    lon=-116.217151
+
+    # Get the geoid height
+    single_position=LatLon(lat, lon)
+    h = ginterpolator(single_position)
+    print(h)
+
 # def tests():
 #     import RNS
 #     import numpy as np
