@@ -814,7 +814,7 @@ class Location(Sensor):
       if slat != None and slon != None:
         s = relative_to.sensors["location"]
         d = s.data
-        if "latitude" in d and "longitude" in d and "altitude" in d:
+        if d != None and "latitude" in d and "longitude" in d and "altitude" in d:
           lat = d["latitude"]; lon = d["longitude"]; alt = d["altitude"]
           if lat != None and lon != None:
             if alt == None: alt = 0
