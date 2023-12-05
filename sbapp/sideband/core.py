@@ -2810,6 +2810,11 @@ class SidebandCore():
                                 else:
                                     ifac_netkey = self.config["connect_tcp_ifac_passphrase"]
 
+                                if ifac_netname != None or ifac_netkey != None:
+                                    ifac_size = 16
+                                else:
+                                    ifac_size = None
+
                                 tcpinterface = RNS.Interfaces.TCPInterface.TCPClientInterface(
                                     RNS.Transport,
                                     "TCPClientInterface",
@@ -2834,7 +2839,7 @@ class SidebandCore():
                                 else:
                                     if_mode = None
                                     
-                                self.reticulum._add_interface(tcpinterface, mode=if_mode, ifac_netname=ifac_netname, ifac_netkey=ifac_netkey)
+                                self.reticulum._add_interface(tcpinterface, mode=if_mode, ifac_netname=ifac_netname, ifac_netkey=ifac_netkey, ifac_size=ifac_size)
                                 self.interface_tcp = tcpinterface
 
                     except Exception as e:
@@ -2856,6 +2861,11 @@ class SidebandCore():
                                 ifac_netkey = None
                             else:
                                 ifac_netkey = self.config["connect_i2p_ifac_passphrase"]
+
+                            if ifac_netname != None or ifac_netkey != None:
+                                ifac_size = 16
+                            else:
+                                ifac_size = None
 
                             i2pinterface = RNS.Interfaces.I2PInterface.I2PInterface(
                                 RNS.Transport,
@@ -2880,7 +2890,7 @@ class SidebandCore():
                             else:
                                 if_mode = None
                                 
-                            self.reticulum._add_interface(i2pinterface, mode = if_mode, ifac_netname=ifac_netname, ifac_netkey=ifac_netkey)
+                            self.reticulum._add_interface(i2pinterface, mode = if_mode, ifac_netname=ifac_netname, ifac_netkey=ifac_netkey, ifac_size=ifac_size)
                             
                             for si in RNS.Transport.interfaces:
                                 if type(si) == RNS.Interfaces.I2PInterface.I2PInterfacePeer:
