@@ -2348,7 +2348,10 @@ class SidebandCore():
                 self.telemeter.sensors["location"].latitude = self.config["telemetry_s_fixed_latlon"][0]
                 self.telemeter.sensors["location"].longitude = self.config["telemetry_s_fixed_latlon"][1]
                 self.telemeter.sensors["location"].altitude = self.config["telemetry_s_fixed_altitude"]
-                self.telemeter.sensors["location"].stale_time = 30
+                self.telemeter.sensors["location"].stale_time = 12*60*60
+
+                if time.time() > self.telemeter.sensors["location"].last_update + self.telemeter.sensors["location"].stale_time:
+                    self.telemeter.sensors["location"].update_data()
 
             if self.config["telemetry_s_information"]:
                 self.telemeter.synthesize("information")
@@ -2592,7 +2595,8 @@ class SidebandCore():
         if self.is_service or self.is_standalone:
             while True:
                 time.sleep(SidebandCore.PERIODIC_JOBS_INTERVAL)
-                self.owner_service.update_location_provider()
+                if self.owner_service != None:
+                    self.owner_service.update_location_provider()
 
                 if self.config["lxmf_periodic_sync"] == True:
                     if self.getpersistent("lxmf.lastsync") == None:
