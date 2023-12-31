@@ -4,15 +4,15 @@ prepare: activate cleanrns getrns
 
 clean:
 	@echo Cleaning...
-	-(rm ./__pycache__ -r)
-	-(rm ./app_storage -r)
-	-(rm ./share/pkg/* -r)
-	-(rm ./share/mirrors/* -r)
-	-(rm ./bin -r)
+	-(rm -r ./__pycache__)
+	-(rm -r ./app_storage)
+	-(rm -r ./share/pkg/*)
+	-(rm -r ./share/mirrors/*)
+	-(rm -r ./bin)
 
 cleanlibs:
 	buildozer android clean
-	
+
 cleanall: clean cleanlibs
 
 activate:
@@ -40,7 +40,7 @@ injectxml:
 	cp patches/file_paths.xml .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/src/main/res/xml/
 	cp patches/AndroidManifest.tmpl.xml .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/templates/
 	cp patches/p4a_build.py .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/build.py
-	
+
 debug:
 	buildozer android debug
 
@@ -57,7 +57,7 @@ endif
 
 fetchshare:
 	rm ./share/pkg/*
-	rm ./share/mirrors/* -r
+	rm -r ./share/mirrors/*
 	cp ../../dist_archive/rns-*-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/rnspure-*-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/lxmf-*-py3-none-any.whl ./share/pkg/
@@ -89,11 +89,13 @@ console:
 	(adb logcat | grep "python\|sidebandservice")
 
 getrns:
-	(cp -rv ../../Reticulum/RNS ./;rm ./RNS/Utilities/RNS)
-	-(rm ./RNS/__pycache__ -r)
-	(cp -rv ../../LXMF/LXMF ./;rm ./LXMF/Utilities/LXMF)
-	-(rm ./LXMF/__pycache__ -r)
+	cp -rv ../../Reticulum/RNS ./
+	-(rm -r ./RNS/Utilities/RNS)
+	-(rm -r ./RNS/__pycache__)
+	cp -rv ../../LXMF/LXMF ./
+	-(rm -r ./LXMF/Utilities/LXMF)
+	-(rm -r ./LXMF/__pycache__)
 
 cleanrns:
-	-(rm ./RNS -r)
-	-(rm ./LXMF -r)
+	-(rm -r ./RNS)
+	-(rm -r ./LXMF)
