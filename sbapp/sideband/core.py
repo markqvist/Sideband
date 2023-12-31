@@ -1642,14 +1642,15 @@ class SidebandCore():
                 if rl and "latitude" in rl and "longitude" in rl and "altitude" in rl:
                     if self.latest_telemetry != None and "location" in self.latest_telemetry:
                         ol = self.latest_telemetry["location"]
-                        if "latitude" in ol and "longitude" in ol and "altitude" in ol:
-                            olat = ol["latitude"]; olon = ol["longitude"]; oalt = ol["altitude"]
-                            rlat = rl["latitude"]; rlon = rl["longitude"]; ralt = rl["altitude"]
-                            if olat != None and olon != None and oalt != None:
-                                if rlat != None and rlon != None and ralt != None:
-                                    remote_telemeter.sensors["received"].set_distance(
-                                        (olat, olon, oalt), (rlat, rlon, ralt)
-                                    )
+                        if ol != None:
+                            if "latitude" in ol and "longitude" in ol and "altitude" in ol:
+                                olat = ol["latitude"]; olon = ol["longitude"]; oalt = ol["altitude"]
+                                rlat = rl["latitude"]; rlon = rl["longitude"]; ralt = rl["altitude"]
+                                if olat != None and olon != None and oalt != None:
+                                    if rlat != None and rlon != None and ralt != None:
+                                        remote_telemeter.sensors["received"].set_distance(
+                                            (olat, olon, oalt), (rlat, rlon, ralt)
+                                        )
 
                 remote_telemeter.sensors["received"].update_data()
                 telemetry = remote_telemeter.packed()
@@ -1677,7 +1678,10 @@ class SidebandCore():
             return telemetry
 
         except Exception as e:
-            RNS.log("An error occurred while saving telemetry to database: "+str(e), RNS.LOG_ERROR)
+            import traceback
+            exception_info = "".join(traceback.TracebackException.from_exception(e).format())
+            RNS.log(f"A {str(type(e))} occurred while saving telemetry to database: {str(e)}", RNS.LOG_ERROR)
+            RNS.log(exception_info, RNS.LOG_ERROR)
             self.db = None
 
     def _db_update_appearance(self, context_dest, timestamp, appearance, from_bulk_telemetry=False):
