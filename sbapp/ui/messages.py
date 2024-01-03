@@ -711,6 +711,7 @@ MDScreen:
             MDTextField:
                 id: message_text
                 keyboard_suggestions: True
+                input_type: "text"
                 multiline: True
                 hint_text: "Write message"
                 mode: "rectangle"
