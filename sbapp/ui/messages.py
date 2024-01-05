@@ -12,9 +12,15 @@ from kivy.properties import StringProperty, BooleanProperty
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
+from kivy.utils import escape_markup
 
 from kivymd.uix.button import MDRectangleFlatButton, MDRectangleFlatIconButton
 from kivymd.uix.dialog import MDDialog
+
+if RNS.vendor.platformutils.get_platform() == "android":
+    from ui.helpers import multilingual_markup
+else:
+    from .helpers import multilingual_markup
 
 import os
 import plyer
@@ -175,6 +181,13 @@ class Messages():
 
         for m in self.new_messages:
             if not m["hash"] in self.added_item_hashes:
+                if not self.is_trusted:
+                    message_input = str( escape_markup(m["content"].decode("utf-8")) ).encode("utf-8")
+                else:
+                    message_input = m["content"]
+
+                message_markup = multilingual_markup(message_input)
+
                 txstr = time.strftime(ts_format, time.localtime(m["sent"]))
                 rxstr = time.strftime(ts_format, time.localtime(m["received"]))
                 titlestr = ""
@@ -305,7 +318,7 @@ class Messages():
                         force_markup = True
 
                 item = ListLXMessageCard(
-                    text=pre_content+m["content"].decode("utf-8")+extra_content,
+                    text=pre_content+message_markup.decode("utf-8")+extra_content,
                     heading=heading_str,
                     md_bg_color=msg_color,
                 )
@@ -320,7 +333,6 @@ class Messages():
                 item.ids.content_text.text_color = mt_color
                 item.ids.msg_submenu.theme_text_color = "Custom"
                 item.ids.msg_submenu.text_color = mt_color
-                item.ids.content_text.markup = self.is_trusted or force_markup
 
                 def gen_del(mhash, item):
                     def x():
@@ -759,7 +771,7 @@ Builder.load_string("""
         MDLabel:
             id: content_text
             text: root.text
-            markup: False
+            markup: True
             size_hint_y: None
             text_size: self.width, None
             height: self.texture_size[1]

@@ -1,6 +1,6 @@
 __debug_build__ = False
 __disable_shaders__ = False
-__version__ = "0.7.7"
+__version__ = "0.7.8"
 __variant__ = "beta"
 
 import sys
@@ -179,6 +179,7 @@ class SidebandApp(MDApp):
             self.sideband = SidebandCore(self, is_client=False, verbose=(args.verbose or __debug_build__))
 
         self.set_ui_theme()
+        self.font_config()
         self.dark_theme_text_color = dark_theme_text_color
 
         self.conversations_view = None
@@ -346,6 +347,27 @@ class SidebandApp(MDApp):
             self.theme_cls.theme_style = "Light"
 
         self.update_ui_colors()
+
+    def font_config(self):
+        from kivy.core.text import LabelBase, DEFAULT_FONT
+        fb_path = "assets/fonts/"
+        LabelBase.register(name="hebrew",
+            fn_regular=fb_path+"NotoSansHebrew-Regular.ttf",
+            fn_bold=fb_path+"NotoSansHebrew-Bold.ttf",)
+
+        LabelBase.register(name="japanese",
+            fn_regular=fb_path+"NotoSansJP-Regular.ttf")
+
+        LabelBase.register(name="chinese",
+            fn_regular=fb_path+"NotoSansSC-Regular.ttf")
+
+        LabelBase.register(name="korean",
+            fn_regular=fb_path+"NotoSansKR-Regular.ttf")
+
+        LabelBase.register(name="emoji",
+            fn_regular=fb_path+"NotoEmoji-Regular.ttf")
+
+        
 
     def update_ui_colors(self):
         if self.sideband.config["dark_ui"]:
