@@ -17,6 +17,12 @@ from kivymd.uix.dialog import MDDialog
 
 from kivy.lang.builder import Builder
 
+from kivy.utils import escape_markup
+if RNS.vendor.platformutils.get_platform() == "android":
+    from ui.helpers import multilingual_markup
+else:
+    from .helpers import multilingual_markup
+
 class NewConv(BoxLayout):
     pass
 
@@ -162,9 +168,10 @@ class Conversations():
             unread = conv["unread"]
             last_activity = conv["last_activity"]
 
+            peer_disp_name = multilingual_markup(escape_markup(str(self.app.sideband.peer_display_name(context_dest))).encode("utf-8")).decode("utf-8")
             if not context_dest in self.added_item_dests:                
                 iconl = self.get_icon(conv)
-                item = OneLineAvatarIconListItem(text=self.app.sideband.peer_display_name(context_dest), on_release=self.app.conversation_action)
+                item = OneLineAvatarIconListItem(text=peer_disp_name, on_release=self.app.conversation_action)
                 item.add_widget(iconl)
                 item.last_activity = last_activity
                 item.iconl = iconl
@@ -185,6 +192,11 @@ class Conversations():
                             yes_button = MDRectangleFlatButton(text="Save",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_accept, text_color=self.app.color_accept)
                             no_button = MDRectangleFlatButton(text="Cancel",font_size=dp(18))
                             dialog_content = ConvSettings(disp_name=disp_name, context_dest=RNS.hexrep(dest, delimit=False), trusted=is_trusted, telemetry=send_telemetry, allow_requests=allow_requests)
+                            if self.app.sideband.config["input_language"] != None:
+                                dialog_content.ids.name_field.font_name = self.app.sideband.config["input_language"]
+                            else:
+                                dialog_content.ids.name_field.font_name = ""
+
                             dialog = MDDialog(
                                 title="Edit Conversation",
                                 text= "With "+RNS.prettyhexrep(dest),
@@ -388,7 +400,6 @@ class Conversations():
             else:
                 for w in self.list.children:
                     if w.sb_uid == context_dest:
-                        disp_name = self.app.sideband.peer_display_name(context_dest)
                         trust_icon = self.trust_icon(conv)
                         trusted = conv["trust"] == 1
                         da = self.app.sideband.DEFAULT_APPEARANCE
@@ -410,7 +421,7 @@ class Conversations():
 
                         if w.iconl.icon != trust_icon: w.iconl.icon = trust_icon
                         if w.sb_unread != unread: w.sb_unread = unread
-                        if w.text != disp_name: w.text = disp_name
+                        if w.text != peer_disp_name: w.text = peer_disp_name
 
         self.list.children.sort(key=lambda w: (w.trusted, w.last_activity))
 

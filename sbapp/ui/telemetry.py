@@ -15,10 +15,7 @@ from kivy.effects.scroll import ScrollEffect
 from kivy.clock import Clock
 from sideband.sense import Telemeter
 import threading
-
-
 from datetime import datetime
-
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from ui.helpers import ts_format
@@ -373,6 +370,11 @@ class Telemetry():
         self.sensors_screen.ids.telemetry_s_information.bind(active=self.sensors_save)
         self.sensors_screen.ids.telemetry_s_information_text.text = str(self.app.sideband.config["telemetry_s_information_text"])
         self.sensors_screen.ids.telemetry_s_information_text.bind(focus=self.sensors_save)
+
+        if self.app.sideband.config["input_language"] != None:
+            self.sensors_screen.ids.telemetry_s_information_text.font_name = self.app.sideband.config["input_language"]
+        else:
+            self.sensors_screen.ids.telemetry_s_information_text.font_name = ""
 
     def sensors_open(self, sender=None, direction="left", no_transition=False):
         if no_transition:

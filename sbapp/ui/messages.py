@@ -176,6 +176,8 @@ class Messages():
             intensity_msgs = intensity_msgs_light
             mt_color = [1.0, 1.0, 1.0, 0.95]
 
+        self.ids.message_text.font_name = self.app.input_font
+
         if self.loading_earlier_messages:
             self.new_messages.reverse()
 

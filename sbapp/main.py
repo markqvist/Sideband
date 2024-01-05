@@ -69,8 +69,8 @@ if args.daemon:
     colors = DaemonElement; Telemeter = DaemonElement; CustomMapMarker = DaemonElement; MBTilesMapSource = DaemonElement;
     MapSource = DaemonElement; webbrowser = DaemonElement; Conversations = DaemonElement; MsgSync = DaemonElement;
     NewConv = DaemonElement; Telemetry = DaemonElement; ObjectDetails = DaemonElement; Announces = DaemonElement;
-    Messages = DaemonElement; ts_format = DaemonElement; messages_screen_kv = DaemonElement; plyer = DaemonElement;
-    ContentNavigationDrawer = DaemonElement; DrawerList = DaemonElement; IconListItem = DaemonElement; 
+    Messages = DaemonElement; ts_format = DaemonElement; messages_screen_kv = DaemonElement; plyer = DaemonElement; multilingual_markup = DaemonElement;
+    ContentNavigationDrawer = DaemonElement; DrawerList = DaemonElement; IconListItem = DaemonElement; escape_markup = DaemonElement;
 
 else:
     from kivymd.app import MDApp
@@ -96,6 +96,7 @@ else:
     from mapview import CustomMapMarker
     from mapview.mbtsource import MBTilesMapSource
     from mapview.source import MapSource
+    from kivy.utils import escape_markup
     import webbrowser
     import kivy.core.image
     kivy.core.image.Logger = redirect_log()
@@ -110,6 +111,7 @@ else:
         from ui.announces import Announces
         from ui.messages import Messages, ts_format, messages_screen_kv
         from ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
+        from ui.helpers import multilingual_markup
 
         from jnius import cast
         from jnius import autoclass
@@ -130,6 +132,7 @@ else:
         from .ui.objectdetails import ObjectDetails
         from .ui.messages import Messages, ts_format, messages_screen_kv
         from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
+        from .ui.helpers import multilingual_markup
 
         from kivy.config import Config
         Config.set('input', 'mouse', 'mouse,disable_multitouch')
@@ -180,6 +183,7 @@ class SidebandApp(MDApp):
 
         self.set_ui_theme()
         self.font_config()
+        self.update_input_language()
         self.dark_theme_text_color = dark_theme_text_color
 
         self.conversations_view = None
@@ -367,7 +371,21 @@ class SidebandApp(MDApp):
         LabelBase.register(name="emoji",
             fn_regular=fb_path+"NotoEmoji-Regular.ttf")
 
-        
+        LabelBase.register(name="combined",
+            fn_regular=fb_path+"NotoSans-Regular.ttf",
+            fn_bold=fb_path+"NotoSans-Bold.ttf",
+            fn_italic=fb_path+"NotoSans-Italic.ttf",
+            fn_bolditalic=fb_path+"NotoSans-BoldItalic.ttf")
+
+    def update_input_language(self):
+        language = self.sideband.config["input_language"]
+        if language == None:
+            self.input_font = "Roboto"
+            RNS.log("Setting input language to default set", RNS.LOG_DEBUG)
+        else:
+            self.input_font = language
+            RNS.log("Setting input language to "+str(language), RNS.LOG_DEBUG)
+
 
     def update_ui_colors(self):
         if self.sideband.config["dark_ui"]:
@@ -1071,7 +1089,8 @@ class SidebandApp(MDApp):
         self.messages_view.ids.messages_scrollview.add_widget(list_widget)
         self.messages_view.ids.messages_scrollview.scroll_y = 0.0
 
-        self.messages_view.ids.messages_toolbar.title = self.sideband.peer_display_name(context_dest)
+        conv_title = multilingual_markup(escape_markup(str(self.sideband.peer_display_name(context_dest))).encode("utf-8")).decode("utf-8")
+        self.messages_view.ids.messages_toolbar.title = conv_title
         self.messages_view.ids.messages_scrollview.active_conversation = context_dest
         self.sideband.setstate("app.active_conversation", context_dest)
 
@@ -1629,6 +1648,8 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.settings_scrollview.effect_cls = ScrollEffect
 
+            self.settings_screen.ids.settings_info_lang.text = "\nIf you write messages in another script than Latin, Greek or Cyrillic, you can configure the text input language for messages and other fields below.\n"
+
             info1_text  = "\nYou can set your [b]Display Name[/b] to a custom value, or leave it as the default unspecified value. "
             info1_text += "This name will be included in any announces you send, and will be visible to others on the network. "
             info1_text += "\n\nYou can manually specify which [b]Propagation Node[/b] to use, but if none is specified, Sideband will "
@@ -1675,6 +1696,54 @@ class SidebandApp(MDApp):
 
                     self.sideband.config["lxmf_propagation_node"] = new_addr
                     self.sideband.set_active_propagation_node(self.sideband.config["lxmf_propagation_node"])
+
+            def save_input_lang(sender=None, event=None):
+                if sender.active:
+                    if sender != self.settings_screen.ids.settings_lang_default:
+                        self.settings_screen.ids.settings_lang_default.active = False
+                    
+                    if sender != self.settings_screen.ids.settings_lang_chinese:
+                        self.settings_screen.ids.settings_lang_chinese.active = False
+                    
+                    if sender != self.settings_screen.ids.settings_lang_japanese:
+                        self.settings_screen.ids.settings_lang_japanese.active = False
+                    
+                    if sender != self.settings_screen.ids.settings_lang_korean:
+                        self.settings_screen.ids.settings_lang_korean.active = False
+                    
+                    if sender != self.settings_screen.ids.settings_lang_devangari:
+                        self.settings_screen.ids.settings_lang_devangari.active = False
+                    
+                    if sender != self.settings_screen.ids.settings_lang_hebrew:
+                        self.settings_screen.ids.settings_lang_hebrew.active = False
+                    
+                    RNS.log("Sender: "+str(sender))
+
+                    if self.settings_screen.ids.settings_lang_default.active:
+                        self.sideband.config["input_language"] = None
+                        self.settings_screen.ids.settings_display_name.font_name = ""
+                    elif self.settings_screen.ids.settings_lang_chinese.active:
+                        self.sideband.config["input_language"] = "chinese"
+                        self.settings_screen.ids.settings_display_name.font_name = "chinese"
+                    elif self.settings_screen.ids.settings_lang_japanese.active:
+                        self.sideband.config["input_language"] = "japanese"
+                        self.settings_screen.ids.settings_display_name.font_name = "japanese"
+                    elif self.settings_screen.ids.settings_lang_korean.active:
+                        self.sideband.config["input_language"] = "korean"
+                        self.settings_screen.ids.settings_display_name.font_name = "korean"
+                    elif self.settings_screen.ids.settings_lang_devangari.active:
+                        self.sideband.config["input_language"] = "combined"
+                        self.settings_screen.ids.settings_display_name.font_name = "combined"
+                    elif self.settings_screen.ids.settings_lang_hebrew.active:
+                        self.sideband.config["input_language"] = "hebrew"
+                        self.settings_screen.ids.settings_display_name.font_name = "hebrew"
+                    else:
+                        self.sideband.config["input_language"] = None
+                        self.settings_screen.ids.settings_display_name.font_name = ""
+
+
+                    self.sideband.save_configuration()
+                    self.update_input_language()
 
             def save_dark_ui(sender=None, event=None):
                 self.sideband.config["dark_ui"] = self.settings_screen.ids.settings_dark_ui.active
@@ -1839,6 +1908,39 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.settings_debug.active = self.sideband.config["debug"]
             self.settings_screen.ids.settings_debug.bind(active=save_debug)
+
+            self.settings_screen.ids.settings_lang_default.active = False
+            self.settings_screen.ids.settings_lang_chinese.active = False
+            self.settings_screen.ids.settings_lang_japanese.active = False
+            self.settings_screen.ids.settings_lang_korean.active = False
+            self.settings_screen.ids.settings_lang_devangari.active = False
+            self.settings_screen.ids.settings_lang_default.bind(active=save_input_lang)
+            self.settings_screen.ids.settings_lang_chinese.bind(active=save_input_lang)
+            self.settings_screen.ids.settings_lang_japanese.bind(active=save_input_lang)
+            self.settings_screen.ids.settings_lang_korean.bind(active=save_input_lang)
+            self.settings_screen.ids.settings_lang_devangari.bind(active=save_input_lang)
+            self.settings_screen.ids.settings_lang_hebrew.bind(active=save_input_lang)
+            input_lang = self.sideband.config["input_language"]
+            if input_lang == None:
+                self.settings_screen.ids.settings_lang_default.active = True
+                self.settings_screen.ids.settings_display_name.font_name = ""
+            elif input_lang == "chinese":
+                self.settings_screen.ids.settings_lang_chinese.active = True
+                self.settings_screen.ids.settings_display_name.font_name = "chinese"
+            elif input_lang == "japanese":
+                self.settings_screen.ids.settings_lang_japanese.active = True
+                self.settings_screen.ids.settings_display_name.font_name = "japanese"
+            elif input_lang == "korean":
+                self.settings_screen.ids.settings_lang_korean.active = True
+                self.settings_screen.ids.settings_display_name.font_name = "korean"
+            elif input_lang == "devangari":
+                self.settings_screen.ids.settings_lang_devangari.active = True
+                self.settings_screen.ids.settings_display_name.font_name = "combined"
+            elif input_lang == "hebrew":
+                self.settings_screen.ids.settings_lang_hebrew.active = True
+                self.settings_screen.ids.settings_display_name.font_name = "hebrew"
+            else:
+                self.settings_screen.ids.settings_display_name.font_name = ""
 
             self.settings_ready = True
 

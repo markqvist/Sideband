@@ -16,6 +16,12 @@ from kivymd.uix.dialog import MDDialog
 
 from kivy.lang.builder import Builder
 
+from kivy.utils import escape_markup
+if RNS.vendor.platformutils.get_platform() == "android":
+    from ui.helpers import multilingual_markup
+else:
+    from .helpers import multilingual_markup
+
 if RNS.vendor.platformutils.get_platform() == "android":
     from ui.helpers import ts_format
 else:
@@ -93,9 +99,9 @@ class Announces():
                     trust_icon = "account-question"
 
                 def gen_info(ts, dest, name, dtype):
+                    name = multilingual_markup(escape_markup(str(name)).encode("utf-8")).decode("utf-8")
                     def x(sender):
-                        yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
-                        
+                        yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))    
                         if dtype == "lxmf.delivery":
                             ad_text = "[size=22dp]LXMF Peer[/size]\n\nReceived: "+ts+"\nAnnounced Name: "+name+"\nAddress: "+RNS.prettyhexrep(dest)
 
@@ -118,7 +124,7 @@ class Announces():
                 time_string = time.strftime(ts_format, time.localtime(ts))
 
                 if dest_type == "lxmf.delivery":
-                    disp_name = self.app.sideband.peer_display_name(context_dest)
+                    disp_name = multilingual_markup(escape_markup(str(self.app.sideband.peer_display_name(context_dest))).encode("utf-8")).decode("utf-8")
                     iconl = IconLeftWidget(icon=trust_icon)
 
                 elif dest_type == "lxmf.propagation":

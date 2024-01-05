@@ -20,6 +20,11 @@ from kivymd.toast import toast
 
 from datetime import datetime
 
+from kivy.utils import escape_markup
+if RNS.vendor.platformutils.get_platform() == "android":
+    from ui.helpers import multilingual_markup
+else:
+    from .helpers import multilingual_markup
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from ui.helpers import ts_format
@@ -138,7 +143,7 @@ class ObjectDetails():
 
             self.coords = None
             self.telemetry_list.data = []
-            pds = self.app.sideband.peer_display_name(source_dest)
+            pds = multilingual_markup(escape_markup(str(self.app.sideband.peer_display_name(source_dest))).encode("utf-8")).decode("utf-8")
             appearance = self.app.sideband.peer_appearance(source_dest)
             self.screen.ids.name_label.text = pds
 
@@ -330,7 +335,7 @@ class RVDetails(MDRecycleView):
                             Clipboard.copy(istr)
                             toast("Copied to clipboard")
                         release_function = copy_info
-                        external_text = escape_markup(istr)
+                        external_text = multilingual_markup(escape_markup(istr).encode("utf-8")).decode("utf-8")
                         formatted_values = f"[b]Information[/b]: {external_text}"
                 elif name == "Received":
                     formatted_values = ""

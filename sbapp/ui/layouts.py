@@ -1438,8 +1438,8 @@ MDScreen:
                 MDBoxLayout:
                     orientation: "horizontal"
                     size_hint_y: None
-                    padding: [0,0,dp(24),dp(0)]
-                    height: dp(48)
+                    padding: [0,0,dp(24),dp(24)]
+                    height: dp(48+24)
                     
                     MDLabel:
                         text: "Debug Logging"
@@ -1450,6 +1450,141 @@ MDScreen:
                         pos_hint: {"center_y": 0.3}
                         disabled: False
                         active: False
+
+                MDLabel:
+                    text: "Input Options & Localisation"
+                    font_style: "H6"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    id: settings_info_lang
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Latin, Greek, Cyrillic"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: settings_lang_default
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Chinese"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: settings_lang_chinese
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Japanese"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: settings_lang_japanese
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Korean"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: settings_lang_korean
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Devangari"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: settings_lang_devangari
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Hebrew (incomplete)"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: settings_lang_hebrew
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                # MDBoxLayout:
+                #     orientation: "horizontal"
+                #     size_hint_y: None
+                #     padding: [0,0,dp(24),dp(0)]
+                #     height: dp(48)
+                    
+                #     MDLabel:
+                #         text: "Allow Predictive Text"
+                #         font_style: "H6"
+
+                #     MDSwitch:
+                #         id: settings_allow_predictive_text
+                #         pos_hint: {"center_y": 0.3}
+                #         active: False
+
+                # MDBoxLayout:
+                #     orientation: "vertical"
+                #     size_hint_y: None
+                #     height: self.minimum_height
+                #     padding: [0, dp(24), 0, dp(24)]
+
+                #     MDRectangleFlatIconButton:
+                #         id: hardware_rnode_button
+                #         icon: "translate"
+                #         text: "Input Languages"
+                #         padding: [dp(0), dp(14), dp(0), dp(14)]
+                #         icon_size: dp(24)
+                #         font_size: dp(16)
+                #         size_hint: [1.0, None]
+                #         on_release: root.app.input_languages_action(self)
+
 """
 
 layout_repository_screen = """

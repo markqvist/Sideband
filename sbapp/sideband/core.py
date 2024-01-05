@@ -414,6 +414,11 @@ class SidebandCore():
         if not "display_style_in_contact_list" in self.config:
             self.config["display_style_in_contact_list"] = False
 
+        if not "input_language" in self.config:
+            self.config["input_language"] = None
+        if not "allow_predictive_text" in self.config:
+            self.config["allow_predictive_text"] = False
+
         if not "connect_transport" in self.config:
             self.config["connect_transport"] = False
         if not "connect_rnode" in self.config:
