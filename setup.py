@@ -50,6 +50,7 @@ def glob_paths(pattern):
 package_data = {
 "": [
     "assets/*",
+    "assets/fonts/*",
     "kivymd/fonts/*",
     "kivymd/images/*",
     "kivymd/*",

@@ -354,7 +354,7 @@ class SidebandApp(MDApp):
 
     def font_config(self):
         from kivy.core.text import LabelBase, DEFAULT_FONT
-        fb_path = "assets/fonts/"
+        fb_path = self.sideband.asset_dir+"/fonts/"
         LabelBase.register(name="hebrew",
             fn_regular=fb_path+"NotoSansHebrew-Regular.ttf",
             fn_bold=fb_path+"NotoSansHebrew-Bold.ttf",)
