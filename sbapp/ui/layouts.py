@@ -1532,7 +1532,7 @@ MDScreen:
                     height: dp(48)
                     
                     MDLabel:
-                        text: "Devangari"
+                        text: "Devanagari"
                         font_style: "H6"
 
                     MDSwitch:
