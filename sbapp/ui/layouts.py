@@ -1013,7 +1013,7 @@ MDScreen:
         orientation: "vertical"
 
         MDTopAppBar:
-            title: "Situation Map"
+            title: "Map"
             anchor_title: "left"
             elevation: 0
             left_action_items:
@@ -1025,6 +1025,7 @@ MDScreen:
                 ['upload-lock', lambda x: root.app.telemetry_send_update(self)], # Send telemetry update
                 ['layers', lambda x: root.app.map_layers_action(self)],
                 ['wrench-cog', lambda x: root.app.map_settings_action(self)],
+                ['crosshairs-gps', lambda x: root.app.map_own_location_action(self)],
                 ['close', lambda x: root.app.close_any_action(self)],
                 ]
 

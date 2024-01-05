@@ -4094,6 +4094,26 @@ class SidebandApp(MDApp):
             self.map_action()
             self.map_show(location)
 
+    def map_own_location_action(self, context_dest):
+        self.sideband.update_telemetry()
+        location = self.sideband.peer_location(self.sideband.lxmf_destination.hash)
+        if not location:
+            self.location_error_dialog = MDDialog(
+                title="No Location",
+                text="Your location is currently unknown. Make sure the relevant telemetry sensors and permissions have been enabled.",
+                buttons=[
+                    MDRectangleFlatButton(
+                        text="OK",
+                        font_size=dp(18),
+                        on_release=self.close_location_error_dialog
+                    )
+                ],
+            )
+            self.location_error_dialog.open()
+        else:
+            self.map_action()
+            self.map_show(location)
+
     def map_display_telemetry(self, sender=None):
         self.object_details_action(sender)
 
