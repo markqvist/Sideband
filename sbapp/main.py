@@ -2843,7 +2843,7 @@ class SidebandApp(MDApp):
             if self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text != "":
                 val = int(self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text)
                 if val < 10:
-                    raise ValueError("Invalid bi")
+                    raise ValueError("Invalid beacon interval")
                 self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text = str(val)
 
             self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.error = False
