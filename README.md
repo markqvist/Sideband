@@ -96,16 +96,16 @@ On operating systems that allow for registering custom URI-handlers, you can cli
 You can help support the continued development of open, free and private communications systems by donating via one of the following channels:
 
 - Monero:
-  ```
+ ```
   84FpY1QbxHcgdseePYNmhTHcrgMX4nFfBYtz2GKYToqHVVhJp8Eaw1Z1EedRnKD19b3B8NiLCGVxzKV17UMmmeEsCrPyA5w
   ```
 - Ethereum
   ```
-  0x81F7B979fEa6134bA9FD5c701b3501A2e61E897a
+  0xFDabC71AC4c0C78C95aDDDe3B4FA19d6273c5E73
   ```
 - Bitcoin
   ```
-  3CPmacGm34qYvR6XWLVEJmi2aNe3PZqUuq
+  35G9uWVzrpJJibzUwpNUQGQNFzLirhrYAH
   ```
 - Ko-Fi: https://ko-fi.com/markqvist
 
