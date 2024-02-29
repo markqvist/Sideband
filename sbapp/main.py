@@ -4080,7 +4080,7 @@ class SidebandApp(MDApp):
         if not location:
             self.location_error_dialog = MDDialog(
                 title="No Location",
-                text="No location updates have been received from this peer. You can use the the [b]Situation Map[/b] to manually search for earlier telemetry.",
+                text="No recent location updates have been received from this peer. You can use the the [b]Situation Map[/b] to manually search for earlier telemetry.",
                 buttons=[
                     MDRectangleFlatButton(
                         text="OK",
