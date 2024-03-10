@@ -4,6 +4,7 @@ import LXMF
 
 from kivy.metrics import dp,sp
 from kivy.core.clipboard import Clipboard
+from kivy.core.image import Image as CoreImage
 from kivymd.uix.card import MDCard
 from kivymd.uix.menu import MDDropdownMenu
 # from kivymd.uix.behaviors import RoundedRectangularElevationBehavior, FakeRectangularElevationBehavior
@@ -22,6 +23,7 @@ if RNS.vendor.platformutils.get_platform() == "android":
 else:
     from .helpers import multilingual_markup
 
+import io
 import os
 import plyer
 import subprocess
@@ -199,6 +201,7 @@ class Messages():
                 extra_content = ""
                 extra_telemetry = {}
                 telemeter = None
+                image_field = None
                 force_markup = False
                 signature_valid = False
 
@@ -230,6 +233,12 @@ class Messages():
                     try:
                         packed_telemetry = m["lxm"].fields[LXMF.FIELD_TELEMETRY]
                         telemeter = Telemeter.from_packed(packed_telemetry)
+                    except Exception as e:
+                        pass
+
+                if "lxm" in m and m["lxm"] and m["lxm"].fields != None and LXMF.FIELD_IMAGE in m["lxm"].fields:
+                    try:
+                        image_field = m["lxm"].fields[LXMF.FIELD_IMAGE]
                     except Exception as e:
                         pass
 
@@ -328,14 +337,36 @@ class Messages():
                     md_bg_color=msg_color,
                 )
 
-                def check_texture(w, val):
+                if image_field != None:
+                    item.has_image = True
+                    img = item.ids.message_image
+                    img.source = ""
+                    img.texture = CoreImage(io.BytesIO(image_field[1]), ext=image_field[0]).texture
+                    img.reload()
+
+                else:
+                    item.has_image = False
+
+                def check_textures(w, val):
                     try:
                         if w.texture_size[1] > 360 and w.texture_size[1] >= self.max_texture_size:
                             w.text = "[i]The content of this message is too large to display in the message stream. You can copy the message content into another program by using the context menu of this message, and selecting [b]Copy[/b].[/i]"
-                    except:
-                        pass
 
-                item.ids.content_text.bind(texture_size=check_texture)
+                        if w.owner.has_image:
+                            img = w.owner.ids.message_image
+                            img.size_hint_x = 1
+                            img.size_hint_y = None
+                            img_w = w.owner.size[0]
+                            img_ratio = img.texture_size[0] / img.texture_size[1]
+                            img.size = (img_w,img_w/img_ratio)
+                            img.fit_mode = "contain"
+
+                    except Exception as e:
+                        RNS.log("An error occurred while scaling message display textures:", RNS.LOG_ERROR)
+                        RNS.trace_exception(e)
+
+                item.ids.content_text.owner = item
+                item.ids.content_text.bind(texture_size=check_textures)
 
                 if not RNS.vendor.platformutils.is_android():
                     item.radius = dp(5)
@@ -759,7 +790,7 @@ Builder.load_string("""
     padding: dp(8)
     radius: dp(4)
     size_hint: 1.0, None
-    height: content_text.height + heading_text.height + dp(32)
+    height: content_text.height + heading_text.height + message_image.size[1] + dp(32)
     pos_hint: {"center_x": .5, "center_y": .5}
 
     MDRelativeLayout:
@@ -782,6 +813,12 @@ Builder.load_string("""
             # theme_text_color: 'Custom'
             # text_color: rgba(255,255,255,100)
             pos: 0, root.height - (self.height + root.padding[0] + dp(8))
+
+        Image:
+            id: message_image
+            size_hint_x: 0
+            size_hint_y: 0
+            pos: 0, root.height - (self.height + root.padding[0] + dp(8)) - heading_text.height - dp(8)
 
         MDLabel:
             id: content_text
