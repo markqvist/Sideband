@@ -27,6 +27,8 @@ import plyer
 import subprocess
 import shlex
 
+from kivy.graphics.opengl import glGetIntegerv, GL_MAX_TEXTURE_SIZE
+
 if RNS.vendor.platformutils.get_platform() == "android":
     from sideband.sense import Telemeter, Commands
     from ui.helpers import ts_format, file_ts_format, mdc
@@ -53,6 +55,7 @@ class Messages():
         self.screen = self.app.root.ids.screen_manager.get_screen("messages_screen")
         self.ids = self.screen.ids
 
+        self.max_texture_size = glGetIntegerv(GL_MAX_TEXTURE_SIZE)[0]
         self.new_messages = []
         self.added_item_hashes = []
         self.added_messages = 0
@@ -324,6 +327,16 @@ class Messages():
                     heading=heading_str,
                     md_bg_color=msg_color,
                 )
+
+                def check_texture(w, val):
+                    try:
+                        if w.texture_size[1] > 360 and w.texture_size[1] >= self.max_texture_size:
+                            w.text = "[i]The content of this message is too large to display in the message stream. You can copy the message content into another program by using the context menu of this message, and selecting [b]Copy[/b].[/i]"
+                    except:
+                        pass
+
+                item.ids.content_text.bind(texture_size=check_texture)
+
                 if not RNS.vendor.platformutils.is_android():
                     item.radius = dp(5)
 
