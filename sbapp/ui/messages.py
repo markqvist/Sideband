@@ -679,6 +679,7 @@ class Messages():
                     elevation=0,
                     radius=dp(3),
                 )
+                item.dmenu.md_bg_color = self.app.color_hover
                 item.dmenu.retry_item = retry_item
 
                 def callback_factory(ref):
@@ -730,6 +731,7 @@ MDScreen:
                 [['menu', lambda x: root.app.nav_drawer.set_state("open")],]
             right_action_items:
                 [
+                ['attachment-plus', lambda x: root.app.message_attachment_action(self)],
                 ['map-marker-path', lambda x: root.app.peer_show_telemetry_action(self)],
                 ['map-search', lambda x: root.app.peer_show_location_action(self)],
                 ['lan-connect', lambda x: root.app.message_propagation_action(self)],

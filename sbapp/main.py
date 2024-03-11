@@ -391,9 +391,17 @@ class SidebandApp(MDApp):
         if self.sideband.config["dark_ui"]:
             self.color_reject = colors["DeepOrange"]["900"]
             self.color_accept = colors["LightGreen"]["700"]
+            if not self.sideband.config["eink_mode"]:
+                self.color_hover  = colors["Dark"]["CardsDialogs"]
+            else:
+                self.color_hover  = colors["Gray"]["800"]
         else:
             self.color_reject = colors["DeepOrange"]["800"]
             self.color_accept = colors["LightGreen"]["700"]
+            if not self.sideband.config["eink_mode"]:
+                self.color_hover  = colors["Light"]["CardsDialogs"]
+            else:
+                self.color_hover  = colors["Light"]["AppBar"]
         
         self.apply_eink_mods()
 
@@ -1228,6 +1236,9 @@ class SidebandApp(MDApp):
                     self.outbound_mode_command = False
 
         self.update_message_widgets()
+
+    def message_attachment_action(self, sender):
+        pass
 
     def update_message_widgets(self):
         toolbar_items = self.messages_view.ids.messages_toolbar.ids.right_actions.children

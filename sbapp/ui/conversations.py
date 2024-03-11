@@ -378,6 +378,7 @@ class Conversations():
                         radius=dp(3),
                     )
                     self.conversation_dropdown.effect_cls = ScrollEffect
+                    self.conversation_dropdown.md_bg_color = self.app.color_hover
 
                 item.dmenu = self.conversation_dropdown
 

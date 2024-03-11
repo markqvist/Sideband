@@ -242,6 +242,7 @@ class Announces():
                     elevation=0,
                     radius=dp(3),
                 )
+                item.dmenu.md_bg_color = self.app.color_hover
 
                 def callback_factory(ref):
                     def x(sender):
