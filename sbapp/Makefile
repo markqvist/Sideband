@@ -56,8 +56,8 @@ else
 endif
 
 fetchshare:
-	rm ./share/pkg/*
-	rm ./share/mirrors/* -r
+	-(rm ./share/pkg/*)
+	-(rm ./share/mirrors/* -r)
 	cp ../../dist_archive/rns-*-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/rnspure-*-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/lxmf-*-py3-none-any.whl ./share/pkg/
