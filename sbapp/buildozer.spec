@@ -13,7 +13,7 @@ version.filename = %(source.dir)s/main.py
 android.numeric_version = 20240214
 
 # Cryptography recipe is currently broken, using RNS-internal crypto for now
-requirements = kivy==2.2.1,libbz2,pillow,qrcode==7.3.1,usb4a,usbserial4a
+requirements = kivy==2.3.0,libbz2,pillow==10.2.0,qrcode==7.3.1,usb4a,usbserial4a,libwebp
 
 p4a.local_recipes = ../Others/python-for-android/pythonforandroid/recipes
 
