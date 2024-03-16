@@ -24,6 +24,8 @@ import RNS.vendor.umsgpack as msgpack
 if not args.daemon:
     import plyer
     from kivy.logger import Logger, LOG_LEVELS
+    from PIL import Image as PilImage
+    import io
 
     # Squelch excessive method signature logging
     class redirect_log():
@@ -67,7 +69,7 @@ if args.daemon:
     StringProperty = DaemonElement; BaseButton = DaemonElement; MDIconButton = DaemonElement; MDFileManager = DaemonElement;
     toast = DaemonElement; dp = DaemonElement; sp = DaemonElement; MDRectangleFlatButton = DaemonElement; MDDialog = DaemonElement;
     colors = DaemonElement; Telemeter = DaemonElement; CustomMapMarker = DaemonElement; MBTilesMapSource = DaemonElement;
-    MapSource = DaemonElement; webbrowser = DaemonElement; Conversations = DaemonElement; MsgSync = DaemonElement;
+    MapSource = DaemonElement; webbrowser = DaemonElement; Conversations = DaemonElement; MsgSync = DaemonElement; IconLeftWidget = DaemonElement;
     NewConv = DaemonElement; Telemetry = DaemonElement; ObjectDetails = DaemonElement; Announces = DaemonElement;
     Messages = DaemonElement; ts_format = DaemonElement; messages_screen_kv = DaemonElement; plyer = DaemonElement; multilingual_markup = DaemonElement;
     ContentNavigationDrawer = DaemonElement; DrawerList = DaemonElement; IconListItem = DaemonElement; escape_markup = DaemonElement;
@@ -83,11 +85,10 @@ else:
     from kivy.effects.scroll import ScrollEffect
     from kivy.uix.screenmanager import ScreenManager
     from kivy.uix.screenmanager import FadeTransition, NoTransition, SlideTransition
-    from kivymd.uix.list import OneLineIconListItem
+    from kivymd.uix.list import OneLineIconListItem, IconLeftWidget
     from kivy.properties import StringProperty
     from kivymd.uix.button import BaseButton, MDIconButton
     from kivymd.uix.filemanager import MDFileManager
-    from kivymd.toast import toast
     from kivy.metrics import dp, sp
     from kivymd.uix.button import MDRectangleFlatButton
     from kivymd.uix.dialog import MDDialog
@@ -112,6 +113,7 @@ else:
         from ui.messages import Messages, ts_format, messages_screen_kv
         from ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
         from ui.helpers import multilingual_markup
+        from kivymd.toast import toast
 
         from jnius import cast
         from jnius import autoclass
@@ -133,6 +135,10 @@ else:
         from .ui.messages import Messages, ts_format, messages_screen_kv
         from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
         from .ui.helpers import multilingual_markup
+
+        class toast:
+            def __init__(self, *kwargs):
+                pass
 
         from kivy.config import Config
         Config.set('input', 'mouse', 'mouse,disable_multitouch')
@@ -208,6 +214,9 @@ class SidebandApp(MDApp):
 
         self.final_load_completed = False
         self.service_last_available = 0
+
+        self.attach_path = None
+        self.attach_type = None
 
         Window.softinput_mode = "below_target"
         self.icon = self.sideband.asset_dir+"/icon.png"
@@ -1155,6 +1164,67 @@ class SidebandApp(MDApp):
             else:
                 msg_content = self.messages_view.ids.message_text.text
                 context_dest = self.messages_view.ids.messages_scrollview.active_conversation
+
+                attachment = None
+                image = None
+                if not self.outbound_mode_command and not self.outbound_mode_paper:
+                    if self.attach_type != None and self.attach_path != None:
+                        try:
+                            RNS.log("Processing "+str(self.attach_type)+" attachment \""+str(self.attach_path)+"\"", RNS.LOG_DEBUG)
+                            fbn = os.path.basename(self.attach_path)
+                            
+                            if self.attach_type == "file":
+                                with open(self.attach_path, "rb") as af:
+                                    attachment = [fbn, af.read()]
+
+                            elif self.attach_type == "lbimg":
+                                max_size = 320, 320
+                                with PilImage.open(self.attach_path) as im:
+                                    im.thumbnail(max_size)
+                                    buf = io.BytesIO()
+                                    im.save(buf, format="webp", quality=22)
+                                    image = ["webp", buf.getvalue()]
+
+                            elif self.attach_type == "defimg":
+                                max_size = 640, 640
+                                with PilImage.open(self.attach_path) as im:
+                                    im.thumbnail(max_size)
+                                    buf = io.BytesIO()
+                                    im.save(buf, format="webp", quality=66)
+                                    image = ["webp", buf.getvalue()]
+
+                            elif self.attach_type == "hqimg":
+                                max_size = 1280, 1280
+                                with PilImage.open(self.attach_path) as im:
+                                    im.thumbnail(max_size)
+                                    buf = io.BytesIO()
+                                    im.save(buf, format="webp", quality=75)
+                                    image = ["webp", buf.getvalue()]
+
+                        except Exception as e:
+                            self.messages_view.send_error_dialog = MDDialog(
+                                title="Attachment Error",
+                                text="An error occurred while processing the attachment:\n\n[i]"+str(e)+"[/i]",
+                                buttons=[
+                                    MDRectangleFlatButton(
+                                        text="OK",
+                                        font_size=dp(18),
+                                        on_release=self.messages_view.close_send_error_dialog
+                                    )
+                                ],
+                            )
+                            self.messages_view.send_error_dialog.open()
+                            self.attach_type = None
+                            self.attach_path = None
+                            self.update_message_widgets()
+                            RNS.log("Trace:")
+                            RNS.trace_exception(e)
+                            return
+
+                        self.attach_type = None
+                        self.attach_path = None
+                        self.update_message_widgets()
+
                 if self.outbound_mode_command:
                     if self.sideband.send_command(msg_content, context_dest, False):
                         self.messages_view.ids.message_text.text = ""
@@ -1180,7 +1250,7 @@ class SidebandApp(MDApp):
                         self.messages_view.ids.messages_scrollview.scroll_y = 0
                         self.jobs(0)
                 
-                elif self.sideband.send_message(msg_content, context_dest, self.outbound_mode_propagation):
+                elif self.sideband.send_message(msg_content, context_dest, self.outbound_mode_propagation, attachment = attachment, image = image):
                     self.messages_view.ids.message_text.text = ""
                     self.messages_view.ids.messages_scrollview.scroll_y = 0
                     self.jobs(0)
@@ -1237,12 +1307,145 @@ class SidebandApp(MDApp):
 
         self.update_message_widgets()
 
+    def message_fm_got_path(self, path):
+        self.message_fm_exited()
+        fbn = os.path.basename(path)
+        try:
+            tf = open(path, "rb")
+            tf.close()
+            self.attach_path = path
+            
+            if RNS.vendor.platformutils.is_android():
+                toast("Attached \""+str(fbn)+"\"")
+            else:
+                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                ate_dialog = MDDialog(
+                    title="File Attached",
+                    text="The file \""+str(fbn)+"\" was attached, and will be included with the next message sent.",
+                    buttons=[ ok_button ],
+                )
+                ok_button.bind(on_release=ate_dialog.dismiss)
+                ate_dialog.open()
+
+        except Exception as e:
+            RNS.log(f"Error while attaching \"{fbn}\": "+str(e), RNS.LOG_ERROR)
+            if RNS.vendor.platformutils.get_platform() == "android":
+                toast("Could not attach \""+str(fbn)+"\"")
+            else:
+                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                ate_dialog = MDDialog(
+                    title="Attachment Error",
+                    text="The specified file could not be attached:\n\n[i]"+str(e)+"[/i]",
+                    buttons=[ ok_button ],
+                )
+                ok_button.bind(on_release=ate_dialog.dismiss)
+                ate_dialog.open()
+
+        self.update_message_widgets()
+
+
+    def message_fm_exited(self, *args):
+        self.manager_open = False
+        self.file_manager.close()
+
+    def message_select_file_action(self, sender=None):
+        perm_ok = False
+        if RNS.vendor.platformutils.is_android():
+            perm_ok = self.check_storage_permission()
+            path = primary_external_storage_path()
+
+        else:
+            perm_ok = True
+            path = os.path.expanduser("~")
+
+
+        if perm_ok and path != None:
+            try:
+                self.file_manager = MDFileManager(
+                    exit_manager=self.message_fm_exited,
+                    select_path=self.message_fm_got_path,
+                )
+                # self.file_manager.ext = ["*"]
+                self.file_manager.show(path)
+
+            except Exception as e:
+                self.sideband.config["map_storage_path"] = None
+                self.sideband.save_configuration()
+                toast("Error reading directory, check permissions!")
+        
+        else:
+            self.sideband.config["map_storage_path"] = None
+            self.sideband.save_configuration()
+            toast("No file access, check permissions!")
+
+    def message_attach_action(self, attach_type=None):
+        self.attach_path = None
+        self.attach_type = attach_type
+        self.message_select_file_action()
+
     def message_attachment_action(self, sender):
-        pass
+        if self.attach_path == None:
+            attach_dialog = None
+            def a_img_lb(sender):
+                attach_dialog.dismiss()
+                self.message_attach_action(attach_type="lbimg")
+            def a_img_def(sender):
+                attach_dialog.dismiss()
+                self.message_attach_action(attach_type="defimg")
+            def a_img_hq(sender):
+                attach_dialog.dismiss()
+                self.message_attach_action(attach_type="hqimg")
+            def a_file(sender):
+                attach_dialog.dismiss()
+                self.message_attach_action(attach_type="file")
+
+            ss = int(dp(18))
+            cancel_button = MDRectangleFlatButton(text="Cancel", font_size=dp(18))
+            attach_dialog = MDDialog(
+                title="Add Attachment",
+                type="simple",
+                text="Select the type of attachment you want to send with this message\n",
+                items=[
+                    DialogItem(IconLeftWidget(icon="message-image-outline"), text="[size="+str(ss)+"]Low-bandwidth Image[/size]", on_release=a_img_lb),
+                    DialogItem(IconLeftWidget(icon="file-image"), text="[size="+str(ss)+"]Medium Image[/size]", on_release=a_img_def),
+                    DialogItem(IconLeftWidget(icon="image-outline"), text="[size="+str(ss)+"]High-res Image[/size]", on_release=a_img_hq),
+                    DialogItem(IconLeftWidget(icon="file-outline"), text="[size="+str(ss)+"]File Attachment[/size]", on_release=a_file),
+                ],
+                buttons=[ cancel_button ],
+                width_offset=dp(12),
+            )
+
+            cancel_button.bind(on_release=attach_dialog.dismiss)
+            attach_dialog.open()
+            attach_dialog.update_width()
+
+        else:
+            self.attach_path = None
+            self.attach_type = None
+            self.update_message_widgets()
+
+            if RNS.vendor.platformutils.get_platform() == "android":
+                toast("Attachment removed")
+            else:
+                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                ate_dialog = MDDialog(
+                    title="Attachment Removed",
+                    text="The attached resource was removed from the message",
+                    buttons=[ ok_button ],
+                )
+                ok_button.bind(on_release=ate_dialog.dismiss)
+                ate_dialog.open()
+
 
     def update_message_widgets(self):
         toolbar_items = self.messages_view.ids.messages_toolbar.ids.right_actions.children
         mode_item = toolbar_items[1]
+        attachment_item = toolbar_items[4]
+
+        if self.attach_path != None:
+            attachment_item.icon = "attachment-check"
+        else:
+            attachment_item.icon = "attachment-plus"
 
         if self.outbound_mode_paper:
             mode_item.icon = "qrcode"
@@ -3719,7 +3922,17 @@ class SidebandApp(MDApp):
             toast("Using \""+os.path.basename(path)+"\" as offline map")
         except Exception as e:
             RNS.log(f"Error while loading map \"{path}\": "+str(e), RNS.LOG_ERROR)
-            toast("Could not load map \""+os.path.basename(path)+"\"")
+            if RNS.vendor.platformutils.get_platform() == "android":
+                toast("Could not load map \""+os.path.basename(path)+"\"")
+            else:
+                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                map_dialog = MDDialog(
+                    title="Map Error",
+                    text="The specified map file could not be loaded. Make sure the selected file is an MBTiles map in raster format. Vector maps are currently not supported.",
+                    buttons=[ ok_button ],
+                )
+                ok_button.bind(on_release=map_dialog.dismiss)
+                map_dialog.open()
             self.sideband.config["map_storage_file"] = None
             self.sideband.config["map_use_offline"] = False
             self.sideband.config["map_use_online"] = True
@@ -3730,6 +3943,47 @@ class SidebandApp(MDApp):
         self.manager_open = False
         self.file_manager.close()
         self.map_update_source()
+
+    def map_select_file_action(self, sender=None):
+        perm_ok = False
+        if self.sideband.config["map_storage_path"] == None:
+            if RNS.vendor.platformutils.is_android():
+                perm_ok = self.check_storage_permission()
+
+                if self.sideband.config["map_storage_external"]:
+                    path = secondary_external_storage_path()
+                    if path == None: path = primary_external_storage_path()
+                else: 
+                    path = primary_external_storage_path()
+
+            else:
+                perm_ok = True
+                if self.sideband.config["map_storage_external"]:
+                    path = "/"
+                else:
+                    path = os.path.expanduser("~")
+        else:
+            perm_ok = True
+            path = self.sideband.config["map_storage_path"]
+
+        if perm_ok and path != None:
+            try:
+                self.file_manager = MDFileManager(
+                    exit_manager=self.map_fm_exited,
+                    select_path=self.map_fm_got_path,
+                )
+                self.file_manager.ext = [".mbtiles"]
+                self.file_manager.show(path)
+
+            except Exception as e:
+                self.sideband.config["map_storage_path"] = None
+                self.sideband.save_configuration()
+                toast("Error reading directory, check permissions!")
+        
+        else:
+            self.sideband.config["map_storage_path"] = None
+            self.sideband.save_configuration()
+            toast("No file access, check permissions!")
 
     def map_get_offline_source(self):
         if self.offline_source != None:
@@ -3818,47 +4072,6 @@ class SidebandApp(MDApp):
                 self.map_update_source(source)
         except Exception as e:
             RNS.log("Error while switching map layer: "+str(e), RNS.LOG_ERROR)
-
-    def map_select_file_action(self, sender=None):
-        perm_ok = False
-        if self.sideband.config["map_storage_path"] == None:
-            if RNS.vendor.platformutils.is_android():
-                perm_ok = self.check_storage_permission()
-
-                if self.sideband.config["map_storage_external"]:
-                    path = secondary_external_storage_path()
-                    if path == None: path = primary_external_storage_path()
-                else: 
-                    path = primary_external_storage_path()
-
-            else:
-                perm_ok = True
-                if self.sideband.config["map_storage_external"]:
-                    path = "/"
-                else:
-                    path = os.path.expanduser("~")
-        else:
-            perm_ok = True
-            path = self.sideband.config["map_storage_path"]
-
-        if perm_ok and path != None:
-            try:
-                self.file_manager = MDFileManager(
-                    exit_manager=self.map_fm_exited,
-                    select_path=self.map_fm_got_path,
-                )
-                self.file_manager.ext = [".mbtiles"]
-                self.file_manager.show(path)
-
-            except Exception as e:
-                self.sideband.config["map_storage_path"] = None
-                self.sideband.save_configuration()
-                toast("Error reading directory, check permissions!")
-        
-        else:
-            self.sideband.config["map_storage_path"] = None
-            self.sideband.save_configuration()
-            toast("No file access, check permissions!")
 
     map_nav_divisor = 12
     map_nav_zoom = 0.25
@@ -4518,6 +4731,9 @@ Thank you very much for using Free Communications Systems.
 
 class CustomOneLineIconListItem(OneLineIconListItem):
     icon = StringProperty()
+
+class DialogItem(OneLineIconListItem):
+    divider = None
 
 class MDMapIconButton(MDIconButton):
     pass

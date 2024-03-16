@@ -3244,7 +3244,7 @@ class SidebandCore():
             RNS.log("Error while creating paper message: "+str(e), RNS.LOG_ERROR)
             return False
 
-    def send_message(self, content, destination_hash, propagation, skip_fields=False, no_display=False):
+    def send_message(self, content, destination_hash, propagation, skip_fields=False, no_display=False, attachment = None, image = None, audio = None):
         try:
             if content == "":
                 raise ValueError("Message content cannot be empty")
@@ -3262,6 +3262,11 @@ class SidebandCore():
                 fields = {}
             else:
                 fields = self.get_message_fields(destination_hash)
+
+            if attachment != None:
+                fields[LXMF.FIELD_FILE_ATTACHMENTS] = [attachment]
+            if image != None:
+                fields[LXMF.FIELD_IMAGE] = image
 
             lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = fields)
             
