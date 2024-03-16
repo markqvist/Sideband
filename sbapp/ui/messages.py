@@ -202,6 +202,9 @@ class Messages():
                 extra_telemetry = {}
                 telemeter = None
                 image_field = None
+                has_image = False
+                attachments_field = None
+                has_attachment = False
                 force_markup = False
                 signature_valid = False
 
@@ -239,8 +242,17 @@ class Messages():
                 if "lxm" in m and m["lxm"] and m["lxm"].fields != None and LXMF.FIELD_IMAGE in m["lxm"].fields:
                     try:
                         image_field = m["lxm"].fields[LXMF.FIELD_IMAGE]
+                        has_image = True
                     except Exception as e:
                         pass
+
+                if "lxm" in m and m["lxm"] and m["lxm"].fields != None and LXMF.FIELD_FILE_ATTACHMENTS in m["lxm"].fields:
+                    if len(m["lxm"].fields[LXMF.FIELD_FILE_ATTACHMENTS]) > 0:
+                        try:
+                            attachments_field = m["lxm"].fields[LXMF.FIELD_FILE_ATTACHMENTS]
+                            has_attachment = True
+                        except Exception as e:
+                            pass
 
                 rcvd_d_str = ""
                 
@@ -331,14 +343,24 @@ class Messages():
                         pre_content += "[b]Warning![/b] The signature for this message could not be validated. [b]This message is likely to be fake[/b].\n\n"
                         force_markup = True
 
+                if has_attachment:
+                    heading_str += "\n[b]Attachments[/b] "
+                    for attachment in attachments_field:
+                        heading_str += str(attachment[0])+", "
+                    heading_str = heading_str[:-2]
+
                 item = ListLXMessageCard(
                     text=pre_content+message_markup.decode("utf-8")+extra_content,
                     heading=heading_str,
                     md_bg_color=msg_color,
                 )
 
+                if has_attachment:
+                    item.attachments_field = attachments_field
+
                 if image_field != None:
                     item.has_image = True
+                    item.image_field = image_field
                     img = item.ids.message_image
                     img.source = ""
                     img.texture = CoreImage(io.BytesIO(image_field[1]), ext=image_field[0]).texture
@@ -422,6 +444,134 @@ class Messages():
                     def x():
                         Clipboard.copy(msg)
                         item.dmenu.dismiss()
+
+                    return x
+
+                def gen_save_image(item):
+                    if RNS.vendor.platformutils.is_android():
+                        def x():
+                            image_field = item.image_field
+                            extension = str(image_field[0]).replace(".", "")
+                            filename = time.strftime("LXM_%Y_%m_%d_%H_%M_%S", time.localtime(time.time()))+"."+str(extension)
+                            
+                            self.app.share_image(image_field[1], filename)
+                            item.dmenu.dismiss()
+                        return x
+
+                    else:
+                        def x():
+                            image_field = item.image_field
+                            try:
+                                extension = str(image_field[0]).replace(".", "")
+                                filename = time.strftime("LXM_%Y_%m_%d_%H_%M_%S", time.localtime(time.time()))+"."+str(extension)
+                                if RNS.vendor.platformutils.is_darwin():
+                                    save_path = str(plyer.storagepath.get_downloads_dir()+filename).replace("file://", "")
+                                else:
+                                    save_path = plyer.storagepath.get_downloads_dir()+"/"+filename
+
+                                with open(save_path, "wb") as save_file:
+                                    save_file.write(image_field[1])
+
+                                item.dmenu.dismiss()
+
+                                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                                dialog = MDDialog(
+                                    title="Image Saved",
+                                    text="The image has been saved to: "+save_path+"",
+                                    buttons=[ ok_button ],
+                                    # elevation=0,
+                                )
+                                def dl_ok(s):
+                                    dialog.dismiss()
+                                
+                                ok_button.bind(on_release=dl_ok)
+                                dialog.open()
+
+                            except Exception as e:
+                                item.dmenu.dismiss()
+                                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                                dialog = MDDialog(
+                                    title="Error",
+                                    text="Could not save the image:\n\n"+save_path+"\n\n"+str(e),
+                                    buttons=[ ok_button ],
+                                    # elevation=0,
+                                )
+                                def dl_ok(s):
+                                    dialog.dismiss()
+                                
+                                ok_button.bind(on_release=dl_ok)
+                                dialog.open()
+
+                            item.dmenu.dismiss()
+
+                        return x
+
+                def gen_save_attachment(item):
+                    def x():
+                        attachments_field = item.attachments_field
+                        if isinstance(attachments_field, list):
+                            try:
+                                if RNS.vendor.platformutils.is_darwin():
+                                    output_path = str(plyer.storagepath.get_downloads_dir()).replace("file://", "")
+                                else:
+                                    output_path = plyer.storagepath.get_downloads_dir()+"/"
+
+                                if len(attachments_field) == 1:
+                                    saved_text = "The attached file has been saved to: "+output_path
+                                    saved_title = "Attachment Saved"
+                                else:
+                                    saved_text = "The attached files have been saved to: "+output_path
+                                    saved_title = "Attachment Saved"
+
+                                for attachment in attachments_field:
+                                    filename = str(attachment[0]).replace("../", "").replace("..\\", "")
+                                    if RNS.vendor.platformutils.is_darwin():
+                                        save_path = str(plyer.storagepath.get_downloads_dir()+filename).replace("file://", "")
+                                    else:
+                                        save_path = plyer.storagepath.get_downloads_dir()+"/"+filename
+
+                                    name_counter = 1
+                                    pre_count = save_path
+                                    while os.path.exists(save_path):
+                                        save_path = str(pre_count)+"."+str(name_counter)
+                                        name_counter += 1
+
+                                    saved_text = "The attached file has been saved to: "+save_path
+
+                                    with open(save_path, "wb") as save_file:
+                                        save_file.write(attachment[1])
+
+                                item.dmenu.dismiss()
+
+                                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                                dialog = MDDialog(
+                                    title=saved_title,
+                                    text=saved_text,
+                                    buttons=[ ok_button ],
+                                    # elevation=0,
+                                )
+                                def dl_ok(s):
+                                    dialog.dismiss()
+                                
+                                ok_button.bind(on_release=dl_ok)
+                                dialog.open()
+
+                            except Exception as e:
+                                item.dmenu.dismiss()
+                                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                                dialog = MDDialog(
+                                    title="Error",
+                                    text="Could not save the attachment:\n\n"+save_path+"\n\n"+str(e),
+                                    buttons=[ ok_button ],
+                                    # elevation=0,
+                                )
+                                def dl_ok(s):
+                                    dialog.dismiss()
+                                
+                                ok_button.bind(on_release=dl_ok)
+                                dialog.open()
+
+                            item.dmenu.dismiss()
 
                     return x
 
@@ -670,6 +820,22 @@ class Messages():
                                     "on_release": gen_del(m["hash"], item)
                                 }
                             ]
+                        if has_image:
+                            extra_item = {
+                                "viewclass": "OneLineListItem",
+                                "text": "Save image",
+                                "height": dp(40),
+                                "on_release": gen_save_image(item)
+                            }
+                            dm_items.append(extra_item)
+                        if has_attachment:
+                            extra_item = {
+                                "viewclass": "OneLineListItem",
+                                "text": "Save attachment",
+                                "height": dp(40),
+                                "on_release": gen_save_attachment(item)
+                            }
+                            dm_items.append(extra_item)
 
                 item.dmenu = MDDropdownMenu(
                     caller=item.ids.msg_submenu,

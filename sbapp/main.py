@@ -470,7 +470,12 @@ class SidebandApp(MDApp):
                 File = autoclass("java.io.File")
                 FileProvider = autoclass("androidx.core.content.FileProvider")
 
-                image.save(file_path)
+                if isinstance(image, bytes):
+                    with open(file_path, "wb") as export_file:
+                        export_file.write(image)
+                else:
+                    image.save(file_path)
+
                 i_file = File(file_path)
                 image_uri = FileProvider.getUriForFile(mActivity, "io.unsigned.sideband.provider", i_file)
 
@@ -484,7 +489,7 @@ class SidebandApp(MDApp):
                 ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                 dialog = MDDialog(
                     title="Export Error",
-                    text="The QR-code could not be exported and shared:\n\n"+str(e),
+                    text="The resource could not be exported and shared:\n\n"+str(e),
                     buttons=[ ok_button ],
                 )
                 def dl_ok(s):
