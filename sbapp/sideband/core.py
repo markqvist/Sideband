@@ -2682,7 +2682,11 @@ class SidebandCore():
                                 RNS.log("Next telemetry request is "+("in "+RNS.prettytime(next_request-now) if next_request-now > 0 else "now"), RNS.LOG_EXTREME)
 
                                 if now > last_request_timebase+request_interval:
-                                    RNS.log("Initiating telemetry request to collector", RNS.LOG_DEBUG)
+                                    try:
+                                        RNS.log("Initiating telemetry request to collector", RNS.LOG_DEBUG)
+                                        self.request_latest_telemetry(from_addr=self.config["telemetry_collector"])
+                                    except Exception as e:
+                                        RNS.log("An error occurred while requesting a telemetry update from collector. The contained exception was: "+str(e), RNS.LOG_ERROR)
 
                             except Exception as e:
                                 RNS.log("An error occurred while requesting scheduled telemetry from collector: "+str(e), RNS.LOG_ERROR)
