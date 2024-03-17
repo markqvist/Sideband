@@ -1222,8 +1222,6 @@ class SidebandApp(MDApp):
                             self.attach_type = None
                             self.attach_path = None
                             self.update_message_widgets()
-                            RNS.log("Trace:")
-                            RNS.trace_exception(e)
                             return
 
                         self.attach_type = None
