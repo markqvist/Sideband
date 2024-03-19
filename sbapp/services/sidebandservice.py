@@ -209,9 +209,20 @@ class SidebandService():
         if RNS.vendor.platformutils.is_android():
             self.android_service = autoclass('org.kivy.android.PythonService').mService
             self.app_context = self.android_service.getApplication().getApplicationContext()
-            self.wifi_manager = self.app_context.getSystemService(Context.WIFI_SERVICE)
-            self.power_manager = self.app_context.getSystemService(Context.POWER_SERVICE)
-            # The returned instance /\ is an android.net.wifi.WifiManager
+            
+            try:
+                self.wifi_manager = self.app_context.getSystemService(Context.WIFI_SERVICE)
+            except Exception as e:
+                self.wifi_manager = None
+                RNS.log("Could not acquire Android WiFi Manager! Keeping WiFi-based interfaces up will be unavailable.", RNS.LOG_ERROR)
+                RNS.log("The contained exception was: "+str(e), RNS.LOG_ERROR)
+
+            try:
+                self.power_manager = self.app_context.getSystemService(Context.POWER_SERVICE)
+            except Exception as e:
+                self.power_manager = None
+                RNS.log("Could not acquire Android Power Manager! Taking wakelocks and keeping the CPU running will be unavailable.", RNS.LOG_ERROR)
+                RNS.log("The contained exception was: "+str(e), RNS.LOG_ERROR)
 
             self.discover_usb_devices()
         
@@ -259,24 +270,28 @@ class SidebandService():
     def take_locks(self, force_multicast=False):
         if RNS.vendor.platformutils.get_platform() == "android":
             if self.multicast_lock == None or force_multicast:
-                RNS.log("Creating multicast lock", RNS.LOG_DEBUG)
-                self.multicast_lock = self.wifi_manager.createMulticastLock("sideband_service")
+                if self.wifi_manager != None:
+                    RNS.log("Creating multicast lock", RNS.LOG_DEBUG)
+                    self.multicast_lock = self.wifi_manager.createMulticastLock("sideband_service")
 
-            if not self.multicast_lock.isHeld():
-                RNS.log("Taking multicast lock", RNS.LOG_DEBUG)
-                self.multicast_lock.acquire()
-            else:
-                RNS.log("Multicast lock already held", RNS.LOG_DEBUG)
+            if self.multicast_lock != None:
+                if not self.multicast_lock.isHeld():
+                    RNS.log("Taking multicast lock", RNS.LOG_DEBUG)
+                    self.multicast_lock.acquire()
+                else:
+                    RNS.log("Multicast lock already held", RNS.LOG_DEBUG)
 
             if self.wake_lock == None:
-                RNS.log("Creating wake lock", RNS.LOG_DEBUG)
-                self.wake_lock = self.power_manager.newWakeLock(self.power_manager.PARTIAL_WAKE_LOCK, "sideband_service")
+                if self.power_manager != None:
+                    RNS.log("Creating wake lock", RNS.LOG_DEBUG)
+                    self.wake_lock = self.power_manager.newWakeLock(self.power_manager.PARTIAL_WAKE_LOCK, "sideband_service")
 
-            if not self.wake_lock.isHeld():
-                RNS.log("Taking wake lock", RNS.LOG_DEBUG)
-                self.wake_lock.acquire()
-            else:
-                RNS.log("Wake lock already held", RNS.LOG_DEBUG)
+            if self.wake_lock != None:
+                if not self.wake_lock.isHeld():
+                    RNS.log("Taking wake lock", RNS.LOG_DEBUG)
+                    self.wake_lock.acquire()
+                else:
+                    RNS.log("Wake lock already held", RNS.LOG_DEBUG)
 
     def release_locks(self):
         if RNS.vendor.platformutils.get_platform() == "android":
