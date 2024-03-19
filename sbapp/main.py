@@ -2010,6 +2010,10 @@ class SidebandApp(MDApp):
                 self.sideband.config["lxmf_sync_limit"] = self.settings_screen.ids.settings_lxmf_sync_limit.active
                 self.sideband.save_configuration()
 
+            def save_lxm_limit_1mb(sender=None, event=None):
+                self.sideband.config["lxm_limit_1mb"] = self.settings_screen.ids.settings_lxm_limit_1mb.active
+                self.sideband.save_configuration()
+
             def save_debug(sender=None, event=None):
                 self.sideband.config["debug"] = self.settings_screen.ids.settings_debug.active
                 self.sideband.save_configuration()
@@ -2127,6 +2131,9 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.settings_lxmf_sync_limit.active = sync_limit
             self.settings_screen.ids.settings_lxmf_sync_limit.bind(active=save_lxmf_sync_limit)
+
+            self.settings_screen.ids.settings_lxm_limit_1mb.active = self.sideband.config["lxm_limit_1mb"]
+            self.settings_screen.ids.settings_lxm_limit_1mb.bind(active=save_lxm_limit_1mb)
 
             self.settings_screen.ids.settings_debug.active = self.sideband.config["debug"]
             self.settings_screen.ids.settings_debug.bind(active=save_debug)

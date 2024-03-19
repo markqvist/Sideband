@@ -143,7 +143,7 @@ class Messages():
                     prgstr = ""
                     prg = self.app.sideband.get_lxm_progress(msg["hash"])
                     if prg != None:
-                        prgstr = ", "+str(round(prg*100, 1))+"% progress"
+                        prgstr = ", "+str(round(prg*100, 1))+"% done"
                     if msg["title"]:
                         titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
                     w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Sending"+prgstr+"                          "

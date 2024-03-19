@@ -284,6 +284,7 @@ class SidebandCore():
         self.config["nn_home_node"] = None
         self.config["print_command"] = "lp"
         self.config["eink_mode"] = False
+        self.config["lxm_limit_1mb"] = True
 
         # Connectivity
         self.config["connect_transport"] = False
@@ -413,6 +414,8 @@ class SidebandCore():
             self.config["eink_mode"] = False
         if not "display_style_in_contact_list" in self.config:
             self.config["display_style_in_contact_list"] = False
+        if not "lxm_limit_1mb" in self.config:
+            self.config["lxm_limit_1mb"] = True
 
         if not "input_language" in self.config:
             self.config["input_language"] = None
@@ -3142,7 +3145,13 @@ class SidebandCore():
 
         RNS.log("Reticulum started, activating LXMF...")
         self.setstate("init.loadingstate", "Activating LXMF Router")
-        self.message_router = LXMF.LXMRouter(identity = self.identity, storagepath = self.lxmf_storage, autopeer = True)
+        
+        if self.config["lxm_limit_1mb"]:
+            lxm_limit = 1000
+        else:
+            lxm_limit = 128*1000
+
+        self.message_router = LXMF.LXMRouter(identity = self.identity, storagepath = self.lxmf_storage, autopeer = True, delivery_limit = lxm_limit)
         self.message_router.register_delivery_callback(self.lxmf_delivery)
 
         self.lxmf_destination = self.message_router.register_delivery_identity(self.identity, display_name=self.config["display_name"])
