@@ -141,12 +141,22 @@ class Messages():
                     txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
                     titlestr = ""
                     prgstr = ""
+                    sphrase = "Sending"
                     prg = self.app.sideband.get_lxm_progress(msg["hash"])
                     if prg != None:
                         prgstr = ", "+str(round(prg*100, 1))+"% done"
+                        if prg <= 0.00:
+                            sphrase = "Waiting for path"
+                        elif prg <= 0.03:
+                            sphrase = "Establishing link"
+                        elif prg <= 0.05:
+                            sphrase = "Link established"
+                        elif prg >= 0.05:
+                            sphrase = "Sending"
+                        
                     if msg["title"]:
                         titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                    w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Sending"+prgstr+"                          "
+                    w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] "+sphrase+prgstr+"                          "
                     m["state"] = msg["state"]
 
                 if msg["state"] == LXMF.LXMessage.DELIVERED:
