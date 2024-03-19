@@ -40,6 +40,9 @@ else:
     from .helpers import ts_format, file_ts_format, mdc
     from .helpers import color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
 
+if RNS.vendor.platformutils.is_darwin():
+    from PIL import Image as PilImage
+
 from kivy.lang.builder import Builder
 
 class ListLXMessageCard(MDCard):
@@ -387,6 +390,16 @@ class Messages():
                     item.image_field = image_field
                     img = item.ids.message_image
                     img.source = ""
+
+                    # Convert to PNG format on OSX, since support
+                    # for webp seems rather flaky.
+                    if RNS.vendor.platformutils.is_darwin():
+                        im = PilImage.open(io.BytesIO(image_field[1]))
+                        buf = io.BytesIO()
+                        im.save(buf, format="png")
+                        image_field[1] = buf.getvalue()
+                        image_field[0] = "png"
+
                     img.texture = CoreImage(io.BytesIO(image_field[1]), ext=image_field[0]).texture
                     img.reload()
 
