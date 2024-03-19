@@ -135,6 +135,20 @@ class Messages():
 
             if m["state"] == LXMF.LXMessage.SENDING or m["state"] == LXMF.LXMessage.OUTBOUND:
                 msg = self.app.sideband.message(m["hash"])
+
+                if msg["state"] == LXMF.LXMessage.OUTBOUND or msg["state"] == LXMF.LXMessage.SENDING:
+                    w.md_bg_color = msg_color = mdc(color_unknown, intensity_msgs)
+                    txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
+                    titlestr = ""
+                    prgstr = ""
+                    prg = self.app.sideband.get_lxm_progress(msg["hash"])
+                    if prg != None:
+                        prgstr = ", "+str(round(prg*100, 1))+"% progress"
+                    if msg["title"]:
+                        titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
+                    w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Sending"+prgstr+"                          "
+                    m["state"] = msg["state"]
+
                 if msg["state"] == LXMF.LXMessage.DELIVERED:
                     w.md_bg_color = msg_color = mdc(color_delivered, intensity_msgs)
                     txstr = time.strftime(ts_format, time.localtime(msg["sent"]))

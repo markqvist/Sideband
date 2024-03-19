@@ -3248,6 +3248,13 @@ class SidebandCore():
             RNS.log("Error while creating paper message: "+str(e), RNS.LOG_ERROR)
             return False
 
+    def get_lxm_progress(self, lxm_hash):
+        try:
+            return self.message_router.get_outbound_progress(lxm_hash)
+        except Exception as e:
+            RNS.log("An error occurred while getting message transfer progress: "+str(e), RNS.LOG_ERROR)
+            return None
+
     def send_message(self, content, destination_hash, propagation, skip_fields=False, no_display=False, attachment = None, image = None, audio = None):
         try:
             if content == "":
