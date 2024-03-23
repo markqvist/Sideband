@@ -2368,7 +2368,7 @@ class SidebandApp(MDApp):
                     all_valid = True
                     iftypes = ["local", "tcp", "i2p", "rnode", "modem", "serial"]
                     for iftype in iftypes:
-                        element = self.root.ids["connectivity_"+iftype+"_ifmode"]
+                        element = self.connectivity_screen.ids["connectivity_"+iftype+"_ifmode"]
                         modes = ["full", "gateway", "access point", "roaming", "boundary"]
                         value = element.text.lower()
                         if value in ["", "f"] or value.startswith("fu"):
