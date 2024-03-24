@@ -254,6 +254,9 @@ class Messages():
                                 extra_content = "[font=RobotoMono-Regular]> ping[/font]\n"
                             if Commands.SIGNAL_REPORT in command:
                                 extra_content = "[font=RobotoMono-Regular]> sig[/font]\n"
+                            if Commands.PLUGIN_COMMAND in command:
+                                cmd_content = command[Commands.PLUGIN_COMMAND]
+                                extra_content = "[font=RobotoMono-Regular]> "+str(cmd_content)+"[/font]\n"
                         extra_content = extra_content[:-1]
                         force_markup = True
                     except Exception as e:

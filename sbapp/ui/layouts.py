@@ -134,6 +134,15 @@ MDNavigationLayout:
 
                                                        
                         OneLineIconListItem:
+                            text: "Plugins"
+                            on_release: root.ids.screen_manager.app.plugins_action(self)
+                        
+                            IconLeftWidget:
+                                icon: "google-circles-extended"
+                                on_release: root.ids.screen_manager.app.keys_action(self)
+
+                                                       
+                        OneLineIconListItem:
                             text: "Guide"
                             on_release: root.ids.screen_manager.app.guide_action(self)
                         
@@ -1123,6 +1132,84 @@ MDScreen:
                     font_size: dp(16)
                     size_hint: [1.0, None]
                     on_release: root.app.identity_restore_action(self)
+"""
+
+layout_plugins_screen = """
+MDScreen:
+    name: "plugins_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Plugins & Services"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                ['close', lambda x: root.app.close_plugins_action(self)],
+                ]
+
+        ScrollView:
+            id:plugins_scrollview
+
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: "24dp"
+                size_hint_y: None
+                height: self.minimum_height
+                padding: [dp(35), dp(35), dp(35), dp(35)]
+
+
+                MDLabel:
+                    id: plugins_info
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(26),dp(0)]
+                    height: dp(24)
+                    
+                    MDLabel:
+                        text: "Enable Plugins"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: settings_service_plugins_enabled
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(26),dp(0)]
+                    height: dp(24)
+                    
+                    MDLabel:
+                        text: "Enable Command Plugins"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: settings_command_plugins_enabled
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDRectangleFlatIconButton:
+                    id: plugins_display
+                    icon: "folder-cog-outline"
+                    text: "Select Plugins Directory"
+                    padding: [dp(0), dp(14), dp(0), dp(14)]
+                    icon_size: dp(24)
+                    font_size: dp(16)
+                    size_hint: [1.0, None]
+                    on_release: root.app.plugins_select_directory_action(self)
 """
 
 layout_settings_screen = """

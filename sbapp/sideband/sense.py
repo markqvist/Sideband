@@ -9,6 +9,7 @@ from .geo import orthodromic_distance, euclidian_distance
 from .geo import azalt, angle_to_horizon, radio_horizon, shared_radio_horizon
 
 class Commands():
+  PLUGIN_COMMAND    = 0x00
   TELEMETRY_REQUEST = 0x01
   PING              = 0x02
   ECHO              = 0x03
