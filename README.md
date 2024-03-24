@@ -17,7 +17,7 @@ If you want to help develop this program, get in touch.
 
 ## Installation On Linux, Android and MacOS
 
-For your Android devices, download an [APK on the latest release](https://github.com/markqvist/Sideband/releases/latest) page.
+For your Android devices, you can install Sideband through F-Droid, by adding the [Between the Borders Archive Repo](https://reticulum.betweentheborders.com/fdroid/archive/), or you can download an [APK on the latest release](https://github.com/markqvist/Sideband/releases/latest) page. Both sources are signed with the same release keys, and can be used interchangably.
 
 A DMG file containing a macOS app bundle is also available on the  [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
 
