@@ -17,7 +17,7 @@ import multiprocessing.connection
 from threading import Lock
 from .res import sideband_fb_data
 from .sense import Telemeter, Commands
-from .plugins import SidebandCommandPlugin, SidebandServicePlugin
+from .plugins import SidebandCommandPlugin, SidebandServicePlugin, SidebandTelemetryPlugin
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass, cast
@@ -247,6 +247,7 @@ class SidebandCore():
 
         self.active_command_plugins = {}
         self.active_service_plugins = {}
+        self.active_telemetry_plugins = {}
         if self.is_service or self.is_standalone:
             self.__load_plugins()
 
@@ -684,6 +685,7 @@ class SidebandCore():
                             plugin_globals = {}
                             plugin_globals["SidebandServicePlugin"] = SidebandServicePlugin
                             plugin_globals["SidebandCommandPlugin"] = SidebandCommandPlugin
+                            plugin_globals["SidebandTelemetryPlugin"] = SidebandTelemetryPlugin
                             RNS.log("Loading plugin \""+str(file)+"\"", RNS.LOG_NOTICE)
                             plugin_path = os.path.join(plugins_path, file)
                             exec(open(plugin_path).read(), plugin_globals)
@@ -715,8 +717,27 @@ class SidebandCore():
                                                 pass
                                             del plugin
 
+                                    elif issubclass(type(plugin), SidebandTelemetryPlugin):
+                                        plugin_name = plugin.plugin_name
+                                        if not plugin_name in self.active_telemetry_plugins:
+                                            self.active_telemetry_plugins[plugin_name] = plugin
+                                            RNS.log("Registered "+str(plugin)+" as telemetry plugin \""+str(plugin_name)+"\"", RNS.LOG_NOTICE)
+                                        else:
+                                            RNS.log("Could not register "+str(plugin)+" as telemetry plugin \""+str(plugin_name)+"\". Telemetry type was already registered", RNS.LOG_ERROR)
+                                            try:
+                                                plugin.stop()
+                                            except Exception as e:
+                                                pass
+                                            del plugin
+
                                     else:
                                         RNS.log("Unknown plugin type was loaded, ignoring it.", RNS.LOG_ERROR)
+                                        try:
+                                            plugin.stop()
+                                        except Exception as e:
+                                            pass
+                                        del plugin
+
                                 else:
                                     RNS.log("Plugin "+str(plugin)+" failed to start, ignoring it.", RNS.LOG_ERROR)
                                     del plugin
@@ -2420,6 +2441,15 @@ class SidebandCore():
                                     self.telemeter.disable(sensor)
                     else:
                         self.telemeter.disable(sensor)
+
+            for telemetry_plugin in self.active_telemetry_plugins:
+                try:
+                    plugin = self.active_telemetry_plugins[telemetry_plugin]
+                    plugin.update_telemetry(self.telemeter)
+
+                except Exception as e:
+                    RNS.log("An error occurred while "+str(telemetry_plugin)+" was handling telemetry. The contained exception was: "+str(e), RNS.LOG_ERROR)
+                    RNS.trace_exception(e)
             
             if self.config["telemetry_s_fixed_location"]:
                 self.telemeter.synthesize("location")

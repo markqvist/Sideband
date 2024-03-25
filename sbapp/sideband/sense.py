@@ -43,38 +43,28 @@ class Telemeter():
 
   def __init__(self, from_packed=False, android_context=None, service=False, location_provider=None):
     self.sids = {
-      Sensor.SID_TIME: Time,
-      Sensor.SID_RECEIVED: Received,
-      Sensor.SID_INFORMATION: Information,
-      Sensor.SID_BATTERY: Battery,
-      Sensor.SID_PRESSURE: Pressure,
-      Sensor.SID_LOCATION: Location,
-      Sensor.SID_PHYSICAL_LINK: PhysicalLink,
-      Sensor.SID_TEMPERATURE: Temperature,
-      Sensor.SID_HUMIDITY: Humidity,
-      Sensor.SID_MAGNETIC_FIELD: MagneticField,
-      Sensor.SID_AMBIENT_LIGHT: AmbientLight,
-      Sensor.SID_GRAVITY: Gravity,
-      Sensor.SID_ANGULAR_VELOCITY: AngularVelocity,
-      Sensor.SID_ACCELERATION: Acceleration,
-      Sensor.SID_PROXIMITY: Proximity,
+      Sensor.SID_TIME: Time, Sensor.SID_RECEIVED: Received,
+      Sensor.SID_INFORMATION: Information, Sensor.SID_BATTERY: Battery,
+      Sensor.SID_PRESSURE: Pressure, Sensor.SID_LOCATION: Location,
+      Sensor.SID_PHYSICAL_LINK: PhysicalLink, Sensor.SID_TEMPERATURE: Temperature,
+      Sensor.SID_HUMIDITY: Humidity, Sensor.SID_MAGNETIC_FIELD: MagneticField,
+      Sensor.SID_AMBIENT_LIGHT: AmbientLight, Sensor.SID_GRAVITY: Gravity,
+      Sensor.SID_ANGULAR_VELOCITY: AngularVelocity, Sensor.SID_ACCELERATION: Acceleration,
+      Sensor.SID_PROXIMITY: Proximity, Sensor.SID_POWER_CONSUMPTION: PowerConsumption,
+      Sensor.SID_POWER_PRODUCTION: PowerProduction, Sensor.SID_PROCESSOR: Processor,
+      Sensor.SID_RAM: RandomAccessMemory, Sensor.SID_NVM: NonVolatileMemory,
     }
     self.available = {
       "time": Sensor.SID_TIME,
-      "information": Sensor.SID_INFORMATION,
-      "received": Sensor.SID_RECEIVED,
-      "battery": Sensor.SID_BATTERY,
-      "pressure": Sensor.SID_PRESSURE,
-      "location": Sensor.SID_LOCATION,
-      "physical_link": Sensor.SID_PHYSICAL_LINK,
-      "temperature": Sensor.SID_TEMPERATURE,
-      "humidity": Sensor.SID_HUMIDITY,
-      "magnetic_field": Sensor.SID_MAGNETIC_FIELD,
-      "ambient_light": Sensor.SID_AMBIENT_LIGHT,
-      "gravity": Sensor.SID_GRAVITY,
-      "angular_velocity": Sensor.SID_ANGULAR_VELOCITY,
-      "acceleration": Sensor.SID_ACCELERATION,
-      "proximity": Sensor.SID_PROXIMITY,
+      "information": Sensor.SID_INFORMATION, "received": Sensor.SID_RECEIVED,
+      "battery": Sensor.SID_BATTERY, "pressure": Sensor.SID_PRESSURE,
+      "location": Sensor.SID_LOCATION, "physical_link": Sensor.SID_PHYSICAL_LINK,
+      "temperature": Sensor.SID_TEMPERATURE, "humidity": Sensor.SID_HUMIDITY,
+      "magnetic_field": Sensor.SID_MAGNETIC_FIELD, "ambient_light": Sensor.SID_AMBIENT_LIGHT,
+      "gravity": Sensor.SID_GRAVITY, "angular_velocity": Sensor.SID_ANGULAR_VELOCITY,
+      "acceleration": Sensor.SID_ACCELERATION, "proximity": Sensor.SID_PROXIMITY,
+      "power_consumption": Sensor.SID_POWER_CONSUMPTION, "power_production": Sensor.SID_POWER_PRODUCTION,
+      "processor": Sensor.SID_PROCESSOR, "ram": Sensor.SID_RAM, "nvm": Sensor.SID_NVM,
     }
     self.from_packed = from_packed
     self.sensors = {}
@@ -180,22 +170,27 @@ class Telemeter():
 
 
 class Sensor():
-  SID_NONE             = 0x00
-  SID_TIME             = 0x01
-  SID_LOCATION         = 0x02
-  SID_PRESSURE         = 0x03
-  SID_BATTERY          = 0x04
-  SID_PHYSICAL_LINK    = 0x05
-  SID_ACCELERATION     = 0x06
-  SID_TEMPERATURE      = 0x07
-  SID_HUMIDITY         = 0x08
-  SID_MAGNETIC_FIELD   = 0x09
-  SID_AMBIENT_LIGHT    = 0x0A
-  SID_GRAVITY          = 0x0B
-  SID_ANGULAR_VELOCITY = 0x0C
-  SID_PROXIMITY        = 0x0E
-  SID_INFORMATION      = 0x0F
-  SID_RECEIVED         = 0x10
+  SID_NONE              = 0x00
+  SID_TIME              = 0x01
+  SID_LOCATION          = 0x02
+  SID_PRESSURE          = 0x03
+  SID_BATTERY           = 0x04
+  SID_PHYSICAL_LINK     = 0x05
+  SID_ACCELERATION      = 0x06
+  SID_TEMPERATURE       = 0x07
+  SID_HUMIDITY          = 0x08
+  SID_MAGNETIC_FIELD    = 0x09
+  SID_AMBIENT_LIGHT     = 0x0A
+  SID_GRAVITY           = 0x0B
+  SID_ANGULAR_VELOCITY  = 0x0C
+  SID_PROXIMITY         = 0x0E
+  SID_INFORMATION       = 0x0F
+  SID_RECEIVED          = 0x10
+  SID_POWER_CONSUMPTION = 0x11
+  SID_POWER_PRODUCTION  = 0x12
+  SID_PROCESSOR         = 0x13
+  SID_RAM               = 0x14
+  SID_NVM               = 0x15
 
   def __init__(self, sid = None, stale_time = None):
     self._telemeter = None
@@ -1312,3 +1307,175 @@ class Proximity(Sensor):
         return packed
     except:
       return None
+
+class PowerConsumption(Sensor):
+  SID = Sensor.SID_POWER_CONSUMPTION
+  STALE_TIME = 5
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+  def setup_sensor(self):
+      self.update_data()
+
+  def teardown_sensor(self):
+      self.data = None
+
+  def update_consumer(self, power, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+    elif type(type_label) != str:
+      return False
+
+    if self.data == None:
+      self.data = {}
+
+    self.data[type_label] = power
+    return True
+
+  def remove_consumer(self, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+
+    if type_label in self.data:
+      self.data.pop(type_label)
+      return True
+
+    return False
+
+  def update_data(self):
+    pass
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      packed = []
+      for type_label in self.data:
+        packed.append([type_label, self.data[type_label]])
+      return packed
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        unpacked = {}
+        for entry in packed:
+          unpacked[entry[0]] = entry[1]
+        return unpacked
+        
+    except:
+      return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+
+    consumers = []
+    for type_label in self.data:
+      if type_label == 0x00:
+        label = "Power consumption"
+      else:
+        label = type_label
+      consumers.append({"label": label, "w": self.data[type_label]})
+    
+    rendered = {
+      "icon": "power-plug-outline",
+      "name": "Power Consumption",
+      "values": consumers,
+    }
+
+    return rendered
+
+class PowerProduction(Sensor):
+  SID = Sensor.SID_POWER_PRODUCTION
+  STALE_TIME = 5
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+  def setup_sensor(self):
+      self.update_data()
+
+  def teardown_sensor(self):
+      self.data = None
+
+  def update_producer(self, power, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+    elif type(type_label) != str:
+      return False
+
+    if self.data == None:
+      self.data = {}
+
+    self.data[type_label] = power
+    return True
+
+  def remove_producer(self, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+
+    if type_label in self.data:
+      self.data.pop(type_label)
+      return True
+
+    return False
+
+  def update_data(self):
+    pass
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      packed = []
+      for type_label in self.data:
+        packed.append([type_label, self.data[type_label]])
+      return packed
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        unpacked = {}
+        for entry in packed:
+          unpacked[entry[0]] = entry[1]
+        return unpacked
+        
+    except:
+      return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+
+    producers = []
+    for type_label in self.data:
+      if type_label == 0x00:
+        label = "Power Production"
+      else:
+        label = type_label
+      producers.append({"label": label, "w": self.data[type_label]})
+    
+    rendered = {
+      "icon": "lightning-bolt",
+      "name": "Power Production",
+      "values": producers,
+    }
+
+    return rendered
+
+# TODO: Implement
+class Processor(Sensor):
+  pass
+
+class RandomAccessMemory(Sensor):
+  pass
+
+class NonVolatileMemory(Sensor):
+  pass

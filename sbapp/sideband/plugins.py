@@ -39,3 +39,24 @@ class SidebandServicePlugin(SidebandPlugin):
 
     def get_sideband(self):
         return self.__sideband
+
+class SidebandTelemetryPlugin(SidebandPlugin):
+    def __init__(self, sideband_core):
+        self.__sideband = sideband_core
+        self.__started = False
+        self.plugin_name = type(self).plugin_name
+
+    def start(self):
+        self.__started = True
+
+    def stop(self):
+        self.__started = False
+
+    def is_running(self):
+        return self.__started == True
+
+    def get_sideband(self):
+        return self.__sideband
+
+    def update_telemetry(self, telemeter):
+        raise NotImplementedError
