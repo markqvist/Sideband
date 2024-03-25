@@ -29,8 +29,11 @@ class BasicCommandPlugin(SidebandCommandPlugin):
             response_content,
             lxm.source_hash,
             False,              # Don't use propagation by default, try direct first
-            skip_fields=True,   # Don't include any additional fields automatically
-            no_display=True     # Dot't display this message in the message stream
+            skip_fields = True, # Don't include any additional fields automatically
+            no_display = True,  # Don't display this message in the message stream
+            attachment = None,  # Don't add any attachment field to this message
+            image = None,       # Don't add any image field to this message
+            audio = None,       # Don't add any audio field to this message
         )
 
 # Finally, tell Sideband what class in this
