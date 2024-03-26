@@ -17,6 +17,7 @@ Sideband provides many useful and interesting functions, such as:
 - Situation display on both online and locally stored offline maps.
 - Geospatial awareness calculations.
 - Exchanging messages through encrypted QR-codes on paper, or through messages embedded directly in **lxm://** links.
+- Using Android devices as impromptu Reticulum routers (*Transport Instances*), for setting up or extending networks easily.
 - Remote command execution and response engine, with built-in commands, such as `ping`, `signal` reports and `echo`.
 - Remote telemetry querying, with strong, secure and cryptographically robust authentication and control.
 - Plugin system that allows you to easily create your own commands, services and telemetry sources.
