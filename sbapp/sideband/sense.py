@@ -5,7 +5,7 @@ import struct
 import threading
 
 from RNS.vendor import umsgpack as umsgpack
-from .geo import orthodromic_distance, euclidian_distance
+from .geo import orthodromic_distance, euclidian_distance, altitude_to_aamsl
 from .geo import azalt, angle_to_horizon, radio_horizon, shared_radio_horizon
 
 class Commands():
@@ -680,6 +680,12 @@ class Location(Sensor):
     self._raw = kwargs
     self._last_update = time.time()
 
+  def get_aamsl(self):
+    if self.data["altitude"] == None or self.data["latitude"] == None or self.data["longitude"] == None:
+      return None
+    else:
+      return altitude_to_aamsl(self.data["altitude"], self.data["latitude"], self.data["longitude"])
+
   def set_update_time(self, update_time):
     self._synthesized_updates = True
     self._last_update = update_time
@@ -788,10 +794,12 @@ class Location(Sensor):
 
     obj_ath = None
     obj_rh = None
+    aamsl = None
     if self.data["altitude"] != None and self.data["latitude"] != None and self.data["longitude"] != None:
-      coords = (self.data["latitude"], self.data["longitude"], self.data["altitude"])
+      aamsl = self.get_aamsl()
+      coords = (self.data["latitude"], self.data["longitude"], aamsl)
       obj_ath = angle_to_horizon(coords)
-      obj_rh = radio_horizon(self.data["altitude"])
+      obj_rh = radio_horizon(aamsl)
     
     rendered = {
       "icon": "map-marker",
@@ -799,7 +807,7 @@ class Location(Sensor):
       "values": {
         "latitude": self.data["latitude"],
         "longitude": self.data["longitude"],
-        "altitude": self.data["altitude"],
+        "altitude": aamsl,
         "speed": self.data["speed"],
         "heading": self.data["bearing"],
         "accuracy": self.data["accuracy"],
@@ -811,13 +819,13 @@ class Location(Sensor):
 
     if relative_to != None and "location" in relative_to.sensors:
       slat = self.data["latitude"]; slon = self.data["longitude"]
-      salt = self.data["altitude"];
+      salt = aamsl
       if salt == None: salt = 0
       if slat != None and slon != None:
         s = relative_to.sensors["location"]
         d = s.data
         if d != None and "latitude" in d and "longitude" in d and "altitude" in d:
-          lat = d["latitude"]; lon = d["longitude"]; alt = d["altitude"]
+          lat = d["latitude"]; lon = d["longitude"]; alt = altitude_to_aamsl(d["altitude"], lat, lon)
           if lat != None and lon != None:
             if alt == None: alt = 0
             cs = (slat, slon, salt); cr = (lat, lon, alt)
@@ -834,7 +842,7 @@ class Location(Sensor):
                 above_horizon = False
             
             srh = shared_radio_horizon(cs, cr)
-            if self.data["altitude"] != None and d["altitude"] != None:
+            if salt != None and alt != None:
               dalt = salt-alt
             else:
               dalt = None
