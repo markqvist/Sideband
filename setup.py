@@ -51,6 +51,7 @@ package_data = {
 "": [
     "assets/*",
     "assets/fonts/*",
+    "assets/geoids/*",
     "kivymd/fonts/*",
     "kivymd/images/*",
     "kivymd/*",
