@@ -11,7 +11,7 @@ class GpsdLocationPlugin(SidebandTelemetryPlugin):
     plugin_name = "gpsd_location"
 
     def __init__(self, sideband_core):
-        self.connect_timeout = 1.0
+        self.connect_timeout = 5.0
         self.client = None
         self.client_connected = False
         self.should_run = False
