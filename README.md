@@ -1,7 +1,7 @@
 Sideband <img align="right" src="https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg"/>
 =========
 
-Sideband is an LXMF client for Android, Linux and macOS. It allows you to communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, Encrypted QR Paper Messages, or anything else Reticulum supports.
+Sideband is an extensible LXMF messaging client, situational awareness tracker and remote control and monitoring system for Android, Linux and macOS. It allows you to communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, Encrypted QR Paper Messages, or anything else Reticulum supports.
 
 ![Screenshot](https://github.com/markqvist/Sideband/raw/main/docs/screenshots/devices_small.webp)
 
@@ -9,11 +9,20 @@ Sideband is completely free, end-to-end encrypted, permission-less, anonymous an
 
 This also means that Sideband operates differently than what you might be used to. It does not need a connection to a server on the Internet to function, and you do not have an account anywhere. Please read the Guide section included in the program, to get an understanding of how Sideband differs from other messaging systems.
 
-The program currently includes basic functionality for secure and independent communication, and many useful features are planned for implementation. Sideband is currently released as a beta version. Please help make all the functionality a reality by supporting the development with donations.
+Sideband provides many useful and interesting functions, such as:
+
+- Secure and self-sovereign messaging using the LXMF protocol over Reticulum.
+- Image and file transfers over all supported mediums.
+- Secure and direct P2P telemetry and location sharing. No third parties or servers ever have your data.
+- Situation display on both online and locally stored offline maps.
+- Geospatial awareness calculations.
+- Exchanging messages through encrypted QR-codes on paper, or through messages embedded directly in **lxm://** links.
+- Remote command execution and response engine, with built-in commands, such as `ping`, `signal` reports and `echo`.
+- Remote telemetry querying, with strong, secure and cryptographically robust authentication and control.
+- Plugin system that allows you to easily create your own commands, services and telemetry sources.
+
 
 Sideband works well with the terminal-based LXMF client [Nomad Network](https://github.com/markqvist/nomadnet), which allows you to easily host Propagation Nodes for your LXMF network, and more.
-
-If you want to help develop this program, get in touch.
 
 ## Installation On Linux, Android and MacOS
 
@@ -113,13 +122,23 @@ You can help support the continued development of open, free and private communi
 
 ## Development Roadmap
 
-- Adding a Nomad Net page browser
+- <s>Secure and private location and telemetry sharing</s>
+- <s>Including images in messages</s>
+- <s>Sending file attachments</s>
+- <s>Offline and online maps</s>
+- <s>Paper messages</s>
+- <s>Using Sideband as a Reticulum Transport Instance</s>
+- <s>Encryption keys export and import</s>
+- <s>Plugin support for commands, services and telemetry</s>
+- Sending voice messages (using Codec2 and Opus)
 - Implementing the Local Broadcasts feature
-- Adding a debug log option and viewer
-- Adding a Linux .desktop file
-- Message sorting mechanism
+- LXMF sneakernet functionality
+- Network visualisation and test tools
+- A debug log viewer
+- Better message sorting mechanism
 - Fix I2P status not being displayed correctly when the I2P router disappears unexpectedly
-- Adding LXMF sneakernet functionality
+- Adding a Linux .desktop file
+- Adding a Nomad Net page browser
 
 ## License
 Unless otherwise noted, this work is licensed under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License][cc-by-nc-sa].
