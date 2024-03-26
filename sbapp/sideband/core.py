@@ -139,9 +139,9 @@ class SidebandCore():
         self.owner_service = owner_service
 
         self.app_dir       = plyer.storagepath.get_home_dir()+"/.config/sideband"
-        self.cache_dir     = self.app_dir+"/cache"
         if self.app_dir.startswith("file://"):
             self.app_dir   = self.app_dir.replace("file://", "")
+        self.cache_dir     = self.app_dir+"/cache"
         
         self.rns_configdir = None
         if RNS.vendor.platformutils.is_android():
