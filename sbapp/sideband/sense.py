@@ -620,6 +620,7 @@ class Location(Sensor):
     self._min_distance = Location.MIN_DISTANCE
     self._accuracy_target = Location.ACCURACY_TARGET
     self._query_method = None
+    self._synthesized_updates = False
 
     self.latitude = None
     self.longitude = None
@@ -679,16 +680,21 @@ class Location(Sensor):
     self._raw = kwargs
     self._last_update = time.time()
 
+  def set_update_time(self, update_time):
+    self._synthesized_updates = True
+    self._last_update = update_time
+
   def update_data(self):
     try:
       if self.synthesized:
         if self.latitude != None and self.longitude != None:
 
           now = time.time()
-          if self._last_update == None:
-            self._last_update = now
-          elif now > self._last_update + self._stale_time:
-            self._last_update = now
+          if not self._synthesized_updates:
+            if self._last_update == None:
+              self._last_update = now
+            elif now > self._last_update + self._stale_time:
+              self._last_update = now
 
           if self.altitude == None: self.altitude = 0.0
           if self.accuracy == None: self.accuracy = 0.01
