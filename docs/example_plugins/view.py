@@ -81,7 +81,6 @@ class ViewSource():
 
         return None
 
-
 class HttpSource(ViewSource):
     def __init__(self, url):
         self.url = url
