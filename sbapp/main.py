@@ -4967,7 +4967,7 @@ if not args.daemon:
 def run():
     if args.daemon:
         RNS.log("Starting Sideband in daemon mode")
-        sideband = SidebandCore(None, is_client=False, verbose=(args.verbose or __debug_build__))
+        sideband = SidebandCore(None, is_client=False, verbose=(args.verbose or __debug_build__), is_daemon=True)
         sideband.start()
         while True:
             time.sleep(5)

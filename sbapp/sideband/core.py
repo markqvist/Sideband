@@ -106,9 +106,10 @@ class SidebandCore():
         # stream logger
         self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter)
 
-    def __init__(self, owner_app, is_service=False, is_client=False, android_app_dir=None, verbose=False, owner_service=None, service_context=None):
+    def __init__(self, owner_app, is_service=False, is_client=False, android_app_dir=None, verbose=False, owner_service=None, service_context=None, is_daemon=False):
         self.is_service = is_service
         self.is_client = is_client
+        self.is_daemon = is_daemon
         self.db = None
 
         if not self.is_service and not self.is_client:
@@ -769,23 +770,24 @@ class SidebandCore():
                 RNS.log("Error while setting LXMF propagation node: "+str(e), RNS.LOG_ERROR)
 
     def notify(self, title, content, group=None, context_id=None):
-        if self.config["notifications_on"]:
-            if RNS.vendor.platformutils.get_platform() == "android":
-                if self.getpersistent("permissions.notifications"):
-                    notifications_permitted = True
-                else:
-                    notifications_permitted = False
-            else:
-                notifications_permitted = True
-
-            if notifications_permitted:
+        if not self.is_daemon:
+            if self.config["notifications_on"]:
                 if RNS.vendor.platformutils.get_platform() == "android":
-                    if self.is_service:
-                        self.owner_service.android_notification(title, content, group=group, context_id=context_id)
+                    if self.getpersistent("permissions.notifications"):
+                        notifications_permitted = True
                     else:
-                        plyer.notification.notify(title, content, notification_icon=self.notification_icon, context_override=None)
+                        notifications_permitted = False
                 else:
-                    plyer.notification.notify(title, content, app_icon=self.icon_32)
+                    notifications_permitted = True
+
+                if notifications_permitted:
+                    if RNS.vendor.platformutils.get_platform() == "android":
+                        if self.is_service:
+                            self.owner_service.android_notification(title, content, group=group, context_id=context_id)
+                        else:
+                            plyer.notification.notify(title, content, notification_icon=self.notification_icon, context_override=None)
+                    else:
+                        plyer.notification.notify(title, content, app_icon=self.icon_32)
 
     def log_announce(self, dest, app_data, dest_type):
         try:
