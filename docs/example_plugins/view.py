@@ -158,7 +158,7 @@ class CameraSource(ViewSource):
         self.camera_ready = False
 
 class StreamSource(ViewSource):
-    DEFAULT_IDLE_TIMEOUT = 5
+    DEFAULT_IDLE_TIMEOUT = 10
 
     def __init__(self, url=None):
         self.url          = url
@@ -180,19 +180,18 @@ class StreamSource(ViewSource):
         try:
             while max(self.last_update, self.started)+self.idle_timeout > time.time():
                 ret, frame = self.stream.read()
-                self.stream_ready = True
                 if not ret:
                     self.stream_ready = False
-                    break
-                
-                if not self.frame_queue.empty():
-                    if self.frame_queue.qsize() > 1:
-                        try:
-                            self.frame_queue.get_nowait()
-                        except queue.Empty:
-                            pass
-                
-                self.frame_queue.put(frame)
+                else:
+                    self.stream_ready = True            
+                    if not self.frame_queue.empty():
+                        if self.frame_queue.qsize() > 1:
+                            try:
+                                self.frame_queue.get_nowait()
+                            except queue.Empty:
+                                pass
+                    
+                    self.frame_queue.put(frame)
 
             RNS.log(str(self)+" idled", RNS.LOG_DEBUG)
 
@@ -206,7 +205,10 @@ class StreamSource(ViewSource):
             self.start_reading()
             while not self.stream_ready:
               time.sleep(0.2)
-        
+              if self.stream == None:
+                self.source_data = None
+                return
+
         frame = self.frame_queue.get()
         retval, buffer = cv2.imencode(".png", frame)
         self.source_data = io.BytesIO(buffer).getvalue()
