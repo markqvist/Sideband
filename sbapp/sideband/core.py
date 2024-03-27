@@ -155,6 +155,9 @@ class SidebandCore():
         elif RNS.vendor.platformutils.get_platform() == "linux":
             core_path          = os.path.abspath(__file__)
             self.asset_dir     = core_path.replace("/sideband/core.py", "/assets")
+        elif RNS.vendor.platformutils.is_windows():
+            core_path          = os.path.abspath(__file__)
+            self.asset_dir     = core_path.replace("\\sideband\\core.py", "\\assets")
         else:
             self.asset_dir     = plyer.storagepath.get_application_dir()+"/sbapp/assets"
 
