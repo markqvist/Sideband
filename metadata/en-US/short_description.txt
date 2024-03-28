@@ -1,1 +1,0 @@
-LSMF Client for e2ee messaging over Reticulum
