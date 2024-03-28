@@ -254,6 +254,9 @@ class Messages():
                                 extra_content = "[font=RobotoMono-Regular]> ping[/font]\n"
                             if Commands.SIGNAL_REPORT in command:
                                 extra_content = "[font=RobotoMono-Regular]> sig[/font]\n"
+                            if Commands.PLUGIN_COMMAND in command:
+                                cmd_content = command[Commands.PLUGIN_COMMAND]
+                                extra_content = "[font=RobotoMono-Regular]> "+str(cmd_content)+"[/font]\n"
                         extra_content = extra_content[:-1]
                         force_markup = True
                     except Exception as e:
@@ -408,7 +411,7 @@ class Messages():
 
                 def check_textures(w, val):
                     try:
-                        if w.texture_size[1] > 360 and w.texture_size[1] >= self.max_texture_size:
+                        if w.texture_size[0] > 360 and w.texture_size[1] >= self.max_texture_size:
                             w.text = "[i]The content of this message is too large to display in the message stream. You can copy the message content into another program by using the context menu of this message, and selecting [b]Copy[/b].[/i]"
 
                         if w.owner.has_image:

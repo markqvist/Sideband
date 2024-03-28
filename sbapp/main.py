@@ -1,6 +1,6 @@
 __debug_build__ = False
 __disable_shaders__ = False
-__version__ = "0.8.0"
+__version__ = "0.8.1"
 __variant__ = "beta"
 
 import sys
@@ -1372,14 +1372,32 @@ class SidebandApp(MDApp):
                 self.file_manager.show(path)
 
             except Exception as e:
-                self.sideband.config["map_storage_path"] = None
-                self.sideband.save_configuration()
-                toast("Error reading directory, check permissions!")
+                if RNS.vendor.platformutils.get_platform() == "android":
+                    toast("Error reading directory, check permissions!")
+                else:
+                    ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                    ate_dialog = MDDialog(
+                        title="Attachment Error",
+                        text="Error reading directory, check permissions!",
+                        buttons=[ ok_button ],
+                    )
+                    ok_button.bind(on_release=ate_dialog.dismiss)
+                    ate_dialog.open()
         
         else:
             self.sideband.config["map_storage_path"] = None
             self.sideband.save_configuration()
-            toast("No file access, check permissions!")
+            if RNS.vendor.platformutils.get_platform() == "android":
+                toast("No file access, check permissions!")
+            else:
+                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                ate_dialog = MDDialog(
+                    title="Attachment Error",
+                    text="No file access, check permissions!",
+                    buttons=[ ok_button ],
+                )
+                ok_button.bind(on_release=ate_dialog.dismiss)
+                ate_dialog.open()
 
     def message_attach_action(self, attach_type=None):
         self.attach_path = None
@@ -1780,7 +1798,7 @@ class SidebandApp(MDApp):
             self.information_screen.ids.information_scrollview.effect_cls = ScrollEffect
             self.information_screen.ids.information_logo.icon = self.sideband.asset_dir+"/rns_256.png"
 
-            info = "This is "+self.root.ids.app_version_info.text+", on RNS v"+RNS.__version__+" and LXMF v"+LXMF.__version__+".\n\nHumbly build using the following open components:\n\n - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)\n - [b]Kivy[/b] (MIT License)\n - [b]Python[/b] (PSF License)"+"\n\nGo to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2024 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of Sideband v"+__version__+" "+__variant__+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - SIDEBAND COMES WITH ABSOLUTELY NO WARRANTY - USE AT YOUR OWN RISK AND RESPONSIBILITY"
+            info = "This is "+self.root.ids.app_version_info.text+", on RNS v"+RNS.__version__+" and LXMF v"+LXMF.__version__+".\n\nHumbly build using the following open components:\n\n - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)\n - [b]Kivy[/b] (MIT License)\n - [b]GeoidHeight[/b] (LGPL License)\n - [b]Python[/b] (PSF License)"+"\n\nGo to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2024 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of Sideband v"+__version__+" "+__variant__+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - SIDEBAND COMES WITH ABSOLUTELY NO WARRANTY - USE AT YOUR OWN RISK AND RESPONSIBILITY"
             self.information_screen.ids.information_info.text = info
             self.information_screen.ids.information_info.bind(on_ref_press=link_exec)
 
@@ -2368,7 +2386,7 @@ class SidebandApp(MDApp):
                     all_valid = True
                     iftypes = ["local", "tcp", "i2p", "rnode", "modem", "serial"]
                     for iftype in iftypes:
-                        element = self.root.ids["connectivity_"+iftype+"_ifmode"]
+                        element = self.connectivity_screen.ids["connectivity_"+iftype+"_ifmode"]
                         modes = ["full", "gateway", "access point", "roaming", "boundary"]
                         value = element.text.lower()
                         if value in ["", "f"] or value.startswith("fu"):
@@ -3781,6 +3799,158 @@ class SidebandApp(MDApp):
 
         c_dialog.open()
 
+    ### Plugins & Services screen
+    ######################################
+    
+    def plugins_action(self, sender=None, direction="left"):
+        if self.root.ids.screen_manager.has_screen("plugins_screen"):
+            self.plugins_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.plugins_init()
+                def o(dt):
+                    self.plugins_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
+
+    def plugins_init(self):
+        if not self.root.ids.screen_manager.has_screen("plugins_screen"):
+            self.plugins_screen = Builder.load_string(layout_plugins_screen)
+            self.plugins_screen.app = self
+            self.root.ids.screen_manager.add_widget(self.plugins_screen)
+            self.bind_clipboard_actions(self.plugins_screen.ids)
+
+            self.plugins_screen.ids.plugins_scrollview.effect_cls = ScrollEffect
+            info = "You can extend Sideband functionality with command and service plugins. This lets you to add your own custom functionality, or add community-developed features.\n\n"
+            info += "[b]Take extreme caution![/b]\nIf you add a plugin that you did not write yourself, make [b]absolutely[/b] sure you know what it is doing! Loaded plugins have full access to your Sideband application, and should only be added if you are completely certain they are trustworthy.\n\n"
+            info += "Command plugins allow you to define custom commands that can be carried out in response to LXMF command messages, and they can respond with any kind of information or data to the requestor (or to any LXMF address).\n\n"
+            info += "By using service plugins, you can start additional services or programs within the Sideband application context, that other plugins (or Sideband itself) can interact with."
+            info += "Restart Sideband for changes to these settings to take effect."
+            self.plugins_screen.ids.plugins_info.text = info
+
+            self.plugins_screen.ids.settings_command_plugins_enabled.active = self.sideband.config["command_plugins_enabled"]
+            self.plugins_screen.ids.settings_service_plugins_enabled.active = self.sideband.config["service_plugins_enabled"]
+
+            def plugins_settings_save(sender=None, event=None):
+                self.sideband.config["command_plugins_enabled"] = self.plugins_screen.ids.settings_command_plugins_enabled.active
+                self.sideband.config["service_plugins_enabled"] = self.plugins_screen.ids.settings_service_plugins_enabled.active
+                self.sideband.save_configuration()
+
+            self.plugins_screen.ids.settings_command_plugins_enabled.bind(active=plugins_settings_save)
+            self.plugins_screen.ids.settings_service_plugins_enabled.bind(active=plugins_settings_save)
+
+    def plugins_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
+        self.root.ids.screen_manager.transition.direction = "left"
+        self.root.ids.screen_manager.current = "plugins_screen"
+        self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
+
+    def close_plugins_action(self, sender=None):
+        self.open_conversations(direction="right")
+
+    def plugins_fm_got_path(self, path):
+        self.plugins_fm_exited()
+        try:
+            if os.path.isdir(path):
+                self.sideband.config["command_plugins_path"] = path
+                self.sideband.save_configuration()
+                
+                if RNS.vendor.platformutils.is_android():
+                    toast("Using \""+str(path)+"\" as plugin directory")
+                else:
+                    ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                    ate_dialog = MDDialog(
+                        title="Directory Set",
+                        text="Using \""+str(path)+"\" as plugin directory",
+                        buttons=[ ok_button ],
+                    )
+                    ok_button.bind(on_release=ate_dialog.dismiss)
+                    ate_dialog.open()
+        
+        except Exception as e:
+            RNS.log(f"Error while setting plugins directory to \"{path}\": "+str(e), RNS.LOG_ERROR)
+            if RNS.vendor.platformutils.get_platform() == "android":
+                toast("Could not set plugins directory to \""+str(path)+"\"")
+            else:
+                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                e_dialog = MDDialog(
+                    title="Error",
+                    text="Could not set plugins directory to \""+str(path)+"\"",
+                    buttons=[ ok_button ],
+                )
+                ok_button.bind(on_release=e_dialog.dismiss)
+                e_dialog.open()
+
+    def plugins_fm_exited(self, *args):
+        self.manager_open = False
+        self.file_manager.close()
+
+    def plugins_select_directory_action(self, sender=None):
+        perm_ok = False
+        if self.sideband.config["command_plugins_path"] == None:
+            if RNS.vendor.platformutils.is_android():
+                perm_ok = self.check_storage_permission()    
+                path = primary_external_storage_path()
+
+            else:
+                perm_ok = True
+                path = os.path.expanduser("~")
+
+        else:
+            perm_ok = True
+            path = self.sideband.config["command_plugins_path"]
+
+        if perm_ok and path != None:
+            try:
+                self.file_manager = MDFileManager(
+                    exit_manager=self.plugins_fm_exited,
+                    select_path=self.plugins_fm_got_path,
+                )
+                
+                self.file_manager.show(path)
+
+            except Exception as e:
+                self.sideband.config["command_plugins_path"] = None
+                self.sideband.save_configuration()
+                
+                if RNS.vendor.platformutils.is_android():
+                    toast("Error reading directory, check permissions!")
+                else:
+                    ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                    ate_dialog = MDDialog(
+                        title="Error",
+                        text="Could not read directory, check permissions!",
+                        buttons=[ ok_button ],
+                    )
+                    ok_button.bind(on_release=ate_dialog.dismiss)
+                    ate_dialog.open()
+        
+        else:
+            self.sideband.config["command_plugins_path"] = None
+            self.sideband.save_configuration()
+            if RNS.vendor.platformutils.is_android():
+                toast("No file access, check permissions!")
+            else:
+                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                ate_dialog = MDDialog(
+                    title="Error",
+                    text="No file access, check permissions!",
+                    buttons=[ ok_button ],
+                )
+                ok_button.bind(on_release=ate_dialog.dismiss)
+                ate_dialog.open()
+
+
     ### Telemetry Screen
     ######################################
 
@@ -3929,7 +4099,19 @@ class SidebandApp(MDApp):
             self.sideband.config["map_storage_file"] = path
             self.sideband.config["map_storage_path"] = str(pathlib.Path(path).parent.resolve())
             self.sideband.save_configuration()
-            toast("Using \""+os.path.basename(path)+"\" as offline map")
+
+            if RNS.vendor.platformutils.is_android():
+                toast("Using \""+os.path.basename(path)+"\" as offline map")
+            else:
+                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                ate_dialog = MDDialog(
+                    title="Map Set",
+                    text="Using \""+os.path.basename(path)+"\" as offline map",
+                    buttons=[ ok_button ],
+                )
+                ok_button.bind(on_release=ate_dialog.dismiss)
+                ate_dialog.open()
+
         except Exception as e:
             RNS.log(f"Error while loading map \"{path}\": "+str(e), RNS.LOG_ERROR)
             if RNS.vendor.platformutils.get_platform() == "android":
@@ -3988,12 +4170,32 @@ class SidebandApp(MDApp):
             except Exception as e:
                 self.sideband.config["map_storage_path"] = None
                 self.sideband.save_configuration()
-                toast("Error reading directory, check permissions!")
+                if RNS.vendor.platformutils.is_android():
+                    toast("Error reading directory, check permissions!")
+                else:
+                    ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                    ate_dialog = MDDialog(
+                        title="Error",
+                        text="Could not read directory, check permissions!",
+                        buttons=[ ok_button ],
+                    )
+                    ok_button.bind(on_release=ate_dialog.dismiss)
+                    ate_dialog.open()
         
         else:
             self.sideband.config["map_storage_path"] = None
             self.sideband.save_configuration()
-            toast("No file access, check permissions!")
+            if RNS.vendor.platformutils.is_android():
+                toast("No file access, check permissions!")
+            else:
+                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                ate_dialog = MDDialog(
+                    title="Error",
+                    text="No file access, check permissions!",
+                    buttons=[ ok_button ],
+                )
+                ok_button.bind(on_release=ate_dialog.dismiss)
+                ate_dialog.open()
 
     def map_get_offline_source(self):
         if self.offline_source != None:
@@ -4765,7 +4967,7 @@ if not args.daemon:
 def run():
     if args.daemon:
         RNS.log("Starting Sideband in daemon mode")
-        sideband = SidebandCore(None, is_client=False, verbose=(args.verbose or __debug_build__))
+        sideband = SidebandCore(None, is_client=False, verbose=(args.verbose or __debug_build__), is_daemon=True)
         sideband.start()
         while True:
             time.sleep(5)

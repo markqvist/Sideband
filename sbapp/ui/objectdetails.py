@@ -415,6 +415,78 @@ class RVDetails(MDRecycleView):
                         if q != None or rssi != None: snr_str = ", "+snr_str
                     if q_str or rssi_str or snr_str:
                         formatted_values = q_str+rssi_str+snr_str
+                elif name == "Power Consumption":
+                    cs = s["values"]
+                    if cs != None:
+                        for c in cs:
+                            label = c["label"]
+                            watts = c["w"]
+                            prefix = ""
+                            if watts < 1/1e6:
+                                watts *= 1e9
+                                prefix = "n"
+                            elif watts < 1/1e3:
+                                watts *= 1e6
+                                prefix = "µ"
+                            elif watts < 1:
+                                watts *= 1e3
+                                prefix = "m"
+                            elif watts >= 1e15:
+                                watts /= 1e15
+                                prefix = "E"
+                            elif watts >= 1e12:
+                                watts /= 1e12
+                                prefix = "T"
+                            elif watts >= 1e9:
+                                watts /= 1e9
+                                prefix = "G"
+                            elif watts >= 1e6:
+                                watts /= 1e6
+                                prefix = "M"
+                            elif watts >= 1e3:
+                                watts /= 1e3
+                                prefix = "K"
+
+                            watts = round(watts, 2)
+                            p_text = f"{label} [b]{watts} {prefix}W[/b]"
+                            extra_entries.append({"icon": s["icon"], "text": p_text})
+
+                elif name == "Power Production":
+                    cs = s["values"]
+                    if cs != None:
+                        for c in cs:
+                            label = c["label"]
+                            watts = c["w"]
+                            prefix = ""
+                            if watts < 1/1e6:
+                                watts *= 1e9
+                                prefix = "n"
+                            elif watts < 1/1e3:
+                                watts *= 1e6
+                                prefix = "µ"
+                            elif watts < 1:
+                                watts *= 1e3
+                                prefix = "m"
+                            elif watts >= 1e15:
+                                watts /= 1e15
+                                prefix = "E"
+                            elif watts >= 1e12:
+                                watts /= 1e12
+                                prefix = "T"
+                            elif watts >= 1e9:
+                                watts /= 1e9
+                                prefix = "G"
+                            elif watts >= 1e6:
+                                watts /= 1e6
+                                prefix = "M"
+                            elif watts >= 1e3:
+                                watts /= 1e3
+                                prefix = "K"
+
+                            watts = round(watts, 2)
+                            p_text = f"{label} [b]{watts} {prefix}W[/b]"
+                            extra_entries.append({"icon": s["icon"], "text": p_text})
+
                 elif name == "Location":
                     lat = s["values"]["latitude"]
                     lon = s["values"]["longitude"]

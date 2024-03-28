@@ -65,6 +65,7 @@ fetchshare:
 	cp ../../dist_archive/rnsh-*-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/sbapp-*-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/RNode_Firmware_*_Source.zip ./share/pkg/
+	zip --junk-paths ./share/pkg/example_plugins.zip ../docs/example_plugins/*.py
 	cp -r ../../dist_archive/reticulum.network ./share/mirrors/
 	cp -r ../../dist_archive/unsigned.io ./share/mirrors/
 	cp ../../dist_archive/Reticulum\ Manual.pdf ./share/mirrors/Reticulum_Manual.pdf

@@ -5,10 +5,11 @@ import struct
 import threading
 
 from RNS.vendor import umsgpack as umsgpack
-from .geo import orthodromic_distance, euclidian_distance
+from .geo import orthodromic_distance, euclidian_distance, altitude_to_aamsl
 from .geo import azalt, angle_to_horizon, radio_horizon, shared_radio_horizon
 
 class Commands():
+  PLUGIN_COMMAND    = 0x00
   TELEMETRY_REQUEST = 0x01
   PING              = 0x02
   ECHO              = 0x03
@@ -42,38 +43,28 @@ class Telemeter():
 
   def __init__(self, from_packed=False, android_context=None, service=False, location_provider=None):
     self.sids = {
-      Sensor.SID_TIME: Time,
-      Sensor.SID_RECEIVED: Received,
-      Sensor.SID_INFORMATION: Information,
-      Sensor.SID_BATTERY: Battery,
-      Sensor.SID_PRESSURE: Pressure,
-      Sensor.SID_LOCATION: Location,
-      Sensor.SID_PHYSICAL_LINK: PhysicalLink,
-      Sensor.SID_TEMPERATURE: Temperature,
-      Sensor.SID_HUMIDITY: Humidity,
-      Sensor.SID_MAGNETIC_FIELD: MagneticField,
-      Sensor.SID_AMBIENT_LIGHT: AmbientLight,
-      Sensor.SID_GRAVITY: Gravity,
-      Sensor.SID_ANGULAR_VELOCITY: AngularVelocity,
-      Sensor.SID_ACCELERATION: Acceleration,
-      Sensor.SID_PROXIMITY: Proximity,
+      Sensor.SID_TIME: Time, Sensor.SID_RECEIVED: Received,
+      Sensor.SID_INFORMATION: Information, Sensor.SID_BATTERY: Battery,
+      Sensor.SID_PRESSURE: Pressure, Sensor.SID_LOCATION: Location,
+      Sensor.SID_PHYSICAL_LINK: PhysicalLink, Sensor.SID_TEMPERATURE: Temperature,
+      Sensor.SID_HUMIDITY: Humidity, Sensor.SID_MAGNETIC_FIELD: MagneticField,
+      Sensor.SID_AMBIENT_LIGHT: AmbientLight, Sensor.SID_GRAVITY: Gravity,
+      Sensor.SID_ANGULAR_VELOCITY: AngularVelocity, Sensor.SID_ACCELERATION: Acceleration,
+      Sensor.SID_PROXIMITY: Proximity, Sensor.SID_POWER_CONSUMPTION: PowerConsumption,
+      Sensor.SID_POWER_PRODUCTION: PowerProduction, Sensor.SID_PROCESSOR: Processor,
+      Sensor.SID_RAM: RandomAccessMemory, Sensor.SID_NVM: NonVolatileMemory,
     }
     self.available = {
       "time": Sensor.SID_TIME,
-      "information": Sensor.SID_INFORMATION,
-      "received": Sensor.SID_RECEIVED,
-      "battery": Sensor.SID_BATTERY,
-      "pressure": Sensor.SID_PRESSURE,
-      "location": Sensor.SID_LOCATION,
-      "physical_link": Sensor.SID_PHYSICAL_LINK,
-      "temperature": Sensor.SID_TEMPERATURE,
-      "humidity": Sensor.SID_HUMIDITY,
-      "magnetic_field": Sensor.SID_MAGNETIC_FIELD,
-      "ambient_light": Sensor.SID_AMBIENT_LIGHT,
-      "gravity": Sensor.SID_GRAVITY,
-      "angular_velocity": Sensor.SID_ANGULAR_VELOCITY,
-      "acceleration": Sensor.SID_ACCELERATION,
-      "proximity": Sensor.SID_PROXIMITY,
+      "information": Sensor.SID_INFORMATION, "received": Sensor.SID_RECEIVED,
+      "battery": Sensor.SID_BATTERY, "pressure": Sensor.SID_PRESSURE,
+      "location": Sensor.SID_LOCATION, "physical_link": Sensor.SID_PHYSICAL_LINK,
+      "temperature": Sensor.SID_TEMPERATURE, "humidity": Sensor.SID_HUMIDITY,
+      "magnetic_field": Sensor.SID_MAGNETIC_FIELD, "ambient_light": Sensor.SID_AMBIENT_LIGHT,
+      "gravity": Sensor.SID_GRAVITY, "angular_velocity": Sensor.SID_ANGULAR_VELOCITY,
+      "acceleration": Sensor.SID_ACCELERATION, "proximity": Sensor.SID_PROXIMITY,
+      "power_consumption": Sensor.SID_POWER_CONSUMPTION, "power_production": Sensor.SID_POWER_PRODUCTION,
+      "processor": Sensor.SID_PROCESSOR, "ram": Sensor.SID_RAM, "nvm": Sensor.SID_NVM,
     }
     self.from_packed = from_packed
     self.sensors = {}
@@ -179,22 +170,27 @@ class Telemeter():
 
 
 class Sensor():
-  SID_NONE             = 0x00
-  SID_TIME             = 0x01
-  SID_LOCATION         = 0x02
-  SID_PRESSURE         = 0x03
-  SID_BATTERY          = 0x04
-  SID_PHYSICAL_LINK    = 0x05
-  SID_ACCELERATION     = 0x06
-  SID_TEMPERATURE      = 0x07
-  SID_HUMIDITY         = 0x08
-  SID_MAGNETIC_FIELD   = 0x09
-  SID_AMBIENT_LIGHT    = 0x0A
-  SID_GRAVITY          = 0x0B
-  SID_ANGULAR_VELOCITY = 0x0C
-  SID_PROXIMITY        = 0x0E
-  SID_INFORMATION      = 0x0F
-  SID_RECEIVED         = 0x10
+  SID_NONE              = 0x00
+  SID_TIME              = 0x01
+  SID_LOCATION          = 0x02
+  SID_PRESSURE          = 0x03
+  SID_BATTERY           = 0x04
+  SID_PHYSICAL_LINK     = 0x05
+  SID_ACCELERATION      = 0x06
+  SID_TEMPERATURE       = 0x07
+  SID_HUMIDITY          = 0x08
+  SID_MAGNETIC_FIELD    = 0x09
+  SID_AMBIENT_LIGHT     = 0x0A
+  SID_GRAVITY           = 0x0B
+  SID_ANGULAR_VELOCITY  = 0x0C
+  SID_PROXIMITY         = 0x0E
+  SID_INFORMATION       = 0x0F
+  SID_RECEIVED          = 0x10
+  SID_POWER_CONSUMPTION = 0x11
+  SID_POWER_PRODUCTION  = 0x12
+  SID_PROCESSOR         = 0x13
+  SID_RAM               = 0x14
+  SID_NVM               = 0x15
 
   def __init__(self, sid = None, stale_time = None):
     self._telemeter = None
@@ -624,6 +620,7 @@ class Location(Sensor):
     self._min_distance = Location.MIN_DISTANCE
     self._accuracy_target = Location.ACCURACY_TARGET
     self._query_method = None
+    self._synthesized_updates = False
 
     self.latitude = None
     self.longitude = None
@@ -683,16 +680,27 @@ class Location(Sensor):
     self._raw = kwargs
     self._last_update = time.time()
 
+  def get_aamsl(self):
+    if self.data["altitude"] == None or self.data["latitude"] == None or self.data["longitude"] == None:
+      return None
+    else:
+      return altitude_to_aamsl(self.data["altitude"], self.data["latitude"], self.data["longitude"])
+
+  def set_update_time(self, update_time):
+    self._synthesized_updates = True
+    self._last_update = update_time
+
   def update_data(self):
     try:
       if self.synthesized:
         if self.latitude != None and self.longitude != None:
 
           now = time.time()
-          if self._last_update == None:
-            self._last_update = now
-          elif now > self._last_update + self._stale_time:
-            self._last_update = now
+          if not self._synthesized_updates:
+            if self._last_update == None:
+              self._last_update = now
+            elif now > self._last_update + self._stale_time:
+              self._last_update = now
 
           if self.altitude == None: self.altitude = 0.0
           if self.accuracy == None: self.accuracy = 0.01
@@ -786,10 +794,12 @@ class Location(Sensor):
 
     obj_ath = None
     obj_rh = None
+    aamsl = None
     if self.data["altitude"] != None and self.data["latitude"] != None and self.data["longitude"] != None:
-      coords = (self.data["latitude"], self.data["longitude"], self.data["altitude"])
+      aamsl = self.get_aamsl()
+      coords = (self.data["latitude"], self.data["longitude"], aamsl)
       obj_ath = angle_to_horizon(coords)
-      obj_rh = radio_horizon(self.data["altitude"])
+      obj_rh = radio_horizon(aamsl)
     
     rendered = {
       "icon": "map-marker",
@@ -797,7 +807,7 @@ class Location(Sensor):
       "values": {
         "latitude": self.data["latitude"],
         "longitude": self.data["longitude"],
-        "altitude": self.data["altitude"],
+        "altitude": aamsl,
         "speed": self.data["speed"],
         "heading": self.data["bearing"],
         "accuracy": self.data["accuracy"],
@@ -809,13 +819,13 @@ class Location(Sensor):
 
     if relative_to != None and "location" in relative_to.sensors:
       slat = self.data["latitude"]; slon = self.data["longitude"]
-      salt = self.data["altitude"];
+      salt = aamsl
       if salt == None: salt = 0
       if slat != None and slon != None:
         s = relative_to.sensors["location"]
         d = s.data
         if d != None and "latitude" in d and "longitude" in d and "altitude" in d:
-          lat = d["latitude"]; lon = d["longitude"]; alt = d["altitude"]
+          lat = d["latitude"]; lon = d["longitude"]; alt = altitude_to_aamsl(d["altitude"], lat, lon)
           if lat != None and lon != None:
             if alt == None: alt = 0
             cs = (slat, slon, salt); cr = (lat, lon, alt)
@@ -832,7 +842,7 @@ class Location(Sensor):
                 above_horizon = False
             
             srh = shared_radio_horizon(cs, cr)
-            if self.data["altitude"] != None and d["altitude"] != None:
+            if salt != None and alt != None:
               dalt = salt-alt
             else:
               dalt = None
@@ -1311,3 +1321,175 @@ class Proximity(Sensor):
         return packed
     except:
       return None
+
+class PowerConsumption(Sensor):
+  SID = Sensor.SID_POWER_CONSUMPTION
+  STALE_TIME = 5
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+  def setup_sensor(self):
+      self.update_data()
+
+  def teardown_sensor(self):
+      self.data = None
+
+  def update_consumer(self, power, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+    elif type(type_label) != str:
+      return False
+
+    if self.data == None:
+      self.data = {}
+
+    self.data[type_label] = power
+    return True
+
+  def remove_consumer(self, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+
+    if type_label in self.data:
+      self.data.pop(type_label)
+      return True
+
+    return False
+
+  def update_data(self):
+    pass
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      packed = []
+      for type_label in self.data:
+        packed.append([type_label, self.data[type_label]])
+      return packed
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        unpacked = {}
+        for entry in packed:
+          unpacked[entry[0]] = entry[1]
+        return unpacked
+        
+    except:
+      return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+
+    consumers = []
+    for type_label in self.data:
+      if type_label == 0x00:
+        label = "Power consumption"
+      else:
+        label = type_label
+      consumers.append({"label": label, "w": self.data[type_label]})
+    
+    rendered = {
+      "icon": "power-plug-outline",
+      "name": "Power Consumption",
+      "values": consumers,
+    }
+
+    return rendered
+
+class PowerProduction(Sensor):
+  SID = Sensor.SID_POWER_PRODUCTION
+  STALE_TIME = 5
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+  def setup_sensor(self):
+      self.update_data()
+
+  def teardown_sensor(self):
+      self.data = None
+
+  def update_producer(self, power, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+    elif type(type_label) != str:
+      return False
+
+    if self.data == None:
+      self.data = {}
+
+    self.data[type_label] = power
+    return True
+
+  def remove_producer(self, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+
+    if type_label in self.data:
+      self.data.pop(type_label)
+      return True
+
+    return False
+
+  def update_data(self):
+    pass
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      packed = []
+      for type_label in self.data:
+        packed.append([type_label, self.data[type_label]])
+      return packed
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        unpacked = {}
+        for entry in packed:
+          unpacked[entry[0]] = entry[1]
+        return unpacked
+        
+    except:
+      return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+
+    producers = []
+    for type_label in self.data:
+      if type_label == 0x00:
+        label = "Power Production"
+      else:
+        label = type_label
+      producers.append({"label": label, "w": self.data[type_label]})
+    
+    rendered = {
+      "icon": "lightning-bolt",
+      "name": "Power Production",
+      "values": producers,
+    }
+
+    return rendered
+
+# TODO: Implement
+class Processor(Sensor):
+  pass
+
+class RandomAccessMemory(Sensor):
+  pass
+
+class NonVolatileMemory(Sensor):
+  pass

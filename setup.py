@@ -51,6 +51,7 @@ package_data = {
 "": [
     "assets/*",
     "assets/fonts/*",
+    "assets/geoids/*",
     "kivymd/fonts/*",
     "kivymd/images/*",
     "kivymd/*",
@@ -83,7 +84,7 @@ setuptools.setup(
             'sideband=sbapp:main.run',
         ]
     },
-    install_requires=["rns>=0.7.3", "lxmf>=0.4.2", "kivy>=2.3.0", "plyer", "pillow>=10.2.0", "qrcode", "materialyoucolor>=2.0.7"],
+    install_requires=["rns>=0.7.3", "lxmf>=0.4.3", "kivy>=2.3.0", "plyer", "pillow>=10.2.0", "qrcode", "materialyoucolor>=2.0.7"],
     extras_require={
         "macos": ["pyobjus"],
     },

@@ -7,6 +7,7 @@ import time
 import struct
 import sqlite3
 import random
+import shlex
 
 import RNS.vendor.umsgpack as msgpack
 import RNS.Interfaces.Interface as Interface
@@ -16,6 +17,7 @@ import multiprocessing.connection
 from threading import Lock
 from .res import sideband_fb_data
 from .sense import Telemeter, Commands
+from .plugins import SidebandCommandPlugin, SidebandServicePlugin, SidebandTelemetryPlugin
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from jnius import autoclass, cast
@@ -104,9 +106,10 @@ class SidebandCore():
         # stream logger
         self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter)
 
-    def __init__(self, owner_app, is_service=False, is_client=False, android_app_dir=None, verbose=False, owner_service=None, service_context=None):
+    def __init__(self, owner_app, is_service=False, is_client=False, android_app_dir=None, verbose=False, owner_service=None, service_context=None, is_daemon=False):
         self.is_service = is_service
         self.is_client = is_client
+        self.is_daemon = is_daemon
         self.db = None
 
         if not self.is_service and not self.is_client:
@@ -137,9 +140,9 @@ class SidebandCore():
         self.owner_service = owner_service
 
         self.app_dir       = plyer.storagepath.get_home_dir()+"/.config/sideband"
-        self.cache_dir     = self.app_dir+"/cache"
         if self.app_dir.startswith("file://"):
             self.app_dir   = self.app_dir.replace("file://", "")
+        self.cache_dir     = self.app_dir+"/cache"
         
         self.rns_configdir = None
         if RNS.vendor.platformutils.is_android():
@@ -153,6 +156,9 @@ class SidebandCore():
         elif RNS.vendor.platformutils.get_platform() == "linux":
             core_path          = os.path.abspath(__file__)
             self.asset_dir     = core_path.replace("/sideband/core.py", "/assets")
+        elif RNS.vendor.platformutils.is_windows():
+            core_path          = os.path.abspath(__file__)
+            self.asset_dir     = core_path.replace("\\sideband\\core.py", "\\assets")
         else:
             self.asset_dir     = plyer.storagepath.get_application_dir()+"/sbapp/assets"
 
@@ -165,6 +171,8 @@ class SidebandCore():
         self.icon_32           = self.asset_dir+"/icon_32.png"
         self.icon_macos        = self.asset_dir+"/icon_macos.png"
         self.notification_icon = self.asset_dir+"/notification_icon.png"
+
+        os.environ["TELEMETER_GEOID_PATH"] = os.path.join(self.asset_dir, "geoids")
 
         if not os.path.isdir(self.app_dir+"/app_storage"):
             os.makedirs(self.app_dir+"/app_storage")
@@ -242,6 +250,12 @@ class SidebandCore():
 
         RNS.Transport.register_announce_handler(self)
         RNS.Transport.register_announce_handler(self.propagation_detector)
+
+        self.active_command_plugins = {}
+        self.active_service_plugins = {}
+        self.active_telemetry_plugins = {}
+        if self.is_service or self.is_standalone:
+            self.__load_plugins()
 
     def clear_tmp_dir(self):
         if os.path.isdir(self.tmp_dir):
@@ -591,6 +605,13 @@ class SidebandCore():
         if not "telemetry_s_information_text" in self.config:
             self.config["telemetry_s_information_text"] = ""
 
+        if not "service_plugins_enabled" in self.config:
+            self.config["service_plugins_enabled"] = False
+        if not "command_plugins_enabled" in self.config:
+            self.config["command_plugins_enabled"] = False
+        if not "command_plugins_path" in self.config:
+            self.config["command_plugins_path"] = None
+
         if not "map_history_limit" in self.config:
             self.config["map_history_limit"] = 7*24*60*60
         if not "map_lat" in self.config:
@@ -656,6 +677,78 @@ class SidebandCore():
         if self.is_client:
             self.setstate("wants.settings_reload", True)
 
+    def __load_plugins(self):
+        plugins_path = self.config["command_plugins_path"]
+        command_plugins_enabled = self.config["command_plugins_enabled"] == True
+        service_plugins_enabled = self.config["service_plugins_enabled"] == True
+        plugins_enabled = service_plugins_enabled
+        
+        if plugins_enabled:
+            if plugins_path != None:
+                if os.path.isdir(plugins_path):
+                    for file in os.listdir(plugins_path):
+                        if file.lower().endswith(".py"):
+                            plugin_globals = {}
+                            plugin_globals["SidebandServicePlugin"] = SidebandServicePlugin
+                            plugin_globals["SidebandCommandPlugin"] = SidebandCommandPlugin
+                            plugin_globals["SidebandTelemetryPlugin"] = SidebandTelemetryPlugin
+                            RNS.log("Loading plugin \""+str(file)+"\"", RNS.LOG_NOTICE)
+                            plugin_path = os.path.join(plugins_path, file)
+                            exec(open(plugin_path).read(), plugin_globals)
+                            plugin_class = plugin_globals["plugin_class"]
+                            
+                            if plugin_class != None:
+                                plugin = plugin_class(self)
+                                plugin.start()
+
+                                if plugin.is_running():
+                                    if issubclass(type(plugin), SidebandCommandPlugin) and command_plugins_enabled:
+                                        command_name = plugin.command_name
+                                        if not command_name in self.active_command_plugins:
+                                            self.active_command_plugins[command_name] = plugin
+                                            RNS.log("Registered "+str(plugin)+" as handler for command \""+str(command_name)+"\"", RNS.LOG_NOTICE)
+                                        else:
+                                            RNS.log("Could not register "+str(plugin)+" as handler for command \""+str(command_name)+"\". Command name was already registered", RNS.LOG_ERROR)
+                                    
+                                    elif issubclass(type(plugin), SidebandServicePlugin):
+                                        service_name = plugin.service_name
+                                        if not service_name in self.active_service_plugins:
+                                            self.active_service_plugins[service_name] = plugin
+                                            RNS.log("Registered "+str(plugin)+" for service \""+str(service_name)+"\"", RNS.LOG_NOTICE)
+                                        else:
+                                            RNS.log("Could not register "+str(plugin)+" for service \""+str(service_name)+"\". Service name was already registered", RNS.LOG_ERROR)
+                                            try:
+                                                plugin.stop()
+                                            except Exception as e:
+                                                pass
+                                            del plugin
+
+                                    elif issubclass(type(plugin), SidebandTelemetryPlugin):
+                                        plugin_name = plugin.plugin_name
+                                        if not plugin_name in self.active_telemetry_plugins:
+                                            self.active_telemetry_plugins[plugin_name] = plugin
+                                            RNS.log("Registered "+str(plugin)+" as telemetry plugin \""+str(plugin_name)+"\"", RNS.LOG_NOTICE)
+                                        else:
+                                            RNS.log("Could not register "+str(plugin)+" as telemetry plugin \""+str(plugin_name)+"\". Telemetry type was already registered", RNS.LOG_ERROR)
+                                            try:
+                                                plugin.stop()
+                                            except Exception as e:
+                                                pass
+                                            del plugin
+
+                                    else:
+                                        RNS.log("Unknown plugin type was loaded, ignoring it.", RNS.LOG_ERROR)
+                                        try:
+                                            plugin.stop()
+                                        except Exception as e:
+                                            pass
+                                        del plugin
+
+                                else:
+                                    RNS.log("Plugin "+str(plugin)+" failed to start, ignoring it.", RNS.LOG_ERROR)
+                                    del plugin
+
+
     def reload_configuration(self):
         self.__reload_config()
 
@@ -677,23 +770,24 @@ class SidebandCore():
                 RNS.log("Error while setting LXMF propagation node: "+str(e), RNS.LOG_ERROR)
 
     def notify(self, title, content, group=None, context_id=None):
-        if self.config["notifications_on"]:
-            if RNS.vendor.platformutils.get_platform() == "android":
-                if self.getpersistent("permissions.notifications"):
-                    notifications_permitted = True
-                else:
-                    notifications_permitted = False
-            else:
-                notifications_permitted = True
-
-            if notifications_permitted:
+        if not self.is_daemon:
+            if self.config["notifications_on"]:
                 if RNS.vendor.platformutils.get_platform() == "android":
-                    if self.is_service:
-                        self.owner_service.android_notification(title, content, group=group, context_id=context_id)
+                    if self.getpersistent("permissions.notifications"):
+                        notifications_permitted = True
                     else:
-                        plyer.notification.notify(title, content, notification_icon=self.notification_icon, context_override=None)
+                        notifications_permitted = False
                 else:
-                    plyer.notification.notify(title, content, app_icon=self.icon_32)
+                    notifications_permitted = True
+
+                if notifications_permitted:
+                    if RNS.vendor.platformutils.get_platform() == "android":
+                        if self.is_service:
+                            self.owner_service.android_notification(title, content, group=group, context_id=context_id)
+                        else:
+                            plyer.notification.notify(title, content, notification_icon=self.notification_icon, context_override=None)
+                    else:
+                        plyer.notification.notify(title, content, app_icon=self.icon_32)
 
     def log_announce(self, dest, app_data, dest_type):
         try:
@@ -2354,6 +2448,15 @@ class SidebandCore():
                                     self.telemeter.disable(sensor)
                     else:
                         self.telemeter.disable(sensor)
+
+            for telemetry_plugin in self.active_telemetry_plugins:
+                try:
+                    plugin = self.active_telemetry_plugins[telemetry_plugin]
+                    plugin.update_telemetry(self.telemeter)
+
+                except Exception as e:
+                    RNS.log("An error occurred while "+str(telemetry_plugin)+" was handling telemetry. The contained exception was: "+str(e), RNS.LOG_ERROR)
+                    RNS.trace_exception(e)
             
             if self.config["telemetry_s_fixed_location"]:
                 self.telemeter.synthesize("location")
@@ -3325,6 +3428,8 @@ class SidebandCore():
                 commands.append({Commands.SIGNAL_REPORT: True})
             elif content.startswith("ping"):
                 commands.append({Commands.PING: True})
+            else:
+                commands.append({Commands.PLUGIN_COMMAND: content})
 
             if len(commands) == 0:
                 return False
@@ -3608,6 +3713,19 @@ class SidebandCore():
         except Exception as e:
             RNS.log("Error while ingesting LXMF message "+RNS.prettyhexrep(message.hash)+" to database: "+str(e), RNS.LOG_ERROR)
 
+    def handle_plugin_command(self, command_string, message):
+        try:
+            call = shlex.split(command_string)
+            command = call[0]
+            arguments = call[1:]
+            if command in self.active_command_plugins:
+                RNS.log("Handling command \""+str(command)+"\" via command plugin "+str(self.active_command_plugins[command]), RNS.LOG_DEBUG)
+                self.active_command_plugins[command].handle_command(arguments, message)
+
+        except Exception as e:
+            RNS.log("An error occurred while handling a plugin command. The contained exception was: "+str(e), RNS.LOG_ERROR)
+            RNS.trace_exception(e)
+
     def handle_commands(self, commands, message):
         try:
             context_dest = message.source_hash
@@ -3647,6 +3765,9 @@ class SidebandCore():
                         phy_str = "No reception info available"
 
                     self.send_message(phy_str, context_dest, False, skip_fields=True, no_display=True)
+
+                elif self.config["command_plugins_enabled"] and Commands.PLUGIN_COMMAND in command:
+                    self.handle_plugin_command(command[Commands.PLUGIN_COMMAND], message)
 
         except Exception as e:
             RNS.log("Error while handling commands: "+str(e), RNS.LOG_ERROR)
