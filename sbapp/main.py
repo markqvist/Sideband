@@ -3822,12 +3822,14 @@ class SidebandApp(MDApp):
             self.bind_clipboard_actions(self.plugins_screen.ids)
 
             self.plugins_screen.ids.plugins_scrollview.effect_cls = ScrollEffect
-            info = "You can extend Sideband functionality with command and service plugins. This lets you to add your own custom functionality, or add community-developed features.\n\n"
-            info += "[b]Take extreme caution![/b]\nIf you add a plugin that you did not write yourself, make [b]absolutely[/b] sure you know what it is doing! Loaded plugins have full access to your Sideband application, and should only be added if you are completely certain they are trustworthy.\n\n"
-            info += "Command plugins allow you to define custom commands that can be carried out in response to LXMF command messages, and they can respond with any kind of information or data to the requestor (or to any LXMF address).\n\n"
-            info += "By using service plugins, you can start additional services or programs within the Sideband application context, that other plugins (or Sideband itself) can interact with."
-            info += "Restart Sideband for changes to these settings to take effect."
-            self.plugins_screen.ids.plugins_info.text = info
+            info1 = "You can extend Sideband functionality with command and service plugins. This lets you to add your own custom functionality, or add community-developed features.\n"
+            info2 = "[b]Take extreme caution![/b]\nIf you add a plugin that you did not write yourself, make [b]absolutely[/b] sure you know what it is doing! Loaded plugins have full access to your Sideband application, and should only be added if you are completely certain they are trustworthy.\n\n"
+            info2 += "[i]Command Plugins[/i] allow you to define custom commands that can be carried out in response to LXMF command messages, and they can respond with any kind of information or data to the requestor (or to any LXMF address).\n\n"
+            info2 += "By using [i]Service Plugins[/i], you can start additional services or programs within the Sideband application context, that other plugins (or Sideband itself) can interact with.\n\n"
+            info2 += "With [i]Telemetry Plugins[/i], you can add custom telemetry from external devices and services to the Sideband telemetry system.\n\n"
+            info2 += "Restart Sideband for changes to these settings to take effect."
+            self.plugins_screen.ids.plugins_info1.text = info1
+            self.plugins_screen.ids.plugins_info2.text = info2
 
             self.plugins_screen.ids.settings_command_plugins_enabled.active = self.sideband.config["command_plugins_enabled"]
             self.plugins_screen.ids.settings_service_plugins_enabled.active = self.sideband.config["service_plugins_enabled"]
@@ -3841,6 +3843,9 @@ class SidebandApp(MDApp):
             self.plugins_screen.ids.settings_service_plugins_enabled.bind(active=plugins_settings_save)
 
     def plugins_open(self, sender=None, direction="left", no_transition=False):
+        plugins_info_text = self.sideband.get_plugins_info()
+        self.plugins_screen.ids.plugins_loaded.text = plugins_info_text
+
         if no_transition:
             self.root.ids.screen_manager.transition = self.no_transition
         else:

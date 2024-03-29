@@ -1162,13 +1162,19 @@ MDScreen:
                 height: self.minimum_height
                 padding: [dp(35), dp(35), dp(35), dp(35)]
 
+                MDLabel:
+                    padding: [0,dp(0),dp(0),dp(0)]
+                    text: "Plugin Settings"
+                    id: plugins_active_heading
+                    font_style: "H6"
+                    size_hint_y: None
+                    height: self.texture_size[1]
 
                 MDLabel:
-                    id: plugins_info
+                    id: plugins_info1
                     markup: True
                     text: ""
                     size_hint_y: None
-                    text_size: self.width, None
                     height: self.texture_size[1]
 
                 MDBoxLayout:
@@ -1210,6 +1216,29 @@ MDScreen:
                     font_size: dp(16)
                     size_hint: [1.0, None]
                     on_release: root.app.plugins_select_directory_action(self)
+
+                MDLabel:
+                    id: plugins_info2
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    padding: [0,dp(14),dp(0),dp(0)]
+                    text: "Active Plugins"
+                    id: plugins_active_heading
+                    font_style: "H6"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    id: plugins_loaded
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    height: self.texture_size[1]
 """
 
 layout_settings_screen = """

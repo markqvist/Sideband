@@ -255,7 +255,11 @@ class SidebandCore():
         self.active_service_plugins = {}
         self.active_telemetry_plugins = {}
         if self.is_service or self.is_standalone:
-            self.__load_plugins()
+            def load_job():
+                time.sleep(1)
+                self.__load_plugins()
+
+            threading.Thread(target=load_job, daemon=True).start()
 
     def clear_tmp_dir(self):
         if os.path.isdir(self.tmp_dir):
@@ -685,6 +689,7 @@ class SidebandCore():
         
         if plugins_enabled:
             if plugins_path != None:
+                RNS.log("Loading Sideband plugins...", RNS.LOG_DEBUG)
                 if os.path.isdir(plugins_path):
                     for file in os.listdir(plugins_path):
                         if file.lower().endswith(".py"):
@@ -1366,6 +1371,45 @@ class SidebandCore():
                             RNS.log("Error while retrieving state "+str(prop)+" over RPC: "+str(e), RNS.LOG_DEBUG)
                             self.rpc_connection = None
                             return None
+
+    def _get_plugins_info(self):
+        np = 0
+        plugins_info_text = ""
+        for name in self.active_service_plugins:
+            np += 1
+            plugins_info_text += f"\n- Service Plugin [b]{name}[/b]"
+        for name in self.active_telemetry_plugins:
+            np += 1
+            plugins_info_text += f"\n- Telemetry Plugin [b]{name}[/b]"
+        for name in self.active_command_plugins:
+            np += 1
+            plugins_info_text += f"\n- Command Plugin [b]{name}[/b]"
+        if np == 0:
+            plugins_info_text = "[i]No plugins are currently loaded[/i]"
+        elif np == 1:
+            plugins_info_text = "Currently, 1 plugin is loaded and active:\n" + plugins_info_text
+        else:
+            plugins_info_text = f"Currently, {np} plugins are loaded and active:\n" + plugins_info_text
+        return plugins_info_text
+
+    def get_plugins_info(self):
+        if not RNS.vendor.platformutils.is_android():
+            return self._get_plugins_info()
+        else:
+            if self.is_service:
+                return self._get_plugins_info()
+            else:
+                try:
+                    if self.rpc_connection == None:
+                        self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
+                    self.rpc_connection.send({"get_plugins_info": True})
+                    response = self.rpc_connection.recv()
+                    return response
+                except Exception as e:
+                    ed = "Error while getting plugins info over RPC: "+str(e)
+                    RNS.log(ed, RNS.LOG_DEBUG)
+                    return ed
+
     
     def __start_rpc_listener(self):
         try:
@@ -1404,6 +1448,10 @@ class SidebandCore():
                                 elif "set_debug" in call:
                                     self.service_rpc_set_debug(call["set_debug"])
                                     connection.send(True)
+                                elif "get_plugins_info" in call:
+                                    connection.send(self._get_plugins_info())
+                                else:
+                                    return None
 
                         except Exception as e:
                             RNS.log("Error on client RPC connection: "+str(e), RNS.LOG_ERROR)
