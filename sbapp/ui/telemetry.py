@@ -1275,7 +1275,7 @@ MDScreen:
                     MDTextField:
                         id: telemetry_s_fixed_altitude
                         size_hint: [0.382, None]
-                        hint_text: "Altitude"
+                        hint_text: "Ellipsoid Height (GPS Altitude)"
                         text: ""
                         font_size: dp(24)
 

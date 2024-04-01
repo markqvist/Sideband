@@ -796,7 +796,7 @@ class Location(Sensor):
     obj_rh = None
     aamsl = None
     if self.data["altitude"] != None and self.data["latitude"] != None and self.data["longitude"] != None:
-      aamsl = self.get_aamsl()
+      aamsl = max(0, self.get_aamsl())
       coords = (self.data["latitude"], self.data["longitude"], aamsl)
       obj_ath = angle_to_horizon(coords)
       obj_rh = radio_horizon(aamsl)
@@ -825,7 +825,7 @@ class Location(Sensor):
         s = relative_to.sensors["location"]
         d = s.data
         if d != None and "latitude" in d and "longitude" in d and "altitude" in d:
-          lat = d["latitude"]; lon = d["longitude"]; alt = altitude_to_aamsl(d["altitude"], lat, lon)
+          lat = d["latitude"]; lon = d["longitude"]; alt = max(0, altitude_to_aamsl(d["altitude"], lat, lon))
           if lat != None and lon != None:
             if alt == None: alt = 0
             cs = (slat, slon, salt); cr = (lat, lon, alt)
