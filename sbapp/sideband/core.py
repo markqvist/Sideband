@@ -2518,7 +2518,7 @@ class SidebandCore():
 
             if self.config["telemetry_s_information"]:
                 self.telemeter.synthesize("information")
-                self.telemeter.sensors["information"].contents = self.config["telemetry_s_information_text"]
+                self.telemeter.sensors["information"].set_contents(self.config["telemetry_s_information_text"])
 
         else:
             self.telemeter = None

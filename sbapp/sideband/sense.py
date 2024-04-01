@@ -331,6 +331,10 @@ class Information(Sensor):
   def update_data(self):
     self.data = {"contents":str(self.contents)}
 
+  def set_contents(self, contents):
+    self.contents = contents
+    self.update_data()
+
   def pack(self):
     if self.data == None:
       return None

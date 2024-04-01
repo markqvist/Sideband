@@ -436,12 +436,13 @@ class Telemetry():
         self.app.sideband.config["telemetry_s_proximity"] = self.sensors_screen.ids.telemetry_s_proximity.active
 
         if self.app.sideband.config["telemetry_s_information"] != self.sensors_screen.ids.telemetry_s_information.active:
-            self.app.sideband.config["telemetry_s_information"] = self.sensors_screen.ids.telemetry_s_information.active
             run_telemetry_update = True
+        self.app.sideband.config["telemetry_s_information"] = self.sensors_screen.ids.telemetry_s_information.active
 
         if self.app.sideband.config["telemetry_s_information_text"] != self.sensors_screen.ids.telemetry_s_information_text.text:
-            self.app.sideband.config["telemetry_s_information_text"] = self.sensors_screen.ids.telemetry_s_information_text.text
             run_telemetry_update = True
+        self.app.sideband.config["telemetry_s_information_text"] = self.sensors_screen.ids.telemetry_s_information_text.text
+
 
         try:
             alt = float(self.sensors_screen.ids.telemetry_s_fixed_altitude.text.strip().replace(" ", ""))
