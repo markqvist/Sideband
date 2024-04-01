@@ -106,7 +106,7 @@ class SidebandCore():
         # stream logger
         self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter)
 
-    def __init__(self, owner_app, is_service=False, is_client=False, android_app_dir=None, verbose=False, owner_service=None, service_context=None, is_daemon=False):
+    def __init__(self, owner_app, config_path = None, is_service=False, is_client=False, android_app_dir=None, verbose=False, owner_service=None, service_context=None, is_daemon=False):
         self.is_service = is_service
         self.is_client = is_client
         self.is_daemon = is_daemon
@@ -139,10 +139,14 @@ class SidebandCore():
         self.service_context = service_context
         self.owner_service = owner_service
 
-        self.app_dir       = plyer.storagepath.get_home_dir()+"/.config/sideband"
-        if self.app_dir.startswith("file://"):
-            self.app_dir   = self.app_dir.replace("file://", "")
-        self.cache_dir     = self.app_dir+"/cache"
+        if config_path == None:
+            self.app_dir     = plyer.storagepath.get_home_dir()+"/.config/sideband"
+            if self.app_dir.startswith("file://"):
+                self.app_dir = self.app_dir.replace("file://", "")
+        else:
+            self.app_dir     = config_path
+
+        self.cache_dir       = self.app_dir+"/cache"
         
         self.rns_configdir = None
         if RNS.vendor.platformutils.is_android():

@@ -7,6 +7,7 @@ import sys
 import argparse
 parser = argparse.ArgumentParser(description="Sideband LXMF Client")
 parser.add_argument("-v", "--verbose", action='store_true', default=False, help="increase logging verbosity")
+parser.add_argument("-c", "--config", action='store', default=None, help="specify path of config directory")
 parser.add_argument("-d", "--daemon", action='store_true', default=False, help="run as a daemon, without user interface")
 parser.add_argument("--version", action="version", version="sideband {version}".format(version=__version__))
 args = parser.parse_args()
@@ -182,10 +183,15 @@ class SidebandApp(MDApp):
         self.no_transition = NoTransition()
         self.slide_transition = SlideTransition()
 
-        if RNS.vendor.platformutils.get_platform() == "android":
-            self.sideband = SidebandCore(self, is_client=True, android_app_dir=self.app_dir, verbose=__debug_build__)
+        if args.config != None:
+            self.config_path = os.path.expanduser(args.config)
         else:
-            self.sideband = SidebandCore(self, is_client=False, verbose=(args.verbose or __debug_build__))
+            self.config_path = None
+
+        if RNS.vendor.platformutils.get_platform() == "android":
+            self.sideband = SidebandCore(self, config_path=self.config_path, is_client=True, android_app_dir=self.app_dir, verbose=__debug_build__)
+        else:
+            self.sideband = SidebandCore(self, config_path=self.config_path, is_client=False, verbose=(args.verbose or __debug_build__))
 
         self.set_ui_theme()
         self.font_config()
@@ -4972,7 +4978,14 @@ if not args.daemon:
 def run():
     if args.daemon:
         RNS.log("Starting Sideband in daemon mode")
-        sideband = SidebandCore(None, is_client=False, verbose=(args.verbose or __debug_build__), is_daemon=True)
+        sideband = SidebandCore(
+            None,
+            config_path=args.config,
+            is_client=False,
+            verbose=(args.verbose or __debug_build__),
+            is_daemon=True
+        )
+
         sideband.start()
         while True:
             time.sleep(5)
