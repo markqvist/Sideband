@@ -595,7 +595,7 @@ class Pressure(Sensor):
     delta = None
     if relative_to and "pressure" in relative_to.sensors:
       rs = relative_to.sensors["pressure"]
-      if "mbar" in rs.data and rs.data["mbar"] != None:
+      if rs.data != None and "mbar" in rs.data and rs.data["mbar"] != None:
         if self.data["mbar"] != None:
           delta = round(rs.data["mbar"] - self.data["mbar"], 1)
 
@@ -1129,7 +1129,7 @@ class AmbientLight(Sensor):
     delta = None
     if relative_to and "ambient_light" in relative_to.sensors:
       rs = relative_to.sensors["ambient_light"]
-      if "lux" in rs.data and rs.data["lux"] != None:
+      if rs.data != None and "lux" in rs.data and rs.data["lux"] != None:
         if self.data["lux"] != None:
           delta = round(rs.data["lux"] - self.data["lux"], 2)
     
