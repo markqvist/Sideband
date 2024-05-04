@@ -59,7 +59,7 @@ Alternatively, you can use the `pipx` tool to install Sideband in an isolated en
 pipx install sbapp
 
 # Install Sideband on macOS
-pip install "sbapp[macos]"
+pipx install "sbapp[macos]"
 
 # Optionally install Reticulum utilities
 pipx install rns
