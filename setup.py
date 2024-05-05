@@ -79,6 +79,10 @@ setuptools.setup(
         "License :: Other/Proprietary License",
         "Operating System :: OS Independent",
     ],
+    data_files = [
+        ('share/applications', ['sbapp/assets/io.unsigned.sideband.desktop']),
+        ('share/icons/hicolor/512x512/apps', ['sbapp/assets/io.unsigned.sideband.png']),
+    ],
     entry_points= {
         'console_scripts': [
             'sideband=sbapp:main.run',

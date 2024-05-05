@@ -1,0 +1,20 @@
+[Desktop Entry]
+Comment[en_US]=
+Comment=
+Encoding=UTF-8
+Exec=sideband
+GenericName[en_US]=LXMF messaging, telemetry and remote control
+GenericName=LXMF messaging, telemetry and remote control
+Icon=io.unsigned.sideband.png
+Categories=InstantMessaging,Network
+MimeType=
+Name[en_US]=Sideband
+Name=Sideband
+Path=
+StartupNotify=true
+Terminal=false
+TerminalOptions=
+Type=Application
+Version=0.8.3
+X-KDE-SubstituteUID=false
+X-KDE-Username=
