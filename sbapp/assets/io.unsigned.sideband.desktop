@@ -15,6 +15,6 @@ StartupNotify=true
 Terminal=false
 TerminalOptions=
 Type=Application
-Version=0.8.3
+Version=1.0
 X-KDE-SubstituteUID=false
 X-KDE-Username=
