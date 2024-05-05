@@ -135,6 +135,7 @@ You can help support the continued development of open, free and private communi
 - <s>Using Sideband as a Reticulum Transport Instance</s>
 - <s>Encryption keys export and import</s>
 - <s>Plugin support for commands, services and telemetry</s>
+- <s>Adding Linux .desktop file integration</s>
 - Sending voice messages (using Codec2 and Opus)
 - Implementing the Local Broadcasts feature
 - LXMF sneakernet functionality
@@ -142,7 +143,6 @@ You can help support the continued development of open, free and private communi
 - A debug log viewer
 - Better message sorting mechanism
 - Fix I2P status not being displayed correctly when the I2P router disappears unexpectedly
-- Adding a Linux .desktop file
 - Adding a Nomad Net page browser
 
 ## License
