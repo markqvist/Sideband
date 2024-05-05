@@ -45,6 +45,8 @@ sideband
 
 ```
 
+On Linux, this installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers.
+
 If you are using an operating system that blocks normal user package installation via `pip`, you can return `pip` to normal behaviour by editing the `~/.config/pip/pip.conf` file, and adding the following directive in the `[global]` section:
 
 ```text
@@ -52,7 +54,7 @@ If you are using an operating system that blocks normal user package installatio
 break-system-packages = true
 ```
 
-Alternatively, you can use the `pipx` tool to install Sideband in an isolated environment instead:
+You *can* use the `pipx` tool to install Sideband in an isolated environment, but on Linux you will have to launch Sideband from the command line, or create your own launcher links, since `pipx` does not support desktop integration. Unfortunately, it does not seem like `pipx` will be adding desktop integration in the near future, so restoring the original `pip` tool to its proper behaviour is recommended for now. If you want to use `pipx` anyway, it is as simple as:
 
 ```bash
 # Install Sideband on Linux
