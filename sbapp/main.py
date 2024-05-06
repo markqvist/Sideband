@@ -873,6 +873,15 @@ class SidebandApp(MDApp):
                         c_index = keycode-29
                         self.conversation_index_action(c_index)
 
+            if self.root.ids.screen_manager.current == "messages_screen":
+                if keycode == 43:
+                    if not self.messages_view.ids.message_text.focus:
+                        self.messages_view.ids.message_text.write_tab = False
+                        self.messages_view.ids.message_text.focus = True
+                        def tab_job(delta):
+                            self.messages_view.ids.message_text.write_tab = True
+                        Clock.schedule_once(tab_job, 0.15)
+
             if len(modifiers) > 0:
                 if modifiers[0] == "ctrl":
                     if text == "q":
