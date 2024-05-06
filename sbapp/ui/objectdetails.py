@@ -642,7 +642,7 @@ class RVDetails(MDRecycleView):
             try:
                 nh = RNS.Transport.hops_to(self.delegate.object_hash)
                 nhi = self.delegate.app.sideband.reticulum.get_next_hop_if_name(self.delegate.object_hash)
-                if nhi:
+                if nhi and nhi != "None":
                     self.entries.append({"icon": "routes", "text": f"Current path on [b]{nhi}[/b]", "on_release": pass_job})
 
                 try:
