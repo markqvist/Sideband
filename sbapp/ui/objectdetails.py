@@ -309,12 +309,14 @@ class RVDetails(MDRecycleView):
                 "Received": 90,
                 "Information": 5,
             }
+            
+            def pass_job(sender=None):
+                pass
+
             self.entries = []
             rendered_telemetry.sort(key=lambda s: sort[s["name"]] if s["name"] in sort else 1000)
             for s in rendered_telemetry:
                 extra_entries = []
-                def pass_job(sender=None):
-                    pass
                 release_function = pass_job
                 formatted_values = None
                 name = s["name"]
@@ -506,10 +508,11 @@ class RVDetails(MDRecycleView):
                         alt_str = RNS.prettydistance(alt)
                     formatted_values = f"Coordinates [b]{fcoords}[/b], altitude [b]{alt_str}[/b]"
                     if speed != None:
-                        if speed > 0.000001:
+                        if speed > 0.02:
                             speed_formatted_values = f"Speed [b]{speed} Km/h[/b], heading [b]{heading}°[/b]"
                         else:
-                            speed_formatted_values = f"Speed [b]0 Km/h[/b]"
+                            # speed_formatted_values = f"Speed [b]0 Km/h[/b]"
+                            speed_formatted_values = f"Object is [b]stationary[/b]"
                     else:
                         speed_formatted_values = None
                     extra_formatted_values = f"Uncertainty [b]{accuracy} meters[/b]"+updated_str
@@ -628,12 +631,37 @@ class RVDetails(MDRecycleView):
                     if release_function:
                         data = {"icon": s["icon"], "text": f"{formatted_values}", "on_release": release_function}
                     else:
-                        data = {"icon": s["icon"], "text": f"{formatted_values}"}
+                        data = {"icon": s["icon"], "text": f"{formatted_values}", "on_release": pass_job}
 
                 if data != None:
                     self.entries.append(data)
                 for extra in extra_entries:
                     self.entries.append(extra)
+
+
+            try:
+                nh = RNS.Transport.hops_to(self.delegate.object_hash)
+                nhi = RNS.Transport.next_hop_interface(self.delegate.object_hash)
+                if nhi:
+                    self.entries.append({"icon": "routes", "text": f"Current path on [b]{nhi}[/b]", "on_release": pass_job})
+
+                try:
+                    mr = self.delegate.app.sideband.message_router
+                    oh = self.delegate.object_hash
+                    if oh in mr.direct_links:
+                        ol = mr.direct_links[oh]
+                        ler = ol.get_establishment_rate()
+                        if ler:
+                            lers = RNS.prettyspeed(ler, "b")
+                            self.entries.append({"icon": "lock-check-outline", "text": f"Direct link established, LER is [b]{lers}[/b]", "on_release": pass_job})
+                except Exception as e:
+                    pass
+
+                if nh != RNS.Transport.PATHFINDER_M:
+                    hs = "hop" if nh == 1 else "hops"
+                    self.entries.append({"icon": "atom-variant", "text": f"Network distance is [b]{nh} {hs}[/b]", "on_release": pass_job})
+            except:
+                pass
 
             if len(self.entries) == 0:
                 self.entries.append({"icon": "timeline-question-outline", "text": f"No telemetry available for this device"})
