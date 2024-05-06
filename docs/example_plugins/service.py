@@ -1,3 +1,7 @@
+# This is a bare-minimum service plugin
+# example that you can build upon to
+# implement your own service plugins.
+
 import RNS
 import time
 import threading

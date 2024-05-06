@@ -1,10 +1,14 @@
-import RNS
-import time
-import threading
+# This plugin allows using GPSd as a location
+# telemetry provider on Linux systems.
 
 # This plugin requires the "gpsdclient" pip
 # package to be installed on your system.
 # Install it with: pip install gpsdclient
+
+import RNS
+import time
+import threading
+
 from gpsdclient import GPSDClient
 
 class GpsdLocationPlugin(SidebandTelemetryPlugin):
@@ -50,19 +54,28 @@ class GpsdLocationPlugin(SidebandTelemetryPlugin):
                         RNS.log("Connected, streaming GPSd data", RNS.LOG_DEBUG)
 
                     self.client_connected = True
-                    self.last_update = time.time()
-                    self.latitude  = result.get("lat", None)
-                    self.longitude = result.get("lon", None)
-                    self.altitude  = result.get("altHAE", None)
-                    self.speed     = result.get("speed", None)
-                    self.bearing   = result.get("track", None)
 
-                    epx = result.get("epx", None); epy = result.get("epy", None)
-                    epv = result.get("epv", None)
-                    if epx != None and epy != None and epv != None:
-                        self.accuracy = max(epx, epy, epv)
-                    else:
-                        self.accuracy = None
+                    gpsd_latitude  = result.get("lat", None)
+                    gpsd_longitude = result.get("lon", None)
+                    gpsd_altitude  = result.get("altHAE", None)
+                    gpsd_speed     = result.get("speed", None)
+                    gpsd_bearing   = result.get("track", None)
+                    gpsd_required  = [gpsd_latitude, gpsd_longitude, gpsd_altitude, gpsd_speed, gpsd_bearing]
+
+                    if not None in gpsd_required:
+                        self.last_update = time.time()
+                        self.latitude  = gpsd_latitude
+                        self.longitude = gpsd_longitude
+                        self.altitude  = gpsd_altitude
+                        self.speed     = gpsd_speed
+                        self.bearing   = gpsd_bearing
+
+                        epx = result.get("epx", None); epy = result.get("epy", None)
+                        epv = result.get("epv", None)
+                        if epx != None and epy != None and epv != None:
+                            self.accuracy = max(epx, epy, epv)
+                        else:
+                            self.accuracy = None
 
             except Exception as e:
                 RNS.log("Could not connect to local GPSd, retrying later", RNS.LOG_ERROR)

@@ -1,3 +1,7 @@
+# This is a bare-minimum command plugin
+# example that you can build upon to
+# implement your own command plugins.
+
 import RNS
 
 class BasicCommandPlugin(SidebandCommandPlugin):

@@ -1,3 +1,7 @@
+# This is a bare-minimum telemetry plugin
+# example that you can build upon to
+# implement your own telemetry plugins.
+
 import RNS
 
 class BasicTelemetryPlugin(SidebandTelemetryPlugin):

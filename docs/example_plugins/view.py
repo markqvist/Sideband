@@ -1,5 +1,7 @@
 # This plugin lets you remotely query and view a
-# number of different image sources in Sideband.
+# number of different image sources in Sideband,
+# including remote or local webcams, video sources
+# or images stored in a filesystem.
 #
 # This plugin requires the "pillow" pip package.
 #

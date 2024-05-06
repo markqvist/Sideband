@@ -1,3 +1,7 @@
+# This plugin example fetches an XKCD comic
+# from an external URL and returns it as an
+# embedded image in an LXMF message.
+
 import io
 import RNS
 import requests
