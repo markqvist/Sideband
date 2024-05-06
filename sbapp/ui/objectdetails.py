@@ -641,7 +641,7 @@ class RVDetails(MDRecycleView):
 
             try:
                 nh = RNS.Transport.hops_to(self.delegate.object_hash)
-                nhi = RNS.Transport.next_hop_interface(self.delegate.object_hash)
+                nhi = self.delegate.app.sideband.reticulum.get_next_hop_if_name(self.delegate.object_hash)
                 if nhi:
                     self.entries.append({"icon": "routes", "text": f"Current path on [b]{nhi}[/b]", "on_release": pass_job})
 
@@ -655,13 +655,13 @@ class RVDetails(MDRecycleView):
                             lers = RNS.prettyspeed(ler, "b")
                             self.entries.append({"icon": "lock-check-outline", "text": f"Direct link established, LER is [b]{lers}[/b]", "on_release": pass_job})
                 except Exception as e:
-                    pass
+                    RNS.trace_exception(e)
 
                 if nh != RNS.Transport.PATHFINDER_M:
                     hs = "hop" if nh == 1 else "hops"
                     self.entries.append({"icon": "atom-variant", "text": f"Network distance is [b]{nh} {hs}[/b]", "on_release": pass_job})
-            except:
-                pass
+            except Exception as e:
+                RNS.trace_exception(e)
 
             if len(self.entries) == 0:
                 self.entries.append({"icon": "timeline-question-outline", "text": f"No telemetry available for this device"})
