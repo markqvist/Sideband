@@ -12,7 +12,10 @@ version.regex = __version__ = ['"](.*)['"]
 version.filename = %(source.dir)s/main.py
 android.numeric_version = 20240401
 
-# Cryptography recipe is currently broken, using RNS-internal crypto for now
+# Cryptography recipe is currently broken, using RNS-internal crypto for now. Since
+# relevant PRs have now been merged in Kivy/P4A, the next release will hopefully allow
+# building a non-ancient PyCa/Cryptography distribution again. When this happens, add
+# the "cryptography" dependency back in here.
 requirements = kivy==2.3.0,libbz2,pillow==10.2.0,qrcode==7.3.1,usb4a,usbserial4a,libwebp
 
 p4a.local_recipes = ../Others/python-for-android/pythonforandroid/recipes
