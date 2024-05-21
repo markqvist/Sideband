@@ -25,27 +25,27 @@ Sideband provides many useful and interesting functions, such as:
 
 Sideband works well with the terminal-based LXMF client [Nomad Network](https://github.com/markqvist/nomadnet), which allows you to easily host Propagation Nodes for your LXMF network, and more.
 
-## Installation On Linux, Android and MacOS
+## Installation On Android
 
 For your Android devices, you can install Sideband through F-Droid, by adding the [Between the Borders Archive Repo](https://reticulum.betweentheborders.com/fdroid/repo/), or you can download an [APK on the latest release](https://github.com/markqvist/Sideband/releases/latest) page. Both sources are signed with the same release keys, and can be used interchangably.
 
-A DMG file containing a macOS app bundle is also available on the  [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
+## Installation On Linux
 
-Aditionally, you can install Sideband with ``pip`` on Linux and macOS:
+On all Linux-based operating systems, Sideband is available as a `pip` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers. Make sure you have Python and `pip` installed (default on most modern distributions), and run:
 
 ```bash
-# Install Sideband and dependencies on Linux
+# Install Sideband and dependencies on Linux:
 pip install sbapp
 
-# Install Sideband and dependencies on macOS
-pip install "sbapp[macos]"
-
-# Run it
+# Find the Sideband application in your launcher,
+# or run it directly from the command line:
 sideband
 
-```
+# You can also run Sideband in headless daemon
+# mode, for example as a telemetry collector:
+sideband --daemon
 
-On Linux, this installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers.
+```
 
 **Please Note!** If you are using an operating system that blocks normal user package installation via `pip`, it's easy to permanently return `pip` to normal behaviour by editing the `~/.config/pip/pip.conf` file, and adding the following directive in the `[global]` section:
 
@@ -55,6 +55,39 @@ break-system-packages = true
 ```
 
 You can also simply add the `--break-system-packages` directive on a per-installation basis. For example, on a system that blocks normal user package installation, you can install Sideband by running `pip install sbapp --break-system-packages`.
+
+## Installation On macOS
+
+A DMG file containing a macOS app bundle is available on the [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
+
+Alternatively, you can install Sideband with ``pip`` on macOS:
+
+```bash
+# Install Sideband and dependencies on macOS
+pip install "sbapp[macos]"
+
+# Run it
+sideband
+
+```
+
+## Installation On Windows
+
+Even though there is currently not an automated installer, or packaged `.exe` file for Sideband on Windows, you can still install it through `pip`. If you don't already have Python installed, [download and install](https://www.python.org/downloads/) the latest version of Python.
+
+**Important!** When asked by the installer, make sure to add the Python program to your PATH environment variables. If you don't do this, you will not be able to use the `pip` installer, or run the `sideband` command.
+
+When Python has been installed, you can open a command prompt and install sideband via `pip`:
+
+```bash
+pip install sbapp
+```
+
+The Sideband application can now be launched by running the command `sideband` in the command prompt. If needed, you can create a shortcut for Sideband on your desktop or in the start menu.
+
+When running Sideband for the first time, a default Reticulum configuration file will be created, if you don't already have one. If you don't have any existing Reticulum connectivity available locally, you may want to edit the file, located at `C:\Users\USERNAME\.reticulum\config` and manually add an interface that provides connectivity to a wider network. If you just want to connect over the Internet, you can add one of the public hubs on the [Reticulum Testnet](https://reticulum.network/connect.html).
+
+## Installation With pipx
 
 You *can* use the `pipx` tool to install Sideband in an isolated environment, but on Linux you will have to launch Sideband from the command line, or create your own launcher links, since `pipx` does not support desktop integration. Unfortunately, it does not seem like `pipx` will be adding desktop integration in the near future, so restoring the original `pip` tool to its proper behaviour is recommended for now. If you want to use `pipx` anyway, it is as simple as:
 
@@ -71,24 +104,6 @@ pipx install rns
 # Optionally install standalone LXMF utilities
 pipx install lxmf
 ```
-
-## Installation On Windows
-
-It is possible to install and run Sideband on Windows, although some features are not fully functional. If you don't already have Python installed, [download and install](https://www.python.org/downloads/) the latest version of Python.
-
-**Important!** When asked by the installer, make sure to add the Python program to your PATH environment variables. If you don't do this, you will not be able to use the `pip` installer, or run the `sideband` command.
-
-When Python has been installed, you can open a command prompt and install sideband via `pip`:
-
-```bash
-pip install sbapp
-```
-
-The Sideband application can now be launched by running the command `sideband` in the command prompt.
-
-**Most importantly**, the `AutoInterface` in Reticulum is not yet supported on Windows. This means that on the first run, Sideband will not be able to automatically find any peers or potential Reticulum Transport Nodes you have on your local network.
-
-When running Sideband for the first time, a default Reticulum configuration file will be created, if you don't already have one. You will have to edit this file, located at `C:\Users\USERNAME\.reticulum\config` and manually add an interface that provides connectivity to a wider network. If you just want to connect over the Internet, you can add one of the public hubs on the [Reticulum Testnet](https://reticulum.network/connect.html).
 
 ## Example Paper Message
 
