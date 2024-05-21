@@ -27,7 +27,9 @@ Sideband works well with the terminal-based LXMF client [Nomad Network](https://
 
 ## Installation On Android
 
-For your Android devices, you can install Sideband through F-Droid, by adding the [Between the Borders Archive Repo](https://reticulum.betweentheborders.com/fdroid/repo/), or you can download an [APK on the latest release](https://github.com/markqvist/Sideband/releases/latest) page. Both sources are signed with the same release keys, and can be used interchangably.
+For your Android devices, you can install Sideband through F-Droid, by adding the [Between the Borders Repo](https://reticulum.betweentheborders.com/fdroid/repo/), or you can download an [APK on the latest release](https://github.com/markqvist/Sideband/releases/latest) page. Both sources are signed with the same release keys, and can be used interchangably.
+
+After the application is installed on your Android device, it is also possible to pull updates directly through the **Repository** section of the application.
 
 ## Installation On Linux
 
