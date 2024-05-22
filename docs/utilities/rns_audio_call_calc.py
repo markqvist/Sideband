@@ -14,7 +14,7 @@ def simulate(link_speed=9600, audio_slot_ms=70, codec_rate=1200, method="msgpack
     TARGET_MS = audio_slot_ms
 
     # Packets needed per second for half-duplex audio
-    PACKET_PER_SECOND = 1000/TARGET_MS
+    PACKETS_PER_SECOND = 1000/TARGET_MS
 
     # Effective audio encoder bitrate
     CODEC_RATE = codec_rate
@@ -64,8 +64,12 @@ def simulate(link_speed=9600, audio_slot_ms=70, codec_rate=1200, method="msgpack
 
     # TODO: This should include any additional
     # airtime consumption such as preamble and TX-tail.
-    PACKET_AIRTIME = round(PACKET_LEN*PER_BYTE_LATENCY_MS, 1)
-    AIRTIME_PCT = round( (PACKET_AIRTIME/TARGET_MS) * 100, 1)
+    PACKET_AIRTIME = PACKET_LEN*PER_BYTE_LATENCY_MS
+    AIRTIME_PCT = (PACKET_AIRTIME/TARGET_MS) * 100
+
+    # Maximum amount of concurrent full-duplex
+    # calls that can coexist on the same channel
+    CONCURRENT_CALLS = math.floor(100/AIRTIME_PCT)
 
     # Calculate latencies
     TRANSPORT_LATENCY  = round((PHY_OVERHEAD+RNS_OVERHEAD)*PER_BYTE_LATENCY_MS, 1)
@@ -83,7 +87,7 @@ def simulate(link_speed=9600, audio_slot_ms=70, codec_rate=1200, method="msgpack
 
     TOTAL_LATENCY      = round(TARGET_MS+PACKET_LATENCY, 1)
 
-    print( "\n  === Simulation Parameters ===")
+    print( "\n===== Simulation Parameters ===\n")
     print(f"  Packing method       : {method}")
     print(f"  Sampling delay       : {TARGET_MS}ms")
     print(f"  Codec bitrate        : {CODEC_RATE} bps")
@@ -96,7 +100,7 @@ def simulate(link_speed=9600, audio_slot_ms=70, codec_rate=1200, method="msgpack
     print(f"  On-air length        : {PACKET_LEN} bytes")
     print(f"  Packet airtime       : {PACKET_AIRTIME}ms")
 
-    print( "\n  === Results for "+RNS.prettyspeed(LINK_SPEED)+" Link Speed ===")
+    print( "\n===== Results for "+RNS.prettyspeed(LINK_SPEED)+" Link Speed ===\n")
     print(f"  Final latency        : {TOTAL_LATENCY}ms")
     print(f"    Recording latency  : contributes {TARGET_MS}ms")
     print(f"    Packet transport   : contributes {PACKET_LATENCY}ms")
@@ -106,8 +110,10 @@ def simulate(link_speed=9600, audio_slot_ms=70, codec_rate=1200, method="msgpack
     print(f"        Encryption     : contributes {ENCRYPTION_LATENCY}ms {E_OPT_STR}")
     print(f"      RNS+PHY overhead : contributes {TRANSPORT_LATENCY}ms")
     print(f"")
-    print(f"  Half-duplex airtime  : {AIRTIME_PCT}% of link capacity")
-    print(f"  Full-duplex airtime  : {AIRTIME_PCT*2}% of link capacity")
+    print(f"  Half-duplex airtime  : {round(AIRTIME_PCT, 2)}% of link capacity")
+    print(f"    Concurrent calls   : {int(CONCURRENT_CALLS)}\n")
+    print(f"  Full-duplex airtime  : {round(AIRTIME_PCT*2, 2)}% of link capacity")
+    print(f"    Concurrent calls   : {int(CONCURRENT_CALLS/2)}")
 
     if BLOCK_HEADROOM != 0:
         print("")
@@ -119,5 +125,5 @@ def simulate(link_speed=9600, audio_slot_ms=70, codec_rate=1200, method="msgpack
 print(  "\n= With mspack =================")
 simulate(method="msgpack")
 
-print("\n\n= With protobuf ===============")
-simulate(method="protobuf")
+#print("\n\n= With protobuf ===============")
+#simulate(method="protobuf")
