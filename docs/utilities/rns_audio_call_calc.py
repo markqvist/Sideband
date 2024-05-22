@@ -59,7 +59,7 @@ def simulate(link_speed=9600, audio_slot_ms=70, codec_rate=1200, method="msgpack
     BLOCK_HEADROOM = (REQUIRED_BLOCKS*BLOCKSIZE) - PL_LEN - 1
 
     # The complete on-air packet length
-    PACKET_LEN     = PHY_OVERHEAD+RNS_OVERHEAD+PL_LEN
+    PACKET_LEN     = PHY_OVERHEAD+RNS_OVERHEAD+ENCRYPTED_PAYLOAD_LEN
     PACKET_LATENCY = round(PACKET_LEN*PER_BYTE_LATENCY_MS, 1)
 
     # TODO: This should include any additional
@@ -70,7 +70,7 @@ def simulate(link_speed=9600, audio_slot_ms=70, codec_rate=1200, method="msgpack
     # Calculate latencies
     TRANSPORT_LATENCY  = round((PHY_OVERHEAD+RNS_OVERHEAD)*PER_BYTE_LATENCY_MS, 1)
 
-    PAYLOAD_LATENCY    = round(PL_LEN*PER_BYTE_LATENCY_MS, 1)
+    PAYLOAD_LATENCY    = round(ENCRYPTED_PAYLOAD_LEN*PER_BYTE_LATENCY_MS, 1)
     RAW_DATA_LATENCY   = round(AUDIO_LEN*PER_BYTE_LATENCY_MS, 1)
     PACKING_LATENCY    = round(PACKING_OVERHEAD*PER_BYTE_LATENCY_MS, 1)
     
@@ -86,6 +86,7 @@ def simulate(link_speed=9600, audio_slot_ms=70, codec_rate=1200, method="msgpack
     print( "\n  === Simulation Parameters ===")
     print(f"  Packing method       : {method}")
     print(f"  Sampling delay       : {TARGET_MS}ms")
+    print(f"  Codec bitrate        : {CODEC_RATE} bps")
     print(f"  Audio data           : {AUDIO_LEN} bytes")
     print(f"  Packing overhead     : {PACKING_OVERHEAD} bytes")
     print(f"  Payload length       : {PL_LEN} bytes")
