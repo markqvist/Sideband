@@ -3,21 +3,21 @@ import math
 import RNS
 import RNS.vendor.umsgpack as mp
 
-def simulate(method="msgpack"):
+def simulate(link_speed=9600, audio_slot_ms=70, codec_rate=1200, method="msgpack"):
     # Simulated on-air link speed
-    LINK_SPEED = 9600
+    LINK_SPEED = link_speed
 
     # Packing method, can be "msgpack" or "protobuf"
     PACKING_METHOD = method
 
     # The target audio slot time
-    TARGET_MS = 70
+    TARGET_MS = audio_slot_ms
 
     # Packets needed per second for half-duplex audio
     PACKET_PER_SECOND = 1000/TARGET_MS
 
     # Effective audio encoder bitrate
-    CODEC2_RATE = 1200
+    CODEC_RATE = codec_rate
 
     # Maximum number of supported audio modes
     MAX_ENUM = 127
@@ -34,7 +34,7 @@ def simulate(method="msgpack"):
     TRANSPORT_OVERHEAD = PHY_OVERHEAD+RNS_OVERHEAD
 
     # Calculate parameters
-    AUDIO_LEN = int(math.ceil(CODEC2_RATE/(1000/TARGET_MS)/8))
+    AUDIO_LEN = int(math.ceil(CODEC_RATE/(1000/TARGET_MS)/8))
     PER_BYTE_LATENCY_MS = 1000/(LINK_SPEED/8)
 
     # Pack the message with msgpack to get real-
@@ -76,7 +76,7 @@ def simulate(method="msgpack"):
     
     DATA_LATENCY       = round(ENCRYPTED_PAYLOAD_LEN*PER_BYTE_LATENCY_MS, 1)
     ENCRYPTION_LATENCY = round((ENCRYPTED_PAYLOAD_LEN-PL_LEN)*PER_BYTE_LATENCY_MS, 1)
-    if ENCRYPTION_LATENCY == PER_BYTE_LATENCY_MS:
+    if ENCRYPTED_PAYLOAD_LEN-PL_LEN == 1:
         E_OPT_STR = "(optimal)"
     else:
         E_OPT_STR = "(sub-optimal)"
@@ -116,7 +116,7 @@ def simulate(method="msgpack"):
         print(f"  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
 print(  "\n= With mspack =================")
-simulate("msgpack")
+simulate(method="msgpack")
 
 print("\n\n= With protobuf ===============")
-simulate("protobuf")
+simulate(method="protobuf")
