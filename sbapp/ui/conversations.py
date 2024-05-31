@@ -35,6 +35,7 @@ class ConvSettings(BoxLayout):
     trusted = BooleanProperty()
     telemetry = BooleanProperty()
     allow_requests = BooleanProperty()
+    is_object = BooleanProperty()
 
 class Conversations():
     def __init__(self, app):
@@ -72,7 +73,16 @@ class Conversations():
         # if self.app.sideband.getstate("app.flags.unread_conversations"):
         #     self.clear_list()
         
-        self.context_dests = self.app.sideband.list_conversations()
+        self.context_dests = self.app.sideband.list_conversations(conversations=self.app.include_conversations, objects=self.app.include_objects)
+        
+        view_title = "Conversations"
+        if self.app.include_conversations:
+            if self.app.include_objects:
+                view_title = "Conversations & Objects"
+        elif self.app.include_objects:
+            view_title = "Objects"
+        self.screen.ids.conversations_bar.title = view_title
+
         self.update_widget()
 
         self.app.sideband.setstate("app.flags.unread_conversations", False)
@@ -83,12 +93,12 @@ class Conversations():
         context_dest = conv["dest"]
         unread = conv["unread"]
         appearance = self.app.sideband.peer_appearance(context_dest, conv=conv)
-        # is_trusted = self.app.sideband.is_trusted(context_dest)
         is_trusted = conv["trust"] == 1
+        appearance_from_all = self.app.sideband.config["display_style_from_all"]
 
         trust_icon = "account-question"
         da = self.app.sideband.DEFAULT_APPEARANCE
-        if is_trusted and self.app.sideband.config["display_style_in_contact_list"] and appearance != None and appearance != da:
+        if (is_trusted or appearance_from_all) and self.app.sideband.config["display_style_in_contact_list"] and appearance != None and appearance != da:
             if unread:
                 trust_icon = "email"
             else:
@@ -123,6 +133,7 @@ class Conversations():
         last_activity = conv["last_activity"]
         trusted = conv["trust"] == 1
         appearance = self.app.sideband.peer_appearance(context_dest, conv=conv)
+        is_object = self.app.sideband.is_object(context_dest, conv_data=conv)
         da = self.app.sideband.DEFAULT_APPEARANCE
         ic_s = 24; ic_p = 14
 
@@ -135,10 +146,21 @@ class Conversations():
         else:
             ti_color = None
 
+        if is_object:
+            def gen_rel_func():
+                def x(ws):
+                    self.app.object_details_action(sender=ws, from_objects=True)
+                return x
+
+            rel_func = gen_rel_func()
+        else:
+            rel_func = self.app.conversation_action
+
         iconl = IconLeftWidget(
             icon=conv_icon, theme_icon_color=ti_color,
             icon_color=fg, md_bg_color=bg,
-            on_release=self.app.conversation_action)
+            on_release=rel_func)
+        iconl.source_dest = context_dest
 
         iconl._default_icon_pad = dp(ic_p)
         iconl.icon_size = dp(ic_s)
@@ -154,7 +176,7 @@ class Conversations():
         remove_widgets = []
         for w in self.list.children:
             if not w.sb_uid in [e["dest"] for e in self.context_dests]:
-                RNS.log("Should remove "+RNS.prettyhexrep(w.sb_uid)+" from list")
+                RNS.log("Should remove "+RNS.prettyhexrep(w.sb_uid)+" from list", RNS.LOG_DEBUG)
                 remove_widgets.append(w)
                 self.added_item_dests.remove(w.sb_uid)
 
@@ -169,7 +191,9 @@ class Conversations():
             last_activity = conv["last_activity"]
 
             peer_disp_name = multilingual_markup(escape_markup(str(self.app.sideband.peer_display_name(context_dest))).encode("utf-8")).decode("utf-8")
-            if not context_dest in self.added_item_dests:                
+            if not context_dest in self.added_item_dests:
+                existing_conv = self.app.sideband._db_conversation(context_dest)
+                is_object = self.app.sideband.is_object(context_dest, conv_data=existing_conv)
                 iconl = self.get_icon(conv)
                 item = OneLineAvatarIconListItem(text=peer_disp_name, on_release=self.app.conversation_action)
                 item.add_widget(iconl)
@@ -184,14 +208,18 @@ class Conversations():
                         t_s = time.time()
                         dest = self.conversation_dropdown.context_dest
                         try:
+                            cd = self.app.sideband._db_conversation(dest)
                             disp_name = self.app.sideband.raw_display_name(dest)
-                            is_trusted = self.app.sideband.is_trusted(dest)
-                            send_telemetry = self.app.sideband.should_send_telemetry(dest)
-                            allow_requests = self.app.sideband.requests_allowed_from(dest)
+                            is_trusted = self.app.sideband.is_trusted(dest, conv_data=cd)
+                            is_object = self.app.sideband.is_object(dest, conv_data=cd)
+                            send_telemetry = self.app.sideband.should_send_telemetry(dest, conv_data=cd)
+                            allow_requests = self.app.sideband.requests_allowed_from(dest, conv_data=cd)
+                            RNS.log("is_object: "+str(is_object))
 
                             yes_button = MDRectangleFlatButton(text="Save",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_accept, text_color=self.app.color_accept)
                             no_button = MDRectangleFlatButton(text="Cancel",font_size=dp(18))
-                            dialog_content = ConvSettings(disp_name=disp_name, context_dest=RNS.hexrep(dest, delimit=False), trusted=is_trusted, telemetry=send_telemetry, allow_requests=allow_requests)
+                            dialog_content = ConvSettings(disp_name=disp_name, context_dest=RNS.hexrep(dest, delimit=False), trusted=is_trusted,
+                                                          telemetry=send_telemetry, allow_requests=allow_requests, is_object=is_object)
                             if self.app.sideband.config["input_language"] != None:
                                 dialog_content.ids.name_field.font_name = self.app.sideband.config["input_language"]
                             else:
@@ -212,6 +240,7 @@ class Conversations():
                                     trusted = dialog.d_content.ids["trusted_switch"].active
                                     telemetry = dialog.d_content.ids["telemetry_switch"].active
                                     allow_requests = dialog.d_content.ids["allow_requests_switch"].active
+                                    conv_is_object = dialog.d_content.ids["is_object_switch"].active
                                     if trusted:
                                         self.app.sideband.trusted_conversation(dest)
                                     else:
@@ -226,6 +255,11 @@ class Conversations():
                                         self.app.sideband.allow_requests_from(dest)
                                     else:
                                         self.app.sideband.disallow_requests_from(dest)
+
+                                    if conv_is_object:
+                                        self.app.sideband.conversation_set_object(dest, True)
+                                    else:
+                                        self.app.sideband.conversation_set_object(dest, False)
 
                                     self.app.sideband.named_conversation(name, dest)
 
@@ -326,6 +360,13 @@ class Conversations():
                         self.delete_dialog.open()
                     return x
 
+                # def gen_move_to(item):
+                #     def x():
+                #         item.dmenu.dismiss()
+                #         self.app.sideband.conversation_set_object(self.conversation_dropdown.context_dest, not self.app.sideband.is_object(self.conversation_dropdown.context_dest))
+                #         self.app.conversations_view.update()
+                #     return x
+
                 def gen_copy_addr(item):
                     def x():
                         Clipboard.copy(RNS.hexrep(self.conversation_dropdown.context_dest, delimit=False))
@@ -335,6 +376,7 @@ class Conversations():
                 item.iconr = IconRightWidget(icon="dots-vertical");
 
                 if self.conversation_dropdown == None:
+                    obj_str = "conversations" if is_object else "objects"
                     dmi_h = 40
                     dm_items = [
                         {
@@ -349,6 +391,12 @@ class Conversations():
                             "height": dp(dmi_h),
                             "on_release": gen_copy_addr(item)
                         },
+                        # {
+                        #     "text": "Move to objects",
+                        #     "viewclass": "OneLineListItem",
+                        #     "height": dp(dmi_h),
+                        #     "on_release": gen_move_to(item)
+                        # },
                         {
                             "text": "Clear Messages",
                             "viewclass": "OneLineListItem",
@@ -393,7 +441,7 @@ class Conversations():
 
                 item.add_widget(item.iconr)
 
-                item.trusted = self.app.sideband.is_trusted(context_dest)
+                item.trusted = self.app.sideband.is_trusted(context_dest, conv_data=existing_conv)
                 
                 self.added_item_dests.append(context_dest)
                 self.list.add_widget(item)
@@ -440,6 +488,7 @@ MDScreen:
 
         MDTopAppBar:
             title: "Conversations"
+            id: conversations_bar
             anchor_title: "left"
             elevation: 0
             left_action_items:
@@ -560,6 +609,21 @@ Builder.load_string("""
             id: allow_requests_switch
             pos_hint: {"center_y": 0.43}
             active: root.allow_requests
+
+    MDBoxLayout:
+        orientation: "horizontal"
+        size_hint_y: None
+        padding: [0,0,dp(8),0]
+        height: dp(32)
+        MDLabel:
+            id: is_object_label
+            text: "Is Object"
+            font_style: "H6"
+
+        MDSwitch:
+            id: is_object_switch
+            pos_hint: {"center_y": 0.43}
+            active: root.is_object
 
 <MsgSync>
     orientation: "vertical"

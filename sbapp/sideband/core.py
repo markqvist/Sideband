@@ -564,6 +564,8 @@ class SidebandCore():
             self.config["telemetry_send_appearance"] = False
         if not "telemetry_display_trusted_only" in self.config:
             self.config["telemetry_display_trusted_only"] = False
+        if not "display_style_from_all" in self.config:
+            self.config["display_style_from_all"] = False
         if not "telemetry_receive_trusted_only" in self.config:
             self.config["telemetry_receive_trusted_only"] = False
 
@@ -809,8 +811,8 @@ class SidebandCore():
         except Exception as e:
             RNS.log("Exception while decoding LXMF destination announce data:"+str(e))
 
-    def list_conversations(self):
-        result = self._db_conversations()
+    def list_conversations(self, conversations=True, objects=False):
+        result = self._db_conversations(conversations, objects)
         if result != None:
             return result
         else:
@@ -849,10 +851,33 @@ class SidebandCore():
             RNS.log("Error while checking trust for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
             return False
 
-    def should_send_telemetry(self, context_dest):
+    def is_object(self, context_dest, conv_data = None):
+        try:
+            if conv_data == None:
+                existing_conv = self._db_conversation(context_dest)
+            else:
+                existing_conv = conv_data
+
+            if existing_conv != None:
+                data_dict = existing_conv["data"]
+                if data_dict != None:
+                    if "is_object" in data_dict:
+                        return data_dict["is_object"]
+
+            return False
+
+        except Exception as e:
+            RNS.log("Error while checking trust for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
+            return False
+
+    def should_send_telemetry(self, context_dest, conv_data=None):
         try:
             if self.config["telemetry_enabled"]:
-                existing_conv = self._db_conversation(context_dest)
+                if conv_data == None:
+                    existing_conv = self._db_conversation(context_dest)
+                else:
+                    existing_conv = conv_data
+
                 if existing_conv != None:
                     cd = existing_conv["data"]
                     if cd != None and "telemetry" in cd and cd["telemetry"] == True:
@@ -887,9 +912,13 @@ class SidebandCore():
             RNS.log("Error while checking request permissions for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
             return False
 
-    def requests_allowed_from(self, context_dest):
+    def requests_allowed_from(self, context_dest, conv_data=None):
         try:
-            existing_conv = self._db_conversation(context_dest)
+            if conv_data == None:
+                existing_conv = self._db_conversation(context_dest)
+            else:
+                existing_conv = conv_data
+
             if existing_conv != None:
                 cd = existing_conv["data"]
                 if cd != None and "allow_requests" in cd and cd["allow_requests"] == True:
@@ -991,6 +1020,9 @@ class SidebandCore():
 
     def untrusted_conversation(self, context_dest):
         self._db_conversation_set_trusted(context_dest, False)
+
+    def conversation_set_object(self, context_dest, is_object):
+        self._db_conversation_set_object(context_dest, is_object)
 
     def send_telemetry_in_conversation(self, context_dest):
         self._db_conversation_set_telemetry(context_dest, True)
@@ -1954,6 +1986,24 @@ class SidebandCore():
         result = dbc.fetchall()
         db.commit()
 
+    def _db_conversation_set_object(self, context_dest, is_object=False):
+        conv = self._db_conversation(context_dest)
+        data_dict = conv["data"]
+        if data_dict == None:
+            data_dict = {}
+
+        data_dict["is_object"] = is_object
+        packed_dict = msgpack.packb(data_dict)
+        
+        db = self.__db_connect()
+        dbc = db.cursor()
+        
+        query = "UPDATE conv set data = ? where dest_context = ?"
+        data = (packed_dict, context_dest)
+        dbc.execute(query, data)
+        result = dbc.fetchall()
+        db.commit()
+
     def _db_conversation_set_trusted(self, context_dest, trusted):
         db = self.__db_connect()
         dbc = db.cursor()
@@ -1973,7 +2023,7 @@ class SidebandCore():
         result = dbc.fetchall()
         db.commit()
 
-    def _db_conversations(self):
+    def _db_conversations(self, conversations=True, objects=False):
         db = self.__db_connect()
         dbc = db.cursor()
         
@@ -1985,12 +2035,15 @@ class SidebandCore():
         else:
             convs = []
             for entry in result:
+                is_object = False
                 last_rx = entry[1]
                 last_tx = entry[2]
                 last_activity = max(last_rx, last_tx)
                 data = None
                 try:
                     data = msgpack.unpackb(entry[7])
+                    if "is_object" in data:
+                        is_object = data["is_object"]
                 except:
                     pass
 
@@ -2003,7 +2056,14 @@ class SidebandCore():
                     "trust": entry[5],
                     "data": data,
                 }
-                convs.append(conv)
+                should_add = False
+                if conversations and not is_object:
+                    should_add = True
+                if objects and is_object:
+                    should_add = True
+
+                if should_add:
+                    convs.append(conv)
 
             return sorted(convs, key=lambda c: c["last_activity"], reverse=True)
 

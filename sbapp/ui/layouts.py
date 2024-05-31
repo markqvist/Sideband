@@ -62,6 +62,16 @@ MDNavigationLayout:
                                 
 
                         OneLineIconListItem:
+                            text: "Objects"
+                            on_release: root.ids.screen_manager.app.objects_action(self)
+                            # _no_ripple_effect: True
+                        
+                            IconLeftWidget:
+                                icon: "devices"
+                                on_release: root.ids.screen_manager.app.objects_action(self)
+                                
+
+                        OneLineIconListItem:
                             text: "Situation Map"
                             on_release: root.ids.screen_manager.app.map_action(self)
                         
@@ -1402,11 +1412,26 @@ MDScreen:
                     height: dp(48)
                     
                     MDLabel:
-                        text: "Display styles in conversation list"
+                        text: "Show user icons in conversation list"
                         font_style: "H6"
 
                     MDSwitch:
                         id: display_style_in_contact_list
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Only show user icons from trusted"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: display_style_from_trusted_only
                         pos_hint: {"center_y": 0.3}
                         active: False
 

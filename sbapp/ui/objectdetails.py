@@ -41,6 +41,7 @@ class ObjectDetails():
         self.raw_telemetry = None
         self.from_telemetry = False
         self.from_conv = False
+        self.from_objects = False
         self.viewing_self = False
         self.delete_dialog = None
 
@@ -84,6 +85,8 @@ class ObjectDetails():
         else:
             if self.from_conv:
                 self.app.open_conversation(self.object_hash, direction="right")
+            elif self.from_objects:
+                self.app.objects_action(direction="right")
             else:
                 self.app.close_sub_map_action()
 
@@ -117,11 +120,11 @@ class ObjectDetails():
 
     def reload_telemetry(self, sender=None, notoast=False):
         if self.object_hash != None:
-            self.set_source(self.object_hash, from_conv=self.from_conv, from_telemetry=self.from_telemetry)
+            self.set_source(self.object_hash, from_conv=self.from_conv, from_objects=self.from_objects, from_telemetry=self.from_telemetry)
             if not notoast:
                 toast("Reloaded telemetry for object")
 
-    def set_source(self, source_dest, from_conv=False, from_telemetry=False, prefetched=None):
+    def set_source(self, source_dest, from_conv=False, from_objects=False, from_telemetry=False, prefetched=None):
         try:
             self.object_hash = source_dest
             own_address = self.app.sideband.lxmf_destination.hash
@@ -140,6 +143,10 @@ class ObjectDetails():
                     self.from_conv = True
                 else:
                     self.from_conv = False
+                    if from_objects:
+                        self.from_objects = True
+                    else:
+                        self.from_objects = False
 
             self.coords = None
             self.telemetry_list.data = []

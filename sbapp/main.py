@@ -199,6 +199,8 @@ class SidebandApp(MDApp):
         self.dark_theme_text_color = dark_theme_text_color
 
         self.conversations_view = None
+        self.include_conversations = True
+        self.include_objects = False
         self.messages_view = None
         self.map = None
         self.map_layer = None
@@ -1158,10 +1160,15 @@ class SidebandApp(MDApp):
     def open_conversation(self, context_dest, direction="left"):
         self.outbound_mode_paper = False
         self.outbound_mode_command = False
-        if self.sideband.config["propagation_by_default"]:
-            self.outbound_mode_propagation = True
+        self.outbound_mode_propagation = False
+        if self.include_objects and not self.include_conversations:
+            if self.sideband.config["propagation_by_default"]:
+                self.outbound_mode_propagation = True
+            else:
+                self.outbound_mode_command = True
         else:
-            self.outbound_mode_propagation = False
+            if self.sideband.config["propagation_by_default"]:
+                self.outbound_mode_propagation = True
 
         self.root.ids.screen_manager.transition.direction = direction
         self.messages_view = Messages(self, context_dest)
@@ -1570,6 +1577,28 @@ class SidebandApp(MDApp):
     ### Conversations screen
     ######################################       
     def conversations_action(self, sender=None, direction="left", no_transition=False):
+        if self.include_objects:
+            self.include_conversations = True
+            self.include_objects = False
+            self.conversations_view.update()
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
+        self.open_conversations(direction=direction)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
+
+    def objects_action(self, sender=None, direction="left", no_transition=False):
+        if self.include_conversations:
+            self.include_conversations = False
+            self.include_objects = True
+            self.conversations_view.update()
+
         if no_transition:
             self.root.ids.screen_manager.transition = self.no_transition
         else:
@@ -2016,8 +2045,6 @@ class SidebandApp(MDApp):
                     if sender != self.settings_screen.ids.settings_lang_hebrew:
                         self.settings_screen.ids.settings_lang_hebrew.active = False
                     
-                    RNS.log("Sender: "+str(sender))
-
                     if self.settings_screen.ids.settings_lang_default.active:
                         self.sideband.config["input_language"] = None
                         self.settings_screen.ids.settings_display_name.font_name = ""
@@ -2056,6 +2083,11 @@ class SidebandApp(MDApp):
 
             def save_display_style_in_contact_list(sender=None, event=None):
                 self.sideband.config["display_style_in_contact_list"] = self.settings_screen.ids.display_style_in_contact_list.active
+                self.sideband.save_configuration()
+                self.sideband.setstate("wants.viewupdate.conversations", True)
+
+            def save_display_style_from_trusted_only(sender=None, event=None):
+                self.sideband.config["display_style_from_all"] = not self.settings_screen.ids.display_style_from_trusted_only.active
                 self.sideband.save_configuration()
                 self.sideband.setstate("wants.viewupdate.conversations", True)
 
@@ -2174,6 +2206,9 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.display_style_in_contact_list.active = self.sideband.config["display_style_in_contact_list"]
             self.settings_screen.ids.display_style_in_contact_list.bind(active=save_display_style_in_contact_list)
+
+            self.settings_screen.ids.display_style_from_trusted_only.active = not self.sideband.config["display_style_from_all"]
+            self.settings_screen.ids.display_style_from_trusted_only.bind(active=save_display_style_from_trusted_only)
 
             self.settings_screen.ids.settings_advanced_statistics.active = self.sideband.config["advanced_stats"]
             self.settings_screen.ids.settings_advanced_statistics.bind(active=save_advanced_stats)
@@ -4629,22 +4664,22 @@ class SidebandApp(MDApp):
     def close_sub_map_action(self, sender=None):
         self.map_action(direction="right")
 
-    def object_details_action(self, sender=None, from_conv=False, from_telemetry=False, source_dest=None, direction="left"):
+    def object_details_action(self, sender=None, from_conv=False, from_objects=False, from_telemetry=False, source_dest=None, direction="left"):
         if self.root.ids.screen_manager.has_screen("object_details_screen"):
-            self.object_details_open(sender=sender, from_conv=from_conv, from_telemetry=from_telemetry, source_dest=source_dest, direction=direction)
+            self.object_details_open(sender=sender, from_conv=from_conv, from_objects=from_objects, from_telemetry=from_telemetry, source_dest=source_dest, direction=direction)
         else:
             self.loader_action(direction=direction)
             def final(dt):
                 self.object_details_init()
                 def o(dt):
-                    self.object_details_open(sender=sender, from_conv=from_conv, from_telemetry=from_telemetry, source_dest=source_dest, no_transition=True)
+                    self.object_details_open(sender=sender, from_conv=from_conv, from_objects=from_objects, from_telemetry=from_telemetry, source_dest=source_dest, no_transition=True)
                 Clock.schedule_once(o, ll_ot)
             Clock.schedule_once(final, ll_ft)
 
     def object_details_init(self):
         self.object_details_screen = ObjectDetails(self)
 
-    def object_details_open(self, sender=None, from_conv=False, from_telemetry=False, source_dest=None, direction="left", no_transition=False):
+    def object_details_open(self, sender=None, from_conv=False, from_objects=False, from_telemetry=False, source_dest=None, direction="left", no_transition=False):
         if no_transition:
             self.root.ids.screen_manager.transition = self.no_transition
         else:
@@ -4665,10 +4700,13 @@ class SidebandApp(MDApp):
         self.root.ids.nav_drawer.set_state("closed")
 
         if telemetry_source == None:
-            self.conversations_action(direction="right")
+            if self.include_objects and not self.include_conversations:
+                self.objects_action(direction="right")
+            else:
+                self.conversations_action(direction="right")
 
         else:
-            Clock.schedule_once(lambda dt: self.object_details_screen.set_source(telemetry_source, from_conv=from_conv, from_telemetry=from_telemetry), 0.0)
+            Clock.schedule_once(lambda dt: self.object_details_screen.set_source(telemetry_source, from_conv=from_conv, from_objects=from_objects, from_telemetry=from_telemetry), 0.0)
 
             def vj(dt):
                 self.root.ids.screen_manager.current = "object_details_screen"
