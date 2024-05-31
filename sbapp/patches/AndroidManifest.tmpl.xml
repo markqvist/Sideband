@@ -3,7 +3,6 @@
      com.gamemaker.game
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="{{ args.package }}"
       android:versionCode="{{ args.numeric_version }}"
       android:versionName="{{ args.version }}"
       android:installLocation="auto">
@@ -46,16 +45,7 @@
 
     {{ args.extra_manifest_xml }}
 
-
-    <!-- Create a Java class extending SDLActivity and place it in a
-         directory under src matching the package, e.g.
-            src/com/gamemaker/game/MyGame.java
-
-         then replace "SDLActivity" with the name of your class (e.g. "MyGame")
-         in the XML below.
-
-         An example Java class can be found in README-android.txt
-    -->
+    <!-- Add android:extractNativeLibs="true" when building for API level >= 28 -->
     <application android:label="@string/app_name"
                  {% if debug %}android:debuggable="true"{% endif %}
                  android:icon="@mipmap/icon"
@@ -83,18 +73,21 @@
                   {% endif %}
                   >
 
-            {% if args.launcher %}
             <intent-filter>
+            {% if args.launcher %}            
                 <action android:name="org.kivy.LAUNCH" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="{{ url_scheme }}" />
-            </intent-filter>
             {% else  %}
-            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
             {% endif %}
+
+            {% if args.home_app %}
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            {% endif %}
+            </intent-filter>
 
             {%- if args.intent_filters -%}
             {{- args.intent_filters -}}

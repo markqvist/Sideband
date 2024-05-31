@@ -10,13 +10,17 @@ source.exclude_patterns = app_storage/*,venv/*,Makefile,./Makefil*,requirements,
 
 version.regex = __version__ = ['"](.*)['"]
 version.filename = %(source.dir)s/main.py
-android.numeric_version = 20240522
+android.numeric_version = 20240530
 
 # Cryptography recipe is currently broken, using RNS-internal crypto for now. Since
 # relevant PRs have now been merged in Kivy/P4A, the next release will hopefully allow
 # building a non-ancient PyCa/Cryptography distribution again. When this happens, add
 # the "cryptography" dependency back in here.
-requirements = kivy==2.3.0,libbz2,pillow==10.2.0,qrcode==7.3.1,usb4a,usbserial4a,libwebp
+requirements = kivy==2.3.0,libbz2,pillow==10.2.0,qrcode==7.3.1,usb4a,usbserial4a,libwebp,cryptography
+
+android.gradle_dependencies =  com.android.support:support-compat:28.0.0
+#android.enable_androidx = True
+#android.add_aars = patches/support-compat-28.0.0.aar
 
 p4a.local_recipes = ../Others/python-for-android/pythonforandroid/recipes
 
@@ -30,7 +34,7 @@ fullscreen = 0
 
 android.permissions = INTERNET,POST_NOTIFICATIONS,WAKE_LOCK,FOREGROUND_SERVICE,CHANGE_WIFI_MULTICAST_STATE,BLUETOOTH_CONNECT,ACCESS_NETWORK_STATE,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,MANAGE_EXTERNAL_STORAGE,ACCESS_BACKGROUND_LOCATION
 
-android.api = 30
+android.api = 31
 android.minapi = 24
 android.ndk = 25b
 android.skip_update = False
@@ -42,7 +46,6 @@ android.archs = arm64-v8a,armeabi-v7a
 services = sidebandservice:services/sidebandservice.py:foreground
 android.whitelist = lib-dynload/termios.so
 android.manifest.intent_filters = patches/intent-filter.xml
-android.add_aars = patches/support-compat-28.0.0.aar
 
 [buildozer]
 log_level = 2
