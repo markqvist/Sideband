@@ -419,6 +419,7 @@ class SidebandApp(MDApp):
                 self.color_hover  = colors["Light"]["AppBar"]
         
         self.apply_eink_mods()
+        self.set_bars_colors()
 
     def update_ui_theme(self):
         if self.sideband.config["dark_ui"]:
@@ -440,11 +441,54 @@ class SidebandApp(MDApp):
 
     def set_bars_colors(self):
         if RNS.vendor.platformutils.get_platform() == "android":
-            set_bars_colors(
-                self.theme_cls.primary_color,  # status bar color
-                [0,0,0,0],  # navigation bar color
-                "Light",                       # icons color of status bar
-            )
+
+            def set_navicons(set_dark_icons = False):
+                from android.runnable import run_on_ui_thread
+                from jnius import autoclass
+                WindowManager = autoclass("android.view.WindowManager$LayoutParams")
+                activity = autoclass("org.kivy.android.PythonActivity").mActivity
+                View = autoclass("android.view.View")
+
+                def uit_exec():
+                    window = activity.getWindow()
+                    window.clearFlags(WindowManager.FLAG_TRANSLUCENT_STATUS)
+                    window.addFlags(WindowManager.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+
+                    if set_dark_icons:
+                        window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR)
+                    else:
+                        window.getDecorView().setSystemUiVisibility(0)
+
+                return run_on_ui_thread(uit_exec)()
+
+            if self.sideband.config["dark_ui"]:
+                if self.sideband.config["eink_mode"] == True:
+                    set_bars_colors(
+                        self.theme_cls.primary_color,  # status bar color
+                        self.theme_cls.bg_light,       # nav bar color
+                        "Light",                       # icons color of status bar
+                    )
+                else:
+                    set_bars_colors(
+                        self.theme_cls.primary_color,
+                        self.theme_cls.bg_darkest,
+                        "Light")
+            else:
+                if self.sideband.config["eink_mode"] == True:
+                    set_bars_colors(
+                        self.theme_cls.primary_color,
+                        self.theme_cls.bg_light,
+                        "Light")
+                else:
+                    set_bars_colors(
+                        self.theme_cls.primary_color,
+                        self.theme_cls.bg_darkest,
+                        "Light")
+
+                try:
+                    set_navicons(set_dark_icons=True)
+                except Exception as e:
+                    RNS.trace_exception(e)
 
     def close_any_action(self, sender=None):
         self.open_conversations(direction="right")
