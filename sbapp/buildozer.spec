@@ -10,7 +10,7 @@ source.exclude_patterns = app_storage/*,venv/*,Makefile,./Makefil*,requirements,
 
 version.regex = __version__ = ['"](.*)['"]
 version.filename = %(source.dir)s/main.py
-android.numeric_version = 20240530
+android.numeric_version = 20240531
 
 # Cryptography recipe is currently broken, using RNS-internal crypto for now. Since
 # relevant PRs have now been merged in Kivy/P4A, the next release will hopefully allow
