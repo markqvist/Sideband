@@ -62,7 +62,7 @@ MDNavigationLayout:
                                 
 
                         OneLineIconListItem:
-                            text: "Objects"
+                            text: "Objects & Devices"
                             on_release: root.ids.screen_manager.app.objects_action(self)
                             # _no_ripple_effect: True
                         

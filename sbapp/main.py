@@ -935,7 +935,10 @@ class SidebandApp(MDApp):
                     
                     if text == "w":
                         if self.root.ids.screen_manager.current == "conversations_screen":
-                            self.quit_action(self)
+                            if self.include_conversations and not self.include_objects:
+                                self.quit_action(self)
+                            else:
+                                self.conversations_action(direction="right")
                         elif self.root.ids.screen_manager.current == "map_settings_screen":
                             self.close_sub_map_action()
                         elif self.root.ids.screen_manager.current == "object_details_screen":
@@ -1013,10 +1016,13 @@ class SidebandApp(MDApp):
             # Handle escape/back
             if key == 27:
                 if self.root.ids.screen_manager.current == "conversations_screen":
-                    if time.time() - self.last_exit_event < 2:
-                        self.quit_action(self)
+                    if not self.include_conversations and self.include_objects:
+                        self.conversations_action(direction="right")
                     else:
-                        self.last_exit_event = time.time()
+                        if time.time() - self.last_exit_event < 2:
+                            self.quit_action(self)
+                        else:
+                            self.last_exit_event = time.time()
 
                 else:
                     if self.root.ids.screen_manager.current == "hardware_rnode_screen":
