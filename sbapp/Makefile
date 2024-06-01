@@ -1,6 +1,6 @@
 all: prepare debug
 
-prepare: activate cleanrns getrns
+prepare: cleanrns getrns
 
 clean:
 	@echo Cleaning...
@@ -14,9 +14,6 @@ cleanlibs:
 	buildozer android clean
 	
 cleanall: clean cleanlibs
-
-activate:
-	(. venv/bin/activate)
 
 pacthfiles: patchsdl injectxml
 
