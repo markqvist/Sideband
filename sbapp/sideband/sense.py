@@ -53,6 +53,7 @@ class Telemeter():
       Sensor.SID_PROXIMITY: Proximity, Sensor.SID_POWER_CONSUMPTION: PowerConsumption,
       Sensor.SID_POWER_PRODUCTION: PowerProduction, Sensor.SID_PROCESSOR: Processor,
       Sensor.SID_RAM: RandomAccessMemory, Sensor.SID_NVM: NonVolatileMemory,
+      Sensor.SID_CUSTOM: Custom,
     }
     self.available = {
       "time": Sensor.SID_TIME,
@@ -65,6 +66,7 @@ class Telemeter():
       "acceleration": Sensor.SID_ACCELERATION, "proximity": Sensor.SID_PROXIMITY,
       "power_consumption": Sensor.SID_POWER_CONSUMPTION, "power_production": Sensor.SID_POWER_PRODUCTION,
       "processor": Sensor.SID_PROCESSOR, "ram": Sensor.SID_RAM, "nvm": Sensor.SID_NVM,
+      "custom": Sensor.SID_CUSTOM
     }
     self.from_packed = from_packed
     self.sensors = {}
@@ -191,6 +193,7 @@ class Sensor():
   SID_PROCESSOR         = 0x13
   SID_RAM               = 0x14
   SID_NVM               = 0x15
+  SID_CUSTOM            = 0xff
 
   def __init__(self, sid = None, stale_time = None):
     self._telemeter = None
@@ -1339,7 +1342,7 @@ class PowerConsumption(Sensor):
   def teardown_sensor(self):
       self.data = None
 
-  def update_consumer(self, power, type_label=None):
+  def update_consumer(self, power, type_label=None, custom_icon=None):
     if type_label == None:
       type_label = 0x00
     elif type(type_label) != str:
@@ -1348,7 +1351,7 @@ class PowerConsumption(Sensor):
     if self.data == None:
       self.data = {}
 
-    self.data[type_label] = power
+    self.data[type_label] = [power, custom_icon]
     return True
 
   def remove_consumer(self, type_label=None):
@@ -1397,7 +1400,7 @@ class PowerConsumption(Sensor):
         label = "Power consumption"
       else:
         label = type_label
-      consumers.append({"label": label, "w": self.data[type_label]})
+      consumers.append({"label": label, "w": self.data[type_label][0], "custom_icon": self.data[type_label][1]})
     
     rendered = {
       "icon": "power-plug-outline",
@@ -1420,7 +1423,7 @@ class PowerProduction(Sensor):
   def teardown_sensor(self):
       self.data = None
 
-  def update_producer(self, power, type_label=None):
+  def update_producer(self, power, type_label=None, custom_icon=None):
     if type_label == None:
       type_label = 0x00
     elif type(type_label) != str:
@@ -1429,7 +1432,7 @@ class PowerProduction(Sensor):
     if self.data == None:
       self.data = {}
 
-    self.data[type_label] = power
+    self.data[type_label] = [power, custom_icon]
     return True
 
   def remove_producer(self, type_label=None):
@@ -1478,7 +1481,7 @@ class PowerProduction(Sensor):
         label = "Power Production"
       else:
         label = type_label
-      producers.append({"label": label, "w": self.data[type_label]})
+      producers.append({"label": label, "w": self.data[type_label][0], "custom_icon": self.data[type_label][1]})
     
     rendered = {
       "icon": "lightning-bolt",
@@ -1488,12 +1491,347 @@ class PowerProduction(Sensor):
 
     return rendered
 
-# TODO: Implement
 class Processor(Sensor):
-  pass
+  SID = Sensor.SID_PROCESSOR
+  STALE_TIME = 5
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+  def setup_sensor(self):
+      self.update_data()
+
+  def teardown_sensor(self):
+      self.data = None
+
+  def update_entry(self, current_load=0, load_avgs=None, clock=None, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+    elif type(type_label) != str:
+      return False
+
+    if self.data == None:
+      self.data = {}
+
+    self.data[type_label] = [current_load, load_avgs, clock]
+    return True
+
+  def remove_entry(self, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+
+    if type_label in self.data:
+      self.data.pop(type_label)
+      return True
+
+    return False
+
+  def update_data(self):
+    pass
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      packed = []
+      for type_label in self.data:
+        packed.append([type_label, self.data[type_label]])
+      return packed
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        unpacked = {}
+        for entry in packed:
+          unpacked[entry[0]] = entry[1]
+        return unpacked
+        
+    except:
+      return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+
+    entries = []
+    for type_label in self.data:
+      if type_label == 0x00:
+        label = "Storage"
+      else:
+        label = type_label
+      entries.append({
+        "label": label,
+        "current_load": self.data[type_label][0],
+        "load_avgs": self.data[type_label][1],
+        "clock": self.data[type_label][2],
+      })
+    
+    rendered = {
+      "icon": "chip",
+      "name": "Processor",
+      "values": entries,
+    }
+
+    return rendered
 
 class RandomAccessMemory(Sensor):
-  pass
+  SID = Sensor.SID_RAM
+  STALE_TIME = 5
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+  def setup_sensor(self):
+      self.update_data()
+
+  def teardown_sensor(self):
+      self.data = None
+
+  def update_entry(self, capacity=0, used=0, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+    elif type(type_label) != str:
+      return False
+
+    if self.data == None:
+      self.data = {}
+
+    self.data[type_label] = [capacity, used]
+    return True
+
+  def remove_entry(self, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+
+    if type_label in self.data:
+      self.data.pop(type_label)
+      return True
+
+    return False
+
+  def update_data(self):
+    pass
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      packed = []
+      for type_label in self.data:
+        packed.append([type_label, self.data[type_label]])
+      return packed
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        unpacked = {}
+        for entry in packed:
+          unpacked[entry[0]] = entry[1]
+        return unpacked
+        
+    except:
+      return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+
+    entries = []
+    for type_label in self.data:
+      if type_label == 0x00:
+        label = "Storage"
+      else:
+        label = type_label
+      entries.append({
+        "label": label,
+        "capacity": self.data[type_label][0],
+        "used": self.data[type_label][1],
+        "free": self.data[type_label][0]-self.data[type_label][1],
+        "percent": (self.data[type_label][1]/self.data[type_label][0])*100,
+      })
+    
+    rendered = {
+      "icon": "memory",
+      "name": "Random Access Memory",
+      "values": entries,
+    }
+
+    return rendered
 
 class NonVolatileMemory(Sensor):
-  pass
+  SID = Sensor.SID_NVM
+  STALE_TIME = 5
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+  def setup_sensor(self):
+      self.update_data()
+
+  def teardown_sensor(self):
+      self.data = None
+
+  def update_entry(self, capacity=0, used=0, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+    elif type(type_label) != str:
+      return False
+
+    if self.data == None:
+      self.data = {}
+
+    self.data[type_label] = [capacity, used]
+    return True
+
+  def remove_entry(self, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+
+    if type_label in self.data:
+      self.data.pop(type_label)
+      return True
+
+    return False
+
+  def update_data(self):
+    pass
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      packed = []
+      for type_label in self.data:
+        packed.append([type_label, self.data[type_label]])
+      return packed
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        unpacked = {}
+        for entry in packed:
+          unpacked[entry[0]] = entry[1]
+        return unpacked
+        
+    except:
+      return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+
+    entries = []
+    for type_label in self.data:
+      if type_label == 0x00:
+        label = "Storage"
+      else:
+        label = type_label
+      entries.append({
+        "label": label,
+        "capacity": self.data[type_label][0],
+        "used": self.data[type_label][1],
+        "free": self.data[type_label][0]-self.data[type_label][1],
+        "percent": (self.data[type_label][1]/self.data[type_label][0])*100,
+      })
+    
+    rendered = {
+      "icon": "harddisk",
+      "name": "Non-Volatile Memory",
+      "values": entries,
+    }
+
+    return rendered
+
+class Custom(Sensor):
+  SID = Sensor.SID_CUSTOM
+  STALE_TIME = 5
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+  def setup_sensor(self):
+      self.update_data()
+
+  def teardown_sensor(self):
+      self.data = None
+
+  def update_entry(self, value=None, type_label=None, custom_icon=None):
+    if type_label == None:
+      type_label = 0x00
+    elif type(type_label) != str:
+      return False
+
+    if self.data == None:
+      self.data = {}
+
+    self.data[type_label] = [value, custom_icon]
+    return True
+
+  def remove_entry(self, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+
+    if type_label in self.data:
+      self.data.pop(type_label)
+      return True
+
+    return False
+
+  def update_data(self):
+    pass
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      packed = []
+      for type_label in self.data:
+        packed.append([type_label, self.data[type_label]])
+      return packed
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        unpacked = {}
+        for entry in packed:
+          unpacked[entry[0]] = entry[1]
+        return unpacked
+        
+    except:
+      return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+
+    entries = []
+    for type_label in self.data:
+      if type_label == 0x00:
+        label = "Custom"
+      else:
+        label = type_label
+      entries.append({
+        "label": label,
+        "value": self.data[type_label][0],
+        "custom_icon": self.data[type_label][1],
+      })
+    
+    rendered = {
+      "icon": "ruler",
+      "name": "Custom",
+      "values": entries,
+    }
+
+    return rendered
