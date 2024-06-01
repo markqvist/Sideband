@@ -388,6 +388,9 @@ class SidebandApp(MDApp):
         LabelBase.register(name="emoji",
             fn_regular=fb_path+"NotoEmoji-Regular.ttf")
 
+        LabelBase.register(name="default_input",
+            fn_regular=fb_path+"DefaultInput.ttf")
+
         LabelBase.register(name="combined",
             fn_regular=fb_path+"NotoSans-Regular.ttf",
             fn_bold=fb_path+"NotoSans-Bold.ttf",
@@ -397,7 +400,7 @@ class SidebandApp(MDApp):
     def update_input_language(self):
         language = self.sideband.config["input_language"]
         if language == None:
-            self.input_font = "Roboto"
+            self.input_font = "default_input"
             RNS.log("Setting input language to default set", RNS.LOG_DEBUG)
         else:
             self.input_font = language
