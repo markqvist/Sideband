@@ -220,10 +220,7 @@ class Conversations():
                             no_button = MDRectangleFlatButton(text="Cancel",font_size=dp(18))
                             dialog_content = ConvSettings(disp_name=disp_name, context_dest=RNS.hexrep(dest, delimit=False), trusted=is_trusted,
                                                           telemetry=send_telemetry, allow_requests=allow_requests, is_object=is_object)
-                            if self.app.sideband.config["input_language"] != None:
-                                dialog_content.ids.name_field.font_name = self.app.sideband.config["input_language"]
-                            else:
-                                dialog_content.ids.name_field.font_name = ""
+                            dialog_content.ids.name_field.font_name = self.app.input_font
 
                             dialog = MDDialog(
                                 title="Edit Conversation",

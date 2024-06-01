@@ -388,7 +388,7 @@ class SidebandApp(MDApp):
         LabelBase.register(name="emoji",
             fn_regular=fb_path+"NotoEmoji-Regular.ttf")
 
-        LabelBase.register(name="default_input",
+        LabelBase.register(name="defaultinput",
             fn_regular=fb_path+"DefaultInput.ttf")
 
         LabelBase.register(name="combined",
@@ -400,12 +400,20 @@ class SidebandApp(MDApp):
     def update_input_language(self):
         language = self.sideband.config["input_language"]
         if language == None:
-            self.input_font = "default_input"
-            RNS.log("Setting input language to default set", RNS.LOG_DEBUG)
+            self.input_font = "defaultinput"
         else:
             self.input_font = language
-            RNS.log("Setting input language to "+str(language), RNS.LOG_DEBUG)
+        
+        RNS.log("Setting input language to "+str(self.input_font), RNS.LOG_DEBUG)
 
+    # def modify_input_font(self, ids):
+    #     BIND_CLASSES = ["kivymd.uix.textfield.textfield.MDTextField",]
+    #     for e in ids:
+    #         te = ids[e]
+    #         ts = str(te).split(" ")[0].replace("<", "")
+    #         if ts in BIND_CLASSES:
+    #             RNS.log("MODIFYING "+str(e)+" to "+self.input_font)
+    #             te.font_name = self.input_font
 
     def update_ui_colors(self):
         if self.sideband.config["dark_ui"]:
@@ -2056,7 +2064,7 @@ class SidebandApp(MDApp):
                     
                     if self.settings_screen.ids.settings_lang_default.active:
                         self.sideband.config["input_language"] = None
-                        self.settings_screen.ids.settings_display_name.font_name = ""
+                        self.settings_screen.ids.settings_display_name.font_name = "defaultinput"
                     elif self.settings_screen.ids.settings_lang_chinese.active:
                         self.sideband.config["input_language"] = "chinese"
                         self.settings_screen.ids.settings_display_name.font_name = "chinese"
@@ -2074,7 +2082,7 @@ class SidebandApp(MDApp):
                         self.settings_screen.ids.settings_display_name.font_name = "hebrew"
                     else:
                         self.sideband.config["input_language"] = None
-                        self.settings_screen.ids.settings_display_name.font_name = ""
+                        self.settings_screen.ids.settings_display_name.font_name = "defaultinput"
 
 
                     self.sideband.save_configuration()
@@ -2283,7 +2291,7 @@ class SidebandApp(MDApp):
             elif input_lang == "korean":
                 self.settings_screen.ids.settings_lang_korean.active = True
                 self.settings_screen.ids.settings_display_name.font_name = "korean"
-            elif input_lang == "devangari":
+            elif input_lang == "combined":
                 self.settings_screen.ids.settings_lang_devangari.active = True
                 self.settings_screen.ids.settings_display_name.font_name = "combined"
             elif input_lang == "hebrew":
