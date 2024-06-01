@@ -176,12 +176,10 @@ class Conversations():
         remove_widgets = []
         for w in self.list.children:
             if not w.sb_uid in [e["dest"] for e in self.context_dests]:
-                RNS.log("Should remove "+RNS.prettyhexrep(w.sb_uid)+" from list", RNS.LOG_DEBUG)
                 remove_widgets.append(w)
                 self.added_item_dests.remove(w.sb_uid)
 
         for w in remove_widgets:
-            RNS.log("Removing "+str(w))
             self.list.remove_widget(w)
 
             
@@ -214,7 +212,6 @@ class Conversations():
                             is_object = self.app.sideband.is_object(dest, conv_data=cd)
                             send_telemetry = self.app.sideband.should_send_telemetry(dest, conv_data=cd)
                             allow_requests = self.app.sideband.requests_allowed_from(dest, conv_data=cd)
-                            RNS.log("is_object: "+str(is_object))
 
                             yes_button = MDRectangleFlatButton(text="Save",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_accept, text_color=self.app.color_accept)
                             no_button = MDRectangleFlatButton(text="Cancel",font_size=dp(18))

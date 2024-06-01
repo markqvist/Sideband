@@ -997,13 +997,18 @@ class SidebandApp(MDApp):
                         else:
                             self.telemetry_action(self)
 
-                    if text == "o":
-                        # if self.root.ids.screen_manager.current == "telemetry_screen":
+                    if text == "u":
                         self.map_display_own_telemetry()
+
+                    if text == "o":
+                        self.objects_action()
 
                     if text == "r":
                         if self.root.ids.screen_manager.current == "conversations_screen":
-                            self.lxmf_sync_action(self)
+                            if self.include_objects:
+                                self.conversations_action(self, direction="right")
+                            else:
+                                self.lxmf_sync_action(self)
                         elif self.root.ids.screen_manager.current == "telemetry_screen":
                             self.conversations_action(self, direction="right")
                         elif self.root.ids.screen_manager.current == "object_details_screen":
@@ -4965,28 +4970,32 @@ The Propagation Nodes also distribute copies of messages between each other, suc
 If you use Reticulum and LXMF on hardware that does not carry any identifiers tied to you, it is possible to establish a completely free and anonymous communication system with Reticulum and LXMF clients."""
         
             guide_text8 = """
-[size=18dp][b]Keyboard Shortcuts[/b][/size][size=5dp]\n \n[/size] - Ctrl+Q or Ctrl-W Shut down Sideband
- - Ctrl-D or Ctrl-S Send message
- - Ctrl-R Show Conversations
- - Ctrl-L Show Announce Stream
- - Ctrl-M Show Situation Map
- - Ctrl-T Show Telemetry Setup
- - Ctrl-N New conversation
- - Ctrl-G Show guide"""
+[size=18dp][b]Keyboard Shortcuts[/b][/size][size=5dp]\n \n[/size] - [b]Ctrl+Q[/b] or [b]Ctrl-W[/b] Shut down Sideband
+ - [b]Ctrl-R[/b] Go to Conversations
+ - [b]Ctrl-R[/b] Start LXMF sync (from Conversations screen)
+ - [b]Ctrl-N[/b] Create new conversation
+ - [b]Ctrl-[i]n[/i][/b] Go to conversation number [i]n[/i]
+ - [b]Ctrl-D[/b] or [b]Ctrl-S[/b] Send message
+ - [b]Ctrl-U[/b] Display own telemetry
+ - [b]Ctrl-O[/b] Go to Objects & Devices
+ - [b]Ctrl-L[/b] Go to Announce Stream
+ - [b]Ctrl-M[/b] Go to Situation Map
+ - [b]Ctrl-T[/b] Go to Telemetry configuration
+ - [b]Ctrl-G[/b] Go to Guide"""
 
             guide_text9 = """
-[size=18dp][b]Sow Seeds Of Freedom[/b][/size][size=5dp]\n \n[/size]It took me more than seven years to design and built the entire ecosystem of software and hardware that makes this possible. If this project is valuable to you, please go to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project with a donation. Every donation directly makes the entire Reticulum project possible.
+[size=18dp][b]Please Support This Project[/b][/size][size=5dp]\n \n[/size]It took me more than seven years to design and built the entire ecosystem of software and hardware that makes this possible. If this project is valuable to you, please go to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project with a donation. Every donation directly makes the entire Reticulum project possible.
 
 Thank you very much for using Free Communications Systems.
 """
             info1 = guide_text1
-            info2 = guide_text2
-            info3 = guide_text3
-            info4 = guide_text4
-            info5 = guide_text5
-            info6 = guide_text6
-            info7 = guide_text7
-            info8 = guide_text8
+            info2 = guide_text8
+            info3 = guide_text2
+            info4 = guide_text3
+            info5 = guide_text4
+            info6 = guide_text5
+            info7 = guide_text6
+            info8 = guide_text7
             info9 = guide_text9
 
             if self.theme_cls.theme_style == "Dark":
