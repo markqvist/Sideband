@@ -53,7 +53,7 @@ class Telemeter():
       Sensor.SID_PROXIMITY: Proximity, Sensor.SID_POWER_CONSUMPTION: PowerConsumption,
       Sensor.SID_POWER_PRODUCTION: PowerProduction, Sensor.SID_PROCESSOR: Processor,
       Sensor.SID_RAM: RandomAccessMemory, Sensor.SID_NVM: NonVolatileMemory,
-      Sensor.SID_CUSTOM: Custom,
+      Sensor.SID_CUSTOM: Custom, Sensor.SID_TANK: Tank, Sensor.SID_FUEL: Fuel,
     }
     self.available = {
       "time": Sensor.SID_TIME,
@@ -66,7 +66,7 @@ class Telemeter():
       "acceleration": Sensor.SID_ACCELERATION, "proximity": Sensor.SID_PROXIMITY,
       "power_consumption": Sensor.SID_POWER_CONSUMPTION, "power_production": Sensor.SID_POWER_PRODUCTION,
       "processor": Sensor.SID_PROCESSOR, "ram": Sensor.SID_RAM, "nvm": Sensor.SID_NVM,
-      "custom": Sensor.SID_CUSTOM
+      "custom": Sensor.SID_CUSTOM, "tank": Sensor.SID_TANK, "fuel": Sensor.SID_FUEL
     }
     self.from_packed = from_packed
     self.sensors = {}
@@ -193,6 +193,8 @@ class Sensor():
   SID_PROCESSOR         = 0x13
   SID_RAM               = 0x14
   SID_NVM               = 0x15
+  SID_TANK              = 0x16
+  SID_FUEL              = 0x17
   SID_CUSTOM            = 0xff
 
   def __init__(self, sid = None, stale_time = None):
@@ -1080,6 +1082,17 @@ class MagneticField(Sensor):
     except:
       return None
 
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+    
+    rendered = {
+      "icon": "magnet",
+      "name": "Magnetic Field",
+      "values": { "x": self.data["x"], "y": self.data["y"], "z": self.data["z"] },
+    }
+    return rendered
+
 class AmbientLight(Sensor):
   SID = Sensor.SID_AMBIENT_LIGHT
   STALE_TIME = 1
@@ -1192,6 +1205,17 @@ class Gravity(Sensor):
     except:
       return None
 
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+    
+    rendered = {
+      "icon": "arrow-down-thin-circle-outline",
+      "name": "Gravity",
+      "values": { "x": self.data["x"], "y": self.data["y"], "z": self.data["z"] },
+    }
+    return rendered
+
 class AngularVelocity(Sensor):
   SID = Sensor.SID_ANGULAR_VELOCITY
   STALE_TIME = 1
@@ -1237,6 +1261,17 @@ class AngularVelocity(Sensor):
         return {"x": packed[0], "y": packed[1], "z": packed[2]}
     except:
       return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+    
+    rendered = {
+      "icon": "orbit",
+      "name": "Angular Velocity",
+      "values": { "x": self.data["x"], "y": self.data["y"], "z": self.data["z"] },
+    }
+    return rendered
 
 class Acceleration(Sensor):
   SID = Sensor.SID_ACCELERATION
@@ -1328,6 +1363,17 @@ class Proximity(Sensor):
         return packed
     except:
       return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+    
+    rendered = {
+      "icon": "signal-distance-variant",
+      "name": "Proximity",
+      "values": { "triggered": self.data },
+    }
+    return rendered
 
 class PowerConsumption(Sensor):
   SID = Sensor.SID_POWER_CONSUMPTION
@@ -1831,6 +1877,193 @@ class Custom(Sensor):
     rendered = {
       "icon": "ruler",
       "name": "Custom",
+      "values": entries,
+    }
+
+    return rendered
+
+
+class Tank(Sensor):
+  SID = Sensor.SID_TANK
+  STALE_TIME = 5
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+  def setup_sensor(self):
+      self.update_data()
+
+  def teardown_sensor(self):
+      self.data = None
+
+  def update_entry(self, capacity=0, level=0, unit=None, type_label=None, custom_icon=None):
+    if type_label == None:
+      type_label = 0x00
+    elif type(type_label) != str:
+      return False
+
+    if unit != None and type(unit) != str:
+      return False
+
+    if self.data == None:
+      self.data = {}
+
+    self.data[type_label] = [capacity, level, unit, custom_icon]
+    return True
+
+  def remove_entry(self, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+
+    if type_label in self.data:
+      self.data.pop(type_label)
+      return True
+
+    return False
+
+  def update_data(self):
+    pass
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      packed = []
+      for type_label in self.data:
+        packed.append([type_label, self.data[type_label]])
+      return packed
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        unpacked = {}
+        for entry in packed:
+          unpacked[entry[0]] = entry[1]
+        return unpacked
+        
+    except:
+      return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+
+    entries = []
+    for type_label in self.data:
+      if type_label == 0x00:
+        label = "Tank"
+      else:
+        label = type_label
+      set_unit = self.data[type_label][2] if self.data[type_label][2] != None else "L"
+      entries.append({
+        "label": label,
+        "unit": set_unit,
+        "capacity": self.data[type_label][0],
+        "level": self.data[type_label][1],
+        "free": self.data[type_label][0]-self.data[type_label][1],
+        "percent": (self.data[type_label][1]/self.data[type_label][0])*100,
+        "custom_icon": self.data[type_label][3],
+      })
+    
+    rendered = {
+      "icon": "storage-tank",
+      "name": "Tank",
+      "values": entries,
+    }
+
+    return rendered
+
+class Fuel(Sensor):
+  SID = Sensor.SID_FUEL
+  STALE_TIME = 5
+
+  def __init__(self):
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+  def setup_sensor(self):
+      self.update_data()
+
+  def teardown_sensor(self):
+      self.data = None
+
+  def update_entry(self, capacity=0, level=0, unit=None, type_label=None, custom_icon=None):
+    if type_label == None:
+      type_label = 0x00
+    elif type(type_label) != str:
+      return False
+
+    if unit != None and type(unit) != str:
+      return False
+
+    if self.data == None:
+      self.data = {}
+
+    self.data[type_label] = [capacity, level, unit, custom_icon]
+    return True
+
+  def remove_entry(self, type_label=None):
+    if type_label == None:
+      type_label = 0x00
+
+    if type_label in self.data:
+      self.data.pop(type_label)
+      return True
+
+    return False
+
+  def update_data(self):
+    pass
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      packed = []
+      for type_label in self.data:
+        packed.append([type_label, self.data[type_label]])
+      return packed
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        unpacked = {}
+        for entry in packed:
+          unpacked[entry[0]] = entry[1]
+        return unpacked
+        
+    except:
+      return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+
+    entries = []
+    for type_label in self.data:
+      if type_label == 0x00:
+        label = "Fuel"
+      else:
+        label = type_label
+      set_unit = self.data[type_label][2] if self.data[type_label][2] != None else "L"
+      entries.append({
+        "label": label,
+        "unit": set_unit,
+        "capacity": self.data[type_label][0],
+        "level": self.data[type_label][1],
+        "free": self.data[type_label][0]-self.data[type_label][1],
+        "percent": (self.data[type_label][1]/self.data[type_label][0])*100,
+        "custom_icon": self.data[type_label][3],
+      })
+    
+    rendered = {
+      "icon": "fuel",
+      "name": "Fuel",
       "values": entries,
     }
 

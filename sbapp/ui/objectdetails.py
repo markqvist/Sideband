@@ -312,13 +312,22 @@ class RVDetails(MDRecycleView):
                 "Ambient Temperature": 40,
                 "Relative Humidity": 50,
                 "Ambient Pressure": 60,
+                "Magnetic Field": 61,
+                "Gravity": 62,
+                "Angular Velocity": 63,
+                "Acceleration": 64,
+                "Proximity": 65,
                 "Battery": 70,
                 "Processor": 72,
                 "Random Access Memory": 74,
                 "Non-Volatile Memory": 76,
-                "Timestamp": 80,
-                "Custom": 85,
-                "Received": 90,
+                "Power Consumption": 80,
+                "Power Production": 81,
+                "Tank": 90,
+                "Fuel": 91,
+                "Custom": 100,
+                "Timestamp": 190,
+                "Received": 200,
             }
             
             def pass_job(sender=None):
@@ -326,6 +335,8 @@ class RVDetails(MDRecycleView):
 
             self.entries = []
             rendered_telemetry.sort(key=lambda s: sort[s["name"]] if s["name"] in sort else 1000)
+            RNS.log("Sorted:")
+            RNS.log(str(rendered_telemetry))
             for s in rendered_telemetry:
                 try:
                     extra_entries = []
@@ -532,6 +543,38 @@ class RVDetails(MDRecycleView):
                                 e_text = f"{label} [b]{value}[/b]"
                                 extra_entries.append({"icon": set_icon, "text": e_text})
 
+                    elif name == "Tank":
+                        cs = s["values"]
+                        if cs != None:
+                            for c in cs:
+                                label = c["label"]
+                                cicon = c["custom_icon"]
+                                unit  = c["unit"]
+                                cap   = round(c["capacity"], 1)
+                                lvl   = round(c["level"], 1)
+                                free  = round(c["free"], 1)
+                                pct   = round(c["percent"], 1)
+
+                                set_icon = cicon if cicon else s["icon"]
+                                e_text = f"{label} level is [b]{lvl} {unit}[/b] ([b]{pct}%[/b])"
+                                extra_entries.append({"icon": set_icon, "text": e_text})
+
+                    elif name == "Fuel":
+                        cs = s["values"]
+                        if cs != None:
+                            for c in cs:
+                                label = c["label"]
+                                cicon = c["custom_icon"]
+                                unit  = c["unit"]
+                                cap   = round(c["capacity"], 1)
+                                lvl   = round(c["level"], 1)
+                                free  = round(c["free"], 1)
+                                pct   = round(c["percent"], 1)
+
+                                set_icon = cicon if cicon else s["icon"]
+                                e_text = f"{label} level is [b]{lvl} {unit}[/b] ([b]{pct}%[/b])"
+                                extra_entries.append({"icon": set_icon, "text": e_text})
+
                     elif name == "Processor":
                         cs = s["values"]
                         if cs != None:
@@ -711,6 +754,9 @@ class RVDetails(MDRecycleView):
                             if "deltas" in s and dt in s["deltas"] and s["deltas"][dt] != None:
                                 d = s["deltas"][dt]
                                 formatted_values += f"  (Δ = {d} {vn})"
+
+                            formatted_values += ", "
+                        formatted_values = formatted_values[:-2]
                     
                     data = None
                     if formatted_values != None:
