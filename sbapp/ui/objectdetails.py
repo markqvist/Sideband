@@ -335,8 +335,6 @@ class RVDetails(MDRecycleView):
 
             self.entries = []
             rendered_telemetry.sort(key=lambda s: sort[s["name"]] if s["name"] in sort else 1000)
-            RNS.log("Sorted:")
-            RNS.log(str(rendered_telemetry))
             for s in rendered_telemetry:
                 try:
                     extra_entries = []
