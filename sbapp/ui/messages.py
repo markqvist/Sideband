@@ -25,17 +25,18 @@ else:
 
 import io
 import os
-import plyer
 import subprocess
 import shlex
 
 from kivy.graphics.opengl import glGetIntegerv, GL_MAX_TEXTURE_SIZE
 
 if RNS.vendor.platformutils.get_platform() == "android":
+    import plyer
     from sideband.sense import Telemeter, Commands
     from ui.helpers import ts_format, file_ts_format, mdc
     from ui.helpers import color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
 else:
+    import sbapp.plyer as plyer
     from sbapp.sideband.sense import Telemeter, Commands
     from .helpers import ts_format, file_ts_format, mdc
     from .helpers import color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light

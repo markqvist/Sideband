@@ -1,7 +1,6 @@
 import RNS
 import LXMF
 import threading
-import plyer
 import os.path
 import time
 import struct
@@ -20,6 +19,7 @@ from .sense import Telemeter, Commands
 from .plugins import SidebandCommandPlugin, SidebandServicePlugin, SidebandTelemetryPlugin
 
 if RNS.vendor.platformutils.get_platform() == "android":
+    import plyer
     from jnius import autoclass, cast
     # Squelch excessive method signature logging
     import jnius.reflect
@@ -33,7 +33,8 @@ if RNS.vendor.platformutils.get_platform() == "android":
     jnius.reflect.log_method = mod
     jnius.reflect.log = redirect_log()
     ############################################
-    
+else:
+    import sbapp.plyer as plyer    
 
 class PropagationNodeDetector():
     EMITTED_DELTA_GRACE = 300
@@ -169,6 +170,10 @@ class SidebandCore():
         self.map_cache         = self.cache_dir+"/maps"
         if not os.path.isdir(self.map_cache):
             os.makedirs(self.map_cache)
+
+        self.rec_cache         = self.cache_dir+"/rec"
+        if not os.path.isdir(self.rec_cache):
+            os.makedirs(self.rec_cache)
 
         self.icon              = self.asset_dir+"/icon.png"
         self.icon_48           = self.asset_dir+"/icon_48.png"

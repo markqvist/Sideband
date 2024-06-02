@@ -23,7 +23,6 @@ import threading
 import RNS.vendor.umsgpack as msgpack
 
 if not args.daemon:
-    import plyer
     from kivy.logger import Logger, LOG_LEVELS
     from PIL import Image as PilImage
     import io
@@ -105,6 +104,7 @@ else:
 
     if RNS.vendor.platformutils.get_platform() == "android":
         from sideband.core import SidebandCore
+        import plyer
 
         from ui.layouts import *
         from ui.conversations import Conversations, MsgSync, NewConv
@@ -127,6 +127,7 @@ else:
 
     else:
         from .sideband.core import SidebandCore
+        import sbapp.plyer as plyer
 
         from .ui.layouts import *
         from .ui.conversations import Conversations, MsgSync, NewConv
@@ -225,6 +226,8 @@ class SidebandApp(MDApp):
 
         self.attach_path = None
         self.attach_type = None
+        self.attach_dialog = None
+        self.rec_dialog = None
 
         Window.softinput_mode = "below_target"
         self.icon = self.sideband.asset_dir+"/icon.png"
@@ -654,6 +657,12 @@ class SidebandApp(MDApp):
                 request_permissions(["android.permission.POST_NOTIFICATIONS"])
             
         self.check_permissions()
+
+    def request_microphone_permission(self):
+        if RNS.vendor.platformutils.get_platform() == "android":
+            if not check_permission("android.permission.RECORD_AUDIO"):
+                RNS.log("Requesting microphone permission", RNS.LOG_DEBUG)
+                request_permissions(["android.permission.RECORD_AUDIO"])
 
     def check_storage_permission(self):
         storage_permissions_ok = False
@@ -1487,46 +1496,157 @@ class SidebandApp(MDApp):
                 ok_button.bind(on_release=ate_dialog.dismiss)
                 ate_dialog.open()
 
-    def message_attach_action(self, attach_type=None):
-        self.attach_path = None
-        self.attach_type = attach_type
-        self.message_select_file_action()
+    def message_record_audio_action(self):
+        ss = int(dp(18))
+        if self.rec_dialog == None:
+            if RNS.vendor.platformutils.is_android():
+                from plyer import audio
+                self.request_microphone_permission()
+            else:
+                from sbapp.plyer import audio
 
-    def message_attachment_action(self, sender):
-        if self.attach_path == None:
-            attach_dialog = None
-            def a_img_lb(sender):
-                attach_dialog.dismiss()
-                self.message_attach_action(attach_type="lbimg")
-            def a_img_def(sender):
-                attach_dialog.dismiss()
-                self.message_attach_action(attach_type="defimg")
-            def a_img_hq(sender):
-                attach_dialog.dismiss()
-                self.message_attach_action(attach_type="hqimg")
-            def a_file(sender):
-                attach_dialog.dismiss()
-                self.message_attach_action(attach_type="file")
+            self.msg_audio = audio
+            self.msg_audio._file_path = self.sideband.rec_cache+"/msg_rec.aac"
 
-            ss = int(dp(18))
+            def a_rec_action(sender):
+                if not self.rec_dialog.recording:
+                    RNS.log("Starting recording...") # TODO: Remove
+                    self.rec_dialog.recording = True
+                    self.rec_dialog.rec_item.children[0].children[0].icon = "stop-circle"
+                    self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Stop Recording[/size]"
+                    self.msg_audio.start()
+                else:
+                    RNS.log("Stopping recording...") # TODO: Remove
+                    self.rec_dialog.recording = False
+                    self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Start Recording[/size]"
+                    self.rec_dialog.rec_item.children[0].children[0].icon = "record"
+                    self.rec_dialog.play_item.disabled = False
+                    self.rec_dialog.save_item.disabled = False
+                    self.msg_audio.stop()
+
+            def a_play(sender):
+                if self.rec_dialog.recording:
+                    a_rec_action(sender)
+
+                if not self.rec_dialog.playing:
+                    RNS.log("Playing recording...") # TODO: Remove
+                    self.rec_dialog.playing = True
+                    self.rec_dialog.play_item.children[0].children[0].icon = "stop"
+                    self.rec_dialog.play_item.text = "[size="+str(ss)+"]Stop[/size]"
+                    self.msg_audio.play()
+                else:
+                    RNS.log("Stopping playback...") # TODO: Remove
+                    self.rec_dialog.playing = False
+                    self.rec_dialog.play_item.children[0].children[0].icon = "play"
+                    self.rec_dialog.play_item.text = "[size="+str(ss)+"]Play[/size]"
+                    self.msg_audio.stop()
+
+            def a_finished(sender):
+                RNS.log("Playback finished") # TODO: Remove
+                self.rec_dialog.playing = False
+                self.rec_dialog.play_item.children[0].children[0].icon = "play"
+                self.rec_dialog.play_item.text = "[size="+str(ss)+"]Play[/size]"
+                
+
+            self.msg_audio._finished_callback = a_finished
+                
+            def a_save(sender):
+                if self.rec_dialog.recording:
+                    a_rec_action(sender)
+                self.rec_dialog.dismiss()
+
+                self.attach_path = self.msg_audio._file_path
+                self.update_message_widgets()
+                toast("Attached \""+str(self.attach_path)+"\"")
+
+                # TODO: Remove
+                self.attach_type = "file"
+
             cancel_button = MDRectangleFlatButton(text="Cancel", font_size=dp(18))
-            attach_dialog = MDDialog(
-                title="Add Attachment",
+            rec_item = DialogItem(IconLeftWidget(icon="record"), text="[size="+str(ss)+"]Start Recording[/size]", on_release=a_rec_action)
+            play_item = DialogItem(IconLeftWidget(icon="play"), text="[size="+str(ss)+"]Play[/size]", on_release=a_play, disabled=True)
+            save_item = DialogItem(IconLeftWidget(icon="content-save-move-outline"), text="[size="+str(ss)+"]Save to message[/size]", on_release=a_save, disabled=True)
+            self.rec_dialog = MDDialog(
+                title="Record Audio",
                 type="simple",
-                text="Select the type of attachment you want to send with this message\n",
+                text="Test\n",
                 items=[
-                    DialogItem(IconLeftWidget(icon="message-image-outline"), text="[size="+str(ss)+"]Low-bandwidth Image[/size]", on_release=a_img_lb),
-                    DialogItem(IconLeftWidget(icon="file-image"), text="[size="+str(ss)+"]Medium Image[/size]", on_release=a_img_def),
-                    DialogItem(IconLeftWidget(icon="image-outline"), text="[size="+str(ss)+"]High-res Image[/size]", on_release=a_img_hq),
-                    DialogItem(IconLeftWidget(icon="file-outline"), text="[size="+str(ss)+"]File Attachment[/size]", on_release=a_file),
+                    rec_item,
+                    play_item,
+                    save_item,
                 ],
                 buttons=[ cancel_button ],
                 width_offset=dp(12),
             )
+            cancel_button.bind(on_release=self.rec_dialog.dismiss)
+            self.rec_dialog.recording = False
+            self.rec_dialog.playing = False
+            self.rec_dialog.rec_item = rec_item
+            self.rec_dialog.play_item = play_item
+            self.rec_dialog.save_item = save_item
 
-            cancel_button.bind(on_release=attach_dialog.dismiss)
-            attach_dialog.open()
-            attach_dialog.update_width()
+        else:
+            self.rec_dialog.play_item.disabled = True
+            self.rec_dialog.save_item.disabled = True
+            self.rec_dialog.recording = False
+            self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Start Recording[/size]"
+            self.rec_dialog.rec_item.children[0].children[0].icon = "record"
+
+        self.rec_dialog.open()
+        self.rec_dialog.update_width()
+
+    def message_attach_action(self, attach_type=None):
+        file_attach_types = ["lbimg", "defimg", "hqimg", "file"]
+        rec_attach_types = ["lbaudio", "defaudio", "hqaudio"]
+        
+        self.attach_path = None
+        if attach_type in file_attach_types:
+            self.attach_type = attach_type
+            self.message_select_file_action()
+        elif attach_type in rec_attach_types:
+            self.attach_type = attach_type
+            self.message_record_audio_action()
+
+    def message_attachment_action(self, sender):
+        if self.attach_path == None:
+            def a_img_lb(sender):
+                self.attach_dialog.dismiss()
+                self.message_attach_action(attach_type="lbimg")
+            def a_img_def(sender):
+                self.attach_dialog.dismiss()
+                self.message_attach_action(attach_type="defimg")
+            def a_img_hq(sender):
+                self.attach_dialog.dismiss()
+                self.message_attach_action(attach_type="hqimg")
+            def a_file(sender):
+                self.attach_dialog.dismiss()
+                self.message_attach_action(attach_type="file")
+            def a_audio_lb(sender):
+                self.attach_dialog.dismiss()
+                self.message_attach_action(attach_type="lbaudio")
+
+            if self.attach_dialog == None:
+                ss = int(dp(18))
+                cancel_button = MDRectangleFlatButton(text="Cancel", font_size=dp(18))
+                self.attach_dialog = MDDialog(
+                    title="Add Attachment",
+                    type="simple",
+                    text="Select the type of attachment you want to send with this message\n",
+                    items=[
+                        DialogItem(IconLeftWidget(icon="message-image-outline"), text="[size="+str(ss)+"]Low-bandwidth Image[/size]", on_release=a_img_lb),
+                        DialogItem(IconLeftWidget(icon="file-image"), text="[size="+str(ss)+"]Medium Image[/size]", on_release=a_img_def),
+                        DialogItem(IconLeftWidget(icon="image-outline"), text="[size="+str(ss)+"]High-res Image[/size]", on_release=a_img_hq),
+                        DialogItem(IconLeftWidget(icon="microphone-message"), text="[size="+str(ss)+"]Audio Recording[/size]", on_release=a_audio_lb),
+                        DialogItem(IconLeftWidget(icon="file-outline"), text="[size="+str(ss)+"]File Attachment[/size]", on_release=a_file),
+                    ],
+                    buttons=[ cancel_button ],
+                    width_offset=dp(12),
+                )
+
+                cancel_button.bind(on_release=self.attach_dialog.dismiss)
+
+            self.attach_dialog.open()
+            self.attach_dialog.update_width()
 
         else:
             self.attach_path = None
@@ -5074,6 +5194,7 @@ class CustomOneLineIconListItem(OneLineIconListItem):
 
 class DialogItem(OneLineIconListItem):
     divider = None
+    icon = StringProperty()
 
 class MDMapIconButton(MDIconButton):
     pass
