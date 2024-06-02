@@ -4,8 +4,8 @@ Module of MacOS API for plyer.battery.
 
 from os import environ
 from subprocess import Popen, PIPE
-from plyer.facades import Battery
-from plyer.utils import whereis_exe
+from sbapp.plyer.facades import Battery
+from sbapp.plyer.utils import whereis_exe
 
 
 class OSXBattery(Battery):

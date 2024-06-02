@@ -9,6 +9,7 @@ from os import environ
 from os import path
 from sys import platform as _sys_platform
 import sys
+import RNS
 
 
 class Platform:
@@ -91,8 +92,10 @@ class Proxy:
         # do the import
         try:
             name = object.__getattribute__(self, '_name')
-            module = 'plyer.platforms.{}.{}'.format(
-                platform, name)
+            if RNS.vendor.platformutils.is_android():
+                module = 'plyer.platforms.{}.{}'.format(platform, name)
+            else:
+                module = 'sbapp.plyer.platforms.{}.{}'.format(platform, name)
             mod = __import__(module, fromlist='.')
             obj = mod.instance()
         except Exception:

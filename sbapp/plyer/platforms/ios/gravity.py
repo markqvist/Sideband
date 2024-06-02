@@ -4,7 +4,7 @@ iOS Gravity
 
 '''
 
-from plyer.facades import Gravity
+from sbapp.plyer.facades import Gravity
 from pyobjus import autoclass
 
 

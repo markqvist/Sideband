@@ -3,7 +3,7 @@ Linux file chooser
 ------------------
 '''
 
-from plyer.facades import FileChooser
+from sbapp.plyer.facades import FileChooser
 from distutils.spawn import find_executable as which
 import os
 import subprocess as sp
@@ -122,7 +122,7 @@ class ZenityFileChooser(SubprocessFileChooser):
         if self.icon:
             cmdline += ["--window-icon", self.icon]
         for f in self.filters:
-            if type(f) == str:
+            if isinstance(f, str):
                 cmdline += ["--file-filter", f]
             else:
                 cmdline += [
@@ -150,7 +150,7 @@ class KDialogFileChooser(SubprocessFileChooser):
         filt = []
 
         for f in self.filters:
-            if type(f) == str:
+            if isinstance(f, str):
                 filt += [f]
             else:
                 filt += list(f[1:])
@@ -195,7 +195,7 @@ class YADFileChooser(SubprocessFileChooser):
     def _gen_cmdline(self):
         cmdline = [
             which(self.executable),
-            "--file-selection",
+            "--file",
             "--confirm-overwrite",
             "--geometry",
             "800x600+150+150"
@@ -215,7 +215,7 @@ class YADFileChooser(SubprocessFileChooser):
         if self.icon:
             cmdline += ["--window-icon", self.icon]
         for f in self.filters:
-            if type(f) == str:
+            if isinstance(f, str):
                 cmdline += ["--file-filter", f]
             else:
                 cmdline += [

@@ -4,7 +4,7 @@ Module of iOS API for plyer.uniqueid.
 
 from pyobjus import autoclass
 from pyobjus.dylib_manager import load_framework
-from plyer.facades import UniqueID
+from sbapp.plyer.facades import UniqueID
 
 load_framework('/System/Library/Frameworks/UIKit.framework')
 UIDevice = autoclass('UIDevice')

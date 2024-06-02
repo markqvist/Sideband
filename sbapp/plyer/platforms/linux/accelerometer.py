@@ -3,7 +3,7 @@ Linux accelerometer
 ---------------------
 '''
 
-from plyer.facades import Accelerometer
+from sbapp.plyer.facades import Accelerometer
 import glob
 import re
 

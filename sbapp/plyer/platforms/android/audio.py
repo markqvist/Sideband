@@ -1,3 +1,5 @@
+import time
+import threading
 from jnius import autoclass
 
 from plyer.facades.audio import Audio
@@ -20,17 +22,31 @@ class AndroidAudio(Audio):
     '''
 
     def __init__(self, file_path=None):
-        default_path = '/sdcard/testrecorder.3gp'
+        default_path = None
         super().__init__(file_path or default_path)
 
         self._recorder = None
         self._player = None
+        self._check_thread = None
+        self._finished_callback = None
+
+    def _check_playback(self):
+        while self._player and self._player.isPlaying():
+            time.sleep(0.25)
+        
+        if self._finished_callback and callable(self._finished_callback):
+            self._check_thread = None
+            self._finished_callback(self)
+
 
     def _start(self):
         self._recorder = MediaRecorder()
         self._recorder.setAudioSource(AudioSource.DEFAULT)
-        self._recorder.setOutputFormat(OutputFormat.DEFAULT)
-        self._recorder.setAudioEncoder(AudioEncoder.DEFAULT)
+        self._recorder.setAudioSamplingRate(44100)
+        self._recorder.setAudioEncodingBitRate(128000)
+        self._recorder.setAudioChannels(1)
+        self._recorder.setOutputFormat(OutputFormat.MPEG_4)
+        self._recorder.setAudioEncoder(AudioEncoder.AAC)
         self._recorder.setOutputFile(self.file_path)
 
         self._recorder.prepare()
@@ -52,6 +68,10 @@ class AndroidAudio(Audio):
         self._player.setDataSource(self.file_path)
         self._player.prepare()
         self._player.start()
+
+        self._check_thread = threading.Thread(target=self._check_playback, daemon=True)
+        self._check_thread.start()
+
 
 
 def instance():

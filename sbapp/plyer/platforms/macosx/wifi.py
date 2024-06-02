@@ -1,7 +1,7 @@
 from pyobjus import autoclass
 from pyobjus.dylib_manager import load_framework, INCLUDE
 
-from plyer.facades import Wifi
+from sbapp.plyer.facades import Wifi
 
 load_framework(INCLUDE.Foundation)
 load_framework(INCLUDE.CoreWLAN)

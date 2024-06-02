@@ -7,7 +7,7 @@ try:
     from urllib.parse import quote
 except ImportError:
     from urllib import quote
-from plyer.facades import Email
+from sbapp.plyer.facades import Email
 
 
 class WindowsEmail(Email):

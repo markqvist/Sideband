@@ -3,7 +3,7 @@ IOS Sms
 ----------
 '''
 
-from plyer.facades import Sms
+from sbapp.plyer.facades import Sms
 from pyobjus import autoclass, objc_str
 from pyobjus.dylib_manager import load_framework
 

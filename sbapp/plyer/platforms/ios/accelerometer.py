@@ -6,7 +6,7 @@ Taken from: http://pyobjus.readthedocs.org/en/latest/pyobjus_ios.html \
             #accessing-accelerometer
 '''
 
-from plyer.facades import Accelerometer
+from sbapp.plyer.facades import Accelerometer
 from pyobjus import autoclass
 
 

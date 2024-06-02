@@ -4,7 +4,7 @@ class Humidity:
        With method `enable` you can turn on Humidity sensor and
        'disable' method stops the sensor.
        Use property `tell` to get humidity value.
-       
+
        Supported Platforms
        -------------------
        Android

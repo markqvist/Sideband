@@ -4,7 +4,7 @@ Module of iOS API for plyer.battery.
 
 from pyobjus import autoclass
 from pyobjus.dylib_manager import load_framework
-from plyer.facades import Battery
+from sbapp.plyer.facades import Battery
 
 load_framework('/System/Library/Frameworks/UIKit.framework')
 UIDevice = autoclass('UIDevice')

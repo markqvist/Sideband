@@ -4,8 +4,8 @@ Module of Linux API for plyer.uniqueid.
 
 from os import environ
 from subprocess import Popen, PIPE
-from plyer.facades import UniqueID
-from plyer.utils import whereis_exe
+from sbapp.plyer.facades import UniqueID
+from sbapp.plyer.utils import whereis_exe
 
 
 class LinuxUniqueID(UniqueID):

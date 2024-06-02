@@ -2,7 +2,7 @@
 Module of MacOS API for plyer.notification.
 '''
 
-from plyer.facades import Notification
+from sbapp.plyer.facades import Notification
 
 from pyobjus import (
     autoclass, protocol, objc_str, ObjcBOOL

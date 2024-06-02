@@ -14,7 +14,7 @@ Uri = autoclass('android.net.Uri')
 class AndroidCamera(Camera):
 
     def _take_picture(self, on_complete, filename=None):
-        assert(on_complete is not None)
+        assert on_complete is not None
         self.on_complete = on_complete
         self.filename = filename
         android.activity.unbind(on_activity_result=self._on_activity_result)
@@ -26,7 +26,7 @@ class AndroidCamera(Camera):
         activity.startActivityForResult(intent, 0x123)
 
     def _take_video(self, on_complete, filename=None):
-        assert(on_complete is not None)
+        assert on_complete is not None
         self.on_complete = on_complete
         self.filename = filename
         android.activity.unbind(on_activity_result=self._on_activity_result)

@@ -3,9 +3,9 @@ Windows Storage Path
 --------------------
 '''
 
-from plyer.facades import StoragePath
+from sbapp.plyer.facades import StoragePath
 from os.path import expanduser
-from plyer.platforms.win.libs.win_api_defs import get_PATH
+from sbapp.plyer.platforms.win.libs.win_api_defs import get_PATH
 from uuid import UUID
 
 

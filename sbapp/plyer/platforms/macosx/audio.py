@@ -3,8 +3,8 @@ from os.path import join
 from pyobjus import autoclass
 from pyobjus.dylib_manager import INCLUDE, load_framework
 
-from plyer.facades import Audio
-from plyer.platforms.macosx.storagepath import OSXStoragePath
+from sbapp.plyer.facades import Audio
+from sbapp.plyer.platforms.macosx.storagepath import OSXStoragePath
 
 load_framework(INCLUDE.Foundation)
 load_framework(INCLUDE.AVFoundation)
@@ -19,15 +19,23 @@ NSError = autoclass('NSError').alloc()
 
 class OSXAudio(Audio):
     def __init__(self, file_path=None):
-        default_path = join(
-            OSXStoragePath().get_music_dir(),
-            'audio.wav'
-        )
+        default_path = None
         super().__init__(file_path or default_path)
 
         self._recorder = None
         self._player = None
         self._current_file = None
+
+        self._check_thread = None
+        self._finished_callback = None
+
+    def _check_playback(self):
+        while self._player and self._player.isPlaying:
+            time.sleep(0.25)
+        
+        if self._finished_callback and callable(self._finished_callback):
+            self._check_thread = None
+            self._finished_callback(self)
 
     def _start(self):
         # Conversion of Python file path string to Objective-C NSString
@@ -44,7 +52,7 @@ class OSXAudio(Audio):
         # Internal audio file format specification
         af = AVAudioFormat.alloc()
         af = af.initWithCommonFormat_sampleRate_channels_interleaved_(
-            1, 44100.0, 2, True
+            1, 44100.0, 1, True
         )
 
         # Audio recorder instance initialization with specified file NSURL
@@ -84,6 +92,9 @@ class OSXAudio(Audio):
             raise Exception(NSError.code, NSError.domain)
 
         self._player.play()
+
+        self._check_thread = threading.Thread(target=self._check_playback, daemon=True)
+        self._check_thread.start()
 
 
 def instance():

@@ -1,6 +1,6 @@
 from subprocess import Popen, PIPE
-from plyer.facades import Processors
-from plyer.utils import whereis_exe
+from sbapp.plyer.facades import Processors
+from sbapp.plyer.utils import whereis_exe
 
 from os import environ
 

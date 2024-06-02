@@ -3,8 +3,8 @@ MacOSX accelerometer
 ---------------------
 '''
 
-from plyer.facades import Accelerometer
-from plyer.platforms.macosx.libs import osx_motion_sensor
+from sbapp.plyer.facades import Accelerometer
+from sbapp.plyer.platforms.macosx.libs import osx_motion_sensor
 
 
 class OSXAccelerometer(Accelerometer):

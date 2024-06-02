@@ -7,7 +7,7 @@ try:
 except ImportError:
     from urllib import quote
 
-from plyer.facades import Email
+from sbapp.plyer.facades import Email
 from pyobjus import autoclass, objc_str
 from pyobjus.dylib_manager import load_framework
 

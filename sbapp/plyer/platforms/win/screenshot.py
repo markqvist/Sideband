@@ -18,8 +18,8 @@ from win32con import (
     SRCCOPY
 )
 
-from plyer.facades import Screenshot
-from plyer.platforms.win.storagepath import WinStoragePath
+from sbapp.plyer.facades import Screenshot
+from sbapp.plyer.platforms.win.storagepath import WinStoragePath
 
 
 class WinScreenshot(Screenshot):

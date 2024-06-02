@@ -14,8 +14,8 @@ from ctypes import (
 )
 from ctypes.wintypes import DWORD, UINT
 
-from plyer.facades import Audio
-from plyer.platforms.win.storagepath import WinStoragePath
+from sbapp.plyer.facades import Audio
+from sbapp.plyer.platforms.win.storagepath import WinStoragePath
 
 # DWORD_PTR i.e. ULONG_PTR, 32/64bit
 ULONG_PTR = c_ulonglong if sizeof(c_void_p) == 8 else c_ulong

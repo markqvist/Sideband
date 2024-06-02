@@ -1,6 +1,6 @@
 import subprocess
-from plyer.facades import TTS
-from plyer.utils import whereis_exe
+from sbapp.plyer.facades import TTS
+from sbapp.plyer.utils import whereis_exe
 
 
 class NativeSayTextToSpeech(TTS):

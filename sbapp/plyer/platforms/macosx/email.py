@@ -9,8 +9,8 @@ try:
 except ImportError:
     from urllib import quote
 
-from plyer.facades import Email
-from plyer.utils import whereis_exe
+from sbapp.plyer.facades import Email
+from sbapp.plyer.utils import whereis_exe
 
 
 class MacOSXEmail(Email):

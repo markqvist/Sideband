@@ -3,7 +3,7 @@ iOS Compass
 -----------
 '''
 
-from plyer.facades import Compass
+from sbapp.plyer.facades import Compass
 from pyobjus import autoclass
 
 

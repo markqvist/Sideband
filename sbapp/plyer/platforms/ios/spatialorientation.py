@@ -4,7 +4,7 @@ iOS Spatial Orientation
 
 '''
 
-from plyer.facades import SpatialOrientation
+from sbapp.plyer.facades import SpatialOrientation
 from pyobjus import autoclass
 
 

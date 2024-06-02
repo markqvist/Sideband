@@ -3,7 +3,7 @@ MacOS X Storage Path
 --------------------
 '''
 
-from plyer.facades import StoragePath
+from sbapp.plyer.facades import StoragePath
 from pyobjus import autoclass
 
 NSFileManager = autoclass('NSFileManager')

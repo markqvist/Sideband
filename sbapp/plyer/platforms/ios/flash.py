@@ -3,7 +3,7 @@
 Flash
 -----
 """
-from plyer.facades import Flash
+from sbapp.plyer.facades import Flash
 from pyobjus import autoclass
 
 NSString = autoclass("NSString")

@@ -3,7 +3,7 @@ iOS Gyroscope
 ---------------------
 '''
 
-from plyer.facades import Gyroscope
+from sbapp.plyer.facades import Gyroscope
 from pyobjus import autoclass
 
 from pyobjus.dylib_manager import load_framework

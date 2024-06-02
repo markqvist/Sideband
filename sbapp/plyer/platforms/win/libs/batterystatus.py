@@ -6,7 +6,7 @@ __all__ = ('battery_status')
 
 
 import ctypes
-from plyer.platforms.win.libs import win_api_defs
+from sbapp.plyer.platforms.win.libs import win_api_defs
 
 
 def battery_status():

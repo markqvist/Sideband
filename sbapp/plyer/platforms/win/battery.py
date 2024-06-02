@@ -2,8 +2,8 @@
 Module of Windows API for plyer.battery.
 '''
 
-from plyer.platforms.win.libs.batterystatus import battery_status
-from plyer.facades import Battery
+from sbapp.plyer.platforms.win.libs.batterystatus import battery_status
+from sbapp.plyer.facades import Battery
 from ctypes.wintypes import BYTE
 
 

@@ -1,7 +1,7 @@
 from os import remove
-from plyer.facades import Camera
+from sbapp.plyer.facades import Camera
 
-from plyer.utils import reify
+from sbapp.plyer.utils import reify
 
 
 class iOSCamera(Camera):
@@ -14,7 +14,7 @@ class iOSCamera(Camera):
         return PhotosLibrary()
 
     def _take_picture(self, on_complete, filename=None):
-        assert(on_complete is not None)
+        assert on_complete is not None
         self.on_complete = on_complete
         self.filename = filename
         photos = self.photos
@@ -38,7 +38,7 @@ class iOSCamera(Camera):
             self._remove(self.filename)
 
     def _take_video(self, on_complete, filename=None):
-        assert(on_complete is not None)
+        assert on_complete is not None
         raise NotImplementedError
 
     def _remove(self, fn):

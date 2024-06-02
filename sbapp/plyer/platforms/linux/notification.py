@@ -4,8 +4,8 @@ Module of Linux API for plyer.notification.
 
 import warnings
 import subprocess
-from plyer.facades import Notification
-from plyer.utils import whereis_exe
+from sbapp.plyer.facades import Notification
+from sbapp.plyer.utils import whereis_exe
 import os
 
 

@@ -3,7 +3,7 @@ iOS Barometer
 -------------
 '''
 
-from plyer.facades import Barometer
+from sbapp.plyer.facades import Barometer
 from pyobjus import autoclass
 
 

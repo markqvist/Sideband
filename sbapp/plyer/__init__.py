@@ -13,11 +13,15 @@ __all__ = (
     'stt', 'temperature', 'tts', 'uniqueid', 'vibrator', 'wifi', 'devicename'
 )
 
-__version__ = '2.1.0.dev0'
+__version__ = '2.2.0.dev0'
 
-
-from plyer import facades
-from plyer.utils import Proxy
+import RNS
+if RNS.vendor.platformutils.is_android():
+    from plyer import facades
+    from plyer.utils import Proxy
+else:
+    from sbapp.plyer import facades
+    from sbapp.plyer.utils import Proxy
 
 #: Accelerometer proxy to :class:`plyer.facades.Accelerometer`
 accelerometer = Proxy('accelerometer', facades.Accelerometer)

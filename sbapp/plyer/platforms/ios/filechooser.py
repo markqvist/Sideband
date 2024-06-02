@@ -7,7 +7,7 @@ This module houses the iOS implementation of the plyer FileChooser.
 .. versionadded:: 1.4.4
 '''
 
-from plyer.facades import FileChooser
+from sbapp.plyer.facades import FileChooser
 from pyobjus import autoclass, protocol
 from pyobjus.dylib_manager import load_framework
 

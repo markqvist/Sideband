@@ -3,7 +3,7 @@ Module of Linux API for plyer.devicename.
 '''
 
 import socket
-from plyer.facades import DeviceName
+from sbapp.plyer.facades import DeviceName
 
 
 class LinuxDeviceName(DeviceName):

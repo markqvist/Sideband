@@ -1,8 +1,8 @@
 import subprocess
 from os.path import join
-from plyer.facades import Screenshot
-from plyer.utils import whereis_exe
-from plyer.platforms.linux.storagepath import LinuxStoragePath
+from sbapp.plyer.facades import Screenshot
+from sbapp.plyer.utils import whereis_exe
+from sbapp.plyer.platforms.linux.storagepath import LinuxStoragePath
 
 
 class LinuxScreenshot(Screenshot):

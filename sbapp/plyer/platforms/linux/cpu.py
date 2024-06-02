@@ -5,8 +5,8 @@ Module of Linux API for plyer.cpu.
 from os.path import join
 from os import environ, listdir
 from subprocess import Popen, PIPE
-from plyer.facades import CPU
-from plyer.utils import whereis_exe
+from sbapp.plyer.facades import CPU
+from sbapp.plyer.utils import whereis_exe
 
 
 class LinuxCPU(CPU):

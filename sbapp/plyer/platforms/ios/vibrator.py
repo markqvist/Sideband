@@ -4,7 +4,7 @@ Install: Add AudioToolbox framework to your application.
 '''
 
 import ctypes
-from plyer.facades import Vibrator
+from sbapp.plyer.facades import Vibrator
 
 
 class IosVibrator(Vibrator):

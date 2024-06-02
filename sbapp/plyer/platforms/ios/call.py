@@ -3,7 +3,7 @@ IOS Call
 ----------
 '''
 
-from plyer.facades import Call
+from sbapp.plyer.facades import Call
 from pyobjus import autoclass, objc_str
 
 NSURL = autoclass('NSURL')

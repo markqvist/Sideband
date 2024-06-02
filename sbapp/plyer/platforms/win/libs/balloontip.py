@@ -12,7 +12,7 @@ import ctypes
 import atexit
 from threading import RLock
 
-from plyer.platforms.win.libs import win_api_defs
+from sbapp.plyer.platforms.win.libs import win_api_defs
 
 
 WS_OVERLAPPED = 0x00000000

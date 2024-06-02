@@ -10,7 +10,7 @@ except ImportError:
     except ImportError:
         raise NotImplementedError()
 
-from plyer.facades import UniqueID
+from sbapp.plyer.facades import UniqueID
 
 
 class WinUniqueID(UniqueID):

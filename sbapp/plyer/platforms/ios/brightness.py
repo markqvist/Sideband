@@ -4,7 +4,7 @@ iOS Brightness
 '''
 
 from pyobjus import autoclass
-from plyer.facades import Brightness
+from sbapp.plyer.facades import Brightness
 from pyobjus.dylib_manager import load_framework
 
 load_framework('/System/Library/Frameworks/UIKit.framework')

@@ -3,7 +3,7 @@ try:
 except ImportError:
     raise NotImplementedError()
 
-from plyer.facades import Keystore
+from sbapp.plyer.facades import Keystore
 
 
 class LinuxKeystore(Keystore):

@@ -4,7 +4,7 @@ Linux Brightness
 
 '''
 
-from plyer.facades import Brightness
+from sbapp.plyer.facades import Brightness
 import subprocess
 import os
 

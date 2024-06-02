@@ -3,7 +3,7 @@ Linux Storage Path
 --------------------
 '''
 
-from plyer.facades import StoragePath
+from sbapp.plyer.facades import StoragePath
 from os.path import expanduser, dirname, abspath, join, exists
 
 # Default paths for each name

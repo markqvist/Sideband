@@ -2,13 +2,12 @@
 Module of Linux API for plyer.battery.
 '''
 
-import os
 from math import floor
 from os import environ
 from os.path import exists, join
 from subprocess import Popen, PIPE
-from plyer.facades import Battery
-from plyer.utils import whereis_exe
+from sbapp.plyer.facades import Battery
+from sbapp.plyer.utils import whereis_exe
 
 
 class LinuxBattery(Battery):
@@ -20,10 +19,10 @@ class LinuxBattery(Battery):
     def _get_state(self):
         status = {"isCharging": None, "percentage": None}
 
-        kernel_bat_path = join('/sys', 'class', 'power_supply', self.node_name)
+        kernel_bat_path = join('/sys', 'class', 'power_supply', 'BAT0')
         uevent = join(kernel_bat_path, 'uevent')
 
-        with open(uevent, "rb") as fle:
+        with open(uevent) as fle:
             lines = [
                 line.decode('utf-8').strip()
                 for line in fle.readlines()
@@ -34,10 +33,58 @@ class LinuxBattery(Battery):
         }
 
         is_charging = output['POWER_SUPPLY_STATUS'] == 'Charging'
-        charge_percent = float(output['POWER_SUPPLY_CAPACITY'])
+        total = float(output['POWER_SUPPLY_CHARGE_FULL'])
+        now = float(output['POWER_SUPPLY_CHARGE_NOW'])
 
-        status['percentage'] = charge_percent
+        capacity = floor(now / total * 100)
+
+        status['percentage'] = capacity
         status['isCharging'] = is_charging
+        return status
+
+
+class UPowerBattery(Battery):
+    '''
+    Implementation of UPower battery API.
+    '''
+
+    def _get_state(self):
+        # if no LANG specified, return empty string
+        old_lang = environ.get('LANG', '')
+        environ['LANG'] = 'C'
+        status = {"isCharging": None, "percentage": None}
+
+        # We are supporting only one battery now
+        # this will fail if there is no object with such path,
+        # however it's safer than 'upower -d' which provides
+        # multiple unrelated 'state' and 'percentage' keywords
+        dev = "/org/freedesktop/UPower/devices/battery_BAT0"
+        upower_process = Popen(
+            ["upower", "--show-info", dev],
+            stdout=PIPE
+        )
+        output = upower_process.communicate()[0].decode()
+        environ['LANG'] = old_lang
+        if not output:
+            return status
+        state = percentage = None
+
+        for line in output.splitlines():
+            if 'state' in line:
+                state = line.rpartition(':')[-1].strip()
+
+            if 'percentage' in line:
+                percentage = line.rpartition(':')[-1].strip()[:-1]
+
+                # switching decimal comma to dot
+                # (different LC_NUMERIC locale)
+                percentage = float(
+                    percentage.replace(',', '.')
+                )
+
+        if state:
+            status['isCharging'] = state == "charging"
+        status['percentage'] = percentage
         return status
 
 
@@ -46,22 +93,10 @@ def instance():
     Instance for facade proxy.
     '''
     import sys
-    # if whereis_exe('upower'):
-    #     return UPowerBattery()
-    # sys.stderr.write("upower not found.")
+    if whereis_exe('upower'):
+        return UPowerBattery()
+    sys.stderr.write("upower not found.")
 
-    node_exists = False
-    bn = 0
-    node_name = None
-    for bi in range(0,10):
-        path = join('/sys', 'class', 'power_supply', 'BAT'+str(bi))
-        if os.path.isdir(path):
-            node_name = "BAT"+str(bi)
-            break
-
-    if node_name:
-        b = LinuxBattery()
-        b.node_name = node_name
-        return b
-
+    if exists(join('/sys', 'class', 'power_supply', 'BAT0')):
+        return LinuxBattery()
     return Battery()

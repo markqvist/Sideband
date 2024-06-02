@@ -11,7 +11,7 @@ from ctypes.wintypes import (
     BYTE, DWORD, WORD
 )
 
-from plyer.facades import CPU
+from sbapp.plyer.facades import CPU
 
 
 KERNEL = windll.kernel32

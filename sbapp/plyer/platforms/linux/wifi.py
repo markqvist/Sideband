@@ -6,8 +6,8 @@
 '''
 
 from subprocess import Popen, PIPE, call
-from plyer.facades import Wifi
-from plyer.utils import whereis_exe, deprecated
+from sbapp.plyer.facades import Wifi
+from sbapp.plyer.utils import whereis_exe, deprecated
 
 try:
     import wifi

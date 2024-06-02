@@ -3,14 +3,13 @@ Android Storage Path
 --------------------
 '''
 
-from os import listdir, access, R_OK
-from os.path import join
 from plyer.facades import StoragePath
-from jnius import autoclass
+from plyer.platforms.android import SDK_INT
+from jnius import autoclass, cast
 from android import mActivity
 
-Environment = autoclass('android.os.Environment')
-Context = autoclass('android.content.Context')
+Environment = autoclass("android.os.Environment")
+Context = autoclass("android.content.Context")
 
 
 class AndroidStoragePath(StoragePath):
@@ -25,17 +24,29 @@ class AndroidStoragePath(StoragePath):
         '''
         .. versionadded:: 1.4.0
         '''
-        # folder in /storage/ that is readable
-        # and is not internal SD card
         path = None
-        for folder in listdir('/storage'):
-            folder = join('/storage', folder)
-            if folder in self._get_external_storage_dir():
-                continue
-            if not access(folder, R_OK):
-                continue
-            path = folder
-            break
+        context = mActivity.getApplicationContext()
+        storage_manager = cast(
+            "android.os.storage.StorageManager",
+            context.getSystemService(Context.STORAGE_SERVICE),
+        )
+
+        if storage_manager is not None:
+            if SDK_INT >= 24:
+                storage_volumes = storage_manager.getStorageVolumes()
+                for storage_volume in storage_volumes:
+                    if storage_volume.isRemovable():
+                        try:
+                            directory = storage_volume.getDirectory()
+                        except AttributeError:
+                            directory = storage_volume.getPathFile()
+                        path = directory.getAbsolutePath()
+            else:
+                storage_volumes = storage_manager.getVolumeList()
+                for storage_volume in storage_volumes:
+                    if storage_volume.isRemovable():
+                        path = storage_volume.getPath()
+
         return path
 
     def _get_root_dir(self):

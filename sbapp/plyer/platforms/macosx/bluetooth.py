@@ -3,8 +3,8 @@ Module of MacOS API for plyer.bluetooth.
 '''
 
 from subprocess import Popen, PIPE
-from plyer.facades import Bluetooth
-from plyer.utils import whereis_exe
+from sbapp.plyer.facades import Bluetooth
+from sbapp.plyer.utils import whereis_exe
 
 from os import environ
 

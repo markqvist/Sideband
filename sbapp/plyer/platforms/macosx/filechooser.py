@@ -3,7 +3,7 @@ Mac OS X file chooser
 ---------------------
 '''
 
-from plyer.facades import FileChooser
+from sbapp.plyer.facades import FileChooser
 from pyobjus import autoclass, objc_arr, objc_str
 from pyobjus.dylib_manager import load_framework, INCLUDE
 
@@ -80,7 +80,7 @@ class MacFileChooser:
         if self.filters:
             filthies = []
             for f in self.filters:
-                if type(f) == str:
+                if isinstance(f, str):
                     f = (None, f)
                 for s in f[1:]:
                     if not self.use_extensions:

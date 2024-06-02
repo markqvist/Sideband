@@ -5,7 +5,7 @@ iOS GPS
 
 from pyobjus import autoclass, protocol
 from pyobjus.dylib_manager import load_framework
-from plyer.facades import GPS
+from sbapp.plyer.facades import GPS
 
 load_framework('/System/Library/Frameworks/CoreLocation.framework')
 CLLocationManager = autoclass('CLLocationManager')

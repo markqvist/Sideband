@@ -110,7 +110,7 @@ class AndroidCompass(Compass):
             return (None, None, None, None, None, None)
 
     def __del__(self):
-        if(self.bState):
+        if self.bState:
             self._disable()
         super().__del__()
 

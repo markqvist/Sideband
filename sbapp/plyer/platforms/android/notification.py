@@ -154,10 +154,15 @@ class AndroidNotification(Notification):
         notification_intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         notification_intent.setAction(Intent.ACTION_MAIN)
         notification_intent.addCategory(Intent.CATEGORY_LAUNCHER)
+        if SDK_INT >= 23:
+            # FLAG_IMMUTABLE added in SDK 23, required since SDK 31:
+            pending_flags = PendingIntent.FLAG_IMMUTABLE
+        else:
+            pending_flags = 0
 
         # get our application Activity
         pending_intent = PendingIntent.getActivity(
-            app_context, 0, notification_intent, 0
+            app_context, 0, notification_intent, pending_flags
         )
 
         notification.setContentIntent(pending_intent)
@@ -179,8 +184,6 @@ class AndroidNotification(Notification):
             kwargs.get('title', '').encode('utf-8')
         )
         icon = kwargs.get('app_icon')
-        notification_icon = kwargs.get('notification_icon')
-        context_override = kwargs.get('context_override')
 
         # decide whether toast only or proper notification
         if kwargs.get('toast'):

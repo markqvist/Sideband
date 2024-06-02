@@ -86,7 +86,7 @@ def read_sms():
     inStructure = data_structure()
     outStructure = data_structure()
 
-    if(is_os_64bit() or hasattr(IOKit, 'IOConnectCallStructMethod')):
+    if is_os_64bit() or hasattr(IOKit, 'IOConnectCallStructMethod'):
         structureInSize = IOItemCount(sizeof(data_structure))
         structureOutSize = c_size_t(sizeof(data_structure))
 
@@ -120,7 +120,7 @@ def get_coord():
     ret, data = read_sms()
 
     if (ret > 0):
-        if(data.x):
+        if data.x:
             return (data.x, data.y, data.z)
         else:
             return (None, None, None)

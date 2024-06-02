@@ -3,8 +3,8 @@ Module of MacOS API for plyer.cpu.
 '''
 
 from subprocess import Popen, PIPE
-from plyer.facades import CPU
-from plyer.utils import whereis_exe
+from sbapp.plyer.facades import CPU
+from sbapp.plyer.utils import whereis_exe
 
 
 class OSXCPU(CPU):

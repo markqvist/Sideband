@@ -23,7 +23,7 @@ To send sms::
 
 Supported Platforms
 -------------------
-Android, iOS
+Android, iOS, macOS
 
 '''
 
@@ -33,17 +33,23 @@ class Sms:
     Sms facade.
     '''
 
-    def send(self, recipient, message):
+    def send(self, recipient, message, mode=None, **kwargs):
         '''
         Send SMS or open SMS interface.
+        Includes optional `mode` parameter for macOS that can be set to
+        `'SMS'` if carrier-activated device is correctly paired and
+        configured to macOS.
 
         :param recipient: The receiver
         :param message: the message
+        :param mode: (optional, macOS only), can be set to 'iMessage'
+        (default) or 'SMS'
 
         :type recipient: number
         :type message: str
+        :type mode: str
         '''
-        self._send(recipient=recipient, message=message)
+        self._send(recipient=recipient, message=message, mode=mode, **kwargs)
 
     # private
 

@@ -1,5 +1,5 @@
 import subprocess as sb
-from plyer.facades import Orientation
+from sbapp.plyer.facades import Orientation
 
 
 class LinuxOrientation(Orientation):

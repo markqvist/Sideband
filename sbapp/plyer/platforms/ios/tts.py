@@ -1,7 +1,7 @@
 from pyobjus import autoclass, objc_str
 from pyobjus.dylib_manager import load_framework
 
-from plyer.facades import TTS
+from sbapp.plyer.facades import TTS
 
 load_framework('/System/Library/Frameworks/AVFoundation.framework')
 AVSpeechUtterance = autoclass('AVSpeechUtterance')
@@ -23,7 +23,7 @@ class iOSTextToSpeech(TTS):
     def _speak(self, **kwargs):
         message = kwargs.get('message')
 
-        if(not self.voice):
+        if not self.voice:
             self._set_locale()
 
         utterance = \

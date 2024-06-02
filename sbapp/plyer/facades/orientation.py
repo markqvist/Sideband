@@ -30,7 +30,7 @@ To set sensor::
 
 Supported Platforms
 -------------------
-Android
+Android, Linux
 
 '''
 

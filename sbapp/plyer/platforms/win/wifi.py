@@ -1,5 +1,5 @@
-import plyer.platforms.win.libs.wifi_defs as wifi_lib
-from plyer.facades import Wifi
+import sbapp.plyer.platforms.win.libs.wifi_defs as wifi_lib
+from sbapp.plyer.facades import Wifi
 
 
 class WindowWifi(Wifi):
