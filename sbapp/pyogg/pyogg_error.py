@@ -1,0 +1,2 @@
+class PyOggError(Exception):
+    pass
