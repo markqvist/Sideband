@@ -3507,6 +3507,8 @@ class SidebandCore():
                 fields[LXMF.FIELD_FILE_ATTACHMENTS] = [attachment]
             if image != None:
                 fields[LXMF.FIELD_IMAGE] = image
+            if audio != None:
+                fields[LXMF.FIELD_AUDIO] = audio
 
             lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = fields)
             

@@ -34,12 +34,12 @@ if RNS.vendor.platformutils.get_platform() == "android":
     import plyer
     from sideband.sense import Telemeter, Commands
     from ui.helpers import ts_format, file_ts_format, mdc
-    from ui.helpers import color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
+    from ui.helpers import color_playing, color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light, intensity_play_dark, intensity_play_light
 else:
     import sbapp.plyer as plyer
     from sbapp.sideband.sense import Telemeter, Commands
     from .helpers import ts_format, file_ts_format, mdc
-    from .helpers import color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light
+    from .helpers import color_playing, color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light, intensity_play_dark, intensity_play_light
 
 if RNS.vendor.platformutils.is_darwin():
     from PIL import Image as PilImage
@@ -127,8 +127,10 @@ class Messages():
 
         if self.app.sideband.config["dark_ui"]:
             intensity_msgs = intensity_msgs_dark
+            intensity_play = intensity_play_dark
         else:
             intensity_msgs = intensity_msgs_light
+            intensity_play = intensity_play_light
 
         for w in self.widgets:
             m = w.m
@@ -161,7 +163,10 @@ class Messages():
                     if msg["title"]:
                         titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
                     w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] "+sphrase+prgstr+"                          "
+                    if w.has_audio:
+                        w.heading += f"\n[b]Audio Recording Included[/b]"
                     m["state"] = msg["state"]
+
 
                 if msg["state"] == LXMF.LXMessage.DELIVERED:
                     w.md_bg_color = msg_color = mdc(color_delivered, intensity_msgs)
@@ -170,6 +175,8 @@ class Messages():
                     if msg["title"]:
                         titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
                     w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Delivered"
+                    if w.has_audio:
+                        w.heading += f"\n[b]Audio Recording Included[/b]"
                     m["state"] = msg["state"]
 
                 if msg["method"] == LXMF.LXMessage.PAPER:
@@ -188,6 +195,8 @@ class Messages():
                     if msg["title"]:
                         titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
                     w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] On Propagation Net"
+                    if w.has_audio:
+                        w.heading += f"\n[b]Audio Recording Included[/b]"
                     m["state"] = msg["state"]
 
                 if msg["state"] == LXMF.LXMessage.FAILED:
@@ -198,15 +207,19 @@ class Messages():
                         titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
                     w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Failed"
                     m["state"] = msg["state"]
+                    if w.has_audio:
+                        w.heading += f"\n[b]Audio Recording Included[/b]"
                     w.dmenu.items.append(w.dmenu.retry_item)
 
 
     def update_widget(self):
         if self.app.sideband.config["dark_ui"]:
             intensity_msgs = intensity_msgs_dark
+            intensity_play = intensity_play_dark
             mt_color = [1.0, 1.0, 1.0, 0.8]
         else:
             intensity_msgs = intensity_msgs_light
+            intensity_play = intensity_play_light
             mt_color = [1.0, 1.0, 1.0, 0.95]
 
         self.ids.message_text.font_name = self.app.input_font
@@ -230,7 +243,9 @@ class Messages():
                 extra_telemetry = {}
                 telemeter = None
                 image_field = None
+                audio_field = None
                 has_image = False
+                has_audio = False
                 attachments_field = None
                 has_attachment = False
                 force_markup = False
@@ -274,6 +289,13 @@ class Messages():
                     try:
                         image_field = m["lxm"].fields[LXMF.FIELD_IMAGE]
                         has_image = True
+                    except Exception as e:
+                        pass
+
+                if "lxm" in m and m["lxm"] and m["lxm"].fields != None and LXMF.FIELD_AUDIO in m["lxm"].fields:
+                    try:
+                        audio_field = m["lxm"].fields[LXMF.FIELD_AUDIO]
+                        has_audio = True
                     except Exception as e:
                         pass
 
@@ -380,14 +402,35 @@ class Messages():
                         heading_str += str(attachment[0])+", "
                     heading_str = heading_str[:-2]
 
+                if has_audio:
+                    heading_str += f"\n[b]Audio Recording Included[/b]"
+
                 item = ListLXMessageCard(
                     text=pre_content+message_markup.decode("utf-8")+extra_content,
                     heading=heading_str,
                     md_bg_color=msg_color,
                 )
+                item.lsource = m["source"]
 
                 if has_attachment:
                     item.attachments_field = attachments_field
+
+                if has_audio:
+                    def play_audio(sender):
+                        self.app.play_audio_field(sender.audio_field)
+                        stored_color = sender.md_bg_color
+                        if sender.lsource == self.app.sideband.lxmf_destination.hash:
+                            sender.md_bg_color = mdc(color_delivered, intensity_play)
+                        else:
+                            sender.md_bg_color = mdc(color_received, intensity_play)
+
+                        def cb(dt):
+                            sender.md_bg_color = stored_color
+                        Clock.schedule_once(cb, 0.25)
+
+                    item.has_audio = True
+                    item.audio_field = audio_field
+                    item.bind(on_release=play_audio)
 
                 if image_field != None:
                     item.has_image = True

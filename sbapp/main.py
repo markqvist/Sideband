@@ -73,12 +73,14 @@ if args.daemon:
     NewConv = DaemonElement; Telemetry = DaemonElement; ObjectDetails = DaemonElement; Announces = DaemonElement;
     Messages = DaemonElement; ts_format = DaemonElement; messages_screen_kv = DaemonElement; plyer = DaemonElement; multilingual_markup = DaemonElement;
     ContentNavigationDrawer = DaemonElement; DrawerList = DaemonElement; IconListItem = DaemonElement; escape_markup = DaemonElement;
+    SoundLoader = DaemonElement;
 
 else:
     from kivymd.app import MDApp
     app_superclass = MDApp
     from kivy.core.window import Window
     from kivy.core.clipboard import Clipboard
+    from kivy.core.audio import SoundLoader
     from kivy.base import EventLoop
     from kivy.clock import Clock
     from kivy.lang.builder import Builder
@@ -102,7 +104,7 @@ else:
     import kivy.core.image
     kivy.core.image.Logger = redirect_log()
 
-    if RNS.vendor.platformutils.get_platform() == "android":
+    if RNS.vendor.platformutils.is_android():
         from sideband.core import SidebandCore
         import plyer
 
@@ -228,6 +230,9 @@ class SidebandApp(MDApp):
         self.attach_type = None
         self.attach_dialog = None
         self.rec_dialog = None
+        self.last_msg_audio = None
+        self.msg_sound = None
+        self.audio_msg_mode = LXMF.AM_OPUS_OGG
 
         Window.softinput_mode = "below_target"
         self.icon = self.sideband.asset_dir+"/icon.png"
@@ -1238,7 +1243,7 @@ class SidebandApp(MDApp):
         self.open_conversations(direction="right")
 
     def message_send_action(self, sender=None):
-        if self.messages_view.ids.message_text.text == "":
+        if not (self.attach_type != None and self.attach_path != None) and self.messages_view.ids.message_text.text == "":
             return
 
         def cb(dt):
@@ -1265,10 +1270,14 @@ class SidebandApp(MDApp):
 
             else:
                 msg_content = self.messages_view.ids.message_text.text
+                if msg_content == "":
+                    msg_content = " "
+
                 context_dest = self.messages_view.ids.messages_scrollview.active_conversation
 
                 attachment = None
                 image = None
+                audio = None
                 if not self.outbound_mode_command and not self.outbound_mode_paper:
                     if self.attach_type != None and self.attach_path != None:
                         try:
@@ -1278,6 +1287,11 @@ class SidebandApp(MDApp):
                             if self.attach_type == "file":
                                 with open(self.attach_path, "rb") as af:
                                     attachment = [fbn, af.read()]
+
+                            if self.attach_type == "audio":
+                                if self.audio_msg_mode == LXMF.AM_OPUS_OGG:
+                                    with open(self.attach_path, "rb") as af:
+                                        audio = [self.audio_msg_mode, af.read()]
 
                             elif self.attach_type == "lbimg":
                                 max_size = 320, 320
@@ -1350,7 +1364,7 @@ class SidebandApp(MDApp):
                         self.messages_view.ids.messages_scrollview.scroll_y = 0
                         self.jobs(0)
                 
-                elif self.sideband.send_message(msg_content, context_dest, self.outbound_mode_propagation, attachment = attachment, image = image):
+                elif self.sideband.send_message(msg_content, context_dest, self.outbound_mode_propagation, attachment = attachment, image = image, audio = audio):
                     self.messages_view.ids.message_text.text = ""
                     self.messages_view.ids.messages_scrollview.scroll_y = 0
                     self.jobs(0)
@@ -1496,6 +1510,41 @@ class SidebandApp(MDApp):
                 ok_button.bind(on_release=ate_dialog.dismiss)
                 ate_dialog.open()
 
+    def play_audio_field(self, audio_field):
+        if audio_field[0] == LXMF.AM_OPUS_OGG:
+            audio_type = "ogg"
+        else:
+            return False
+        
+        temp_path = self.sideband.rec_cache+"/msg."+audio_type
+
+        if audio_type == "ogg":
+            if self.last_msg_audio != audio_field[1]:
+                self.last_msg_audio = audio_field[1]
+                
+                with open(temp_path, "wb") as af:
+                    af.write(self.last_msg_audio)
+
+                if not RNS.vendor.platformutils.is_android():
+                    self.msg_sound = SoundLoader.load(temp_path)
+
+            if RNS.vendor.platformutils.is_android():
+                if self.msg_sound != None and self.msg_sound._player != None and self.msg_sound._player.isPlaying():
+                    self.msg_sound.stop()
+                else:
+                    from plyer import audio
+                    self.msg_sound = audio
+                    self.msg_sound._file_path = temp_path
+                    self.msg_sound.play()
+
+            else:
+                if self.msg_sound != None and self.msg_sound.state == "play":
+                    self.msg_sound.stop()
+                    return True
+                else:
+                    self.msg_sound.play()
+                    return True
+
     def message_record_audio_action(self):
         ss = int(dp(18))
         if self.rec_dialog == None:
@@ -1506,7 +1555,7 @@ class SidebandApp(MDApp):
                 from sbapp.plyer import audio
 
             self.msg_audio = audio
-            self.msg_audio._file_path = self.sideband.rec_cache+"/msg_rec.aac"
+            self.msg_audio._file_path = self.sideband.rec_cache+"/recording.ogg"
 
             def a_rec_action(sender):
                 if not self.rec_dialog.recording:
@@ -1555,12 +1604,48 @@ class SidebandApp(MDApp):
                     a_rec_action(sender)
                 self.rec_dialog.dismiss()
 
-                self.attach_path = self.msg_audio._file_path
-                self.update_message_widgets()
-                toast("Attached \""+str(self.attach_path)+"\"")
+                try:
+                    if self.audio_msg_mode == LXMF.AM_OPUS_OGG:
+                        self.attach_path = self.msg_audio._file_path
+                        RNS.log("Using unmodified OPUS data in OGG container", RNS.LOG_DEBUG)
+                    else:
+                        ap_start = time.time()
+                        from pydub import AudioSegment
+                        if RNS.vendor.platformutils.is_android():
+                            import pyogg
+                        else:
+                            import sbapp.pyogg as pyogg
 
-                # TODO: Remove
-                self.attach_type = "file"
+                        opus_file = pyogg.OpusFile(self.msg_audio._file_path)
+
+                        audio = AudioSegment(
+                            bytes(opus_file.as_array()),
+                            frame_rate=opus_file.frequency,
+                            sample_width=opus_file.bytes_per_sample, 
+                            channels=opus_file.channels,
+                        )
+                        audio = audio.split_to_mono()[0]
+                        audio = audio.apply_gain(-audio.max_dBFS)
+                        
+                        if self.audio_msg_mode >= LXMF.AM_CODEC2_450PWB and self.audio_msg_mode <= LXMF.AM_CODEC2_3200:
+                            audio = audio.set_frame_rate(8000)
+                            audio = audio.set_sample_width(2)
+                            samples = audio.get_array_of_samples()
+
+                            ap_duration = time.time() - ap_start
+                            RNS.log("Audio processing complete in "+RNS.prettytime(ap_duration)+", samples: "+str(len(samples)), RNS.LOG_DEBUG)
+
+                            export_path = self.sideband.rec_cache+"/recording.raw"
+                            with open(export_path, "wb") as export_file:
+                                export_file.write(samples.tobytes())
+                            self.attach_path = export_path
+                            os.unlink(self.msg_audio._file_path)
+
+                    self.update_message_widgets()
+                    toast("Added recorded audio to message")
+                
+                except Exception as e:
+                    RNS.trace_exception(e)
 
             cancel_button = MDRectangleFlatButton(text="Cancel", font_size=dp(18))
             rec_item = DialogItem(IconLeftWidget(icon="record"), text="[size="+str(ss)+"]Start Recording[/size]", on_release=a_rec_action)
@@ -1597,7 +1682,7 @@ class SidebandApp(MDApp):
 
     def message_attach_action(self, attach_type=None):
         file_attach_types = ["lbimg", "defimg", "hqimg", "file"]
-        rec_attach_types = ["lbaudio", "defaudio", "hqaudio"]
+        rec_attach_types = ["audio"]
         
         self.attach_path = None
         if attach_type in file_attach_types:
@@ -1621,24 +1706,33 @@ class SidebandApp(MDApp):
             def a_file(sender):
                 self.attach_dialog.dismiss()
                 self.message_attach_action(attach_type="file")
+            def a_audio_hq(sender):
+                self.attach_dialog.dismiss()
+                self.audio_msg_mode = LXMF.AM_OPUS_OGG
+                self.message_attach_action(attach_type="audio")
             def a_audio_lb(sender):
                 self.attach_dialog.dismiss()
-                self.message_attach_action(attach_type="lbaudio")
+                self.audio_msg_mode = LXMF.AM_CODEC2_3200
+                self.message_attach_action(attach_type="audio")
 
             if self.attach_dialog == None:
                 ss = int(dp(18))
                 cancel_button = MDRectangleFlatButton(text="Cancel", font_size=dp(18))
+                ad_items = [
+                        DialogItem(IconLeftWidget(icon="message-image-outline"), text="[size="+str(ss)+"]Low-bandwidth Image[/size]", on_release=a_img_lb),
+                        DialogItem(IconLeftWidget(icon="file-image"), text="[size="+str(ss)+"]Medium Image[/size]", on_release=a_img_def),
+                        DialogItem(IconLeftWidget(icon="image-outline"), text="[size="+str(ss)+"]High-res Image[/size]", on_release=a_img_hq),
+                        DialogItem(IconLeftWidget(icon="microphone-message"), text="[size="+str(ss)+"]Audio Recording[/size]", on_release=a_audio_hq),
+                        DialogItem(IconLeftWidget(icon="file-outline"), text="[size="+str(ss)+"]File Attachment[/size]", on_release=a_file)]
+                
+                if RNS.vendor.platformutils.is_linux():
+                    ad_items.pop(3)
+
                 self.attach_dialog = MDDialog(
                     title="Add Attachment",
                     type="simple",
                     text="Select the type of attachment you want to send with this message\n",
-                    items=[
-                        DialogItem(IconLeftWidget(icon="message-image-outline"), text="[size="+str(ss)+"]Low-bandwidth Image[/size]", on_release=a_img_lb),
-                        DialogItem(IconLeftWidget(icon="file-image"), text="[size="+str(ss)+"]Medium Image[/size]", on_release=a_img_def),
-                        DialogItem(IconLeftWidget(icon="image-outline"), text="[size="+str(ss)+"]High-res Image[/size]", on_release=a_img_hq),
-                        DialogItem(IconLeftWidget(icon="microphone-message"), text="[size="+str(ss)+"]Audio Recording[/size]", on_release=a_audio_lb),
-                        DialogItem(IconLeftWidget(icon="file-outline"), text="[size="+str(ss)+"]File Attachment[/size]", on_release=a_file),
-                    ],
+                    items=ad_items,
                     buttons=[ cancel_button ],
                     width_offset=dp(12),
                 )

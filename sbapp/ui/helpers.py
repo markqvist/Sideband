@@ -13,6 +13,7 @@ def mdc(color, hue=None):
         hue = "400"
     return get_color_from_hex(colors[color][hue])
 
+color_playing = "Amber"
 color_received = "LightGreen"
 color_delivered = "Blue"
 color_paper = "Indigo"
@@ -21,6 +22,8 @@ color_failed = "Red"
 color_unknown = "Gray"
 intensity_msgs_dark = "800"
 intensity_msgs_light = "500"
+intensity_play_dark = "600"
+intensity_play_light = "300"
 
 class ContentNavigationDrawer(Screen):
     pass

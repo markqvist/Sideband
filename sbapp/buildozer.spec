@@ -16,13 +16,13 @@ android.numeric_version = 20240531
 # relevant PRs have now been merged in Kivy/P4A, the next release will hopefully allow
 # building a non-ancient PyCa/Cryptography distribution again. When this happens, add
 # the "cryptography" dependency back in here.
-requirements = kivy==2.3.0,libbz2,pillow==10.2.0,qrcode==7.3.1,usb4a,usbserial4a,libwebp,cryptography
+requirements = kivy==2.3.0,libbz2,pillow==10.2.0,qrcode==7.3.1,usb4a,usbserial4a,libwebp,libogg,libopus,opusfile,numpy,cryptography,pydub,ffpyplayer
 
 android.gradle_dependencies =  com.android.support:support-compat:28.0.0
 #android.enable_androidx = True
 #android.add_aars = patches/support-compat-28.0.0.aar
 
-p4a.local_recipes = ../Others/python-for-android/pythonforandroid/recipes
+p4a.local_recipes = ../recipes/
 
 icon.filename = %(source.dir)s/assets/icon.png
 presplash.filename = %(source.dir)s/assets/presplash_small.png

@@ -29,6 +29,7 @@ class AndroidAudio(Audio):
         self._player = None
         self._check_thread = None
         self._finished_callback = None
+        self._format = "opus"
 
     def _check_playback(self):
         while self._player and self._player.isPlaying():
@@ -41,12 +42,24 @@ class AndroidAudio(Audio):
 
     def _start(self):
         self._recorder = MediaRecorder()
-        self._recorder.setAudioSource(AudioSource.DEFAULT)
-        self._recorder.setAudioSamplingRate(44100)
-        self._recorder.setAudioEncodingBitRate(128000)
-        self._recorder.setAudioChannels(1)
-        self._recorder.setOutputFormat(OutputFormat.MPEG_4)
-        self._recorder.setAudioEncoder(AudioEncoder.AAC)
+        # AAC Format, decent quality
+        if self._format == "aac":
+            self._recorder.setAudioSource(AudioSource.DEFAULT)
+            self._recorder.setAudioSamplingRate(48000)
+            self._recorder.setAudioEncodingBitRate(128000)
+            self._recorder.setAudioChannels(1)
+            self._recorder.setOutputFormat(OutputFormat.MPEG_4)
+            self._recorder.setAudioEncoder(AudioEncoder.AAC)
+
+        else:
+            # OPUS
+            self._recorder.setAudioSource(AudioSource.DEFAULT)
+            self._recorder.setAudioSamplingRate(48000)
+            self._recorder.setAudioEncodingBitRate(128000)
+            self._recorder.setAudioChannels(1)
+            self._recorder.setOutputFormat(OutputFormat.OGG)
+            self._recorder.setAudioEncoder(AudioEncoder.OPUS)
+
         self._recorder.setOutputFile(self.file_path)
 
         self._recorder.prepare()
