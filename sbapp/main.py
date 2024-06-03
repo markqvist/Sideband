@@ -1255,7 +1255,7 @@ class SidebandApp(MDApp):
         def cb(dt):
             self.messages_view.ids.message_send_button.disabled = False
         Clock.schedule_once(cb, 0.5)
-        
+
         if self.root.ids.screen_manager.current == "messages_screen":
             if self.outbound_mode_propagation and self.sideband.message_router.get_outbound_propagation_node() == None:
                 self.messages_view.send_error_dialog = MDDialog(
@@ -1516,34 +1516,31 @@ class SidebandApp(MDApp):
         else:
             return False
         
-        temp_path = self.sideband.rec_cache+"/msg."+audio_type
+        temp_path = self.sideband.rec_cache+"/msg."+audio_type    
+        if self.last_msg_audio != audio_field[1]:
+            self.last_msg_audio = audio_field[1]
 
-        if audio_type == "ogg":
-            if self.last_msg_audio != audio_field[1]:
-                self.last_msg_audio = audio_field[1]
-                
+            if audio_type == "ogg":
+                # No decoding necessary for OGG/OPUS
                 with open(temp_path, "wb") as af:
                     af.write(self.last_msg_audio)
-
-                if not RNS.vendor.platformutils.is_android():
-                    self.msg_sound = SoundLoader.load(temp_path)
-
-            if RNS.vendor.platformutils.is_android():
-                if self.msg_sound != None and self.msg_sound._player != None and self.msg_sound._player.isPlaying():
-                    self.msg_sound.stop()
-                else:
-                    from plyer import audio
-                    self.msg_sound = audio
-                    self.msg_sound._file_path = temp_path
-                    self.msg_sound.play()
-
+            
             else:
-                if self.msg_sound != None and self.msg_sound.state == "play":
-                    self.msg_sound.stop()
-                    return True
-                else:
-                    self.msg_sound.play()
-                    return True
+                raise NotImplementedError(audio_type)
+
+            if self.msg_sound == None:
+                from plyer import audio
+                self.msg_sound = audio
+
+            self.msg_sound._file_path = temp_path
+            self.msg_sound.reload()
+
+        if self.msg_sound != None and self.msg_sound._player != None and self.msg_sound._player.isPlaying():
+            self.msg_sound.stop()
+        else:
+            
+            self.msg_sound.play()
+
 
     def message_record_audio_action(self):
         ss = int(dp(18))
@@ -1725,8 +1722,8 @@ class SidebandApp(MDApp):
                         DialogItem(IconLeftWidget(icon="microphone-message"), text="[size="+str(ss)+"]Audio Recording[/size]", on_release=a_audio_hq),
                         DialogItem(IconLeftWidget(icon="file-outline"), text="[size="+str(ss)+"]File Attachment[/size]", on_release=a_file)]
                 
-                if RNS.vendor.platformutils.is_linux():
-                    ad_items.pop(3)
+                # if RNS.vendor.platformutils.is_linux():
+                #     ad_items.pop(3)
 
                 self.attach_dialog = MDDialog(
                     title="Add Attachment",

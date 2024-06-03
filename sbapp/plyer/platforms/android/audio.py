@@ -42,7 +42,6 @@ class AndroidAudio(Audio):
 
     def _start(self):
         self._recorder = MediaRecorder()
-        # AAC Format, decent quality
         if self._format == "aac":
             self._recorder.setAudioSource(AudioSource.DEFAULT)
             self._recorder.setAudioSamplingRate(48000)
@@ -52,7 +51,6 @@ class AndroidAudio(Audio):
             self._recorder.setAudioEncoder(AudioEncoder.AAC)
 
         else:
-            # OPUS
             self._recorder.setAudioSource(AudioSource.DEFAULT)
             self._recorder.setAudioSamplingRate(48000)
             self._recorder.setAudioEncodingBitRate(128000)
@@ -85,6 +83,8 @@ class AndroidAudio(Audio):
         self._check_thread = threading.Thread(target=self._check_playback, daemon=True)
         self._check_thread.start()
 
+    def reload(self):
+        self._stop()
 
 
 def instance():
