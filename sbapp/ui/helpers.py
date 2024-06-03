@@ -37,6 +37,13 @@ class IconListItem(OneLineIconListItem):
 def is_emoji(unicode_character):
     return unicode_character in emoji_lookup
 
+def strip_emojis(str_input):
+    output = ""
+    for cp in str_input:
+        if not is_emoji(cp):
+            output += cp
+    return output
+
 def multilingual_markup(data):
     # TODO: Remove
     # import time
