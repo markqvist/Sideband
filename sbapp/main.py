@@ -1252,6 +1252,10 @@ class SidebandApp(MDApp):
 
     def message_send_dispatch(self, sender=None):
         self.messages_view.ids.message_send_button.disabled = True
+        def cb(dt):
+            self.messages_view.ids.message_send_button.disabled = False
+        Clock.schedule_once(cb, 0.5)
+        
         if self.root.ids.screen_manager.current == "messages_screen":
             if self.outbound_mode_propagation and self.sideband.message_router.get_outbound_propagation_node() == None:
                 self.messages_view.send_error_dialog = MDDialog(
@@ -1382,10 +1386,6 @@ class SidebandApp(MDApp):
                         ],
                     )
                     self.messages_view.send_error_dialog.open()
-        
-        def cb(dt):
-            self.messages_view.ids.message_send_button.disabled = False
-        Clock.schedule_once(cb, 0.5)
 
     def peer_show_location_action(self, sender):
         if self.root.ids.screen_manager.current == "messages_screen":
