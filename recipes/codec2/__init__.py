@@ -2,6 +2,8 @@ from pythonforandroid.recipe import Recipe
 from pythonforandroid.toolchain import current_directory, shprint
 import sh
 
+# For debugging, clean with
+# buildozer android p4a -- clean_recipe_build codec2 --local-recipes ~/Information/Source/Sideband/recipes
 
 class Codec2Recipe(Recipe):
     url = "https://github.com/markqvist/codec2/archive/00e01c9d72d3b1607e165c71c4c9c942d277dfac.tar.gz"
