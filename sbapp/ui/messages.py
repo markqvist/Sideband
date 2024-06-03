@@ -411,6 +411,7 @@ class Messages():
                     md_bg_color=msg_color,
                 )
                 item.lsource = m["source"]
+                item.has_audio = False
 
                 if has_attachment:
                     item.attachments_field = attachments_field
