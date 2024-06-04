@@ -1683,11 +1683,27 @@ class SidebandApp(MDApp):
 
                 try:
                     if self.audio_msg_mode == LXMF.AM_OPUS_OGG:
-                        self.attach_path = self.msg_audio._file_path
-                        RNS.log("Using unmodified OPUS data in OGG container", RNS.LOG_DEBUG)
+                        from sideband.audioproc import voice_processing
+                        proc_path = voice_processing(self.msg_audio._file_path)
+                        if proc_path:
+                            self.attach_path = proc_path
+                            os.unlink(self.msg_audio._file_path)
+                            RNS.log("Using voice-processed OPUS data in OGG container", RNS.LOG_DEBUG)
+                        else:
+                            self.attach_path = self.msg_audio._file_path
+                            RNS.log("Using unmodified OPUS data in OGG container", RNS.LOG_DEBUG)
                     else:
                         ap_start = time.time()
-                        opus_file = pyogg.OpusFile(self.msg_audio._file_path)
+                        from sideband.audioproc import voice_processing
+                        proc_path = voice_processing(self.msg_audio._file_path)
+
+                        if proc_path:
+                            opus_file = pyogg.OpusFile(proc_path)
+                            RNS.log("Using voice-processed audio for codec2 encoding", RNS.LOG_DEBUG)
+                        else:
+                            opus_file = pyogg.OpusFile(self.msg_audio._file_path)
+                            RNS.log("Using unprocessed audio data for codec2 encoding", RNS.LOG_DEBUG)
+
                         audio = AudioSegment(
                             bytes(opus_file.as_array()),
                             frame_rate=opus_file.frequency,

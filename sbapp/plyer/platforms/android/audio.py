@@ -56,7 +56,7 @@ class AndroidAudio(Audio):
         else:
             self._recorder.setAudioSource(AudioSource.DEFAULT)
             self._recorder.setAudioSamplingRate(48000)
-            self._recorder.setAudioEncodingBitRate(16000)
+            self._recorder.setAudioEncodingBitRate(12000)
             self._recorder.setAudioChannels(1)
             self._recorder.setOutputFormat(OutputFormat.OGG)
             self._recorder.setAudioEncoder(AudioEncoder.OPUS)

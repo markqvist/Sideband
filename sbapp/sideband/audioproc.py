@@ -1,5 +1,6 @@
 import os
 import io
+import sh
 import math
 import time
 import struct
@@ -98,6 +99,34 @@ def samples_to_wav(samples=None, file_path=None):
             wf.setframerate(8000)
             wf.writeframes(samples)
         return True
+
+def voice_processing(input_path):
+    try:
+        ffmpeg = None
+        ffmpeg = sh.ffmpeg
+        if ffmpeg:
+            filters = "highpass=f=250, lowpass=f=3000,speechnorm=e=12.5:r=0.0001:l=1"
+            output_bitrate = "12k"
+            opus_apptype = "audio"
+            output_path = input_path.replace(".ogg","")+".p.ogg"
+            args = [
+                "-i", input_path, "-filter:a", filters,
+                "-c:a", "libopus", "-application", opus_apptype,
+                "-vbr", "on","-b:a", output_bitrate, output_path]
+            try:
+                try:
+                    os.unlink(output_path)
+                except:
+                    pass
+                ffmpeg(*args)
+                return output_path
+            except Exception as e:
+                RNS.log("Could not process audio with ffmpeg", RNS.LOG_ERROR)
+                RNS.trace_exception(e)
+                return None
+
+    except Exception as e:
+        return None
 
 def detect_codec2():
     try:
