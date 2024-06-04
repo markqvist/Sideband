@@ -11,7 +11,11 @@ if RNS.vendor.platformutils.is_android():
     import pyogg
     from pydub import AudioSegment
 else:
-    import sbapp.pyogg as pyogg
+    if RNS.vendor.platformutils.is_linux():
+        from sbapp.pyogg import OpusFile, OpusBufferedEncoder, OggOpusWriter
+    else:
+        from pyogg import OpusFile, OpusBufferedEncoder, OggOpusWriter
+
     from sbapp.pydub import AudioSegment
 
 codec2_modes = {
@@ -28,7 +32,7 @@ codec2_modes = {
 
 def samples_from_ogg(file_path=None):
     if file_path != None and os.path.isfile(file_path):
-        opus_file = pyogg.OpusFile(file_path)
+        opus_file = OpusFile(file_path)
         audio = AudioSegment(
             bytes(opus_file.as_array()),
             frame_rate=opus_file.frequency,
@@ -52,12 +56,12 @@ def samples_to_ogg(samples=None, file_path=None):
 
             channels = 1; samples_per_second = 8000; bytes_per_sample = 2
 
-            opus_buffered_encoder = pyogg.OpusBufferedEncoder()
+            opus_buffered_encoder = OpusBufferedEncoder()
             opus_buffered_encoder.set_application("audio")
             opus_buffered_encoder.set_sampling_frequency(samples_per_second)
             opus_buffered_encoder.set_channels(channels)
             opus_buffered_encoder.set_frame_size(20) # milliseconds    
-            ogg_opus_writer = pyogg.OggOpusWriter(file_path, opus_buffered_encoder)
+            ogg_opus_writer = OggOpusWriter(file_path, opus_buffered_encoder)
 
             frame_duration = 0.020
             frame_size = int(frame_duration * samples_per_second)
