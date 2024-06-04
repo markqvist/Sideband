@@ -308,6 +308,15 @@ class WinAudio(Audio):
         self._recorder = None
         self._player = None
         self._current_file = None
+        self._check_thread = None
+        self._finished_callback = None
+        self._loaded_path = None
+        self.is_playing = False
+        self.sound = None
+        self.pa = None
+        self.is_playing = False
+        self.recorder = None
+        self.should_record = False
 
     def _start(self):
         '''
@@ -389,6 +398,12 @@ class WinAudio(Audio):
         # get recorder with device id and path for saving
         self._player = WinPlayer(device=open_params.wDeviceID)
         self._player.play()
+
+    def reload(self):
+        self._loaded_path = None
+
+    def playing(self):
+        return self.is_playing
 
 
 def instance():

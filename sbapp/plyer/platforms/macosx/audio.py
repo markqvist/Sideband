@@ -6,6 +6,8 @@ from pyobjus.dylib_manager import INCLUDE, load_framework
 from sbapp.plyer.facades import Audio
 from sbapp.plyer.platforms.macosx.storagepath import OSXStoragePath
 
+import threading
+
 load_framework(INCLUDE.Foundation)
 load_framework(INCLUDE.AVFoundation)
 
@@ -28,6 +30,13 @@ class OSXAudio(Audio):
 
         self._check_thread = None
         self._finished_callback = None
+        self._loaded_path = None
+        self.is_playing = False
+        self.sound = None
+        self.pa = None
+        self.is_playing = False
+        self.recorder = None
+        self.should_record = False
 
     def _check_playback(self):
         while self._player and self._player.isPlaying:
@@ -81,6 +90,18 @@ class OSXAudio(Audio):
             self._player = None
 
     def _play(self):
+        # Conversion of Python file path string to Objective-C NSString
+        file_path_NSString = NSString.alloc()
+        file_path_NSString = file_path_NSString.initWithUTF8String_(
+            self._file_path
+        )
+
+        # Definition of Objective-C NSURL object for the output record file
+        # specified by NSString file path
+        file_NSURL = NSURL.alloc()
+        file_NSURL = file_NSURL.initWithString_(file_path_NSString)
+        self._current_file = file_NSURL
+
         # Audio player instance initialization with the file NSURL
         # of the last recorded audio file
         self._player = AVAudioPlayer.alloc()
@@ -95,6 +116,12 @@ class OSXAudio(Audio):
 
         self._check_thread = threading.Thread(target=self._check_playback, daemon=True)
         self._check_thread.start()
+
+    def reload(self):
+        self._loaded_path = None
+
+    def playing(self):
+        return self.is_playing
 
 
 def instance():
