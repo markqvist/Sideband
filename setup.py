@@ -88,10 +88,19 @@ setuptools.setup(
             'sideband=sbapp:main.run',
         ]
     },
-    # TODO: Include pydub
-    install_requires=["rns>=0.7.5", "lxmf>=0.4.3", "kivy>=2.3.0", "pillow>=10.2.0", "qrcode", "materialyoucolor>=2.0.7", "pydub", "ffpyplayer"],
-    extras_require={
-        "macos": ["pyobjus"],
-    },
+    install_requires=[
+        "rns>=0.7.5",
+        "lxmf>=0.4.3",
+        "kivy>=2.3.0",
+        "pillow>=10.2.0",
+        "qrcode",
+        "materialyoucolor>=2.0.7",
+        "ffpyplayer",
+        "pycodec2",
+        "pyaudio;sys.platform=='linux'",
+        "pyobjus;sys.platform=='darwin'",
+        "pyogg;sys.platform=='darwin'",
+        "pyogg;platform_system=='Windows'",
+    ],
     python_requires='>=3.7',
 )
