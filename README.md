@@ -169,7 +169,7 @@ You can help support the continued development of open, free and private communi
 - <s>Encryption keys export and import</s>
 - <s>Plugin support for commands, services and telemetry</s>
 - <s>Adding Linux .desktop file integration</s>
-- Sending voice messages (using Codec2 and Opus)
+- <s>Sending voice messages (using Codec2 and Opus)</s>
 - Implementing the Local Broadcasts feature
 - LXMF sneakernet functionality
 - Network visualisation and test tools
