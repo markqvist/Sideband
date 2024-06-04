@@ -164,7 +164,8 @@ class Messages():
                         titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
                     w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] "+sphrase+prgstr+"                          "
                     if w.has_audio:
-                        w.heading += f"\n[b]Audio Recording Included[/b]"
+                        alstr = RNS.prettysize(w.audio_size)
+                        w.heading += f"\n[b]Audio Message[/b] ({alstr})"
                     m["state"] = msg["state"]
 
 
@@ -176,7 +177,8 @@ class Messages():
                         titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
                     w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Delivered"
                     if w.has_audio:
-                        w.heading += f"\n[b]Audio Recording Included[/b]"
+                        alstr = RNS.prettysize(w.audio_size)
+                        w.heading += f"\n[b]Audio Message[/b] ({alstr})"
                     m["state"] = msg["state"]
 
                 if msg["method"] == LXMF.LXMessage.PAPER:
@@ -196,7 +198,8 @@ class Messages():
                         titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
                     w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] On Propagation Net"
                     if w.has_audio:
-                        w.heading += f"\n[b]Audio Recording Included[/b]"
+                        alstr = RNS.prettysize(w.audio_size)
+                        w.heading += f"\n[b]Audio Message[/b] ({alstr})"
                     m["state"] = msg["state"]
 
                 if msg["state"] == LXMF.LXMessage.FAILED:
@@ -208,7 +211,8 @@ class Messages():
                     w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Failed"
                     m["state"] = msg["state"]
                     if w.has_audio:
-                        w.heading += f"\n[b]Audio Recording Included[/b]"
+                        alstr = RNS.prettysize(w.audio_size)
+                        w.heading += f"\n[b]Audio Message[/b] ({alstr})"
                     w.dmenu.items.append(w.dmenu.retry_item)
 
 
@@ -403,7 +407,8 @@ class Messages():
                     heading_str = heading_str[:-2]
 
                 if has_audio:
-                    heading_str += f"\n[b]Audio Recording Included[/b]"
+                    alstr = RNS.prettysize(len(audio_field[1]))
+                    heading_str += f"\n[b]Audio Message[/b] ({alstr})"
 
                 item = ListLXMessageCard(
                     text=pre_content+message_markup.decode("utf-8")+extra_content,
@@ -430,6 +435,7 @@ class Messages():
                         Clock.schedule_once(cb, 0.25)
 
                     item.has_audio = True
+                    item.audio_size = len(audio_field[1])
                     item.audio_field = audio_field
                     item.bind(on_release=play_audio)
 
