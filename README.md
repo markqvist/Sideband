@@ -23,7 +23,7 @@ Sideband provides many useful and interesting functions, such as:
 - Remote telemetry querying, with strong, secure and cryptographically robust authentication and control.
 - Plugin system that allows you to easily create your own commands, services and telemetry sources.
 
-Sideband is fully compatible with other LXMF clients, such as [Reticulum MeshChat](https://github.com/liamcottle/reticulum-meshchat), and [Nomad Network](https://github.com/markqvist/nomadnet). The Nomad Network client also allows you to easily host Propagation Nodes for your LXMF network, and more.
+Sideband is fully compatible with other LXMF clients, such as [MeshChat](https://github.com/liamcottle/reticulum-meshchat), and [Nomad Network](https://github.com/markqvist/nomadnet). The Nomad Network client also allows you to easily host Propagation Nodes for your LXMF network, and more.
 
 ## Installation On Android
 
