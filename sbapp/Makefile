@@ -15,7 +15,7 @@ cleanlibs:
 	
 cleanall: clean cleanlibs
 
-pacthfiles: patchsdl injectxml
+pacthfiles: patchsdl injectxml patchpycodec2
 
 patchsdl:
 	# Pach USB HID behaviour
@@ -27,6 +27,10 @@ patchsdl:
 	cp patches/PythonService.java .buildozer/android/platform/python-for-android/pythonforandroid/bootstraps/common/build/src/main/java/org/kivy/android/PythonService.java
 	cp patches/PythonService.java .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/bootstrap_builds/sdl2/src/main/java/org/kivy/android/PythonService.java
 	cp patches/PythonService.java .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/src/main/java/org/kivy/android/PythonService.java
+
+patchpycodec2:
+	patchelf --replace-needed libcodec2.so.1.2 libcodec2.so .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/_python_bundle__arm64-v8a/_python_bundle/site-packages/pycodec2/pycodec2.so
+	patchelf --replace-needed libcodec2.so.1.2 libcodec2.so .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/_python_bundle__armeabi-v7a/_python_bundle/site-packages/pycodec2/pycodec2.so
 
 injectxml:
 	# mkdir /home/markqvist/.local/lib/python3.11/site-packages/pythonforandroid/bootstraps/sdl2/build/src/main/xml
