@@ -96,6 +96,7 @@ setuptools.setup(
         "qrcode",
         "materialyoucolor>=2.0.7",
         "ffpyplayer",
+        "sh",
         "pycodec2;platform_system!='Windows'",
         "pyaudio;sys.platform=='linux'",
         "pyobjus;sys.platform=='darwin'",
