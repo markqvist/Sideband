@@ -15,10 +15,13 @@ class LinuxAudio(Audio):
         self._finished_callback = None
         self._loaded_path = None
         self.sound = None
+        self.is_playing = False
 
     def _check_playback(self):
         while self.sound != None and self.sound.state == "play":
             time.sleep(0.25)
+
+        self.is_playing = False
         
         if self._finished_callback and callable(self._finished_callback):
             self._check_thread = None
@@ -31,6 +34,7 @@ class LinuxAudio(Audio):
     def _stop(self):
         if self.sound != None and self.sound.state == "play":
             self.sound.stop()
+            self.is_playing = False
 
     def _play(self):
         if self.sound == None or self._loaded_path != self._file_path:
@@ -45,6 +49,9 @@ class LinuxAudio(Audio):
     def reload(self):
         self._loaded_path = None
         self.sound = None
+
+    def playing(self):
+        return self.is_playing
 
 
 def instance():

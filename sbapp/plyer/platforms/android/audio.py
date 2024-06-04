@@ -30,10 +30,13 @@ class AndroidAudio(Audio):
         self._check_thread = None
         self._finished_callback = None
         self._format = "opus"
+        self.is_playing = False
 
     def _check_playback(self):
         while self._player and self._player.isPlaying():
             time.sleep(0.25)
+
+        self.is_playing = False
         
         if self._finished_callback and callable(self._finished_callback):
             self._check_thread = None
@@ -45,7 +48,7 @@ class AndroidAudio(Audio):
         if self._format == "aac":
             self._recorder.setAudioSource(AudioSource.DEFAULT)
             self._recorder.setAudioSamplingRate(48000)
-            self._recorder.setAudioEncodingBitRate(128000)
+            self._recorder.setAudioEncodingBitRate(64000)
             self._recorder.setAudioChannels(1)
             self._recorder.setOutputFormat(OutputFormat.MPEG_4)
             self._recorder.setAudioEncoder(AudioEncoder.AAC)
@@ -53,7 +56,7 @@ class AndroidAudio(Audio):
         else:
             self._recorder.setAudioSource(AudioSource.DEFAULT)
             self._recorder.setAudioSamplingRate(48000)
-            self._recorder.setAudioEncodingBitRate(128000)
+            self._recorder.setAudioEncodingBitRate(16000)
             self._recorder.setAudioChannels(1)
             self._recorder.setOutputFormat(OutputFormat.OGG)
             self._recorder.setAudioEncoder(AudioEncoder.OPUS)
@@ -74,17 +77,23 @@ class AndroidAudio(Audio):
             self._player.release()
             self._player = None
 
+        self.is_playing = False
+
     def _play(self):
         self._player = MediaPlayer()
         self._player.setDataSource(self.file_path)
         self._player.prepare()
         self._player.start()
+        self.is_playing = True
 
         self._check_thread = threading.Thread(target=self._check_playback, daemon=True)
         self._check_thread.start()
 
     def reload(self):
         self._stop()
+
+    def playing(self):
+        return self.is_playing
 
 
 def instance():
