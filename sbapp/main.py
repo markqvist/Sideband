@@ -1741,9 +1741,9 @@ class SidebandApp(MDApp):
                     RNS.trace_exception(e)
 
             cancel_button = MDRectangleFlatButton(text="Cancel", font_size=dp(18))
-            rec_item = DialogItem(IconLeftWidget(icon="record"), text="[size="+str(ss)+"]Start Recording[/size]", on_release=a_rec_action)
-            play_item = DialogItem(IconLeftWidget(icon="play"), text="[size="+str(ss)+"]Play[/size]", on_release=a_play, disabled=True)
-            save_item = DialogItem(IconLeftWidget(icon="content-save-move-outline"), text="[size="+str(ss)+"]Save to message[/size]", on_release=a_save, disabled=True)
+            rec_item = DialogItem(IconLeftWidget(icon="record", on_release=a_rec_action), text="[size="+str(ss)+"]Start Recording[/size]", on_release=a_rec_action)
+            play_item = DialogItem(IconLeftWidget(icon="play", on_release=a_play), text="[size="+str(ss)+"]Play[/size]", on_release=a_play, disabled=True)
+            save_item = DialogItem(IconLeftWidget(icon="content-save-move-outline", on_release=a_save), text="[size="+str(ss)+"]Save to message[/size]", on_release=a_save, disabled=True)
             self.rec_dialog = MDDialog(
                 title="Record Audio",
                 type="simple",
