@@ -238,6 +238,9 @@ class Messages():
                 else:
                     message_input = m["content"]
 
+                if message_input.strip() == b"":
+                    message_input = "[i]This message contains no text content[/i]".encode("utf-8")
+
                 message_markup = multilingual_markup(message_input)
 
                 txstr = time.strftime(ts_format, time.localtime(m["sent"]))
