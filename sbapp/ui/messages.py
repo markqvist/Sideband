@@ -239,7 +239,8 @@ class Messages():
                     message_input = m["content"]
 
                 if message_input.strip() == b"":
-                    message_input = "[i]This message contains no text content[/i]".encode("utf-8")
+                    if not ("lxm" in m and m["lxm"] != None and m["lxm"].fields != None and LXMF.FIELD_COMMANDS in m["lxm"].fields):
+                        message_input = "[i]This message contains no text content[/i]".encode("utf-8")
 
                 message_markup = multilingual_markup(message_input)
 
