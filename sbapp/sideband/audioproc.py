@@ -99,6 +99,16 @@ def samples_to_wav(samples=None, file_path=None):
             wf.writeframes(samples)
         return True
 
+def detect_codec2():
+    try:
+        import pycodec2
+        return True
+    except Exception as e:
+        RNS.log("Could not import codec2 module, libcodec2 is probably not installed or available", RNS.LOG_ERROR)
+        RNS.trace_exception(e)
+
+    return False
+
 # Samples must be 8KHz, 16-bit, 1 channel
 def encode_codec2(samples, mode):
     ap_start = time.time()

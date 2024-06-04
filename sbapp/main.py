@@ -1520,6 +1520,23 @@ class SidebandApp(MDApp):
                 ok_button.bind(on_release=ate_dialog.dismiss)
                 ate_dialog.open()
 
+    def display_codec2_error(self):
+        if self.compat_error_dialog == None:
+            def cb(sender):
+                self.compat_error_dialog.dismiss()
+            self.compat_error_dialog = MDDialog(
+                title="Could not load Codec2",
+                text="The Codec2 library could not be loaded. This likely means that you do not have the [b]codec2[/b] package or shared library installed on your system.\n\nThis library is normally installed automatically when Sideband is installed, but on some systems, this is not possible.\n\nTry installing it with a command such as [b]pamac install codec2[/b] or [b]apt install codec2[/b], or by compiling it from source for this system.",
+                buttons=[
+                    MDRectangleFlatButton(
+                        text="OK",
+                        font_size=dp(18),
+                        on_release=cb
+                    )
+                ],
+            )
+        self.compat_error_dialog.open()
+
     def play_audio_field(self, audio_field):
         if RNS.vendor.platformutils.is_darwin():
             if self.compat_error_dialog == None:
@@ -1569,16 +1586,20 @@ class SidebandApp(MDApp):
 
                     elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
                         temp_path = self.sideband.rec_cache+"/msg.ogg"
-                        from sideband.audioproc import samples_to_ogg, decode_codec2
+                        from sideband.audioproc import samples_to_ogg, decode_codec2, detect_codec2
                         
                         target_rate = 8000
                         if RNS.vendor.platformutils.is_linux():
                             target_rate = 48000
 
-                        if samples_to_ogg(decode_codec2(audio_field[1], audio_field[0]), temp_path, input_rate=8000, output_rate=target_rate):
-                            RNS.log("Wrote OGG file to: "+temp_path, RNS.LOG_DEBUG)
+                        if detect_codec2():
+                            if samples_to_ogg(decode_codec2(audio_field[1], audio_field[0]), temp_path, input_rate=8000, output_rate=target_rate):
+                                RNS.log("Wrote OGG file to: "+temp_path, RNS.LOG_DEBUG)
+                            else:
+                                RNS.log("OGG write failed", RNS.LOG_DEBUG)
                         else:
-                            RNS.log("OGG write failed", RNS.LOG_DEBUG)
+                            self.display_codec2_error()
+                            return
                     
                     else:
                         raise NotImplementedError(audio_field[0])
@@ -1681,17 +1702,21 @@ class SidebandApp(MDApp):
                             audio = audio.set_sample_width(2)
                             samples = audio.get_array_of_samples()
 
-                            from sideband.audioproc import encode_codec2
-                            encoded = encode_codec2(samples, self.audio_msg_mode)
+                            from sideband.audioproc import encode_codec2, detect_codec2
+                            if detect_codec2():
+                                encoded = encode_codec2(samples, self.audio_msg_mode)
 
-                            ap_duration = time.time() - ap_start
-                            RNS.log("Audio processing complete in "+RNS.prettytime(ap_duration), RNS.LOG_DEBUG)
+                                ap_duration = time.time() - ap_start
+                                RNS.log("Audio processing complete in "+RNS.prettytime(ap_duration), RNS.LOG_DEBUG)
 
-                            export_path = self.sideband.rec_cache+"/recording.enc"
-                            with open(export_path, "wb") as export_file:
-                                export_file.write(encoded)
-                            self.attach_path = export_path
-                            os.unlink(self.msg_audio._file_path)
+                                export_path = self.sideband.rec_cache+"/recording.enc"
+                                with open(export_path, "wb") as export_file:
+                                    export_file.write(encoded)
+                                self.attach_path = export_path
+                                os.unlink(self.msg_audio._file_path)
+                            else:
+                                self.display_codec2_error()
+                                return
 
                     self.update_message_widgets()
                     toast("Added recorded audio to message")
