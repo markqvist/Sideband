@@ -239,6 +239,7 @@ class SidebandApp(MDApp):
         self.last_msg_audio = None
         self.msg_sound = None
         self.audio_msg_mode = LXMF.AM_OPUS_OGG
+        self.compat_error_dialog = None
 
         Window.softinput_mode = "below_target"
         self.icon = self.sideband.asset_dir+"/icon.png"
@@ -1520,49 +1521,84 @@ class SidebandApp(MDApp):
                 ate_dialog.open()
 
     def play_audio_field(self, audio_field):
-        try:
-            temp_path = None
-            if self.last_msg_audio != audio_field[1]:
-                RNS.log("Reloading audio source", RNS.LOG_DEBUG)
-                self.last_msg_audio = audio_field[1]
+        if RNS.vendor.platformutils.is_darwin():
+            if self.compat_error_dialog == None:
+                def cb(sender):
+                    self.compat_error_dialog.dismiss()
+                self.compat_error_dialog = MDDialog(
+                    title="Unsupported Feature on macOS",
+                    text="Audio message functionality is currently only implemented on Linux and Android. Please support the development if you need this feature on macOS.",
+                    buttons=[
+                        MDRectangleFlatButton(
+                            text="OK",
+                            font_size=dp(18),
+                            on_release=cb
+                        )
+                    ],
+                )
+            self.compat_error_dialog.open()
+            return
+        elif RNS.vendor.platformutils.is_windows():
+            if self.compat_error_dialog == None:
+                def cb(sender):
+                    self.compat_error_dialog.dismiss()
+                self.compat_error_dialog = MDDialog(
+                    title="Unsupported Feature on Windows",
+                    text="Audio message functionality is currently only implemented on Linux and Android. Please support the development if you need this feature on Windows.",
+                    buttons=[
+                        MDRectangleFlatButton(
+                            text="OK",
+                            font_size=dp(18),
+                            on_release=cb
+                        )
+                    ],
+                )
+            self.compat_error_dialog.open()
+            return
+        else:
+            try:
+                temp_path = None
+                if self.last_msg_audio != audio_field[1]:
+                    RNS.log("Reloading audio source", RNS.LOG_DEBUG)
+                    self.last_msg_audio = audio_field[1]
 
-                if audio_field[0] == LXMF.AM_OPUS_OGG:
-                    temp_path = self.sideband.rec_cache+"/msg.ogg"
-                    with open(temp_path, "wb") as af:
-                        af.write(self.last_msg_audio)
+                    if audio_field[0] == LXMF.AM_OPUS_OGG:
+                        temp_path = self.sideband.rec_cache+"/msg.ogg"
+                        with open(temp_path, "wb") as af:
+                            af.write(self.last_msg_audio)
 
-                elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
-                    temp_path = self.sideband.rec_cache+"/msg.ogg"
-                    from sideband.audioproc import samples_to_ogg, decode_codec2
+                    elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
+                        temp_path = self.sideband.rec_cache+"/msg.ogg"
+                        from sideband.audioproc import samples_to_ogg, decode_codec2
+                        
+                        target_rate = 8000
+                        if RNS.vendor.platformutils.is_linux():
+                            target_rate = 48000
+
+                        if samples_to_ogg(decode_codec2(audio_field[1], audio_field[0]), temp_path, input_rate=8000, output_rate=target_rate):
+                            RNS.log("Wrote OGG file to: "+temp_path, RNS.LOG_DEBUG)
+                        else:
+                            RNS.log("OGG write failed", RNS.LOG_DEBUG)
                     
-                    target_rate = 8000
-                    if RNS.vendor.platformutils.is_linux():
-                        target_rate = 48000
-
-                    if samples_to_ogg(decode_codec2(audio_field[1], audio_field[0]), temp_path, input_rate=8000, output_rate=target_rate):
-                        RNS.log("Wrote OGG file to: "+temp_path, RNS.LOG_DEBUG)
                     else:
-                        RNS.log("OGG write failed", RNS.LOG_DEBUG)
-                
-                else:
-                    raise NotImplementedError(audio_field[0])
+                        raise NotImplementedError(audio_field[0])
 
-                if self.msg_sound == None:
-                    from plyer import audio
-                    self.msg_sound = audio
+                    if self.msg_sound == None:
+                        from plyer import audio
+                        self.msg_sound = audio
 
-                self.msg_sound._file_path = temp_path
-                self.msg_sound.reload()
+                    self.msg_sound._file_path = temp_path
+                    self.msg_sound.reload()
 
-            if self.msg_sound != None and self.msg_sound.playing():
-                RNS.log("Stopping playback", RNS.LOG_DEBUG)
-                self.msg_sound.stop()
-            else:    
-                RNS.log("Starting playback", RNS.LOG_DEBUG)
-                self.msg_sound.play()
-        except Exception as e:
-            RNS.log("Error while playing message audio:"+str(e))
-            RNS.trace_exception(e)
+                if self.msg_sound != None and self.msg_sound.playing():
+                    RNS.log("Stopping playback", RNS.LOG_DEBUG)
+                    self.msg_sound.stop()
+                else:    
+                    RNS.log("Starting playback", RNS.LOG_DEBUG)
+                    self.msg_sound.play()
+            except Exception as e:
+                RNS.log("Error while playing message audio:"+str(e))
+                RNS.trace_exception(e)
 
 
     def message_record_audio_action(self):
@@ -1742,8 +1778,13 @@ class SidebandApp(MDApp):
                         DialogItem(IconLeftWidget(icon="microphone-message", on_release=a_audio_hq), text="[size="+str(ss)+"]High-quality Voice[/size]", on_release=a_audio_hq),
                         DialogItem(IconLeftWidget(icon="file-outline", on_release=a_file), text="[size="+str(ss)+"]File Attachment[/size]", on_release=a_file)]
                 
-                # if RNS.vendor.platformutils.is_linux():
-                #     ad_items.pop(3)
+                if RNS.vendor.platformutils.is_windows():
+                    ad_items.pop(3)
+                    ad_items.pop(3)
+
+                if RNS.vendor.platformutils.is_darwin():
+                    ad_items.pop(3)
+                    ad_items.pop(3)
 
                 self.attach_dialog = MDDialog(
                     title="Add Attachment",
