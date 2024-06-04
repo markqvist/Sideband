@@ -47,6 +47,15 @@ sideband
 # mode, for example as a telemetry collector:
 sideband --daemon
 
+# If you intend to run Sideband in headless
+# daemon mode, you can also install it without
+# any of the normal UI dependencies:
+pip install sbapp --no-dependencies
+
+# In this case, you will still need to manually
+# install the minimum RNS and LXMF dependencies:
+pip install rns lxmf
+
 ```
 
 **Please Note!** If you are using an operating system that blocks normal user package installation via `pip`, it's easy to permanently return `pip` to normal behaviour by editing the `~/.config/pip/pip.conf` file, and adding the following directive in the `[global]` section:
@@ -62,16 +71,23 @@ You can also simply add the `--break-system-packages` directive on a per-install
 
 A DMG file containing a macOS app bundle is available on the [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
 
-Alternatively, you can install Sideband with ``pip`` on macOS:
+Alternatively, you can install Sideband with ``pip3`` on macOS:
 
 ```bash
-# Install Sideband and dependencies on macOS
-pip install "sbapp[macos]"
+# Install Sideband and dependencies on macOS:
+pip3 install sbapp
 
-# Run it
+# Run it:
+python3 -m sbapp.main
+
+# If you add your pip install location to
+# the PATH environment variable, you can
+# also run Sideband simply using:
 sideband
 
 ```
+
+If you have not already installed Python and `pip3` on your macOS system, [download and install](https://www.python.org/downloads/) the latest version first.
 
 ## Installation On Windows
 
@@ -94,16 +110,16 @@ When running Sideband for the first time, a default Reticulum configuration file
 You *can* use the `pipx` tool to install Sideband in an isolated environment, but on Linux you will have to launch Sideband from the command line, or create your own launcher links, since `pipx` does not support desktop integration. Unfortunately, it does not seem like `pipx` will be adding desktop integration in the near future, so restoring the original `pip` tool to its proper behaviour is recommended for now. If you want to use `pipx` anyway, it is as simple as:
 
 ```bash
-# Install Sideband on Linux
+# Install Sideband on Linux:
 pipx install sbapp
 
-# Install Sideband on macOS
+# Install Sideband on macOS:
 pipx install "sbapp[macos]"
 
-# Optionally install Reticulum utilities
+# Optionally install Reticulum utilities:
 pipx install rns
 
-# Optionally install standalone LXMF utilities
+# Optionally install standalone LXMF utilities:
 pipx install lxmf
 ```
 
