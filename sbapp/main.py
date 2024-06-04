@@ -124,6 +124,9 @@ else:
         from android.permissions import request_permissions, check_permission
         from android.storage import primary_external_storage_path, secondary_external_storage_path
 
+        import pyogg
+        from pydub import AudioSegment
+
         from kivymd.utils.set_bars_colors import set_bars_colors
         android_api_version = autoclass('android.os.Build$VERSION').SDK_INT
 
@@ -139,6 +142,9 @@ else:
         from .ui.messages import Messages, ts_format, messages_screen_kv
         from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
         from .ui.helpers import multilingual_markup
+
+        import sbapp.pyogg as pyogg
+        from sbapp.pydub import AudioSegment
 
         class toast:
             def __init__(self, *kwargs):
@@ -1296,6 +1302,9 @@ class SidebandApp(MDApp):
                                 if self.audio_msg_mode == LXMF.AM_OPUS_OGG:
                                     with open(self.attach_path, "rb") as af:
                                         audio = [self.audio_msg_mode, af.read()]
+                                elif self.audio_msg_mode >= LXMF.AM_CODEC2_700C and self.audio_msg_mode <= LXMF.AM_CODEC2_3200:
+                                    with open(self.attach_path, "rb") as af:
+                                        audio = [self.audio_msg_mode, af.read()]
 
                             elif self.attach_type == "lbimg":
                                 max_size = 320, 320
@@ -1511,35 +1520,42 @@ class SidebandApp(MDApp):
                 ate_dialog.open()
 
     def play_audio_field(self, audio_field):
-        if audio_field[0] == LXMF.AM_OPUS_OGG:
-            audio_type = "ogg"
-        else:
-            return False
-        
-        temp_path = self.sideband.rec_cache+"/msg."+audio_type    
-        if self.last_msg_audio != audio_field[1]:
-            self.last_msg_audio = audio_field[1]
+        try:
+            temp_path = None
+            if self.last_msg_audio != audio_field[1]:
+                RNS.log("Reloading audio source", RNS.LOG_DEBUG)
+                self.last_msg_audio = audio_field[1]
 
-            if audio_type == "ogg":
-                # No decoding necessary for OGG/OPUS
-                with open(temp_path, "wb") as af:
-                    af.write(self.last_msg_audio)
-            
-            else:
-                raise NotImplementedError(audio_type)
+                if audio_field[0] == LXMF.AM_OPUS_OGG:
+                    temp_path = self.sideband.rec_cache+"/msg.ogg"
+                    with open(temp_path, "wb") as af:
+                        af.write(self.last_msg_audio)
 
-            if self.msg_sound == None:
-                from plyer import audio
-                self.msg_sound = audio
+                elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
+                    temp_path = self.sideband.rec_cache+"/msg.ogg"
+                    from sideband.audioproc import samples_to_ogg, decode_codec2
+                    if samples_to_ogg(decode_codec2(audio_field[1], audio_field[0]), temp_path):
+                        RNS.log("Wrote wav file to: "+temp_path)
+                
+                else:
+                    raise NotImplementedError(audio_field[0])
 
-            self.msg_sound._file_path = temp_path
-            self.msg_sound.reload()
+                if self.msg_sound == None:
+                    from plyer import audio
+                    self.msg_sound = audio
 
-        if self.msg_sound != None and self.msg_sound._player != None and self.msg_sound._player.isPlaying():
-            self.msg_sound.stop()
-        else:
-            
-            self.msg_sound.play()
+                self.msg_sound._file_path = temp_path
+                self.msg_sound.reload()
+
+            if self.msg_sound != None and self.msg_sound.playing():
+                RNS.log("Stopping playback", RNS.LOG_DEBUG)
+                self.msg_sound.stop()
+            else:    
+                RNS.log("Starting playback", RNS.LOG_DEBUG)
+                self.msg_sound.play()
+        except Exception as e:
+            RNS.log("Error while playing message audio:"+str(e))
+            RNS.trace_exception(e)
 
 
     def message_record_audio_action(self):
@@ -1607,14 +1623,7 @@ class SidebandApp(MDApp):
                         RNS.log("Using unmodified OPUS data in OGG container", RNS.LOG_DEBUG)
                     else:
                         ap_start = time.time()
-                        from pydub import AudioSegment
-                        if RNS.vendor.platformutils.is_android():
-                            import pyogg
-                        else:
-                            import sbapp.pyogg as pyogg
-
                         opus_file = pyogg.OpusFile(self.msg_audio._file_path)
-
                         audio = AudioSegment(
                             bytes(opus_file.as_array()),
                             frame_rate=opus_file.frequency,
@@ -1624,17 +1633,20 @@ class SidebandApp(MDApp):
                         audio = audio.split_to_mono()[0]
                         audio = audio.apply_gain(-audio.max_dBFS)
                         
-                        if self.audio_msg_mode >= LXMF.AM_CODEC2_450PWB and self.audio_msg_mode <= LXMF.AM_CODEC2_3200:
+                        if self.audio_msg_mode >= LXMF.AM_CODEC2_700C and self.audio_msg_mode <= LXMF.AM_CODEC2_3200:
                             audio = audio.set_frame_rate(8000)
                             audio = audio.set_sample_width(2)
                             samples = audio.get_array_of_samples()
 
-                            ap_duration = time.time() - ap_start
-                            RNS.log("Audio processing complete in "+RNS.prettytime(ap_duration)+", samples: "+str(len(samples)), RNS.LOG_DEBUG)
+                            from sideband.audioproc import samples_from_ogg, encode_codec2, decode_codec2
+                            encoded = encode_codec2(samples, self.audio_msg_mode)
 
-                            export_path = self.sideband.rec_cache+"/recording.raw"
+                            ap_duration = time.time() - ap_start
+                            RNS.log("Audio processing complete in "+RNS.prettytime(ap_duration), RNS.LOG_DEBUG)
+
+                            export_path = self.sideband.rec_cache+"/recording.enc"
                             with open(export_path, "wb") as export_file:
-                                export_file.write(samples.tobytes())
+                                export_file.write(encoded)
                             self.attach_path = export_path
                             os.unlink(self.msg_audio._file_path)
 
@@ -1651,7 +1663,7 @@ class SidebandApp(MDApp):
             self.rec_dialog = MDDialog(
                 title="Record Audio",
                 type="simple",
-                text="Test\n",
+                # text="Test\n",
                 items=[
                     rec_item,
                     play_item,
@@ -1709,18 +1721,19 @@ class SidebandApp(MDApp):
                 self.message_attach_action(attach_type="audio")
             def a_audio_lb(sender):
                 self.attach_dialog.dismiss()
-                self.audio_msg_mode = LXMF.AM_CODEC2_3200
+                self.audio_msg_mode = LXMF.AM_CODEC2_2400
                 self.message_attach_action(attach_type="audio")
 
             if self.attach_dialog == None:
                 ss = int(dp(18))
                 cancel_button = MDRectangleFlatButton(text="Cancel", font_size=dp(18))
                 ad_items = [
-                        DialogItem(IconLeftWidget(icon="message-image-outline"), text="[size="+str(ss)+"]Low-bandwidth Image[/size]", on_release=a_img_lb),
-                        DialogItem(IconLeftWidget(icon="file-image"), text="[size="+str(ss)+"]Medium Image[/size]", on_release=a_img_def),
-                        DialogItem(IconLeftWidget(icon="image-outline"), text="[size="+str(ss)+"]High-res Image[/size]", on_release=a_img_hq),
-                        DialogItem(IconLeftWidget(icon="microphone-message"), text="[size="+str(ss)+"]Audio Recording[/size]", on_release=a_audio_hq),
-                        DialogItem(IconLeftWidget(icon="file-outline"), text="[size="+str(ss)+"]File Attachment[/size]", on_release=a_file)]
+                        DialogItem(IconLeftWidget(icon="message-image-outline", on_release=a_img_lb), text="[size="+str(ss)+"]Low-bandwidth Image[/size]", on_release=a_img_lb),
+                        DialogItem(IconLeftWidget(icon="file-image", on_release=a_img_def), text="[size="+str(ss)+"]Medium Image[/size]", on_release=a_img_def),
+                        DialogItem(IconLeftWidget(icon="image-outline", on_release=a_img_hq), text="[size="+str(ss)+"]High-res Image[/size]", on_release=a_img_hq),
+                        DialogItem(IconLeftWidget(icon="account-voice", on_release=a_audio_lb), text="[size="+str(ss)+"]Low-bandwidth Voice[/size]", on_release=a_audio_lb),
+                        DialogItem(IconLeftWidget(icon="microphone-message", on_release=a_audio_hq), text="[size="+str(ss)+"]High-quality Voice[/size]", on_release=a_audio_hq),
+                        DialogItem(IconLeftWidget(icon="file-outline", on_release=a_file), text="[size="+str(ss)+"]File Attachment[/size]", on_release=a_file)]
                 
                 # if RNS.vendor.platformutils.is_linux():
                 #     ad_items.pop(3)
