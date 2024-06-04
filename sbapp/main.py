@@ -1534,8 +1534,12 @@ class SidebandApp(MDApp):
                 elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
                     temp_path = self.sideband.rec_cache+"/msg.ogg"
                     from sideband.audioproc import samples_to_ogg, decode_codec2
-                    samples = decode_codec2(audio_field[1], audio_field[0])
-                    if samples_to_ogg(samples, temp_path):
+                    
+                    target_rate = 8000
+                    if RNS.vendor.platformutils.is_linux():
+                        target_rate = 48000
+
+                    if samples_to_ogg(decode_codec2(audio_field[1], audio_field[0]), temp_path, input_rate=8000, output_rate=target_rate):
                         RNS.log("Wrote OGG file to: "+temp_path, RNS.LOG_DEBUG)
                     else:
                         RNS.log("OGG write failed", RNS.LOG_DEBUG)
@@ -1641,7 +1645,7 @@ class SidebandApp(MDApp):
                             audio = audio.set_sample_width(2)
                             samples = audio.get_array_of_samples()
 
-                            from sideband.audioproc import samples_from_ogg, encode_codec2, decode_codec2
+                            from sideband.audioproc import encode_codec2
                             encoded = encode_codec2(samples, self.audio_msg_mode)
 
                             ap_duration = time.time() - ap_start

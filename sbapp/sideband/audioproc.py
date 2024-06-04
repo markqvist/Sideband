@@ -8,7 +8,7 @@ import RNS
 import LXMF
 
 if RNS.vendor.platformutils.is_android():
-    import pyogg
+    from pyogg import OpusFile, OpusBufferedEncoder, OggOpusWriter
     from pydub import AudioSegment
 else:
     if RNS.vendor.platformutils.is_linux():
@@ -30,7 +30,7 @@ codec2_modes = {
     LXMF.AM_CODEC2_3200: 3200,
 }
 
-def samples_from_ogg(file_path=None):
+def samples_from_ogg(file_path=None, output_rate=8000):
     if file_path != None and os.path.isfile(file_path):
         opus_file = OpusFile(file_path)
         audio = AudioSegment(
@@ -41,49 +41,48 @@ def samples_from_ogg(file_path=None):
 
         audio = audio.split_to_mono()[0]
         audio = audio.apply_gain(-audio.max_dBFS)
-        audio = audio.set_frame_rate(8000)
+        audio = audio.set_frame_rate(output_rate)
         audio = audio.set_sample_width(2)
         
         return audio.get_array_of_samples()
 
-def samples_to_ogg(samples=None, file_path=None):
+def resample(samples, width, channels, input_rate, output_rate, normalize):
+    audio = AudioSegment(
+        samples,
+        frame_rate=input_rate,
+        sample_width=width,
+        channels=channels)
+
+    if normalize:
+        audio = audio.apply_gain(-audio.max_dBFS)
+
+    resampled_audio = audio.set_frame_rate(output_rate)
+    return resampled_audio.get_array_of_samples().tobytes()
+
+def samples_to_ogg(samples=None, file_path=None, normalize=False, input_channels=1, input_sample_width=2, input_rate=8000, output_rate=12000, profile="audio"):
     try:
         if file_path != None and samples != None:
+            if input_rate != output_rate or normalize:
+                samples = resample(samples, input_sample_width, input_channels, input_rate, output_rate, normalize)
+
             pcm_data = io.BytesIO(samples)
-
-            RNS.log(f"Samples: {len(samples)}")
-            RNS.log(f"Type   : {type(samples)}")
-
-            channels = 1; samples_per_second = 8000; bytes_per_sample = 2
+            channels = input_channels; samples_per_second = output_rate; bytes_per_sample = 2
+            frame_duration_ms = 60
 
             opus_buffered_encoder = OpusBufferedEncoder()
-            opus_buffered_encoder.set_application("audio")
+            opus_buffered_encoder.set_application(profile)
             opus_buffered_encoder.set_sampling_frequency(samples_per_second)
             opus_buffered_encoder.set_channels(channels)
-            opus_buffered_encoder.set_frame_size(20) # milliseconds    
+            opus_buffered_encoder.set_frame_size(frame_duration_ms)
             ogg_opus_writer = OggOpusWriter(file_path, opus_buffered_encoder)
 
-            frame_duration = 0.020
+            frame_duration = frame_duration_ms/1000.0
             frame_size = int(frame_duration * samples_per_second)
             bytes_per_frame = frame_size*bytes_per_sample
             
-            read_bytes = 0
-            written_bytes = 0
-            while True:
-                pcm = pcm_data.read(bytes_per_frame)
-                if len(pcm) == 0:
-                    break
-                else:
-                    read_bytes += len(pcm)
-
-                ogg_opus_writer.write(memoryview(bytearray(pcm)))
-                written_bytes += len(pcm)
-
+            ogg_opus_writer.write(memoryview(bytearray(samples)))
             ogg_opus_writer.close()
-
-            RNS.log(f"Read {read_bytes} bytes")
-            RNS.log(f"Wrote {written_bytes} bytes")
-
+            
             return True
     
     except Exception as e:
