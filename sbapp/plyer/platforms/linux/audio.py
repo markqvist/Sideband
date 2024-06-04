@@ -1,7 +1,8 @@
 import time
 import threading
+import RNS
 from sbapp.plyer.facades.audio import Audio
-from kivy.core.audio import SoundLoader
+from ffpyplayer.player import MediaPlayer
 
 class LinuxAudio(Audio):
 
@@ -18,8 +19,13 @@ class LinuxAudio(Audio):
         self.is_playing = False
 
     def _check_playback(self):
-        while self.sound != None and self.sound.state == "play":
+        run = True
+        while run and self.sound != None and not self.sound.get_pause():
             time.sleep(0.25)
+            if self.duration:
+                pts = self.sound.get_pts()
+                if pts > self.duration:
+                    run = False
 
         self.is_playing = False
         
@@ -32,23 +38,30 @@ class LinuxAudio(Audio):
         pass
 
     def _stop(self):
-        if self.sound != None and self.sound.state == "play":
-            self.sound.stop()
+        if self.sound != None:
+            self.sound.set_pause(True)
+            self.sound.seek(0, relative=False)
             self.is_playing = False
 
     def _play(self):
-        if self.sound == None or self._loaded_path != self._file_path:
-            self.sound = SoundLoader.load(self._file_path)
+        self.sound = MediaPlayer(self._file_path)
+        self.metadata = self.sound.get_metadata()
+        self.duration = self.metadata["duration"]
+        if self.duration == None:
+            time.sleep(0.15)
+            self.metadata = self.sound.get_metadata()
+            self.duration = self.metadata["duration"]
 
+        RNS.log(str(self.metadata))
+
+        self._loaded_path = self._file_path
         self.is_playing = True
-        self.sound.play()
 
         self._check_thread = threading.Thread(target=self._check_playback, daemon=True)
         self._check_thread.start()
 
     def reload(self):
         self._loaded_path = None
-        self.sound = None
 
     def playing(self):
         return self.is_playing

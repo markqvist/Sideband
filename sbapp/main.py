@@ -1534,8 +1534,11 @@ class SidebandApp(MDApp):
                 elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
                     temp_path = self.sideband.rec_cache+"/msg.ogg"
                     from sideband.audioproc import samples_to_ogg, decode_codec2
-                    if samples_to_ogg(decode_codec2(audio_field[1], audio_field[0]), temp_path):
-                        RNS.log("Wrote wav file to: "+temp_path)
+                    samples = decode_codec2(audio_field[1], audio_field[0])
+                    if samples_to_ogg(samples, temp_path):
+                        RNS.log("Wrote OGG file to: "+temp_path, RNS.LOG_DEBUG)
+                    else:
+                        RNS.log("OGG write failed", RNS.LOG_DEBUG)
                 
                 else:
                     raise NotImplementedError(audio_field[0])

@@ -43,28 +43,48 @@ def samples_from_ogg(file_path=None):
         return audio.get_array_of_samples()
 
 def samples_to_ogg(samples=None, file_path=None):
-    if file_path != None and samples != None:
-        pcm_data = io.BytesIO(samples)
-        channels = 1; samples_per_second = 8000; bytes_per_sample = 2
+    try:
+        if file_path != None and samples != None:
+            pcm_data = io.BytesIO(samples)
 
-        opus_buffered_encoder = pyogg.OpusBufferedEncoder()
-        opus_buffered_encoder.set_application("audio")
-        opus_buffered_encoder.set_sampling_frequency(samples_per_second)
-        opus_buffered_encoder.set_channels(channels)
-        opus_buffered_encoder.set_frame_size(20) # milliseconds    
-        ogg_opus_writer = pyogg.OggOpusWriter(file_path, opus_buffered_encoder)
+            RNS.log(f"Samples: {len(samples)}")
+            RNS.log(f"Type   : {type(samples)}")
 
-        frame_duration = 0.1
-        frame_size = int(frame_duration * samples_per_second)
-        bytes_per_frame = frame_size*bytes_per_sample
-        
-        while True:
-            pcm = pcm_data.read(bytes_per_frame)
-            if len(pcm) == 0:
-                break
-            ogg_opus_writer.write(memoryview(bytearray(pcm)))
+            channels = 1; samples_per_second = 8000; bytes_per_sample = 2
 
-        ogg_opus_writer.close()
+            opus_buffered_encoder = pyogg.OpusBufferedEncoder()
+            opus_buffered_encoder.set_application("audio")
+            opus_buffered_encoder.set_sampling_frequency(samples_per_second)
+            opus_buffered_encoder.set_channels(channels)
+            opus_buffered_encoder.set_frame_size(20) # milliseconds    
+            ogg_opus_writer = pyogg.OggOpusWriter(file_path, opus_buffered_encoder)
+
+            frame_duration = 0.020
+            frame_size = int(frame_duration * samples_per_second)
+            bytes_per_frame = frame_size*bytes_per_sample
+            
+            read_bytes = 0
+            written_bytes = 0
+            while True:
+                pcm = pcm_data.read(bytes_per_frame)
+                if len(pcm) == 0:
+                    break
+                else:
+                    read_bytes += len(pcm)
+
+                ogg_opus_writer.write(memoryview(bytearray(pcm)))
+                written_bytes += len(pcm)
+
+            ogg_opus_writer.close()
+
+            RNS.log(f"Read {read_bytes} bytes")
+            RNS.log(f"Wrote {written_bytes} bytes")
+
+            return True
+    
+    except Exception as e:
+        RNS.trace_exception(e)
+        return False
 
 def samples_to_wav(samples=None, file_path=None):
     if samples != None and file_path != None:
@@ -87,7 +107,9 @@ def encode_codec2(samples, mode):
     SPF = c2.samples_per_frame()
     PACKET_SIZE = SPF * 2 # 16-bit samples
     STRUCT_FORMAT = '{}h'.format(SPF)
+    F_FRAMES = len(samples)/SPF
     N_FRAMES = math.floor(len(samples)/SPF)
+    # TODO: Add padding to align to whole frames
     frames = np.array(samples[0:N_FRAMES*SPF], dtype=np.int16)
     
     encoded = b""
