@@ -13,6 +13,7 @@ Sideband provides many useful and interesting functions, such as:
 
 - Secure and self-sovereign messaging using the LXMF protocol over Reticulum.
 - Image and file transfers over all supported mediums.
+- Audio messages that work even over LoRa and radio links, thanks to [Codec2](https://github.com/drowe67/codec2/) and [Opus](https://github.com/xiph/opus) encoding.
 - Secure and direct P2P telemetry and location sharing. No third parties or servers ever have your data.
 - Situation display on both online and locally stored offline maps.
 - Geospatial awareness calculations.
@@ -22,8 +23,7 @@ Sideband provides many useful and interesting functions, such as:
 - Remote telemetry querying, with strong, secure and cryptographically robust authentication and control.
 - Plugin system that allows you to easily create your own commands, services and telemetry sources.
 
-
-Sideband works well with the terminal-based LXMF client [Nomad Network](https://github.com/markqvist/nomadnet), which allows you to easily host Propagation Nodes for your LXMF network, and more.
+Sideband is fully compatible with other LXMF clients, such as [Reticulum MeshChat](https://github.com/liamcottle/reticulum-meshchat), and [Nomad Network](https://github.com/markqvist/nomadnet). The Nomad Network client also allows you to easily host Propagation Nodes for your LXMF network, and more.
 
 ## Installation On Android
 
@@ -169,7 +169,7 @@ You can help support the continued development of open, free and private communi
 - <s>Encryption keys export and import</s>
 - <s>Plugin support for commands, services and telemetry</s>
 - <s>Adding Linux .desktop file integration</s>
-- Sending voice messages (using Codec2 and Opus)
+- <s>Sending voice messages (using Codec2 and Opus)</s>
 - Implementing the Local Broadcasts feature
 - LXMF sneakernet functionality
 - Network visualisation and test tools
