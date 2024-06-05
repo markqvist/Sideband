@@ -115,7 +115,7 @@ else:
         from ui.announces import Announces
         from ui.messages import Messages, ts_format, messages_screen_kv
         from ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
-        from ui.helpers import multilingual_markup
+        from ui.helpers import multilingual_markup, mdc
         from kivymd.toast import toast
 
         from jnius import cast
@@ -141,7 +141,7 @@ else:
         from .ui.objectdetails import ObjectDetails
         from .ui.messages import Messages, ts_format, messages_screen_kv
         from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
-        from .ui.helpers import multilingual_markup
+        from .ui.helpers import multilingual_markup, mdc
 
         import sbapp.pyogg as pyogg
         from sbapp.pydub import AudioSegment
@@ -1638,14 +1638,20 @@ class SidebandApp(MDApp):
                 if not self.rec_dialog.recording:
                     RNS.log("Starting recording...") # TODO: Remove
                     self.rec_dialog.recording = True
-                    self.rec_dialog.rec_item.children[0].children[0].icon = "stop-circle"
+                    el = self.rec_dialog.rec_item.children[0].children[0]
+                    el.ttc = el.theme_text_color; el.tc = el.text_color
+                    el.theme_text_color="Custom"
+                    el.text_color=mdc("Red","400")
+                    el.icon = "stop-circle"
                     self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Stop Recording[/size]"
                     self.msg_audio.start()
                 else:
                     RNS.log("Stopping recording...") # TODO: Remove
                     self.rec_dialog.recording = False
                     self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Start Recording[/size]"
-                    self.rec_dialog.rec_item.children[0].children[0].icon = "record"
+                    el = self.rec_dialog.rec_item.children[0].children[0]
+                    el.icon = "record"
+                    el.text_color = self.theme_cls._get_text_color()
                     self.rec_dialog.play_item.disabled = False
                     self.rec_dialog.save_item.disabled = False
                     self.msg_audio.stop()
