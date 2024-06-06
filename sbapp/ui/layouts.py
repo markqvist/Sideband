@@ -1360,6 +1360,19 @@ MDScreen:
                         font_size: dp(24)
                         height: dp(64)
 
+                MDLabel:
+                    text: "Appearance"
+                    font_style: "H6"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    id: settings_info3
+                    markup: True
+                    text: "\\nThis section lets you configure the appearance of the application to suit your preferences, such as themes and what levels of information to display. When user icons are enabled, the contact list will display icons other users have configured in their [b]Telemetry[/b] settings.\\n"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
                 MDBoxLayout:
                     orientation: "horizontal"
                     size_hint_y: None
@@ -1449,6 +1462,19 @@ MDScreen:
                         id: settings_advanced_statistics
                         pos_hint: {"center_y": 0.3}
                         active: False
+
+                MDLabel:
+                    text: "\\nBehaviour"
+                    font_style: "H6"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    id: settings_info3
+                    markup: True
+                    text: "\\nThis section configures various automated actions and default behaviours. Sync intervals can be configured, and you can control what kind of peers can send you messages.\\n"
+                    size_hint_y: None
+                    height: self.texture_size[1]
 
                 MDBoxLayout:
                     orientation: "horizontal"
