@@ -1250,8 +1250,12 @@ class SidebandApp(MDApp):
         self.open_conversations(direction="right")
 
     def message_send_action(self, sender=None):
-        if not (self.attach_type != None and self.attach_path != None) and self.messages_view.ids.message_text.text == "":
-            return
+        if self.messages_view.ids.message_text.text == "":
+            if not (self.attach_type != None and self.attach_path != None):
+                return
+
+            if self.outbound_mode_command:
+                return
 
         def cb(dt):
             self.message_send_dispatch(sender)
