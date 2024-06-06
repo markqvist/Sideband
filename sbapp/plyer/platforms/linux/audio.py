@@ -122,8 +122,6 @@ class LinuxAudio(Audio):
             self.metadata = self.sound.get_metadata()
             self.duration = self.metadata["duration"]
 
-        RNS.log(str(self.metadata))
-
         self._loaded_path = self._file_path
         self.is_playing = True
 
