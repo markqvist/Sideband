@@ -47,6 +47,13 @@ def glob_paths(pattern):
 
     return out_files
 
+packages = setuptools.find_packages(
+    exclude=[
+        "sbapp.plyer.platforms.android",
+        "sbapp.kivymd.tools"
+        "sbapp.kivymd.tools.*"
+    ])
+
 package_data = {
 "": [
     "assets/*",
@@ -71,7 +78,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://unsigned.io/sideband",
-    packages=setuptools.find_packages(),
+    packages=packages,
     package_data=package_data,
     include_package_data=True,
     classifiers=[
