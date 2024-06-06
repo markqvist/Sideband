@@ -133,6 +133,7 @@ class SidebandCore():
         self.telemetry_send_blocked_until = 0
         self.pending_telemetry_request = False
         self.telemetry_request_max_history = 7*24*60*60
+        self.default_lxm_limit = 128*1000
         self.state_db = {}
         self.state_lock = Lock()
         self.rpc_connection = None
@@ -2641,6 +2642,19 @@ class SidebandCore():
             RNS.log("Error while querying for key: "+str(e), RNS.LOG_ERROR)
             return False
 
+    def _update_delivery_limits(self):
+        try:
+            if self.config["lxm_limit_1mb"]:
+                lxm_limit = 1000
+            else:
+                lxm_limit = self.default_lxm_limit
+            if self.message_router.delivery_per_transfer_limit != lxm_limit:
+                self.message_router.delivery_per_transfer_limit = lxm_limit
+                RNS.log("Updated delivery limit to "+RNS.prettysize(self.message_router.delivery_per_transfer_limit*1000), RNS.LOG_DEBUG)
+                
+        except Exception as e:
+            RNS.log("Error while updating LXMF router delivery limit: "+str(e), RNS.LOG_ERROR)
+
     def _service_jobs(self):
         if self.is_service:
             last_usb_discovery = time.time()
@@ -2834,6 +2848,8 @@ class SidebandCore():
                 time.sleep(SidebandCore.PERIODIC_JOBS_INTERVAL)
                 if self.owner_service != None:
                     self.owner_service.update_location_provider()
+
+                self._update_delivery_limits()
 
                 if self.config["lxmf_periodic_sync"] == True:
                     if self.getpersistent("lxmf.lastsync") == None:
@@ -3374,7 +3390,7 @@ class SidebandCore():
         if self.config["lxm_limit_1mb"]:
             lxm_limit = 1000
         else:
-            lxm_limit = 128*1000
+            lxm_limit = self.default_lxm_limit
 
         self.message_router = LXMF.LXMRouter(identity = self.identity, storagepath = self.lxmf_storage, autopeer = True, delivery_limit = lxm_limit)
         self.message_router.register_delivery_callback(self.lxmf_delivery)
