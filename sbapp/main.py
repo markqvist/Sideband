@@ -1640,7 +1640,12 @@ class SidebandApp(MDApp):
                         raise NotImplementedError(audio_field[0])
 
                     if self.msg_sound == None:
-                        from plyer import audio
+                        if RNS.vendor.platformutils.is_android():
+                            from plyer import audio
+                            self.request_microphone_permission()
+                        else:
+                            from sbapp.plyer import audio
+                        
                         self.msg_sound = audio
 
                     self.msg_sound._file_path = temp_path
