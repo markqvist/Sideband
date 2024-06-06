@@ -1,0 +1,6 @@
+prune sbapp/patches
+prune sbapp/dist
+prune recipes
+prune docs
+prune libs
+prune .github
