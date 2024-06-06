@@ -1837,6 +1837,10 @@ class SidebandApp(MDApp):
                     ad_items.pop(3)
                     ad_items.pop(3)
 
+                if RNS.vendor.platformutils.is_android() and android_api_version < 29:
+                    ad_items.pop(3)
+                    ad_items.pop(3)
+
                 self.attach_dialog = MDDialog(
                     title="Add Attachment",
                     type="simple",
