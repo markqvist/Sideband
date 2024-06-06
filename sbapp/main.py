@@ -240,6 +240,7 @@ class SidebandApp(MDApp):
         self.msg_sound = None
         self.audio_msg_mode = LXMF.AM_OPUS_OGG
         self.compat_error_dialog = None
+        self.rec_dialog_is_open = True
 
         Window.softinput_mode = "below_target"
         self.icon = self.sideband.asset_dir+"/icon.png"
@@ -960,6 +961,33 @@ class SidebandApp(MDApp):
                             self.messages_view.ids.message_text.write_tab = True
                         Clock.schedule_once(tab_job, 0.15)
 
+                elif self.rec_dialog != None and self.rec_dialog_is_open:
+                        if text == " ":
+                            self.msg_rec_a_rec(None)
+                        elif keycode == 40:
+                            self.msg_rec_a_save(None)
+
+                elif len(modifiers) > 1 and "shift" in modifiers and "ctrl" in modifiers:
+                    def clear_att():
+                        if self.attach_path != None:
+                            self.attach_path = None
+                            self.attach_type = None
+                            self.update_message_widgets()
+                    if text == "a":
+                        clear_att(); self.message_attachment_action(None)
+                    if text == "i":
+                        clear_att(); self.message_attach_action(attach_type="defimg")
+                    if text == "f":
+                        clear_att(); self.message_attach_action(attach_type="file")
+                    if text == "v":
+                        clear_att()
+                        self.audio_msg_mode = LXMF.AM_OPUS_OGG
+                        self.message_attach_action(attach_type="audio")
+                    if text == "c":
+                        clear_att()
+                        self.audio_msg_mode = LXMF.AM_CODEC2_2400
+                        self.message_attach_action(attach_type="audio")
+
             if len(modifiers) > 0:
                 if modifiers[0] == "ctrl":
                     if text == "q":
@@ -1201,6 +1229,7 @@ class SidebandApp(MDApp):
         Clock.schedule_once(cbu, 0.15+0.25)
 
     def open_conversation(self, context_dest, direction="left"):
+        self.rec_dialog_is_open = False
         self.outbound_mode_paper = False
         self.outbound_mode_command = False
         self.outbound_mode_propagation = False
@@ -1247,9 +1276,11 @@ class SidebandApp(MDApp):
         Clock.schedule_once(scb, 0.33)
 
     def close_messages_action(self, sender=None):
+        self.rec_dialog_is_open = False
         self.open_conversations(direction="right")
 
     def message_send_action(self, sender=None):
+        self.rec_dialog_is_open = False
         if self.messages_view.ids.message_text.text == "":
             if not (self.attach_type != None and self.attach_path != None):
                 return
@@ -1660,35 +1691,39 @@ class SidebandApp(MDApp):
                     self.rec_dialog.save_item.disabled = False
                     self.msg_audio.stop()
 
+            self.msg_rec_a_rec = a_rec_action
+
             def a_play(sender):
                 if self.rec_dialog.recording:
                     a_rec_action(sender)
 
                 if not self.rec_dialog.playing:
-                    RNS.log("Playing recording...") # TODO: Remove
+                    RNS.log("Playing recording...", RNS.LOG_DEBUG)
                     self.rec_dialog.playing = True
                     self.rec_dialog.play_item.children[0].children[0].icon = "stop"
                     self.rec_dialog.play_item.text = "[size="+str(ss)+"]Stop[/size]"
                     self.msg_audio.play()
                 else:
-                    RNS.log("Stopping playback...") # TODO: Remove
+                    RNS.log("Stopping playback...", RNS.LOG_DEBUG)
                     self.rec_dialog.playing = False
                     self.rec_dialog.play_item.children[0].children[0].icon = "play"
                     self.rec_dialog.play_item.text = "[size="+str(ss)+"]Play[/size]"
                     self.msg_audio.stop()
 
+            self.msg_rec_a_play = a_play
+
             def a_finished(sender):
-                RNS.log("Playback finished") # TODO: Remove
+                RNS.log("Playback finished", RNS.LOG_DEBUG)
                 self.rec_dialog.playing = False
                 self.rec_dialog.play_item.children[0].children[0].icon = "play"
                 self.rec_dialog.play_item.text = "[size="+str(ss)+"]Play[/size]"
                 
-
             self.msg_audio._finished_callback = a_finished
                 
             def a_save(sender):
                 if self.rec_dialog.recording:
                     a_rec_action(sender)
+                self.rec_dialog_is_open = False
                 self.rec_dialog.dismiss()
 
                 try:
@@ -1750,6 +1785,8 @@ class SidebandApp(MDApp):
                 except Exception as e:
                     RNS.trace_exception(e)
 
+            self.msg_rec_a_save = a_save
+
             cancel_button = MDRectangleFlatButton(text="Cancel", font_size=dp(18))
             rec_item = DialogItem(IconLeftWidget(icon="record", on_release=a_rec_action), text="[size="+str(ss)+"]Start Recording[/size]", on_release=a_rec_action)
             play_item = DialogItem(IconLeftWidget(icon="play", on_release=a_play), text="[size="+str(ss)+"]Play[/size]", on_release=a_play, disabled=True)
@@ -1781,6 +1818,7 @@ class SidebandApp(MDApp):
             self.rec_dialog.rec_item.children[0].children[0].icon = "record"
 
         self.rec_dialog.open()
+        self.rec_dialog_is_open = True
         self.rec_dialog.update_width()
 
     def message_attach_action(self, attach_type=None):
@@ -1788,6 +1826,7 @@ class SidebandApp(MDApp):
         rec_attach_types = ["audio"]
         
         self.attach_path = None
+        self.rec_dialog_is_open = False
         if attach_type in file_attach_types:
             self.attach_type = attach_type
             self.message_select_file_action()
@@ -1796,6 +1835,7 @@ class SidebandApp(MDApp):
             self.message_record_audio_action()
 
     def message_attachment_action(self, sender):
+        self.rec_dialog_is_open = False
         if self.attach_path == None:
             def a_img_lb(sender):
                 self.attach_dialog.dismiss()
@@ -1926,6 +1966,7 @@ class SidebandApp(MDApp):
     ### Conversations screen
     ######################################       
     def conversations_action(self, sender=None, direction="left", no_transition=False):
+        self.rec_dialog_is_open = False
         if self.include_objects:
             self.include_conversations = True
             self.include_objects = False
@@ -5302,18 +5343,44 @@ The Propagation Nodes also distribute copies of messages between each other, suc
 If you use Reticulum and LXMF on hardware that does not carry any identifiers tied to you, it is possible to establish a completely free and anonymous communication system with Reticulum and LXMF clients."""
         
             guide_text8 = """
-[size=18dp][b]Keyboard Shortcuts[/b][/size][size=5dp]\n \n[/size] - [b]Ctrl+Q[/b] or [b]Ctrl-W[/b] Shut down Sideband
- - [b]Ctrl-R[/b] Go to Conversations
+[size=18dp][b]Keyboard Shortcuts[/b][/size][size=5dp]\n \n[/size]To ease navigation and operation of the program, Sideband has keyboard shortcuts mapped to the most common actions. A reference is included below.
+
+[b]Quick Actions[/b]
+ - [b]Ctrl-W[/b] Go back
+ - [b]Ctrl+Q[/b] Shut down Sideband
  - [b]Ctrl-R[/b] Start LXMF sync (from Conversations screen)
  - [b]Ctrl-N[/b] Create new conversation
- - [b]Ctrl-[i]n[/i][/b] Go to conversation number [i]n[/i]
+ 
+ [b]Message Actions[/b]
+ - [b]Ctrl-Shift-A[/b] add message attachment
+ - [b]Ctrl-Shift-V[/b] add high-quality voice
+ - [b]Ctrl-Shift-C[/b] add low-bandwidth voice
+ - [b]Ctrl-Shift-I[/b] add medium-quality image
+ - [b]Ctrl-Shift-F[/b] add file
  - [b]Ctrl-D[/b] or [b]Ctrl-S[/b] Send message
- - [b]Ctrl-U[/b] Display own telemetry
+
+ [b]Voice Recording[/b]
+ - [b]Space[/b] Start/stop recording
+ - [b]Enter[/b] Save recording to message
+
+ [b]Navigation[/b]
+ - [b]Ctrl-[i]n[/i][/b] Go to conversation number [i]n[/i]
+ - [b]Ctrl-R[/b] Go to Conversations
  - [b]Ctrl-O[/b] Go to Objects & Devices
  - [b]Ctrl-L[/b] Go to Announce Stream
  - [b]Ctrl-M[/b] Go to Situation Map
  - [b]Ctrl-T[/b] Go to Telemetry configuration
- - [b]Ctrl-G[/b] Go to Guide"""
+ - [b]Ctrl-G[/b] Go to Guide
+ - [b]Ctrl-U[/b] Display own telemetry
+
+[b]Map Controls[/b]
+ - [b]Up[/b], [b]down[/b], [b]left[/b], [b]right[/b] Navigate
+ - [b]W[/b], [b]A[/b], [b]S[/b], [b]D[/b] Navigate
+ - [b]H[/b], [b]J[/b], [b]L[/b], [b]K[/b] Navigate
+ - [b]E[/b] or [b]+[/b] Zoom in
+ - [b]Q[/b] or [b]-[/b] Zoom out
+ - Hold [b]Shift[/b] to navigate more coarsely
+ - Hold [b]Alt[/b] to navigate more finely"""
 
             guide_text9 = """
 [size=18dp][b]Please Support This Project[/b][/size][size=5dp]\n \n[/size]It took me more than seven years to design and built the entire ecosystem of software and hardware that makes this possible. If this project is valuable to you, please go to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project with a donation. Every donation directly makes the entire Reticulum project possible.
