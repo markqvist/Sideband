@@ -11,17 +11,17 @@ This also means that Sideband operates differently than what you might be used t
 
 Sideband provides many useful and interesting functions, such as:
 
-- Secure and self-sovereign messaging using the LXMF protocol over Reticulum.
-- Image and file transfers over all supported mediums.
-- Audio messages that work even over LoRa and radio links, thanks to [Codec2](https://github.com/drowe67/codec2/) and [Opus](https://github.com/xiph/opus) encoding.
-- Secure and direct P2P telemetry and location sharing. No third parties or servers ever have your data.
-- Situation display on both online and locally stored offline maps.
+- **Secure** and **self-sovereign** messaging using the LXMF protocol over Reticulum.
+- **Image** and **file transfers** over all supported mediums.
+- **Audio messages** that work even over **LoRa** and **radio links**, thanks to [Codec2](https://github.com/drowe67/codec2/) and [Opus](https://github.com/xiph/opus) encoding.
+- Secure and direct P2P **telemetry and location sharing**. No third parties or servers ever have your data.
+- Situation display on both online and **locally stored offline maps**.
 - Geospatial awareness calculations.
-- Exchanging messages through encrypted QR-codes on paper, or through messages embedded directly in **lxm://** links.
-- Using Android devices as impromptu Reticulum routers (*Transport Instances*), for setting up or extending networks easily.
-- Remote command execution and response engine, with built-in commands, such as `ping`, `signal` reports and `echo`.
-- Remote telemetry querying, with strong, secure and cryptographically robust authentication and control.
-- Plugin system that allows you to easily create your own commands, services and telemetry sources.
+- Exchanging messages through **encrypted QR-codes on paper**, or through messages embedded directly in **lxm://** links.
+- Using **Android devices as impromptu Reticulum routers** (*Transport Instances*), for setting up or extending networks easily.
+- Remote **command execution and response engine**, with built-in commands, such as `ping`, `signal` reports and `echo`, and **full plug-ing expandability**.
+- Remote **telemetry querying**, with strong, secure and cryptographically robust authentication and control.
+- **Plugin system** that allows you to easily **create your own commands**, services and telemetry sources.
 
 Sideband is fully compatible with other LXMF clients, such as [MeshChat](https://github.com/liamcottle/reticulum-meshchat), and [Nomad Network](https://github.com/markqvist/nomadnet). The Nomad Network client also allows you to easily host Propagation Nodes for your LXMF network, and more.
 
@@ -50,6 +50,9 @@ sudo apt install python3-pyaudio xclip xsel # Debian and derivatives
 
 # Install the Sideband application:
 pip install sbapp
+
+# Or, if pip is externally managed:
+pip install sbapp --break-system-packages
 
 # If you intend to run Sideband in headless
 # daemon mode, you can also install it without
