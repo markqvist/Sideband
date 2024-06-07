@@ -33,32 +33,23 @@ After the application is installed on your Android device, it is also possible t
 
 ## Installation On Linux
 
-On all Linux-based operating systems, Sideband is available as a `pip` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers. Depending on your system, you may need to install the `python-pyaudio` or `python3-pyaudio` package for audio messaging support. Make sure you have Python and `pip` installed (default on most modern distributions), and run:
+On all Linux-based operating systems, Sideband is available as a `pip` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers.
+
+Depending on your system, you may need to install the `python-pyaudio` or `python3-pyaudio` package for audio messaging support. Make sure you have Python and `pip` installed (default on most modern distributions), and run:
 
 ```bash
-# Depending on your distribution, you may need
-# to install the pyaudio package via the package
-# manager included in your distribution, with
-# a command like one of the following:
+# Depending on your distribution, you may
+# need to install the pyaudio, xclip and
+# xsel packages via the package manager
+# included in your distribution, using a
+# command such one of the following:
 
-pamac install python-pyaudio     # Manjaro
-sudo pacman -Sy python-pyaudio   # Arch
-sudo apt install python3-pyaudio # Debian and derivatives
+pamac install python-pyaudio xclip xsel     # Manjaro
+sudo pacman -Sy python-pyaudio xclip xsel   # Arch
+sudo apt install python3-pyaudio xclip xsel # Debian and derivatives
 
 # Install the Sideband application:
 pip install sbapp
-
-# Find the Sideband application in your launcher,
-# or run it directly from the command line:
-sideband
-
-# You can also run Sideband with more verbose
-# log output enabled:
-sideband -v
-
-# You can also run Sideband in headless daemon
-# mode, for example as a telemetry collector:
-sideband --daemon
 
 # If you intend to run Sideband in headless
 # daemon mode, you can also install it without
@@ -79,6 +70,24 @@ break-system-packages = true
 ```
 
 You can also simply add the `--break-system-packages` directive on a per-installation basis. For example, on a system that blocks normal user package installation, you can install Sideband by running `pip install sbapp --break-system-packages`.
+
+After installation is complete, you can either run Sideband from your launcher or applications menu, or from the command line:
+
+```bash
+
+# Find the Sideband application in your launcher,
+# or run it directly from the command line:
+sideband
+
+# You can also run Sideband with more verbose
+# log output enabled:
+sideband -v
+
+# You can also run Sideband in headless daemon
+# mode, for example as a telemetry collector:
+sideband --daemon
+
+```
 
 ## Installation On macOS
 
@@ -120,7 +129,11 @@ When running Sideband for the first time, a default Reticulum configuration file
 
 ## Installation With pipx
 
-You *can* use the `pipx` tool to install Sideband in an isolated environment, but on Linux you will have to launch Sideband from the command line, or create your own launcher links, since `pipx` does not support desktop integration. Unfortunately, it does not seem like `pipx` will be adding desktop integration in the near future, so restoring the original `pip` tool to its proper behaviour is recommended for now. If you want to use `pipx` anyway, it is as simple as:
+While I wouldn't generally recommend it, you *can* use the `pipx` tool to install Sideband, but on Linux you will have to launch Sideband from the command line, or create your own launcher links, since `pipx` does not support desktop integration. Unfortunately, it does not seem like `pipx` will be adding desktop integration in the near future, so restoring the original `pip` tool to its proper behaviour is recommended for now.
+
+The `pipx` installer also has trouble with including distribution-installed Python packages, so you will need to install additional packages on your system that will allow `pipx` to build required dependencies from source. In general, it will require a working build environment and header files for PortAudio. On Debian and derivatives, this would look something like `sudo apt install build-essential portaudio19-dev`. On Manjaro you would want something like `pamac install base-devel portaudio`.
+
+If you want to use `pipx` anyway, and after the necessary dependencies are installed, you can simply do:
 
 ```bash
 # Install Sideband on Linux:
