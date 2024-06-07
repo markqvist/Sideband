@@ -9,6 +9,8 @@ Sideband is completely free, end-to-end encrypted, permission-less, anonymous an
 
 This also means that Sideband operates differently than what you might be used to. It does not need a connection to a server on the Internet to function, and you do not have an account anywhere. Please read the Guide section included in the program, to get an understanding of how Sideband differs from other messaging systems.
 
+## Functionality & Features
+
 Sideband provides many useful and interesting functions, such as:
 
 - **Secure** and **self-sovereign** messaging using the LXMF protocol over Reticulum.
