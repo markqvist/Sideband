@@ -33,7 +33,9 @@ After the application is installed on your Android device, it is also possible t
 
 ## Installation On Linux
 
-On all Linux-based operating systems, Sideband is available as a `pip` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers. Depending on your system, you may need to install the `python-pyaudio` or `python3-pyaudio` package for audio messaging support. Make sure you have Python and `pip` installed (default on most modern distributions), and run:
+On all Linux-based operating systems, Sideband is available as a `pip` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers.
+
+Depending on your system, you may need to install the `python-pyaudio` or `python3-pyaudio` package for audio messaging support. Make sure you have Python and `pip` installed (default on most modern distributions), and run:
 
 ```bash
 # Depending on your distribution, you may need
