@@ -48,18 +48,6 @@ sudo apt install python3-pyaudio # Debian and derivatives
 # Install the Sideband application:
 pip install sbapp
 
-# Find the Sideband application in your launcher,
-# or run it directly from the command line:
-sideband
-
-# You can also run Sideband with more verbose
-# log output enabled:
-sideband -v
-
-# You can also run Sideband in headless daemon
-# mode, for example as a telemetry collector:
-sideband --daemon
-
 # If you intend to run Sideband in headless
 # daemon mode, you can also install it without
 # any of the normal UI dependencies:
@@ -79,6 +67,24 @@ break-system-packages = true
 ```
 
 You can also simply add the `--break-system-packages` directive on a per-installation basis. For example, on a system that blocks normal user package installation, you can install Sideband by running `pip install sbapp --break-system-packages`.
+
+After installation is complete, you can either run Sideband from your launcher or applications menu, or from the command line:
+
+```bash
+
+# Find the Sideband application in your launcher,
+# or run it directly from the command line:
+sideband
+
+# You can also run Sideband with more verbose
+# log output enabled:
+sideband -v
+
+# You can also run Sideband in headless daemon
+# mode, for example as a telemetry collector:
+sideband --daemon
+
+```
 
 ## Installation On macOS
 
