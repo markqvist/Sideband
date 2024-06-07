@@ -33,15 +33,28 @@ After the application is installed on your Android device, it is also possible t
 
 ## Installation On Linux
 
-On all Linux-based operating systems, Sideband is available as a `pip` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers. Make sure you have Python and `pip` installed (default on most modern distributions), and run:
+On all Linux-based operating systems, Sideband is available as a `pip` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers. Depending on your system, you may need to install the `python-pyaudio` or `python3-pyaudio` package for audio messaging support. Make sure you have Python and `pip` installed (default on most modern distributions), and run:
 
 ```bash
-# Install Sideband and dependencies on Linux:
+# Depending on your distribution, you may need
+# to install the pyaudio package via the package
+# manager included in your distribution, with
+# a command like one of the following:
+
+pamac install python-pyaudio     # Manjaro
+sudo pacman -Sy python-pyaudio   # Arch
+sudo apt install python3-pyaudio # Debian and derivatives
+
+# Install the Sideband application:
 pip install sbapp
 
 # Find the Sideband application in your launcher,
 # or run it directly from the command line:
 sideband
+
+# You can also run Sideband with more verbose
+# log output enabled:
+sideband -v
 
 # You can also run Sideband in headless daemon
 # mode, for example as a telemetry collector:
