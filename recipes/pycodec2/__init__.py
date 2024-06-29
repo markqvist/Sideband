@@ -27,10 +27,11 @@ class PyCodec2Recipe(CythonRecipe):
     def build_arch(self, arch):
         super().build_arch(arch)
         with current_directory(self.get_build_dir(arch.arch)):
-            print(arch.arch)
-            print(arch)
-            shprint(sh.Command("pwd"))
-            shprint(sh.Command("ls"))
+            pass
+            # print(arch.arch)
+            # print(arch)
+            # shprint(sh.Command("pwd"))
+            # shprint(sh.Command("ls"))
             
             # pe_args = ["--replace-needed", "libcodec2.so.1.2", "libcodec2.so", "build/lib.linux-x86_64-3.11/pycodec2/pycodec2.cpython-311-x86_64-linux-gnu.so"]
             # shprint(sh.Command("patchelf"), *pe_args)
