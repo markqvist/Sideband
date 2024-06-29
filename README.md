@@ -9,7 +9,7 @@ Sideband is completely free, end-to-end encrypted, permission-less, anonymous an
 
 This also means that Sideband operates differently than what you might be used to. It does not need a connection to a server on the Internet to function, and you do not have an account anywhere. Please read the Guide section included in the program, to get an understanding of how Sideband differs from other messaging systems.
 
-## Functionality & Features
+# Functionality & Features
 
 Sideband provides many useful and interesting functions, such as:
 
@@ -28,6 +28,8 @@ Sideband provides many useful and interesting functions, such as:
 Sideband is fully compatible with other LXMF clients, such as [MeshChat](https://github.com/liamcottle/reticulum-meshchat), and [Nomad Network](https://github.com/markqvist/nomadnet). The Nomad Network client also allows you to easily host Propagation Nodes for your LXMF network, and more.
 
 # Installation
+
+Sideband can run on most computing devices, but installation methods vary by device type and operating system. For installation instructions, please find the relevant section below.
 
 ## On Android
 
@@ -106,9 +108,41 @@ pip install sbapp --no-dependencies
 pip install rns lxmf
 ```
 
+## On Raspberry Pi
+
+You can install Sideband on all Raspberry Pi models that support 64-bit operating systems, and can run at least Python version 3.11. Since some of Sideband's dependencies don't have pre-built packages ready for 64-bit ARM processors yet, you'll need to install a few extra packages, that will allow building these while installing.
+
+Aditionally, the `pycodec2` package needs to be installed manually. I have provided a pre-built version, that you can download and install with a single command, or if you don't want to trust my pre-built version, you can [build and install it from source yourself](https://github.com/gregorias/pycodec2/blob/main/DEV.md).
+
+The install instructions below assume that you are installing Sideband on 64-bit Raspberry Pi OS (based on Debian Bookworm). If you're running something else on your Pi, you might need to modify some commands slightly. To install Sideband on Raspberry Pi, follow these steps:
+
+```bash
+# First of all, install the required dependencies:
+sudo apt install python3-pip python3-pyaudio python3-dev python3-cryptography build-essential libopusfile0 libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev portaudio19-dev codec2 libcodec2-1.0 xclip xsel
+
+# If you don't want to compile pycodec2 yourself,
+# download the pre-compiled package provided here
+wget https://raw.githubusercontent.com/markqvist/Sideband/main/docs/utilities/pycodec2-3.0.1-cp311-cp311-linux_aarch64.whl
+
+# Install it:
+pip install ./pycodec2-3.0.1-cp311-cp311-linux_aarch64.whl --break-system-packages
+
+# You can now install Sideband
+pip install sbapp --break-system-packages
+
+# Restart your Raspberry Pi
+sudo reboot
+
+# Everything is ready! You can now run Sideband
+# from the terminal, or from the application menu
+sideband
+```
+
 ## On macOS
 
 A DMG file containing a macOS app bundle is available on the [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
+
+Please note that audio messaging functionality isn't supported on macOS yet. Please support the development if you'd like to see this feature added faster.
 
 Alternatively, you can install Sideband with ``pip3`` on macOS:
 
@@ -132,6 +166,8 @@ If you have not already installed Python and `pip3` on your macOS system, [downl
 
 Even though there is currently not an automated installer, or packaged `.exe` file for Sideband on Windows, you can still install it through `pip`. If you don't already have Python installed, [download and install](https://www.python.org/downloads/) the latest version of Python.
 
+Please note that audio messaging functionality isn't supported on Windows yet. Please support the development if you'd like to see this feature added faster.
+
 **Important!** When asked by the installer, make sure to add the Python program to your PATH environment variables. If you don't do this, you will not be able to use the `pip` installer, or run the `sideband` command.
 
 When Python has been installed, you can open a command prompt and install sideband via `pip`:
@@ -144,7 +180,7 @@ The Sideband application can now be launched by running the command `sideband` i
 
 When running Sideband for the first time, a default Reticulum configuration file will be created, if you don't already have one. If you don't have any existing Reticulum connectivity available locally, you may want to edit the file, located at `C:\Users\USERNAME\.reticulum\config` and manually add an interface that provides connectivity to a wider network. If you just want to connect over the Internet, you can add one of the public hubs on the [Reticulum Testnet](https://reticulum.network/connect.html).
 
-## Example Paper Message
+# Paper Messaging Example
 
 You can try out the paper messaging functionality by using the following QR-code. It is a paper message sent to the LXMF address `6b3362bd2c1dbf87b66a85f79a8d8c75`. To be able to decrypt and read the message, you will need to import the following base32-encoded Reticulum Identity into the app:
 
@@ -160,7 +196,7 @@ You can also find the entire message in <a href="lxm://azNivSwdv4e2aoX3mo2MdTAoz
 
 On operating systems that allow for registering custom URI-handlers, you can click the link, and it will be decoded directly in your LXMF client. This works with Sideband on Android.
 
-## Support Sideband Development
+# Support Sideband Development
 You can help support the continued development of open, free and private communications systems by donating via one of the following channels:
 
 - Monero:
@@ -179,7 +215,7 @@ You can help support the continued development of open, free and private communi
 
 <br/>
 
-## Development Roadmap
+# Development Roadmap
 
 - <s>Secure and private location and telemetry sharing</s>
 - <s>Including images in messages</s>
@@ -199,7 +235,7 @@ You can help support the continued development of open, free and private communi
 - Fix I2P status not being displayed correctly when the I2P router disappears unexpectedly
 - Adding a Nomad Net page browser
 
-## License
+# License
 Unless otherwise noted, this work is licensed under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License][cc-by-nc-sa].
 
 Permission is hereby granted to use Sideband in binary form, for any and all purposes, and to freely distribute binary copies of the program, so long as no payment or compensation is charged or received for such distribution or use.
