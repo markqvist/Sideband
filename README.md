@@ -51,6 +51,11 @@ pamac install python-pipx python-pyaudio base-devel codec2 xclip xsel
 # For Arch and derivatives
 sudo pacman -Sy python-pipx python-pyaudio base-devel codec2 xclip xsel
 
+```
+
+Once dependencies are installed, install the Sideband application itself:
+
+```bash
 # If this is the first time installing something with pipx,
 # you may need to use the following command, to make your
 # installed applications available. You'll probably need
