@@ -104,6 +104,7 @@ setuptools.setup(
         "materialyoucolor>=2.0.7",
         "ffpyplayer",
         "sh",
+        "numpy<=1.26.4",
         "pycodec2;platform_system!='Windows'",
         "pyaudio;sys.platform=='linux'",
         "pyobjus;sys.platform=='darwin'",
