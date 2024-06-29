@@ -271,6 +271,58 @@ class SidebandCore():
 
             threading.Thread(target=load_job, daemon=True).start()
 
+            if RNS.vendor.platformutils.is_linux():
+                try:
+                    if not self.is_daemon:
+                        lde_level = RNS.LOG_DEBUG
+                        RNS.log("Checking desktop integration...", lde_level)
+                        local_share_dir = os.path.expanduser("~/.local/share")
+                        app_entry_dir = os.path.expanduser("~/.local/share/applications")
+                        icon_dir = os.path.expanduser("~/.local/share/icons/hicolor/512x512/apps")
+                        de_filename = "io.unsigned.sideband.desktop"
+                        de_source = self.asset_dir+"/"+de_filename
+                        de_target = app_entry_dir+"/"+de_filename
+                        icn_source = self.asset_dir+"/icon.png"
+                        icn_target = icon_dir+"/io.unsigned.sideband.png"
+                        if os.path.isdir(local_share_dir):
+                            if not os.path.exists(app_entry_dir):
+                                os.makedirs(app_entry_dir)
+
+                            update_de = False
+                            if not os.path.exists(de_target):
+                                update_de = True
+                            else:
+                                included_de_version = ""
+                                with open(de_source, "rb") as sde_file:
+                                    included_de_version = sde_file.readline()
+                                existing_de_version = None
+                                with open(de_target, "rb") as de_file:
+                                    existing_de_version = de_file.readline()
+
+                                if included_de_version != existing_de_version:
+                                    update_de = True
+                                    RNS.log("Existing desktop entry doesn't match included, updating it", lde_level)
+                                else:
+                                    update_de = False
+                                    RNS.log("Existing desktop entry matches included, not updating it", lde_level)
+
+                            if update_de:
+                                RNS.log("Setting up desktop integration...", lde_level)
+                                import shutil
+                                RNS.log("Installing menu entry to \""+str(de_target)+"\"...", lde_level)
+                                shutil.copy(de_source, de_target)
+                                if not os.path.exists(icon_dir):
+                                    os.makedirs(icon_dir)
+                                RNS.log("Installing icon to \""+str(icn_target)+"\"...", lde_level)
+                                shutil.copy(icn_source, icn_target)
+                            else:
+                                RNS.log("Desktop integration is already set up", lde_level)
+
+                except Exception as e:
+                    RNS.log("An error occurred while setting up desktop integration: "+str(e), RNS.LOG_ERROR)
+                    RNS.trace_exception(e)
+
+
     def clear_tmp_dir(self):
         if os.path.isdir(self.tmp_dir):
             for file in os.listdir(self.tmp_dir):
@@ -1532,9 +1584,19 @@ class SidebandCore():
 
     def __db_connect(self):
         if self.db == None:
-            self.db = sqlite3.connect(self.db_path, check_same_thread=False)
+            self.db = sqlite3.connect(self.db_path, check_same_thread=False, timeout=15.0)
 
         return self.db
+
+    def __db_reconnect(self):
+        if self.db != None:
+            try:
+                self.db.close()
+            except Exception as e:
+                RNS.log("Error while closing database for reconnect. The contained exception was:", RNS.LOG_ERROR)
+                RNS.trace_exception(e)
+        self.db = None
+        return self.__db_connect()
 
     def __db_init(self):
         db = self.__db_connect()
@@ -1593,67 +1655,6 @@ class SidebandCore():
         # dbc.execute("CREATE TABLE state (property BLOB PRIMARY KEY, value BLOB)")
         # db.commit()
         self.setstate("database_ready", True)
-
-    # def _db_getstate(self, prop):
-    #     try:
-    #         db = self.__db_connect()
-    #         dbc = db.cursor()
-
-    #         query = "select * from state where property=:uprop"
-    #         dbc.execute(query, {"uprop": prop.encode("utf-8")})
-            
-    #         result = dbc.fetchall()
-
-    #         if len(result) < 1:
-    #             return None
-    #         else:
-    #             try:
-    #                 entry = result[0]
-    #                 val = msgpack.unpackb(entry[1])
-                    
-    #                 return val
-    #             except Exception as e:
-    #                 RNS.log("Could not unpack state value from database for property \""+str(prop)+"\". The contained exception was: "+str(e), RNS.LOG_ERROR)
-    #                 return None
-
-    #     except Exception as e:
-    #         RNS.log("An error occurred during getstate database operation: "+str(e), RNS.LOG_ERROR)
-    #         self.db = None
-
-    # def _db_setstate(self, prop, val):
-    #     try:
-    #         uprop = prop.encode("utf-8")
-    #         bval = msgpack.packb(val)
-
-    #         if self._db_getstate(prop) == None:
-    #             try:
-    #                 db = self.__db_connect()
-    #                 dbc = db.cursor()
-    #                 query = "INSERT INTO state (property, value) values (?, ?)"
-    #                 data = (uprop, bval)
-    #                 dbc.execute(query, data)
-    #                 db.commit()
-
-    #             except Exception as e:
-    #                 RNS.log("Error while setting state property "+str(prop)+" in DB: "+str(e), RNS.LOG_ERROR)
-    #                 RNS.log("Retrying as update query...", RNS.LOG_ERROR)
-    #                 db = self.__db_connect()
-    #                 dbc = db.cursor()
-    #                 query = "UPDATE state set value=:bval where property=:uprop;"
-    #                 dbc.execute(query, {"bval": bval, "uprop": uprop})
-    #                 db.commit()
-
-    #         else:
-    #             db = self.__db_connect()
-    #             dbc = db.cursor()
-    #             query = "UPDATE state set value=:bval where property=:uprop;"
-    #             dbc.execute(query, {"bval": bval, "uprop": uprop})
-    #             db.commit()
-
-
-    #     except Exception as e:
-    #         RNS.log("An error occurred during setstate database operation: "+str(e), RNS.LOG_ERROR)
-    #         self.db = None
 
     def _db_initpersistent(self):
         db = self.__db_connect()
@@ -1721,35 +1722,49 @@ class SidebandCore():
             RNS.log("An error occurred during persistent setstate database operation: "+str(e), RNS.LOG_ERROR)
             self.db = None
 
-    def _db_conversation_update_txtime(self, context_dest):
-        db = self.__db_connect()
-        dbc = db.cursor()
+    def _db_conversation_update_txtime(self, context_dest, is_retry = False):
+        try:
+            db = self.__db_connect()
+            dbc = db.cursor()
 
-        query = "UPDATE conv set last_tx = ? where dest_context = ?"
-        data = (time.time(), context_dest)
+            query = "UPDATE conv set last_tx = ? where dest_context = ?"
+            data = (time.time(), context_dest)
 
-        dbc.execute(query, data)
-        result = dbc.fetchall()
-        db.commit()
+            dbc.execute(query, data)
+            result = dbc.fetchall()
+            db.commit()
+        except Exception as e:
+            RNS.log("An error occurred while updating conversation TX time: "+str(e), RNS.LOG_ERROR)
+            self.__db_reconnect()
+            if not is_retry:
+                RNS.log("Retrying operation...", RNS.LOG_ERROR)
+                self._db_conversation_update_txtime(context_dest, is_retry=True)
 
-    def _db_conversation_set_unread(self, context_dest, unread, tx = False):
-        db = self.__db_connect()
-        dbc = db.cursor()
-        
-        if unread:
-            if tx:
-                query = "UPDATE conv set unread = ?, last_tx = ? where dest_context = ?"
-                data = (unread, time.time(), context_dest)
+    def _db_conversation_set_unread(self, context_dest, unread, tx = False, is_retry = False):
+        try:
+            db = self.__db_connect()
+            dbc = db.cursor()
+            
+            if unread:
+                if tx:
+                    query = "UPDATE conv set unread = ?, last_tx = ? where dest_context = ?"
+                    data = (unread, time.time(), context_dest)
+                else:
+                    query = "UPDATE conv set unread = ?, last_rx = ? where dest_context = ?"
+                    data = (unread, time.time(), context_dest)
             else:
-                query = "UPDATE conv set unread = ?, last_rx = ? where dest_context = ?"
-                data = (unread, time.time(), context_dest)
-        else:
-            query = "UPDATE conv set unread = ? where dest_context = ?"
-            data = (unread, context_dest)
+                query = "UPDATE conv set unread = ? where dest_context = ?"
+                data = (unread, context_dest)
 
-        dbc.execute(query, data)
-        result = dbc.fetchall()
-        db.commit()
+            dbc.execute(query, data)
+            result = dbc.fetchall()
+            db.commit()
+        except Exception as e:
+            RNS.log("An error occurred while updating conversation unread flag: "+str(e), RNS.LOG_ERROR)
+            self.__db_reconnect()
+            if not is_retry:
+                RNS.log("Retrying operation...", RNS.LOG_ERROR)
+                self._db_conversation_set_unread(context_dest, unread, tx, is_retry=True)
 
     def _db_telemetry(self, context_dest = None, after = None, before = None, limit = None):
         db = self.__db_connect()
@@ -1805,7 +1820,7 @@ class SidebandCore():
             
             return results
 
-    def _db_save_telemetry(self, context_dest, telemetry, physical_link = None, source_dest = None, via = None):
+    def _db_save_telemetry(self, context_dest, telemetry, physical_link = None, source_dest = None, via = None, is_retry = False):
         try:
             remote_telemeter = Telemeter.from_packed(telemetry)
             read_telemetry = remote_telemeter.read_all()
@@ -1869,7 +1884,17 @@ class SidebandCore():
             query = "INSERT INTO telemetry (dest_context, ts, data) values (?, ?, ?)"
             data = (context_dest, telemetry_timestamp, telemetry)
             dbc.execute(query, data)
-            db.commit()
+
+            try:
+                db.commit()
+            except Exception as e:
+                RNS.log("An error occurred while commiting telemetry to database: "+str(e), RNS.LOG_ERROR)
+                self.__db_reconnect()
+                if not is_retry:
+                    RNS.log("Retrying operation...", RNS.LOG_ERROR)
+                    self._db_save_telemetry(context_dest, telemetry, physical_link, source_dest, via, is_retry = True)
+                return
+
             self.setstate("app.flags.last_telemetry", time.time())
 
             return telemetry
@@ -1961,7 +1986,7 @@ class SidebandCore():
         return None
 
 
-    def _db_conversation_set_telemetry(self, context_dest, send_telemetry=False):
+    def _db_conversation_set_telemetry(self, context_dest, send_telemetry=False, is_retry = False):
         conv = self._db_conversation(context_dest)
         data_dict = conv["data"]
         if data_dict == None:
@@ -1977,9 +2002,17 @@ class SidebandCore():
         data = (packed_dict, context_dest)
         dbc.execute(query, data)
         result = dbc.fetchall()
-        db.commit()
 
-    def _db_conversation_set_requests(self, context_dest, allow_requests=False):
+        try:
+            db.commit()
+        except Exception as e:
+            RNS.log("An error occurred while updating conversation telemetry options: "+str(e), RNS.LOG_ERROR)
+            self.__db_reconnect()
+            if not is_retry:
+                RNS.log("Retrying operation...", RNS.LOG_ERROR)
+                self._db_conversation_set_telemetry(context_dest, send_telemetry, is_retry=True)
+
+    def _db_conversation_set_requests(self, context_dest, allow_requests=False, is_retry=False):
         conv = self._db_conversation(context_dest)
         data_dict = conv["data"]
         if data_dict == None:
@@ -1995,7 +2028,15 @@ class SidebandCore():
         data = (packed_dict, context_dest)
         dbc.execute(query, data)
         result = dbc.fetchall()
-        db.commit()
+
+        try:
+            db.commit()
+        except Exception as e:
+            RNS.log("An error occurred while updating conversation request options: "+str(e), RNS.LOG_ERROR)
+            self.__db_reconnect()
+            if not is_retry:
+                RNS.log("Retrying operation...", RNS.LOG_ERROR)
+                self._db_conversation_set_requests(context_dest, allow_requests, is_retry=True)
 
     def _db_conversation_set_object(self, context_dest, is_object=False):
         conv = self._db_conversation(context_dest)
@@ -2013,7 +2054,15 @@ class SidebandCore():
         data = (packed_dict, context_dest)
         dbc.execute(query, data)
         result = dbc.fetchall()
-        db.commit()
+
+        try:
+            db.commit()
+        except Exception as e:
+            RNS.log("An error occurred while updating conversation object option: "+str(e), RNS.LOG_ERROR)
+            self.__db_reconnect()
+            if not is_retry:
+                RNS.log("Retrying operation...", RNS.LOG_ERROR)
+                self._db_conversation_set_object(context_dest, is_object, is_retry=True)
 
     def _db_conversation_set_trusted(self, context_dest, trusted):
         db = self.__db_connect()
@@ -2023,7 +2072,15 @@ class SidebandCore():
         data = (trusted, context_dest)
         dbc.execute(query, data)
         result = dbc.fetchall()
-        db.commit()
+
+        try:
+            db.commit()
+        except Exception as e:
+            RNS.log("An error occurred while updating conversation trusted option: "+str(e), RNS.LOG_ERROR)
+            self.__db_reconnect()
+            if not is_retry:
+                RNS.log("Retrying operation...", RNS.LOG_ERROR)
+                self._db_conversation_set_trusted(context_dest, trusted, is_retry=True)
 
     def _db_conversation_set_name(self, context_dest, name):
         db = self.__db_connect()
@@ -2032,7 +2089,15 @@ class SidebandCore():
         query = "UPDATE conv set name=:name_data where dest_context=:ctx;"
         dbc.execute(query, {"ctx": context_dest, "name_data": name.encode("utf-8")})
         result = dbc.fetchall()
-        db.commit()
+        
+        try:
+            db.commit()
+        except Exception as e:
+            RNS.log("An error occurred while updating conversation name option: "+str(e), RNS.LOG_ERROR)
+            self.__db_reconnect()
+            if not is_retry:
+                RNS.log("Retrying operation...", RNS.LOG_ERROR)
+                self._db_conversation_set_name(context_dest, name, is_retry=True)
 
     def _db_conversations(self, conversations=True, objects=False):
         db = self.__db_connect()
@@ -2208,15 +2273,23 @@ class SidebandCore():
         dbc.execute(query, {"outbound_state": LXMF.LXMessage.OUTBOUND, "sending_state": LXMF.LXMessage.SENDING})
         db.commit()
 
-    def _db_message_set_state(self, lxm_hash, state):
+    def _db_message_set_state(self, lxm_hash, state, is_retry=False):
         db = self.__db_connect()
         dbc = db.cursor()
         
         query = "UPDATE lxm set state = ? where lxm_hash = ?"
         data = (state, lxm_hash)
         dbc.execute(query, data)
-        db.commit()
-        result = dbc.fetchall()
+
+        try:
+            db.commit()
+            result = dbc.fetchall()
+        except Exception as e:
+            RNS.log("An error occurred while updating message state: "+str(e), RNS.LOG_ERROR)
+            self.__db_reconnect()
+            if not is_retry:
+                RNS.log("Retrying operation...", RNS.LOG_ERROR)
+                self._db_message_set_state(lxm_hash, state, is_retry=True)
 
     def _db_message_set_method(self, lxm_hash, method):
         db = self.__db_connect()
@@ -2225,8 +2298,16 @@ class SidebandCore():
         query = "UPDATE lxm set method = ? where lxm_hash = ?"
         data = (method, lxm_hash)
         dbc.execute(query, data)
-        db.commit()
-        result = dbc.fetchall()
+
+        try:
+            db.commit()
+            result = dbc.fetchall()
+        except Exception as e:
+            RNS.log("An error occurred while updating message method: "+str(e), RNS.LOG_ERROR)
+            self.__db_reconnect()
+            if not is_retry:
+                RNS.log("Retrying operation...", RNS.LOG_ERROR)
+                self._db_message_set_method(lxm_hash, method, is_retry=True)
 
     def message(self, msg_hash):
         return self._db_message(msg_hash)
@@ -2347,7 +2428,7 @@ class SidebandCore():
                 messages = messages[-limit:]
             return messages
 
-    def _db_save_lxm(self, lxm, context_dest, originator = False, own_command = False):
+    def _db_save_lxm(self, lxm, context_dest, originator = False, own_command = False, is_retry = False):
         state = lxm.state
 
         packed_telemetry = None
@@ -2426,7 +2507,16 @@ class SidebandCore():
             )
 
             dbc.execute(query, data)
-            db.commit()
+
+            try:
+                db.commit()
+            except Exception as e:
+                RNS.log("An error occurred while saving message to database: "+str(e), RNS.LOG_ERROR)
+                self.__db_reconnect()
+                if not is_retry:
+                    RNS.log("Retrying operation...", RNS.LOG_ERROR)
+                    self._db_save_lxm(lxm, context_dest, originator = originator, own_command = own_command, is_retry = True)
+                return
 
             self.__event_conversation_changed(context_dest)
 
