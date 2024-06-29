@@ -27,74 +27,77 @@ Sideband provides many useful and interesting functions, such as:
 
 Sideband is fully compatible with other LXMF clients, such as [MeshChat](https://github.com/liamcottle/reticulum-meshchat), and [Nomad Network](https://github.com/markqvist/nomadnet). The Nomad Network client also allows you to easily host Propagation Nodes for your LXMF network, and more.
 
-## Installation On Android
+# Installation
+
+## On Android
 
 For your Android devices, you can install Sideband through F-Droid, by adding the [Between the Borders Repo](https://reticulum.betweentheborders.com/fdroid/repo/), or you can download an [APK on the latest release](https://github.com/markqvist/Sideband/releases/latest) page. Both sources are signed with the same release keys, and can be used interchangably.
 
 After the application is installed on your Android device, it is also possible to pull updates directly through the **Repository** section of the application.
 
-## Installation On Linux
+## On Linux
 
-On all Linux-based operating systems, Sideband is available as a `pip` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers.
+On all Linux-based operating systems, Sideband is available as a `pipy`/`pip` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers.
 
-Depending on your system, you may need to install the `python-pyaudio` or `python3-pyaudio` package for audio messaging support. Make sure you have Python and `pip` installed (default on most modern distributions), and run:
-
-```bash
-# Depending on your distribution, you may
-# need to install the pyaudio, xclip and
-# xsel packages via the package manager
-# included in your distribution, using a
-# command such one of the following:
-
-pamac install python-pyaudio xclip xsel     # Manjaro
-sudo pacman -Sy python-pyaudio xclip xsel   # Arch
-sudo apt install python3-pyaudio xclip xsel # Debian and derivatives
-
-# Install the Sideband application:
-pip install sbapp
-
-# Or, if pip is externally managed:
-pip install sbapp --break-system-packages
-
-# If you intend to run Sideband in headless
-# daemon mode, you can also install it without
-# any of the normal UI dependencies:
-pip install sbapp --no-dependencies
-
-# In this case, you will still need to manually
-# install the minimum RNS and LXMF dependencies:
-pip install rns lxmf
-
-```
-
-**Please Note!** If you are using an operating system that blocks normal user package installation via `pip`, it's easy to permanently return `pip` to normal behaviour by editing the `~/.config/pip/pip.conf` file, and adding the following directive in the `[global]` section:
-
-```text
-[global]
-break-system-packages = true
-```
-
-You can also simply add the `--break-system-packages` directive on a per-installation basis. For example, on a system that blocks normal user package installation, you can install Sideband by running `pip install sbapp --break-system-packages`.
-
-After installation is complete, you can either run Sideband from your launcher or applications menu, or from the command line:
+Depending on your system, you will first need to install a few dependencies for audio messaging and Codec2 support to work:
 
 ```bash
+# For Debian, Ubuntu and derivatives
+sudo apt install pipx python3-pyaudio python3-dev build-essential libopusfile0 portaudio19-dev codec2 xclip xsel
 
-# Find the Sideband application in your launcher,
-# or run it directly from the command line:
+# For Manjaro and derivatives
+pamac install python-pipx python-pyaudio base-devel codec2 xclip xsel
+
+# For Arch and derivatives
+sudo pacman -Sy python-pipx python-pyaudio base-devel codec2 xclip xsel
+
+# If this is the first time installing something with pipx,
+# you may need to use the following command, to make your
+# installed applications available. You'll probably need
+# to close and reopen your terminal after this.
+pipx ensurepath
+
+# Finally, install Sideband using pipx:
+pipx install sbapp
+
+# The first time you run Sideband, you will need to do it
+# from the terminal:
 sideband
 
-# You can also run Sideband with more verbose
-# log output enabled:
-sideband -v
+# At the first launch, it will add an application icon
+# to your launcher or apps menu. You may need to log out
+# of your session, and back in for the application to
+# show up in your launcher, depending on your distro.
 
 # You can also run Sideband in headless daemon
 # mode, for example as a telemetry collector:
 sideband --daemon
 
+# You can also run Sideband with more verbose
+# log output enabled:
+sideband -v
 ```
 
-## Installation On macOS
+You can also install Sideband in various alternative ways:
+
+```bash
+# Install Sideband via pip instead of pipx:
+pip install sbapp
+
+# Or, if pip is externally managed:
+pip install sbapp --break-system-packages
+
+# Or, if you intend to run Sideband in headless
+# daemon mode, you can also install it without
+# any of the normal UI dependencies:
+pip install sbapp --no-dependencies
+
+# In the above case, you will still need to
+# manually install the RNS and LXMF dependencies:
+pip install rns lxmf
+```
+
+## On macOS
 
 A DMG file containing a macOS app bundle is available on the [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
 
@@ -116,7 +119,7 @@ sideband
 
 If you have not already installed Python and `pip3` on your macOS system, [download and install](https://www.python.org/downloads/) the latest version first.
 
-## Installation On Windows
+## On Windows
 
 Even though there is currently not an automated installer, or packaged `.exe` file for Sideband on Windows, you can still install it through `pip`. If you don't already have Python installed, [download and install](https://www.python.org/downloads/) the latest version of Python.
 
@@ -131,28 +134,6 @@ pip install sbapp
 The Sideband application can now be launched by running the command `sideband` in the command prompt. If needed, you can create a shortcut for Sideband on your desktop or in the start menu.
 
 When running Sideband for the first time, a default Reticulum configuration file will be created, if you don't already have one. If you don't have any existing Reticulum connectivity available locally, you may want to edit the file, located at `C:\Users\USERNAME\.reticulum\config` and manually add an interface that provides connectivity to a wider network. If you just want to connect over the Internet, you can add one of the public hubs on the [Reticulum Testnet](https://reticulum.network/connect.html).
-
-## Installation With pipx
-
-While I wouldn't generally recommend it, you *can* use the `pipx` tool to install Sideband, but on Linux you will have to launch Sideband from the command line, or create your own launcher links, since `pipx` does not support desktop integration. Unfortunately, it does not seem like `pipx` will be adding desktop integration in the near future, so restoring the original `pip` tool to its proper behaviour is recommended for now.
-
-The `pipx` installer also has trouble with including distribution-installed Python packages, so you will need to install additional packages on your system that will allow `pipx` to build required dependencies from source. In general, it will require a working build environment and header files for PortAudio. On Debian and derivatives, this would look something like `sudo apt install build-essential portaudio19-dev`. On Manjaro you would want something like `pamac install base-devel portaudio`.
-
-If you want to use `pipx` anyway, and after the necessary dependencies are installed, you can simply do:
-
-```bash
-# Install Sideband on Linux:
-pipx install sbapp
-
-# Install Sideband on macOS:
-pipx install "sbapp[macos]"
-
-# Optionally install Reticulum utilities:
-pipx install rns
-
-# Optionally install standalone LXMF utilities:
-pipx install lxmf
-```
 
 ## Example Paper Message
 
