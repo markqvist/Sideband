@@ -31,6 +31,12 @@ Sideband is fully compatible with other LXMF clients, such as [MeshChat](https:/
 
 Sideband can run on most computing devices, but installation methods vary by device type and operating system. For installation instructions, please find the relevant section below.
 
+- [Android](#on-android)
+- [Linux](#on-linux)
+- [Raspberry Pi](#on-raspberry-pi)
+- [MacOS](#on-macos)
+- [Windows](#on-windows)
+
 ## On Android
 
 For your Android devices, you can install Sideband through F-Droid, by adding the [Between the Borders Repo](https://reticulum.betweentheborders.com/fdroid/repo/), or you can download an [APK on the latest release](https://github.com/markqvist/Sideband/releases/latest) page. Both sources are signed with the same release keys, and can be used interchangably.
