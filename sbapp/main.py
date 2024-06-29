@@ -1612,7 +1612,11 @@ class SidebandApp(MDApp):
                 temp_path = None
                 if self.last_msg_audio != audio_field[1]:
                     RNS.log("Reloading audio source", RNS.LOG_DEBUG)
-                    self.last_msg_audio = audio_field[1]
+                    if len(audio_field[1]) > 10:
+                        self.last_msg_audio = audio_field[1]
+                    else:
+                        self.last_msg_audio = None
+                        return
 
                     if audio_field[0] == LXMF.AM_OPUS_OGG:
                         temp_path = self.sideband.rec_cache+"/msg.ogg"
