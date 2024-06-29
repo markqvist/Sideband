@@ -108,15 +108,15 @@ pip install rns lxmf
 
 ## On Raspberry Pi
 
-You can install Sideband on all Raspberry Pi models that support 64-bit operating systems. Since some of Sideband's dependencies don't have pre-built packages ready for 64-bit ARM processors yet, you'll need to install a few extra packages, that will allow building these while installing.
+You can install Sideband on all Raspberry Pi models that support 64-bit operating systems, and can run at least Python version 3.11. Since some of Sideband's dependencies don't have pre-built packages ready for 64-bit ARM processors yet, you'll need to install a few extra packages, that will allow building these while installing.
 
 Aditionally, the `pycodec2` package needs to be installed manually. I have provided a pre-built version, that you can download and install with a single command, or if you don't want to trust my pre-built version, you can [build and install it from source yourself](https://github.com/gregorias/pycodec2/blob/main/DEV.md).
 
-The install instructions below assume that you are installing Sideband on 64-bit Raspberry Pi OS. If you're running something else on your Pi, you might need to modify some commands slightly. To install Sideband on Raspberry Pi, follow these steps:
+The install instructions below assume that you are installing Sideband on 64-bit Raspberry Pi OS (based on Debian Bookworm). If you're running something else on your Pi, you might need to modify some commands slightly. To install Sideband on Raspberry Pi, follow these steps:
 
 ```bash
 # First of all, install the required dependencies:
-sudo apt install pipx python3-pyaudio python3-dev python3-cryptography build-essential libopusfile0 libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev portaudio19-dev codec2 libcodec2-1.0
+sudo apt install python3-pip python3-pyaudio python3-dev python3-cryptography build-essential libopusfile0 libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev portaudio19-dev codec2 libcodec2-1.0 xclip xsel
 
 # If you don't want to compile pycodec2 yourself,
 # download the pre-compiled package provided here
