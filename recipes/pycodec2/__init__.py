@@ -7,7 +7,7 @@ import sh
 class PyCodec2Recipe(CythonRecipe):
     url = "https://github.com/markqvist/pycodec2/archive/refs/heads/main.zip"
     # src_filename = "../../../pycodec2"
-    depends = ["setuptools", "numpy<=1.26.4", "Cython", "codec2"]
+    depends = ["setuptools", "numpy==1.26.4", "Cython", "codec2"]
     call_hostpython_via_targetpython = False
 
     def get_recipe_env(self, arch, with_flags_in_cc=True):
