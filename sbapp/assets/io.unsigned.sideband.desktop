@@ -1,7 +1,7 @@
-# Entry version 20240629
+# Entry version 20240630
 [Desktop Entry]
-Comment[en_US]=LXMF messaging, telemetry and remote control
-Comment=LXMF messaging, telemetry and remote control
+Comment[en_US]=Messaging, telemetry and remote control over LXMF
+Comment=Messaging, telemetry and remote control over LXMF
 Encoding=UTF-8
 Exec=sideband
 GenericName[en_US]=LXMF client
