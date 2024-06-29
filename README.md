@@ -39,8 +39,7 @@ After the application is installed on your Android device, it is also possible t
 
 On all Linux-based operating systems, Sideband is available as a `pipx`/`pip` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers.
 
-#### Dependencies
-Depending on your system, you will first need to install a few dependencies for audio messaging and Codec2 support to work:
+You will first need to install a few dependencies for audio messaging and Codec2 support to work:
 
 ```bash
 # For Debian, Ubuntu and derivatives
@@ -54,8 +53,14 @@ sudo pacman -Sy python-pipx python-pyaudio base-devel codec2 xclip xsel
 
 ```
 
-#### Install application
-Once dependencies are installed, install the Sideband application itself:
+Once those are installed, install the Sideband application itself:
+
+```bash
+# Finally, install Sideband using pipx:
+pipx install sbapp
+```
+
+After installation, you can now run Sideband in a number of different ways:
 
 ```bash
 # If this is the first time installing something with pipx,
@@ -63,9 +68,6 @@ Once dependencies are installed, install the Sideband application itself:
 # installed applications available. You'll probably need
 # to close and reopen your terminal after this.
 pipx ensurepath
-
-# Finally, install Sideband using pipx:
-pipx install sbapp
 
 # The first time you run Sideband, you will need to do it
 # from the terminal:
