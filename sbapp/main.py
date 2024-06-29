@@ -1,6 +1,6 @@
 __debug_build__ = False
 __disable_shaders__ = False
-__version__ = "0.9.0"
+__version__ = "0.9.1"
 __variant__ = "beta"
 
 import sys
@@ -1633,6 +1633,7 @@ class SidebandApp(MDApp):
                             else:
                                 RNS.log("OGG write failed", RNS.LOG_DEBUG)
                         else:
+                            self.last_msg_audio = None
                             self.display_codec2_error()
                             return
                     
@@ -1654,9 +1655,13 @@ class SidebandApp(MDApp):
                 if self.msg_sound != None and self.msg_sound.playing():
                     RNS.log("Stopping playback", RNS.LOG_DEBUG)
                     self.msg_sound.stop()
-                else:    
-                    RNS.log("Starting playback", RNS.LOG_DEBUG)
-                    self.msg_sound.play()
+                else:
+                    if self.msg_sound != None:
+                        RNS.log("Starting playback", RNS.LOG_DEBUG)
+                        self.msg_sound.play()
+                    else:
+                        RNS.log("Playback was requested, but no audio data was loaded for playback", RNS.LOG_ERROR)
+
             except Exception as e:
                 RNS.log("Error while playing message audio:"+str(e))
                 RNS.trace_exception(e)
@@ -1684,7 +1689,10 @@ class SidebandApp(MDApp):
                     el.text_color=mdc("Red","400")
                     el.icon = "stop-circle"
                     self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Stop Recording[/size]"
-                    self.msg_audio.start()
+                    def cb(dt):
+                        self.msg_audio.start()
+                    Clock.schedule_once(cb, 0.15)
+
                 else:
                     RNS.log("Stopping recording...") # TODO: Remove
                     self.rec_dialog.recording = False
