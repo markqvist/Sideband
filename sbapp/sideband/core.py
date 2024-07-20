@@ -13,6 +13,7 @@ import RNS.Interfaces.Interface as Interface
 
 import multiprocessing.connection
 
+from copy import deepcopy
 from threading import Lock
 from .res import sideband_fb_data
 from .sense import Telemeter, Commands
@@ -2592,39 +2593,53 @@ class SidebandCore():
 
     def update_telemetry(self):
         try:
+            try:
+                latest_telemetry = deepcopy(self.latest_telemetry)
+            except:
+                latest_telemetry = None
+
             telemetry = self.get_telemetry()
             packed_telemetry = self.get_packed_telemetry()
             telemetry_changed = False
 
             if telemetry != None and packed_telemetry != None:
-                if self.latest_telemetry == None or len(telemetry) != len(self.latest_telemetry):
+                if latest_telemetry == None or len(telemetry) != len(latest_telemetry):
                     telemetry_changed = True
 
-                for sn in telemetry:
-                    if telemetry_changed:
-                        break
+                if latest_telemetry != None:
 
-                    if sn != "time":
-                        if sn in self.latest_telemetry:
-                            if telemetry[sn] != self.latest_telemetry[sn]:
-                                telemetry_changed = True
-                        else:
-                            telemetry_changed = True
+                    if not telemetry_changed:
+                        for sn in telemetry:
+                            if telemetry_changed:
+                                break
 
-                if self.latest_telemetry != None:
-                    for sn in self.latest_telemetry:
-                        if telemetry_changed:
-                            break
+                            if sn != "time":
+                                if sn in latest_telemetry:
+                                    if telemetry[sn] != latest_telemetry[sn]:
+                                        telemetry_changed = True
+                                else:
+                                    telemetry_changed = True
 
-                        if sn != "time":
-                            if not sn in telemetry:
-                                telemetry_changed = True
+                    if not telemetry_changed:
+                        for sn in latest_telemetry:
+
+                            if telemetry_changed:
+                                break
+
+                            if sn != "time":
+                                if not sn in telemetry:
+                                    telemetry_changed = True
 
                 if telemetry_changed:
                     self.telemetry_changes += 1
                     self.latest_telemetry = telemetry
                     self.latest_packed_telemetry = packed_telemetry
                     self.setstate("app.flags.last_telemetry", time.time())
+
+                    # TODO: Remove
+                    # tbt = Telemeter.from_packed(packed_telemetry)
+                    # tbts = tbt.read_all()["time"]["utc"]
+                    # RNS.log("TELEMETRY CHANGED, TIMEBASE IS NOW "+str(tbts))
 
                     if self.is_client:
                         try:
@@ -3523,7 +3538,7 @@ class SidebandCore():
                     try:
                         telemeter = Telemeter.from_packed(message.fields[LXMF.FIELD_TELEMETRY])
                         telemetry_timebase = telemeter.read_all()["time"]["utc"]
-                        RNS.log("Setting last successul telemetry timebase for "+RNS.prettyhexrep(message.destination_hash)+" to "+str(telemetry_timebase))
+                        RNS.log("Setting last successul telemetry timebase for "+RNS.prettyhexrep(message.destination_hash)+" to "+str(telemetry_timebase), RNS.LOG_DEBUG)
                         self.setpersistent(f"telemetry.{RNS.hexrep(message.destination_hash, delimit=False)}.last_send_success_timebase", telemetry_timebase)
                     except Exception as e:
                         RNS.log("Error while setting last successul telemetry timebase for "+RNS.prettyhexrep(message.destination_hash), RNS.LOG_DEBUG)
@@ -3536,10 +3551,11 @@ class SidebandCore():
         if send_telemetry and self.latest_packed_telemetry != None:
             telemeter = Telemeter.from_packed(self.latest_packed_telemetry)
             telemetry_timebase = telemeter.read_all()["time"]["utc"]
-            if telemetry_timebase > (self.getpersistent(f"telemetry.{RNS.hexrep(context_dest, delimit=False)}.last_send_success_timebase") or 0):
+            last_success_tb = (self.getpersistent(f"telemetry.{RNS.hexrep(context_dest, delimit=False)}.last_send_success_timebase") or 0)
+            if telemetry_timebase > last_success_tb:
                 RNS.log("Embedding own telemetry in message since current telemetry is newer than latest successful timebase", RNS.LOG_DEBUG)
             else:
-                RNS.log("Not embedding own telemetry in message since current telemetry is not newer than latest successful timebase", RNS.LOG_DEBUG)
+                RNS.log("Not embedding own telemetry in message since current telemetry timebase ("+str(telemetry_timebase)+") is not newer than latest successful timebase ("+str(last_success_tb)+")", RNS.LOG_DEBUG)
                 send_telemetry = False
                 send_appearance = False
                 if signal_already_sent:
