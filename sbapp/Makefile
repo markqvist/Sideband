@@ -55,6 +55,8 @@ endif
 fetchshare:
 	-(rm ./share/pkg/*)
 	-(rm ./share/mirrors/* -r)
+	if [ ! -d "./share/pkg" ]; then mkdir ./share/pkg; fi
+	if [ ! -d "./share/mirrors" ]; then mkdir ./share/mirrors; fi
 	cp ../../dist_archive/rns-*-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/rnspure-*-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/lxmf-*-py3-none-any.whl ./share/pkg/
