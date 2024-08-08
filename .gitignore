@@ -32,3 +32,4 @@ dist
 docs/build
 sideband*.egg-info
 sbapp*.egg-info
+key.keystore
