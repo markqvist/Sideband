@@ -1,6 +1,6 @@
 all: prepare debug
 
-prepare: activate cleanrns getrns
+prepare: cleanrns getrns
 
 clean:
 	@echo Cleaning...
@@ -11,12 +11,9 @@ clean:
 	-(rm ./bin -r)
 
 cleanlibs:
-	buildozer android clean
+	. venv/bin/activate; buildozer android clean
 	
 cleanall: clean cleanlibs
-
-activate:
-	(. venv/bin/activate)
 
 pacthfiles: patchsdl injectxml
 
@@ -42,7 +39,7 @@ injectxml:
 	cp patches/p4a_build.py .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/build.py
 	
 debug:
-	buildozer android debug
+	. venv/bin/activate; buildozer android debug
 
 prebake:
 ifneq (,$(wildcard .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/src/main/res/xml/device_filter.xml))
@@ -50,7 +47,7 @@ ifneq (,$(wildcard .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists
 else
 	@(echo Prebaking build before patching files...)
 	@(sleep 2)
-	-(buildozer android release)
+	-(. venv/bin/activate; buildozer android release)
 	@(echo Prebake finished, applying patches and rebuilding...)
 	@(sleep 2)
 endif
@@ -72,7 +69,7 @@ fetchshare:
 	cp ../../dist_archive/Reticulum\ Manual.epub ./share/mirrors/Reticulum_Manual.epub
 
 release:
-	buildozer android release
+	. venv/bin/activate; buildozer android release
 
 postbuild:
 	$(MAKE) cleanrns
