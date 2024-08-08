@@ -39,6 +39,8 @@ android.release_artifact = apk
 android.archs = arm64-v8a,armeabi-v7a
 #android.logcat_filters = *:S python:D
 
+android.add_gradle_repositories = flatDir { dirs("../../../../../../patches") }
+
 services = sidebandservice:services/sidebandservice.py:foreground
 android.whitelist = lib-dynload/termios.so
 android.manifest.intent_filters = patches/intent-filter.xml

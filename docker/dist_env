@@ -1,0 +1,2 @@
+export VERSION=$(wget -q https://pypi.org/pypi/${PACKAGENAME}/json -O - | grep -oP "\"version\":\"\d+\.\d+\.+\d+\"" -o | cut -d \" -f 4)
+export DL_URL=$(wget -q https://pypi.org/pypi/${PACKAGENAME}/json -O - | grep -oP "\"url\":\".{1,150}${VERSION}-py\d-none-any.whl\"" | cut -d \" -f 4 | head -n -1)
