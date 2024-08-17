@@ -39,4 +39,7 @@
 
     <!-- Adafruit RAK4630 -->
     <usb-device vendor-id="9114" product-id="32809" /><!-- 0x239a / 0x8029: RAK4630 -->
+
+    <!-- LilyGO T3S3 v1.2 -->
+    <usb-device vendor-id="12346" product-id="4097" /><!-- 0x303A / 0x1001: LilyGO T3S3 v1.2 -->
 </resources>
