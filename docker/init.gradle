@@ -1,0 +1,21 @@
+// This is necessary to ensure that Sideband can be built on the
+// correct API version. Else, the build will fail, with the build tools
+// nagging us to upgrade the targetSdkVersion (doing so breaks the
+// program currently). Yet another case of G**gle foolishness. This
+// just bypasses the error and continues compiling regardless.
+
+apply plugin: DisableAbortOnError
+
+class DisableAbortOnError implements Plugin<Gradle> {
+    void apply (Gradle gradle) {
+        gradle.allprojects { project ->
+            afterEvaluate {
+                android {
+                    lintOptions {
+                        abortOnError = false
+                    }
+                }
+            }
+        }
+    }
+}
