@@ -141,6 +141,7 @@ class SidebandCore():
         self.service_stopped = False
         self.service_context = service_context
         self.owner_service = owner_service
+        self.version_str = ""
 
         if config_path == None:
             self.app_dir     = plyer.storagepath.get_home_dir()+"/.config/sideband"
@@ -3833,7 +3834,7 @@ class SidebandCore():
         thread.start()
 
         self.setstate("core.started", True)
-        RNS.log("Sideband Core "+str(self)+" started")
+        RNS.log("Sideband Core "+str(self)+" version "+str(self.version_str)+" started")
 
     def stop_webshare(self):
         if self.webshare_server != None:

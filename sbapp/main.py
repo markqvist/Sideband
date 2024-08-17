@@ -202,6 +202,8 @@ class SidebandApp(MDApp):
         else:
             self.sideband = SidebandCore(self, config_path=self.config_path, is_client=False, verbose=(args.verbose or __debug_build__))
 
+        self.sideband.version_str = "v"+__version__+" "+__variant__
+
         self.set_ui_theme()
         self.font_config()
         self.update_input_language()
@@ -5520,6 +5522,7 @@ def run():
             is_daemon=True
         )
 
+        sideband.version_str = "v"+__version__+" "+__variant__
         sideband.start()
         while True:
             time.sleep(5)
