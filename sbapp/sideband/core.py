@@ -108,7 +108,7 @@ class SidebandCore():
         # stream logger
         self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter)
 
-    def __init__(self, owner_app, config_path = None, is_service=False, is_client=False, android_app_dir=None, verbose=False, owner_service=None, service_context=None, is_daemon=False):
+    def __init__(self, owner_app, config_path = None, is_service=False, is_client=False, android_app_dir=None, verbose=False, owner_service=None, service_context=None, is_daemon=False, load_config_only=False):
         self.is_service = is_service
         self.is_client = is_client
         self.is_daemon = is_daemon
@@ -230,6 +230,9 @@ class SidebandCore():
                 
         except Exception as e:
             RNS.log("Error while configuring Sideband: "+str(e), RNS.LOG_ERROR)
+
+        if load_config_only:
+            return
 
         # Initialise Reticulum configuration
         if RNS.vendor.platformutils.get_platform() == "android":

@@ -9,6 +9,8 @@ parser = argparse.ArgumentParser(description="Sideband LXMF Client")
 parser.add_argument("-v", "--verbose", action='store_true', default=False, help="increase logging verbosity")
 parser.add_argument("-c", "--config", action='store', default=None, help="specify path of config directory")
 parser.add_argument("-d", "--daemon", action='store_true', default=False, help="run as a daemon, without user interface")
+parser.add_argument("--export-settings", action='store', default=None, help="export application settings to file")
+parser.add_argument("--import-settings", action='store', default=None, help="import application settings from file")
 parser.add_argument("--version", action="version", version="sideband {version}".format(version=__version__))
 args = parser.parse_args()
 sys.argv = [sys.argv[0]]
@@ -21,6 +23,74 @@ import pathlib
 import base64
 import threading
 import RNS.vendor.umsgpack as msgpack
+
+if args.export_settings:
+    from .sideband.core import SidebandCore
+    sideband = SidebandCore(
+        None,
+        config_path=args.config,
+        is_client=False,
+        verbose=(args.verbose or __debug_build__),
+        is_daemon=True,
+        load_config_only=True,
+    )
+
+    sideband.version_str = "v"+__version__+" "+__variant__
+
+    import json
+    export = sideband.config.copy()
+    for k in export:
+        if isinstance(export[k], bytes):
+            export[k] = RNS.hexrep(export[k], delimit=False)
+    try:
+        export_path = os.path.expanduser(args.export_settings)
+        with open(export_path, "wb") as export_file:
+            export_file.write(json.dumps(export, indent=4).encode("utf-8"))
+            print(f"Application settings written to {export_path}")
+        exit(0)
+
+    except Exception as e:
+        print(f"Could not write application settings to {export_path}. The contained exception was:\n{e}")
+        exit(1)
+
+elif args.import_settings:
+    from .sideband.core import SidebandCore
+    sideband = SidebandCore(
+        None,
+        config_path=args.config,
+        is_client=False,
+        verbose=(args.verbose or __debug_build__),
+        is_daemon=True,
+        load_config_only=True,
+    )
+
+    sideband.version_str = "v"+__version__+" "+__variant__
+
+    import json
+    addr_fields = ["lxmf_propagation_node", "last_lxmf_propagation_node", "nn_home_node", "telemetry_collector"]
+    try:
+        import_path = os.path.expanduser(args.import_settings)
+        imported = None
+        with open(import_path, "rb") as import_file:
+            json_data = import_file.read().decode("utf-8")
+            imported = json.loads(json_data)
+            for k in imported:
+                if k in addr_fields and imported[k] != None:
+                    imported[k] = bytes.fromhex(imported[k])
+                    if len(imported[k]) != RNS.Reticulum.TRUNCATED_HASHLENGTH//8:
+                        raise ValueError(f"Invalid hash length for {RNS.prettyhexrep(imported[k])}")
+
+        if imported:
+            sideband.config = imported
+            sideband.save_configuration()
+            while sideband.saving_configuration:
+                time.sleep(0.1)
+            print(f"Application settings imported from {import_path}")
+            exit(0)
+
+    except Exception as e:
+        print(f"Could not import application settings from {import_path}. The contained exception was:\n{e}")
+        exit(1)
 
 if not args.daemon:
     from kivy.logger import Logger, LOG_LEVELS
