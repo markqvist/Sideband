@@ -96,8 +96,8 @@ setuptools.setup(
         ]
     },
     install_requires=[
-        "rns>=0.7.5",
-        "lxmf>=0.4.4",
+        "rns>=0.7.6",
+        "lxmf>=0.4.5",
         "kivy>=2.3.0",
         "pillow>=10.2.0",
         "qrcode",
