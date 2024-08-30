@@ -36,6 +36,7 @@ class ConvSettings(BoxLayout):
     telemetry = BooleanProperty()
     allow_requests = BooleanProperty()
     is_object = BooleanProperty()
+    ptt_enabled = BooleanProperty()
 
 class Conversations():
     def __init__(self, app):
@@ -192,6 +193,7 @@ class Conversations():
             if not context_dest in self.added_item_dests:
                 existing_conv = self.app.sideband._db_conversation(context_dest)
                 is_object = self.app.sideband.is_object(context_dest, conv_data=existing_conv)
+                ptt_enabled = self.app.sideband.ptt_enabled(context_dest, conv_data=existing_conv)
                 iconl = self.get_icon(conv)
                 item = OneLineAvatarIconListItem(text=peer_disp_name, on_release=self.app.conversation_action)
                 item.add_widget(iconl)
@@ -210,13 +212,14 @@ class Conversations():
                             disp_name = self.app.sideband.raw_display_name(dest)
                             is_trusted = self.app.sideband.is_trusted(dest, conv_data=cd)
                             is_object = self.app.sideband.is_object(dest, conv_data=cd)
+                            ptt_enabled = self.app.sideband.ptt_enabled(dest, conv_data=cd)
                             send_telemetry = self.app.sideband.should_send_telemetry(dest, conv_data=cd)
                             allow_requests = self.app.sideband.requests_allowed_from(dest, conv_data=cd)
 
                             yes_button = MDRectangleFlatButton(text="Save",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_accept, text_color=self.app.color_accept)
                             no_button = MDRectangleFlatButton(text="Cancel",font_size=dp(18))
                             dialog_content = ConvSettings(disp_name=disp_name, context_dest=RNS.hexrep(dest, delimit=False), trusted=is_trusted,
-                                                          telemetry=send_telemetry, allow_requests=allow_requests, is_object=is_object)
+                                                          telemetry=send_telemetry, allow_requests=allow_requests, is_object=is_object, ptt_enabled=ptt_enabled)
                             dialog_content.ids.name_field.font_name = self.app.input_font
 
                             dialog = MDDialog(
@@ -235,6 +238,7 @@ class Conversations():
                                     telemetry = dialog.d_content.ids["telemetry_switch"].active
                                     allow_requests = dialog.d_content.ids["allow_requests_switch"].active
                                     conv_is_object = dialog.d_content.ids["is_object_switch"].active
+                                    ptt_is_enabled = dialog.d_content.ids["ptt_enabled_switch"].active
                                     if trusted:
                                         self.app.sideband.trusted_conversation(dest)
                                     else:
@@ -254,6 +258,13 @@ class Conversations():
                                         self.app.sideband.conversation_set_object(dest, True)
                                     else:
                                         self.app.sideband.conversation_set_object(dest, False)
+
+                                    if ptt_is_enabled:
+                                        RNS.log("Setting PTT enabled")
+                                        self.app.sideband.conversation_set_ptt_enabled(dest, True)
+                                    else:
+                                        RNS.log("Setting PTT disabled")
+                                        self.app.sideband.conversation_set_ptt_enabled(dest, False)
 
                                     self.app.sideband.named_conversation(name, dest)
 
@@ -603,6 +614,21 @@ Builder.load_string("""
             id: allow_requests_switch
             pos_hint: {"center_y": 0.43}
             active: root.allow_requests
+
+    MDBoxLayout:
+        orientation: "horizontal"
+        size_hint_y: None
+        padding: [0,0,dp(8),0]
+        height: dp(32)
+        MDLabel:
+            id: ptt_enabled_label
+            text: "PTT Enabled"
+            font_style: "H6"
+
+        MDSwitch:
+            id: ptt_enabled_switch
+            pos_hint: {"center_y": 0.43}
+            active: root.ptt_enabled
 
     MDBoxLayout:
         orientation: "horizontal"

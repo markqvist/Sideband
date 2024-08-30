@@ -63,7 +63,7 @@ class NotifyDbus(Notification):
     def _notify(self, **kwargs):
         summary = kwargs.get('title', "title")
         body = kwargs.get('message', "body")
-        app_name = kwargs.get('app_name', '')
+        app_name = "Sideband"
         app_icon = kwargs.get('app_icon', '')
         timeout = kwargs.get('timeout', 10)
         actions = kwargs.get('actions', [])

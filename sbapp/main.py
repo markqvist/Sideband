@@ -1742,162 +1742,214 @@ class SidebandApp(MDApp):
                 RNS.log("Error while playing message audio:"+str(e))
                 RNS.trace_exception(e)
 
+    def message_ptt_down_action(self, sender=None):
+        self.audio_msg_mode = LXMF.AM_CODEC2_2400
+        self.message_attach_action(attach_type="audio", nodialog=True)
+        if self.rec_dialog == None:
+            self.message_init_rec_dialog()
+        self.rec_dialog.recording = True
+        el_button = self.messages_view.ids.message_ptt_button
+        el_icon = self.messages_view.ids.message_ptt_button.children[0].children[1]
+        el_button.theme_text_color="Custom"
+        el_button.text_color=mdc("Orange","400")
+        el_button.line_color=mdc("Orange","400")
+        el_icon.theme_text_color="Custom"
+        el_icon.text_color=mdc("Orange","400")
+        def cb(dt):
+            self.msg_audio.start()
+        Clock.schedule_once(cb, 0.15)
+        
+
+    def message_ptt_up_action(self, sender=None):
+        self.rec_dialog.recording = False
+        el_button = self.messages_view.ids.message_ptt_button
+        el_icon = self.messages_view.ids.message_ptt_button.children[0].children[1]
+        el_button.theme_text_color="Custom"
+        el_button.text_color=mdc("BlueGray","500")
+        el_button.line_color=mdc("BlueGray","500")
+        el_icon.theme_text_color="Custom"
+        el_icon.text_color=mdc("BlueGray","500")
+        def cb_s(dt):
+            self.msg_audio.stop()
+            self.message_process_audio()
+            self.message_send_action()
+        Clock.schedule_once(cb_s, 0.25)
+
+    def message_process_audio(self):
+        if self.audio_msg_mode == LXMF.AM_OPUS_OGG:
+            from sideband.audioproc import voice_processing
+            proc_path = voice_processing(self.msg_audio._file_path)
+            if proc_path:
+                self.attach_path = proc_path
+                os.unlink(self.msg_audio._file_path)
+                RNS.log("Using voice-processed OPUS data in OGG container", RNS.LOG_DEBUG)
+            else:
+                self.attach_path = self.msg_audio._file_path
+                RNS.log("Using unmodified OPUS data in OGG container", RNS.LOG_DEBUG)
+        else:
+            ap_start = time.time()
+            from sideband.audioproc import voice_processing
+            proc_path = voice_processing(self.msg_audio._file_path)
+
+            if proc_path:
+                opus_file = pyogg.OpusFile(proc_path)
+                RNS.log("Using voice-processed audio for codec2 encoding", RNS.LOG_DEBUG)
+            else:
+                opus_file = pyogg.OpusFile(self.msg_audio._file_path)
+                RNS.log("Using unprocessed audio data for codec2 encoding", RNS.LOG_DEBUG)
+
+            RNS.log(f"OPUS LOAD {opus_file.frequency}Hz {opus_file.bytes_per_sample*8}bit {opus_file.channels}ch")
+
+            audio = AudioSegment(
+                bytes(opus_file.as_array()),
+                frame_rate=opus_file.frequency,
+                sample_width=opus_file.bytes_per_sample, 
+                channels=opus_file.channels,
+            )
+            audio = audio.split_to_mono()[0]
+            audio = audio.apply_gain(-audio.max_dBFS)
+            
+            if self.audio_msg_mode >= LXMF.AM_CODEC2_700C and self.audio_msg_mode <= LXMF.AM_CODEC2_3200:
+                audio = audio.set_frame_rate(8000)
+                audio = audio.set_sample_width(2)
+                samples = audio.get_array_of_samples()
+
+                from sideband.audioproc import encode_codec2, detect_codec2
+                if detect_codec2():
+                    encoded = encode_codec2(samples, self.audio_msg_mode)
+
+                    ap_duration = time.time() - ap_start
+                    RNS.log("Audio processing complete in "+RNS.prettytime(ap_duration), RNS.LOG_DEBUG)
+
+                    export_path = self.sideband.rec_cache+"/recording.enc"
+                    with open(export_path, "wb") as export_file:
+                        export_file.write(encoded)
+                    self.attach_path = export_path
+                    os.unlink(self.msg_audio._file_path)
+                else:
+                    self.display_codec2_error()
+                    return
+
+    def message_init_rec_dialog(self):
+        ss = int(dp(18))
+        if RNS.vendor.platformutils.is_android():
+            from plyer import audio
+            self.request_microphone_permission()
+        else:
+            from sbapp.plyer import audio
+
+        self.msg_audio = audio
+        self.msg_audio._file_path = self.sideband.rec_cache+"/recording.ogg"
+
+        def a_rec_action(sender):
+            if not self.rec_dialog.recording:
+                RNS.log("Starting recording...") # TODO: Remove
+                self.rec_dialog.recording = True
+                el = self.rec_dialog.rec_item.children[0].children[0]
+                el.ttc = el.theme_text_color; el.tc = el.text_color
+                el.theme_text_color="Custom"
+                el.text_color=mdc("Red","400")
+                el.icon = "stop-circle"
+                self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Stop Recording[/size]"
+                def cb(dt):
+                    self.msg_audio.start()
+                Clock.schedule_once(cb, 0.10)
+
+            else:
+                RNS.log("Stopping recording...") # TODO: Remove
+                self.rec_dialog.recording = False
+                self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Start Recording[/size]"
+                el = self.rec_dialog.rec_item.children[0].children[0]
+                el.icon = "record"
+                el.text_color = self.theme_cls._get_text_color()
+                self.rec_dialog.play_item.disabled = False
+                self.rec_dialog.save_item.disabled = False
+                self.msg_audio.stop()
+
+        self.msg_rec_a_rec = a_rec_action
+
+        def a_play(sender):
+            if self.rec_dialog.recording:
+                a_rec_action(sender)
+
+            if not self.rec_dialog.playing:
+                RNS.log("Playing recording...", RNS.LOG_DEBUG)
+                self.rec_dialog.playing = True
+                self.rec_dialog.play_item.children[0].children[0].icon = "stop"
+                self.rec_dialog.play_item.text = "[size="+str(ss)+"]Stop[/size]"
+                self.msg_audio.play()
+            else:
+                RNS.log("Stopping playback...", RNS.LOG_DEBUG)
+                self.rec_dialog.playing = False
+                self.rec_dialog.play_item.children[0].children[0].icon = "play"
+                self.rec_dialog.play_item.text = "[size="+str(ss)+"]Play[/size]"
+                self.msg_audio.stop()
+
+        self.msg_rec_a_play = a_play
+
+        def a_finished(sender):
+            RNS.log("Playback finished", RNS.LOG_DEBUG)
+            self.rec_dialog.playing = False
+            self.rec_dialog.play_item.children[0].children[0].icon = "play"
+            self.rec_dialog.play_item.text = "[size="+str(ss)+"]Play[/size]"
+            
+        self.msg_audio._finished_callback = a_finished
+            
+        def a_save(sender):
+            if self.rec_dialog.recording:
+                a_rec_action(sender)
+            self.rec_dialog_is_open = False
+            self.rec_dialog.dismiss()
+
+            try:
+                if self.audio_msg_mode == LXMF.AM_OPUS_OGG:
+                    from sideband.audioproc import voice_processing
+                    proc_path = voice_processing(self.msg_audio._file_path)
+                    if proc_path:
+                        self.attach_path = proc_path
+                        os.unlink(self.msg_audio._file_path)
+                        RNS.log("Using voice-processed OPUS data in OGG container", RNS.LOG_DEBUG)
+                    else:
+                        self.attach_path = self.msg_audio._file_path
+                        RNS.log("Using unmodified OPUS data in OGG container", RNS.LOG_DEBUG)
+                else:
+                    self.message_process_audio()
+
+                self.update_message_widgets()
+                toast("Added recorded audio to message")
+            
+            except Exception as e:
+                RNS.trace_exception(e)
+
+        self.msg_rec_a_save = a_save
+
+        cancel_button = MDRectangleFlatButton(text="Cancel", font_size=dp(18))
+        rec_item = DialogItem(IconLeftWidget(icon="record", on_release=a_rec_action), text="[size="+str(ss)+"]Start Recording[/size]", on_release=a_rec_action)
+        play_item = DialogItem(IconLeftWidget(icon="play", on_release=a_play), text="[size="+str(ss)+"]Play[/size]", on_release=a_play, disabled=True)
+        save_item = DialogItem(IconLeftWidget(icon="content-save-move-outline", on_release=a_save), text="[size="+str(ss)+"]Save to message[/size]", on_release=a_save, disabled=True)
+        self.rec_dialog = MDDialog(
+            title="Record Audio",
+            type="simple",
+            # text="Test\n",
+            items=[
+                rec_item,
+                play_item,
+                save_item,
+            ],
+            buttons=[ cancel_button ],
+            width_offset=dp(12),
+        )
+        cancel_button.bind(on_release=self.rec_dialog.dismiss)
+        self.rec_dialog.recording = False
+        self.rec_dialog.playing = False
+        self.rec_dialog.rec_item = rec_item
+        self.rec_dialog.play_item = play_item
+        self.rec_dialog.save_item = save_item
 
     def message_record_audio_action(self):
         ss = int(dp(18))
         if self.rec_dialog == None:
-            if RNS.vendor.platformutils.is_android():
-                from plyer import audio
-                self.request_microphone_permission()
-            else:
-                from sbapp.plyer import audio
-
-            self.msg_audio = audio
-            self.msg_audio._file_path = self.sideband.rec_cache+"/recording.ogg"
-
-            def a_rec_action(sender):
-                if not self.rec_dialog.recording:
-                    RNS.log("Starting recording...") # TODO: Remove
-                    self.rec_dialog.recording = True
-                    el = self.rec_dialog.rec_item.children[0].children[0]
-                    el.ttc = el.theme_text_color; el.tc = el.text_color
-                    el.theme_text_color="Custom"
-                    el.text_color=mdc("Red","400")
-                    el.icon = "stop-circle"
-                    self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Stop Recording[/size]"
-                    def cb(dt):
-                        self.msg_audio.start()
-                    Clock.schedule_once(cb, 0.15)
-
-                else:
-                    RNS.log("Stopping recording...") # TODO: Remove
-                    self.rec_dialog.recording = False
-                    self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Start Recording[/size]"
-                    el = self.rec_dialog.rec_item.children[0].children[0]
-                    el.icon = "record"
-                    el.text_color = self.theme_cls._get_text_color()
-                    self.rec_dialog.play_item.disabled = False
-                    self.rec_dialog.save_item.disabled = False
-                    self.msg_audio.stop()
-
-            self.msg_rec_a_rec = a_rec_action
-
-            def a_play(sender):
-                if self.rec_dialog.recording:
-                    a_rec_action(sender)
-
-                if not self.rec_dialog.playing:
-                    RNS.log("Playing recording...", RNS.LOG_DEBUG)
-                    self.rec_dialog.playing = True
-                    self.rec_dialog.play_item.children[0].children[0].icon = "stop"
-                    self.rec_dialog.play_item.text = "[size="+str(ss)+"]Stop[/size]"
-                    self.msg_audio.play()
-                else:
-                    RNS.log("Stopping playback...", RNS.LOG_DEBUG)
-                    self.rec_dialog.playing = False
-                    self.rec_dialog.play_item.children[0].children[0].icon = "play"
-                    self.rec_dialog.play_item.text = "[size="+str(ss)+"]Play[/size]"
-                    self.msg_audio.stop()
-
-            self.msg_rec_a_play = a_play
-
-            def a_finished(sender):
-                RNS.log("Playback finished", RNS.LOG_DEBUG)
-                self.rec_dialog.playing = False
-                self.rec_dialog.play_item.children[0].children[0].icon = "play"
-                self.rec_dialog.play_item.text = "[size="+str(ss)+"]Play[/size]"
-                
-            self.msg_audio._finished_callback = a_finished
-                
-            def a_save(sender):
-                if self.rec_dialog.recording:
-                    a_rec_action(sender)
-                self.rec_dialog_is_open = False
-                self.rec_dialog.dismiss()
-
-                try:
-                    if self.audio_msg_mode == LXMF.AM_OPUS_OGG:
-                        from sideband.audioproc import voice_processing
-                        proc_path = voice_processing(self.msg_audio._file_path)
-                        if proc_path:
-                            self.attach_path = proc_path
-                            os.unlink(self.msg_audio._file_path)
-                            RNS.log("Using voice-processed OPUS data in OGG container", RNS.LOG_DEBUG)
-                        else:
-                            self.attach_path = self.msg_audio._file_path
-                            RNS.log("Using unmodified OPUS data in OGG container", RNS.LOG_DEBUG)
-                    else:
-                        ap_start = time.time()
-                        from sideband.audioproc import voice_processing
-                        proc_path = voice_processing(self.msg_audio._file_path)
-
-                        if proc_path:
-                            opus_file = pyogg.OpusFile(proc_path)
-                            RNS.log("Using voice-processed audio for codec2 encoding", RNS.LOG_DEBUG)
-                        else:
-                            opus_file = pyogg.OpusFile(self.msg_audio._file_path)
-                            RNS.log("Using unprocessed audio data for codec2 encoding", RNS.LOG_DEBUG)
-
-                        audio = AudioSegment(
-                            bytes(opus_file.as_array()),
-                            frame_rate=opus_file.frequency,
-                            sample_width=opus_file.bytes_per_sample, 
-                            channels=opus_file.channels,
-                        )
-                        audio = audio.split_to_mono()[0]
-                        audio = audio.apply_gain(-audio.max_dBFS)
-                        
-                        if self.audio_msg_mode >= LXMF.AM_CODEC2_700C and self.audio_msg_mode <= LXMF.AM_CODEC2_3200:
-                            audio = audio.set_frame_rate(8000)
-                            audio = audio.set_sample_width(2)
-                            samples = audio.get_array_of_samples()
-
-                            from sideband.audioproc import encode_codec2, detect_codec2
-                            if detect_codec2():
-                                encoded = encode_codec2(samples, self.audio_msg_mode)
-
-                                ap_duration = time.time() - ap_start
-                                RNS.log("Audio processing complete in "+RNS.prettytime(ap_duration), RNS.LOG_DEBUG)
-
-                                export_path = self.sideband.rec_cache+"/recording.enc"
-                                with open(export_path, "wb") as export_file:
-                                    export_file.write(encoded)
-                                self.attach_path = export_path
-                                os.unlink(self.msg_audio._file_path)
-                            else:
-                                self.display_codec2_error()
-                                return
-
-                    self.update_message_widgets()
-                    toast("Added recorded audio to message")
-                
-                except Exception as e:
-                    RNS.trace_exception(e)
-
-            self.msg_rec_a_save = a_save
-
-            cancel_button = MDRectangleFlatButton(text="Cancel", font_size=dp(18))
-            rec_item = DialogItem(IconLeftWidget(icon="record", on_release=a_rec_action), text="[size="+str(ss)+"]Start Recording[/size]", on_release=a_rec_action)
-            play_item = DialogItem(IconLeftWidget(icon="play", on_release=a_play), text="[size="+str(ss)+"]Play[/size]", on_release=a_play, disabled=True)
-            save_item = DialogItem(IconLeftWidget(icon="content-save-move-outline", on_release=a_save), text="[size="+str(ss)+"]Save to message[/size]", on_release=a_save, disabled=True)
-            self.rec_dialog = MDDialog(
-                title="Record Audio",
-                type="simple",
-                # text="Test\n",
-                items=[
-                    rec_item,
-                    play_item,
-                    save_item,
-                ],
-                buttons=[ cancel_button ],
-                width_offset=dp(12),
-            )
-            cancel_button.bind(on_release=self.rec_dialog.dismiss)
-            self.rec_dialog.recording = False
-            self.rec_dialog.playing = False
-            self.rec_dialog.rec_item = rec_item
-            self.rec_dialog.play_item = play_item
-            self.rec_dialog.save_item = save_item
+            self.message_init_rec_dialog()
 
         else:
             self.rec_dialog.play_item.disabled = True
@@ -1910,7 +1962,7 @@ class SidebandApp(MDApp):
         self.rec_dialog_is_open = True
         self.rec_dialog.update_width()
 
-    def message_attach_action(self, attach_type=None):
+    def message_attach_action(self, attach_type=None, nodialog=False):
         file_attach_types = ["lbimg", "defimg", "hqimg", "file"]
         rec_attach_types = ["audio"]
         
@@ -1918,10 +1970,12 @@ class SidebandApp(MDApp):
         self.rec_dialog_is_open = False
         if attach_type in file_attach_types:
             self.attach_type = attach_type
-            self.message_select_file_action()
+            if not nodialog:
+                self.message_select_file_action()
         elif attach_type in rec_attach_types:
             self.attach_type = attach_type
-            self.message_record_audio_action()
+            if not nodialog:
+                self.message_record_audio_action()
 
     def message_attachment_action(self, sender):
         self.rec_dialog_is_open = False

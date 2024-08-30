@@ -112,6 +112,8 @@ class SidebandCore():
         self.is_service = is_service
         self.is_client = is_client
         self.is_daemon = is_daemon
+        self.msg_audio = None
+        self.last_msg_audio = None
         self.db = None
 
         if not self.is_service and not self.is_client:
@@ -938,6 +940,25 @@ class SidebandCore():
             RNS.log("Error while checking trust for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
             return False
 
+    def ptt_enabled(self, context_dest, conv_data = None):
+        try:
+            if conv_data == None:
+                existing_conv = self._db_conversation(context_dest)
+            else:
+                existing_conv = conv_data
+
+            if existing_conv != None:
+                data_dict = existing_conv["data"]
+                if data_dict != None:
+                    if "ptt_enabled" in data_dict:
+                        return data_dict["ptt_enabled"]
+
+            return False
+
+        except Exception as e:
+            RNS.log("Error while checking PTT-enabled for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
+            return False
+
     def should_send_telemetry(self, context_dest, conv_data=None):
         try:
             if self.config["telemetry_enabled"]:
@@ -1091,6 +1112,9 @@ class SidebandCore():
 
     def conversation_set_object(self, context_dest, is_object):
         self._db_conversation_set_object(context_dest, is_object)
+
+    def conversation_set_ptt_enabled(self, context_dest, ptt_enabled):
+        self._db_conversation_set_ptt_enabled(context_dest, ptt_enabled)
 
     def send_telemetry_in_conversation(self, context_dest):
         self._db_conversation_set_telemetry(context_dest, True)
@@ -2068,6 +2092,32 @@ class SidebandCore():
             if not is_retry:
                 RNS.log("Retrying operation...", RNS.LOG_ERROR)
                 self._db_conversation_set_object(context_dest, is_object, is_retry=True)
+
+    def _db_conversation_set_ptt_enabled(self, context_dest, ptt_enabled=False):
+        conv = self._db_conversation(context_dest)
+        data_dict = conv["data"]
+        if data_dict == None:
+            data_dict = {}
+
+        data_dict["ptt_enabled"] = ptt_enabled
+        packed_dict = msgpack.packb(data_dict)
+        
+        db = self.__db_connect()
+        dbc = db.cursor()
+        
+        query = "UPDATE conv set data = ? where dest_context = ?"
+        data = (packed_dict, context_dest)
+        dbc.execute(query, data)
+        result = dbc.fetchall()
+
+        try:
+            db.commit()
+        except Exception as e:
+            RNS.log("An error occurred while updating conversation PTT option: "+str(e), RNS.LOG_ERROR)
+            self.__db_reconnect()
+            if not is_retry:
+                RNS.log("Retrying operation...", RNS.LOG_ERROR)
+                self._db_conversation_set_ptt_enabled(context_dest, ptt_enabled, is_retry=True)
 
     def _db_conversation_set_trusted(self, context_dest, trusted):
         db = self.__db_connect()
@@ -3761,6 +3811,7 @@ class SidebandCore():
     def lxm_ingest(self, message, originator = False):
         should_notify = False
         is_trusted = False
+        ptt_enabled = False
         telemetry_only = False
         own_command = False
         unread_reason_tx = False
@@ -3771,6 +3822,7 @@ class SidebandCore():
         else:
             context_dest = message.source_hash
             is_trusted = self.is_trusted(context_dest)
+            ptt_enabled = self.ptt_enabled(context_dest)
 
         if originator and LXMF.FIELD_COMMANDS in message.fields:
             own_command = True
@@ -3813,6 +3865,74 @@ class SidebandCore():
                     if self.gui_display() == "conversations_screen" and self.gui_foreground():
                         should_notify = False
 
+            ### PTT #######################################################################
+            if not originator and LXMF.FIELD_AUDIO in message.fields and ptt_enabled:
+                if self.msg_audio == None:
+                    if RNS.vendor.platformutils.is_android():
+                        from plyer import audio
+                    else:
+                        from sbapp.plyer import audio
+
+                    RNS.log("Audio init done")
+                    self.msg_audio = audio
+                try:
+                    temp_path = None
+                    audio_field = message.fields[LXMF.FIELD_AUDIO]
+                    if self.last_msg_audio != audio_field[1]:
+                        RNS.log("Reloading audio source", RNS.LOG_DEBUG)
+                        if len(audio_field[1]) > 10:
+                            self.last_msg_audio = audio_field[1]
+                        else:
+                            self.last_msg_audio = None
+                            return
+
+                        if audio_field[0] == LXMF.AM_OPUS_OGG:
+                            temp_path = self.rec_cache+"/msg.ogg"
+                            with open(temp_path, "wb") as af:
+                                af.write(self.last_msg_audio)
+
+                        elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
+                            temp_path = self.rec_cache+"/msg.ogg"
+                            from sideband.audioproc import samples_to_ogg, decode_codec2, detect_codec2
+                            
+                            target_rate = 8000
+                            if RNS.vendor.platformutils.is_linux():
+                                target_rate = 48000
+
+                            if detect_codec2():
+                                if samples_to_ogg(decode_codec2(audio_field[1], audio_field[0]), temp_path, input_rate=8000, output_rate=target_rate):
+                                    RNS.log("Wrote OGG file to: "+temp_path, RNS.LOG_DEBUG)
+                                else:
+                                    RNS.log("OGG write failed", RNS.LOG_DEBUG)
+                            else:
+                                self.last_msg_audio = None
+                                return
+                        
+                        else:
+                            # Unimplemented audio type
+                            pass
+
+                        self.msg_sound = self.msg_audio
+                        self.msg_sound._file_path = temp_path
+                        self.msg_sound.reload()
+
+                    if self.msg_sound != None and self.msg_sound.playing():
+                        RNS.log("Stopping playback", RNS.LOG_DEBUG)
+                        self.msg_sound.stop()
+                    else:
+                        if self.msg_sound != None:
+                            RNS.log("Starting playback", RNS.LOG_DEBUG)
+                            self.msg_sound.play()
+                            should_notify = False
+                        else:
+                            RNS.log("Playback was requested, but no audio data was loaded for playback", RNS.LOG_ERROR)
+
+                except Exception as e:
+                    RNS.log("Error while playing message audio:"+str(e))
+                    RNS.trace_exception(e)
+            ###############################################################################
+            
+
         if self.is_client:
             should_notify = False
 
@@ -3824,7 +3944,14 @@ class SidebandCore():
             text = message.content.decode("utf-8")
             notification_content = text[:nlen]
             if len(text) > nlen:
-                text += "..."
+                notification_content += " [...]"
+
+            if len(text) < 2 and LXMF.FIELD_AUDIO in message.fields:
+                notification_content = "Audio message"
+            if len(text) < 2 and LXMF.FIELD_IMAGE in message.fields:
+                notification_content = "Image"
+            if len(text) < 2 and LXMF.FIELD_FILE_ATTACHMENTS in message.fields:
+                notification_content = "File attachment"
 
             self.notify(title=self.peer_display_name(context_dest), content=notification_content, group="LXM", context_id=RNS.hexrep(context_dest, delimit=False))
 

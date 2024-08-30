@@ -57,6 +57,7 @@ class Messages():
         self.context_dest = context_dest
         self.source_dest = context_dest
         self.is_trusted = self.app.sideband.is_trusted(self.context_dest)
+        self.ptt_enabled = self.app.sideband.ptt_enabled(self.context_dest)
 
         self.screen = self.app.root.ids.screen_manager.get_screen("messages_screen")
         self.ids = self.screen.ids
@@ -216,6 +217,15 @@ class Messages():
                     w.dmenu.items.append(w.dmenu.retry_item)
 
 
+    def hide_widget(self, wid, dohide=True):
+        if hasattr(wid, 'saved_attrs'):
+            if not dohide:
+                wid.height, wid.size_hint_y, wid.opacity, wid.disabled = wid.saved_attrs
+                del wid.saved_attrs
+        elif dohide:
+            wid.saved_attrs = wid.height, wid.size_hint_y, wid.opacity, wid.disabled
+            wid.height, wid.size_hint_y, wid.opacity, wid.disabled = 0, None, 0, True
+
     def update_widget(self):
         if self.app.sideband.config["dark_ui"]:
             intensity_msgs = intensity_msgs_dark
@@ -227,6 +237,11 @@ class Messages():
             mt_color = [1.0, 1.0, 1.0, 0.95]
 
         self.ids.message_text.font_name = self.app.input_font
+
+        if self.ptt_enabled:
+            self.hide_widget(self.ids.message_ptt, False)
+        else:
+            self.hide_widget(self.ids.message_ptt, True)
 
         if self.loading_earlier_messages:
             self.new_messages.reverse()
@@ -1020,7 +1035,27 @@ MDScreen:
                 icon: "key-wireless"
                 text: "Query Network For Keys"
                 on_release: root.app.key_query_action(self)
-            
+
+        BoxLayout:
+            id: message_ptt
+            padding: [dp(16), dp(8), dp(16), dp(8)]
+            spacing: dp(24)
+            size_hint_y: None
+            height: self.minimum_height
+
+            MDRectangleFlatIconButton:
+                id: message_ptt_button
+                icon: "microphone"
+                text: "PTT"
+                size_hint_x: 1.0
+                padding: [dp(10), dp(13), dp(10), dp(14)]
+                icon_size: dp(24)
+                font_size: dp(16)
+                on_press: root.app.message_ptt_down_action(self)
+                on_release: root.app.message_ptt_up_action(self)
+                _no_ripple_effect: True
+                background_normal: ""
+                background_down: ""            
 
         BoxLayout:
             id: message_input_part
