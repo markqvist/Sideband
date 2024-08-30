@@ -59,6 +59,7 @@ class SidebandService():
         0x0483: [0x5740], # ST CDC
         0x2E8A: [0x0005, 0x000A], # Raspberry Pi Pico
         0x239A: [0x8029], # Adafruit (RAK4631)
+        0x303A: [0x1001], # ESP-32S3
     }
     
     def android_notification(self, title="", content="", ticker="", group=None, context_id=None):
