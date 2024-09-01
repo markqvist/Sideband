@@ -1743,6 +1743,7 @@ class SidebandApp(MDApp):
                 RNS.trace_exception(e)
 
     def message_ptt_down_action(self, sender=None):
+        self.sideband.ui_started_recording()
         self.audio_msg_mode = LXMF.AM_CODEC2_2400
         self.message_attach_action(attach_type="audio", nodialog=True)
         if self.rec_dialog == None:
@@ -1761,6 +1762,7 @@ class SidebandApp(MDApp):
         
 
     def message_ptt_up_action(self, sender=None):
+        self.sideband.ui_stopped_recording()
         self.rec_dialog.recording = False
         el_button = self.messages_view.ids.message_ptt_button
         el_icon = self.messages_view.ids.message_ptt_button.children[0].children[1]
@@ -1843,6 +1845,7 @@ class SidebandApp(MDApp):
 
         def a_rec_action(sender):
             if not self.rec_dialog.recording:
+                self.sideband.ui_started_recording()
                 RNS.log("Starting recording...") # TODO: Remove
                 self.rec_dialog.recording = True
                 el = self.rec_dialog.rec_item.children[0].children[0]
@@ -1856,6 +1859,7 @@ class SidebandApp(MDApp):
                 Clock.schedule_once(cb, 0.10)
 
             else:
+                self.sideband.ui_stopped_recording()
                 RNS.log("Stopping recording...") # TODO: Remove
                 self.rec_dialog.recording = False
                 self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Start Recording[/size]"

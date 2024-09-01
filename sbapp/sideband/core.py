@@ -114,7 +114,10 @@ class SidebandCore():
         self.is_daemon = is_daemon
         self.msg_audio = None
         self.last_msg_audio = None
+        self.ptt_playback_lock = threading.Lock()
+        self.ui_recording = False
         self.db = None
+        self.db_lock = threading.Lock()
 
         if not self.is_service and not self.is_client:
             self.is_standalone = True
@@ -1468,6 +1471,28 @@ class SidebandCore():
                     RNS.log("Error while setting log level over RPC: "+str(e), RNS.LOG_DEBUG)
                     return False
 
+    def service_rpc_set_ui_recording(self, recording):
+        if not RNS.vendor.platformutils.is_android():
+            pass
+        else:
+            if self.is_service:
+                # TODO: Remove
+                RNS.log("Indicating recording in service: "+str(recording))
+                self.ui_recording = recording
+                return True
+            else:
+                try:
+                    # TODO: Remove
+                    RNS.log("Passing recording indication to service: "+str(recording))
+                    if self.rpc_connection == None:
+                        self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
+                    self.rpc_connection.send({"set_ui_recording": recording})
+                    response = self.rpc_connection.recv()
+                    return response
+                except Exception as e:
+                    RNS.log("Error while setting UI recording status over RPC: "+str(e), RNS.LOG_DEBUG)
+                    return False
+
     def getstate(self, prop, allow_cache=False):
         with self.state_lock:
             if not self.service_stopped:
@@ -1575,6 +1600,9 @@ class SidebandCore():
                                     connection.send(True)
                                 elif "set_debug" in call:
                                     self.service_rpc_set_debug(call["set_debug"])
+                                    connection.send(True)
+                                elif "set_ui_recording" in call:
+                                    self.service_rpc_set_ui_recording(call["set_ui_recording"])
                                     connection.send(True)
                                 elif "get_plugins_info" in call:
                                     connection.send(self._get_plugins_info())
@@ -3865,73 +3893,8 @@ class SidebandCore():
                     if self.gui_display() == "conversations_screen" and self.gui_foreground():
                         should_notify = False
 
-            ### PTT #######################################################################
             if not originator and LXMF.FIELD_AUDIO in message.fields and ptt_enabled:
-                if self.msg_audio == None:
-                    if RNS.vendor.platformutils.is_android():
-                        from plyer import audio
-                    else:
-                        from sbapp.plyer import audio
-
-                    RNS.log("Audio init done")
-                    self.msg_audio = audio
-                try:
-                    temp_path = None
-                    audio_field = message.fields[LXMF.FIELD_AUDIO]
-                    if self.last_msg_audio != audio_field[1]:
-                        RNS.log("Reloading audio source", RNS.LOG_DEBUG)
-                        if len(audio_field[1]) > 10:
-                            self.last_msg_audio = audio_field[1]
-                        else:
-                            self.last_msg_audio = None
-                            return
-
-                        if audio_field[0] == LXMF.AM_OPUS_OGG:
-                            temp_path = self.rec_cache+"/msg.ogg"
-                            with open(temp_path, "wb") as af:
-                                af.write(self.last_msg_audio)
-
-                        elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
-                            temp_path = self.rec_cache+"/msg.ogg"
-                            from sideband.audioproc import samples_to_ogg, decode_codec2, detect_codec2
-                            
-                            target_rate = 8000
-                            if RNS.vendor.platformutils.is_linux():
-                                target_rate = 48000
-
-                            if detect_codec2():
-                                if samples_to_ogg(decode_codec2(audio_field[1], audio_field[0]), temp_path, input_rate=8000, output_rate=target_rate):
-                                    RNS.log("Wrote OGG file to: "+temp_path, RNS.LOG_DEBUG)
-                                else:
-                                    RNS.log("OGG write failed", RNS.LOG_DEBUG)
-                            else:
-                                self.last_msg_audio = None
-                                return
-                        
-                        else:
-                            # Unimplemented audio type
-                            pass
-
-                        self.msg_sound = self.msg_audio
-                        self.msg_sound._file_path = temp_path
-                        self.msg_sound.reload()
-
-                    if self.msg_sound != None and self.msg_sound.playing():
-                        RNS.log("Stopping playback", RNS.LOG_DEBUG)
-                        self.msg_sound.stop()
-                    else:
-                        if self.msg_sound != None:
-                            RNS.log("Starting playback", RNS.LOG_DEBUG)
-                            self.msg_sound.play()
-                            should_notify = False
-                        else:
-                            RNS.log("Playback was requested, but no audio data was loaded for playback", RNS.LOG_ERROR)
-
-                except Exception as e:
-                    RNS.log("Error while playing message audio:"+str(e))
-                    RNS.trace_exception(e)
-            ###############################################################################
-            
+                self.ptt_event(message)
 
         if self.is_client:
             should_notify = False
@@ -3953,7 +3916,108 @@ class SidebandCore():
             if len(text) < 2 and LXMF.FIELD_FILE_ATTACHMENTS in message.fields:
                 notification_content = "File attachment"
 
-            self.notify(title=self.peer_display_name(context_dest), content=notification_content, group="LXM", context_id=RNS.hexrep(context_dest, delimit=False))
+            try:
+                self.notify(title=self.peer_display_name(context_dest), content=notification_content, group="LXM", context_id=RNS.hexrep(context_dest, delimit=False))
+            except Exception as e:
+                RNS.log("Could not post notification for received message: "+str(e), RNS.LOG_ERROR)
+
+    def ptt_playback(self, message):
+        while hasattr(self, "msg_sound") and self.msg_sound != None and self.msg_sound.playing():
+            RNS.log("Waiting for playback to stop")
+            time.sleep(0.1)
+        time.sleep(0.5)
+
+        if self.msg_audio == None:
+            if RNS.vendor.platformutils.is_android():
+                from plyer import audio
+            else:
+                from sbapp.plyer import audio
+
+            RNS.log("Audio init done")
+            self.msg_audio = audio
+        try:
+            temp_path = None
+            audio_field = message.fields[LXMF.FIELD_AUDIO]
+            if self.last_msg_audio != audio_field[1]:
+                RNS.log("Reloading audio source", RNS.LOG_DEBUG)
+                if len(audio_field[1]) > 10:
+                    self.last_msg_audio = audio_field[1]
+                else:
+                    self.last_msg_audio = None
+                    return
+
+                if audio_field[0] == LXMF.AM_OPUS_OGG:
+                    temp_path = self.rec_cache+"/msg.ogg"
+                    with open(temp_path, "wb") as af:
+                        af.write(self.last_msg_audio)
+
+                elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
+                    temp_path = self.rec_cache+"/msg.ogg"
+                    from sideband.audioproc import samples_to_ogg, decode_codec2, detect_codec2
+                    
+                    target_rate = 8000
+                    if RNS.vendor.platformutils.is_linux():
+                        target_rate = 48000
+
+                    if detect_codec2():
+                        if samples_to_ogg(decode_codec2(audio_field[1], audio_field[0]), temp_path, input_rate=8000, output_rate=target_rate):
+                            RNS.log("Wrote OGG file to: "+temp_path, RNS.LOG_DEBUG)
+                        else:
+                            RNS.log("OGG write failed", RNS.LOG_DEBUG)
+                    else:
+                        self.last_msg_audio = None
+                        return
+                
+                else:
+                    # Unimplemented audio type
+                    pass
+
+                self.msg_sound = self.msg_audio
+                self.msg_sound._file_path = temp_path
+                self.msg_sound.reload()
+
+            if self.msg_sound != None:
+                RNS.log("Starting playback", RNS.LOG_DEBUG)
+                self.msg_sound.play()
+                should_notify = False
+            else:
+                RNS.log("Playback was requested, but no audio data was loaded for playback", RNS.LOG_ERROR)
+
+        except Exception as e:
+            RNS.log("Error while playing message audio:"+str(e))
+            RNS.trace_exception(e)
+
+    def ptt_event(self, message):
+        def ptt_job():
+            try:
+                # TODO: Remove logs
+                RNS.log("Taking lock")
+                self.ptt_playback_lock.acquire()
+                while self.ui_recording:
+                    RNS.log("Waiting for UI recording to finish")
+                    time.sleep(0.5)
+
+                RNS.log("Starting playback")
+                self.ptt_playback(message)
+            except Exception as e:
+                RNS.log("Error while starting playback for PTT-enabled conversation: "+str(e), RNS.LOG_ERROR)
+            finally:
+                RNS.log("Releasing lock")
+                self.ptt_playback_lock.release()
+
+        threading.Thread(target=ptt_job, daemon=True).start()
+
+    def ui_started_recording(self):
+        # TODO: Remove
+        RNS.log("Indicating recording started")
+        self.ui_recording = True
+        self.service_rpc_set_ui_recording(True)
+
+    def ui_stopped_recording(self):
+        # TODO: Remove
+        RNS.log("Indicating recording stopped")
+        self.ui_recording = False
+        self.service_rpc_set_ui_recording(False)
 
     def start(self):
         self._db_clean_messages()
