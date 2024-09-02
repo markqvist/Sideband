@@ -313,6 +313,7 @@ class SidebandApp(MDApp):
         self.audio_msg_mode = LXMF.AM_OPUS_OGG
         self.compat_error_dialog = None
         self.rec_dialog_is_open = True
+        self.key_ptt_down = False
 
         Window.softinput_mode = "below_target"
         self.icon = self.sideband.asset_dir+"/icon.png"
@@ -989,6 +990,7 @@ class SidebandApp(MDApp):
 
         EventLoop.window.bind(on_keyboard=self.keyboard_event)
         EventLoop.window.bind(on_key_down=self.keydown_event)
+        EventLoop.window.bind(on_key_up=self.keyup_event)
 
         if __variant__ != "":
             variant_str = " "+__variant__
@@ -999,6 +1001,17 @@ class SidebandApp(MDApp):
         self.root.ids.app_version_info.text = "Sideband v"+__version__+variant_str
         self.root.ids.nav_scrollview.effect_cls = ScrollEffect
         Clock.schedule_once(self.start_core, 0.25)
+
+    def keyup_event(self, instance, keyboard, keycode):
+        if self.keyboard_enabled:
+            if self.root.ids.screen_manager.current == "messages_screen":
+                if not self.rec_dialog_is_open:
+                    if not self.messages_view.ids.message_text.focus:
+                        if self.messages_view.ptt_enabled and keycode == 44:
+                            if self.key_ptt_down:
+                                self.key_ptt_down = False
+                                self.message_ptt_up_action()
+
 
     def keydown_event(self, instance, keyboard, keycode, text, modifiers):
         if self.keyboard_enabled:
@@ -1038,6 +1051,13 @@ class SidebandApp(MDApp):
                             self.msg_rec_a_rec(None)
                         elif keycode == 40:
                             self.msg_rec_a_save(None)
+
+                elif not self.rec_dialog_is_open:
+                    if not self.messages_view.ids.message_text.focus:
+                        if self.messages_view.ptt_enabled and keycode == 44:
+                            if not self.key_ptt_down:
+                                self.key_ptt_down = True
+                                self.message_ptt_down_action()
 
                 elif len(modifiers) > 1 and "shift" in modifiers and "ctrl" in modifiers:
                     def clear_att():
