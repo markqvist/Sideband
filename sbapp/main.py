@@ -1052,12 +1052,10 @@ class SidebandApp(MDApp):
                         elif keycode == 40:
                             self.msg_rec_a_save(None)
 
-                elif not self.rec_dialog_is_open:
-                    if not self.messages_view.ids.message_text.focus:
-                        if self.messages_view.ptt_enabled and keycode == 44:
-                            if not self.key_ptt_down:
-                                self.key_ptt_down = True
-                                self.message_ptt_down_action()
+                elif not self.rec_dialog_is_open and not self.messages_view.ids.message_text.focus and self.messages_view.ptt_enabled and keycode == 44:
+                    if not self.key_ptt_down:
+                        self.key_ptt_down = True
+                        self.message_ptt_down_action()
 
                 elif len(modifiers) > 1 and "shift" in modifiers and "ctrl" in modifiers:
                     def clear_att():
@@ -1763,6 +1761,9 @@ class SidebandApp(MDApp):
                 RNS.trace_exception(e)
 
     def message_ptt_down_action(self, sender=None):
+        if self.sideband.ui_recording:
+            return
+
         self.sideband.ui_started_recording()
         self.audio_msg_mode = LXMF.AM_CODEC2_2400
         self.message_attach_action(attach_type="audio", nodialog=True)
@@ -1782,7 +1783,9 @@ class SidebandApp(MDApp):
         
 
     def message_ptt_up_action(self, sender=None):
-        self.sideband.ui_stopped_recording()
+        if not self.sideband.ui_recording:
+            return
+
         self.rec_dialog.recording = False
         el_button = self.messages_view.ids.message_ptt_button
         el_icon = self.messages_view.ids.message_ptt_button.children[0].children[1]
@@ -1792,10 +1795,16 @@ class SidebandApp(MDApp):
         el_icon.theme_text_color="Custom"
         el_icon.text_color=mdc("BlueGray","500")
         def cb_s(dt):
-            self.msg_audio.stop()
-            self.message_process_audio()
-            self.message_send_action()
-        Clock.schedule_once(cb_s, 0.25)
+            try:
+                self.msg_audio.stop()
+            except Exception as e:
+                RNS.log("An error occurred while stopping recording: "+str(e), RNS.LOG_ERROR)
+                RNS.trace_exception(e)
+
+            self.sideband.ui_stopped_recording()
+            if self.message_process_audio():
+                self.message_send_action()
+        Clock.schedule_once(cb_s, 0.35)
 
     def message_process_audio(self):
         if self.audio_msg_mode == LXMF.AM_OPUS_OGG:
@@ -1850,7 +1859,9 @@ class SidebandApp(MDApp):
                     os.unlink(self.msg_audio._file_path)
                 else:
                     self.display_codec2_error()
-                    return
+                    return False
+
+        return True
 
     def message_init_rec_dialog(self):
         ss = int(dp(18))

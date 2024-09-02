@@ -68,13 +68,21 @@ class AndroidAudio(Audio):
 
     def _stop(self):
         if self._recorder:
-            self._recorder.stop()
-            self._recorder.release()
+            try:
+                self._recorder.stop()
+                self._recorder.release()
+            except Exception as e:
+                print("Could not stop recording: "+str(e))
+
             self._recorder = None
 
         if self._player:
-            self._player.stop()
-            self._player.release()
+            try:
+                self._player.stop()
+                self._player.release()
+            except Exception as e:
+                print("Could not stop playback: "+str(e))
+
             self._player = None
 
         self.is_playing = False
