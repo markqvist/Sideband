@@ -466,7 +466,7 @@ class Battery(Sensor):
       if RNS.vendor.platformutils.is_android():
         self.battery.get_state()
         b = self.battery.status
-        self.data = {"charge_percent": b["percentage"], "charging": b["isCharging"]}
+        self.data = {"charge_percent": b["percentage"], "charging": b["isCharging"], "temperature": None}
       
       elif RNS.vendor.platformutils.is_linux():
         if self.battery_node_name:
@@ -485,7 +485,7 @@ class Battery(Sensor):
 
           is_charging = output['POWER_SUPPLY_STATUS'] == 'Charging'
           charge_percent = float(output['POWER_SUPPLY_CAPACITY'])
-          self.data = {"charge_percent": round(charge_percent, 1), "charging": is_charging}
+          self.data = {"charge_percent": round(charge_percent, 1), "charging": is_charging, "temperature": None}
     
     except:
       self.data = None
@@ -495,14 +495,20 @@ class Battery(Sensor):
     if d == None:
       return None
     else:
-      return [round(d["charge_percent"],1), d["charging"]]
+      return [round(d["charge_percent"],1), d["charging"], d["temperature"]]
 
   def unpack(self, packed):
     try:
       if packed == None:
         return None
       else:
-        return {"charge_percent": round(packed[0], 1), "charging": packed[1]}
+        unpacked = {"charge_percent": round(packed[0], 1), "charging": packed[1]}
+        if len(packed) > 2:
+          unpacked["temperature"] = packed[2]
+        else:
+          unpacked["temperature"] = None
+
+        return unpacked
     except:
       return None
 
@@ -512,6 +518,7 @@ class Battery(Sensor):
     
     d = self.data
     p = d["charge_percent"]
+    t = d["temperature"]
     if d["charging"]:
       charge_string = "charging"
     else:
@@ -520,7 +527,7 @@ class Battery(Sensor):
     rendered = {
       "icon": "battery-outline",
       "name": "Battery",
-      "values": {"percent": p, "_meta": charge_string},
+      "values": {"percent": p, "temperature": t, "_meta": charge_string},
     }
 
     if d["charging"]:

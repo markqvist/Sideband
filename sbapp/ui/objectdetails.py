@@ -405,7 +405,15 @@ class RVDetails(MDRecycleView):
                     elif name == "Battery":
                         p = s["values"]["percent"]
                         cs = s["values"]["_meta"]
-                        if cs != None: cs_str = f" ({cs})"
+                        t = None
+                        if "temperature" in s["values"]:
+                            t = s["values"]["temperature"]
+                        if cs != None:
+                            if t != None:
+                                cs_str = f" ({cs}, {t}° C)"
+                            else:
+                                cs_str = f" ({cs})"
+
                         if p != None: formatted_values = f"{name} [b]{p}%[/b]"+cs_str
                     
                     elif name == "Ambient Pressure":
@@ -581,7 +589,7 @@ class RVDetails(MDRecycleView):
                                 load  = c["current_load"]
                                 avgs  = c["load_avgs"]
                                 clock = c["clock"]
-                                pct   = round(load*100, 1)
+                                pct   = round(load*100.0, 1)
 
                                 avgs_str  = f", averages are [b]{round(avgs[0],2)}[/b], [b]{round(avgs[1],2)}[/b], [b]{round(avgs[2],2)}[/b]" if avgs != None and len(avgs) == 3 else ""
                                 clock_str = " at [b]"+RNS.prettyfrequency(clock)+"[/b]" if clock != None else ""
