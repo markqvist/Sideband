@@ -208,7 +208,7 @@ class SidebandCore():
         self.last_lxmf_announce = 0
         self.last_if_change_announce = 0
         self.interface_local_adding = False
-        self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN))
+        self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)+SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)
 
         try:
             if not os.path.isfile(self.config_path):
@@ -2657,7 +2657,7 @@ class SidebandCore():
         if self.is_standalone or self.is_service:
             self.lxmf_destination.announce(attached_interface=attached_interface)
             self.last_lxmf_announce = time.time()
-            self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN))
+            self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)+SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)
             RNS.log("Next auto announce in "+RNS.prettytime(self.next_auto_announce-time.time()), RNS.LOG_DEBUG)
             self.setstate("wants.announce", False)
         else:
