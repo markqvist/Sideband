@@ -106,6 +106,14 @@ class SidebandCore():
     def received_announce(self, destination_hash, announced_identity, app_data):
         # Add the announce to the directory announce
         # stream logger
+
+        # This reformats the new v0.5.0 announce data back to the expected format
+        # for Sidebands database and other handling functions.
+        dn = LXMF.display_name_from_app_data(app_data)
+        app_data = b""
+        if dn != None:
+            app_data = dn.encode("utf-8")
+
         self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter)
 
     def __init__(self, owner_app, config_path = None, is_service=False, is_client=False, android_app_dir=None, verbose=False, owner_service=None, service_context=None, is_daemon=False, load_config_only=False):
@@ -207,6 +215,7 @@ class SidebandCore():
         self.saving_configuration = False
         self.last_lxmf_announce = 0
         self.last_if_change_announce = 0
+        self.inbound_stamp_cost = None
         self.interface_local_adding = False
         self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)+SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)
 
@@ -1064,15 +1073,15 @@ class SidebandCore():
                     app_data = RNS.Identity.recall_app_data(context_dest)
                     if app_data != None:
                         if existing_conv["trust"] == 1:
-                            return app_data.decode("utf-8")
+                            return LXMF.display_name_from_app_data(app_data)
                         else:
-                            return app_data.decode("utf-8")+" "+RNS.prettyhexrep(context_dest)
+                            return LXMF.display_name_from_app_data(app_data)+" "+RNS.prettyhexrep(context_dest)
                     else:
                         return RNS.prettyhexrep(context_dest)
             else:
                 app_data = RNS.Identity.recall_app_data(context_dest)
                 if app_data != None:
-                    return app_data.decode("utf-8")+" "+RNS.prettyhexrep(context_dest)
+                    return LXMF.display_name_from_app_data(app_data)+" "+RNS.prettyhexrep(context_dest)
                 else:
                     return RNS.prettyhexrep(context_dest)
 
@@ -3606,7 +3615,8 @@ class SidebandCore():
         self.message_router = LXMF.LXMRouter(identity = self.identity, storagepath = self.lxmf_storage, autopeer = True, delivery_limit = lxm_limit)
         self.message_router.register_delivery_callback(self.lxmf_delivery)
 
-        self.lxmf_destination = self.message_router.register_delivery_identity(self.identity, display_name=self.config["display_name"])
+        self.lxmf_destination = self.message_router.register_delivery_identity(self.identity, display_name=self.config["display_name"], stamp_cost=self.inbound_stamp_cost)
+        # TODO: Update to announce call in LXMF when full 0.5.0 support is added (get app data from LXMRouter instead)
         self.lxmf_destination.set_default_app_data(self.get_display_name_bytes)
 
         self.rns_dir = RNS.Reticulum.configdir
@@ -3757,6 +3767,7 @@ class SidebandCore():
                     lxm.try_propagation_on_fail = True
 
             self.message_router.handle_outbound(lxm)
+
             if not no_display:
                 self.lxm_ingest(lxm, originator=True)
 
@@ -3764,6 +3775,7 @@ class SidebandCore():
 
         except Exception as e:
             RNS.log("Error while sending message: "+str(e), RNS.LOG_ERROR)
+            RNS.trace_exception(e)
             return False
 
     def send_command(self, content, destination_hash, propagation):

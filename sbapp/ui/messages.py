@@ -239,8 +239,10 @@ class Messages():
         self.ids.message_text.font_name = self.app.input_font
 
         if self.ptt_enabled:
+            RNS.log("PTT display") # TODO: Remove and fix this
             self.hide_widget(self.ids.message_ptt, False)
         else:
+            RNS.log("PTT hide") # TODO: Remove and fix this
             self.hide_widget(self.ids.message_ptt, True)
 
         if self.loading_earlier_messages:
