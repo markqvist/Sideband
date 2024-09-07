@@ -38,7 +38,8 @@ class Codec2Recipe(Recipe):
             ]
 
             mkdir = sh.mkdir("-p", "build_android")
-            cd = sh.cd("build_android")
+            # cd = sh.cd("build_android")
+            os.chdir("build_android")
             cmake = sh.Command('cmake')
 
             shprint(cmake, *flags, _env=env)
