@@ -158,6 +158,13 @@ class Messages():
                     if prg != None:
                         prgstr = ", "+str(round(prg*100, 1))+"% done"
                         if prg <= 0.00:
+                            stamp_cost = self.app.sideband.get_lxm_stamp_cost(msg["hash"])
+                            if stamp_cost:
+                                sphrase = f"Generating stamp (cost {stamp_cost})"
+                                prgstr = ""
+                            else:
+                                sphrase = "Waiting for path"
+                        elif prg <= 0.01:
                             sphrase = "Waiting for path"
                         elif prg <= 0.03:
                             sphrase = "Establishing link"

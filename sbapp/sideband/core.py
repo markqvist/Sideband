@@ -379,6 +379,8 @@ class SidebandCore():
         self.config["lxmf_periodic_sync"] = False
         self.config["lxmf_ignore_unknown"] = False
         self.config["lxmf_sync_interval"] = 43200
+        self.config["lxmf_require_stamps"] = False
+        self.config["lxmf_inbound_stamp_cost"] = None
         self.config["last_lxmf_propagation_node"] = None
         self.config["nn_home_node"] = None
         self.config["print_command"] = "lp"
@@ -505,6 +507,10 @@ class SidebandCore():
             self.config["lxmf_sync_interval"] = 43200
         if not "lxmf_try_propagation_on_fail" in self.config:
             self.config["lxmf_try_propagation_on_fail"] = True
+        if not "lxmf_require_stamps" in self.config:
+            self.config["lxmf_require_stamps"] = False
+        if not "lxmf_inbound_stamp_cost" in self.config:
+            self.config["lxmf_inbound_stamp_cost"] = None
         if not "notifications_on" in self.config:
             self.config["notifications_on"] = True
         if not "print_command" in self.config:
@@ -2664,7 +2670,11 @@ class SidebandCore():
 
     def lxmf_announce(self, attached_interface=None):
         if self.is_standalone or self.is_service:
-            self.lxmf_destination.announce(attached_interface=attached_interface)
+            if self.config["lxmf_require_stamps"]:
+                self.message_router.set_inbound_stamp_cost(self.lxmf_destination, self.config["lxmf_inbound_stamp_cost"])
+                self.message_router.announce(self.lxmf_destination.hash, attached_interface=attached_interface)
+            else:
+                self.lxmf_destination.announce(attached_interface=attached_interface)
             self.last_lxmf_announce = time.time()
             self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)+SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)
             RNS.log("Next auto announce in "+RNS.prettytime(self.next_auto_announce-time.time()), RNS.LOG_DEBUG)
@@ -3727,6 +3737,13 @@ class SidebandCore():
             RNS.log("An error occurred while getting message transfer progress: "+str(e), RNS.LOG_ERROR)
             return None
 
+    def get_lxm_stamp_cost(self, lxm_hash):
+        try:
+            return self.message_router.get_outbound_lxm_stamp_cost(lxm_hash)
+        except Exception as e:
+            RNS.log("An error occurred while getting message transfer stamp cost: "+str(e), RNS.LOG_ERROR)
+            return None
+
     def send_message(self, content, destination_hash, propagation, skip_fields=False, no_display=False, attachment = None, image = None, audio = None):
         try:
             if content == "":
@@ -3754,6 +3771,9 @@ class SidebandCore():
                 fields[LXMF.FIELD_AUDIO] = audio
 
             lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = fields)
+
+            # Defer stamp generation so workload doesn't run on UI thread
+            lxm.defer_stamp = True
             
             if not no_display:
                 lxm.register_delivery_callback(self.message_notification)

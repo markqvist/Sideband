@@ -805,6 +805,14 @@ class RVDetails(MDRecycleView):
             except Exception as e:
                 RNS.trace_exception(e)
 
+            try:
+                stamp_cost = self.delegate.app.sideband.message_router.get_outbound_stamp_cost(self.delegate.object_hash)
+                if stamp_cost:
+                    self.entries.append({"icon": "postage-stamp", "text": f"Required stamp cost [b]{stamp_cost}[/b]", "on_release": pass_job})
+
+            except Exception as e:
+                RNS.trace_exception(e)
+
             if len(self.entries) == 0:
                 self.entries.append({"icon": "timeline-question-outline", "text": f"No telemetry available for this device"})
 
