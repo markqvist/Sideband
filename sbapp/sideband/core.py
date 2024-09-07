@@ -1229,7 +1229,7 @@ class SidebandCore():
                         {Commands.TELEMETRY_REQUEST: request_timebase},
                     ]}
 
-                    lxm = LXMF.LXMessage(dest, source, "", desired_method=desired_method, fields = lxm_fields)
+                    lxm = LXMF.LXMessage(dest, source, "", desired_method=desired_method, fields = lxm_fields, include_ticket=True)
                     lxm.request_timebase = request_timebase
                     lxm.register_delivery_callback(self.telemetry_request_finished)
                     lxm.register_failed_callback(self.telemetry_request_finished)
@@ -1296,7 +1296,7 @@ class SidebandCore():
                                 telemetry_timebase = max(telemetry_timebase, ts)
 
                         if telemetry_timebase > (self.getpersistent(f"telemetry.{RNS.hexrep(to_addr, delimit=False)}.last_send_success_timebase") or 0):
-                            lxm = LXMF.LXMessage(dest, source, "", desired_method=desired_method, fields = lxm_fields)
+                            lxm = LXMF.LXMessage(dest, source, "", desired_method=desired_method, fields = lxm_fields, include_ticket=self.is_trusted(to_addr))
                             lxm.telemetry_timebase = telemetry_timebase
                             lxm.register_delivery_callback(self.outbound_telemetry_finished)
                             lxm.register_failed_callback(self.outbound_telemetry_finished)
@@ -3726,6 +3726,7 @@ class SidebandCore():
             source = self.lxmf_destination
             
             desired_method = LXMF.LXMessage.PAPER
+            # TODO: Should paper messages also include a ticket to trusted peers?
             lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = self.get_message_fields(destination_hash))
 
             self.lxm_ingest(lxm, originator=True)
@@ -3776,7 +3777,7 @@ class SidebandCore():
             if audio != None:
                 fields[LXMF.FIELD_AUDIO] = audio
 
-            lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = fields)
+            lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = fields, include_ticket=self.is_trusted(destination_hash))
             
             if not no_display:
                 lxm.register_delivery_callback(self.message_notification)
@@ -3830,7 +3831,7 @@ class SidebandCore():
             else:
                 desired_method = LXMF.LXMessage.DIRECT
 
-            lxm = LXMF.LXMessage(dest, source, "", title="", desired_method=desired_method, fields = {LXMF.FIELD_COMMANDS: commands})
+            lxm = LXMF.LXMessage(dest, source, "", title="", desired_method=desired_method, fields = {LXMF.FIELD_COMMANDS: commands}, include_ticket=self.is_trusted(destination_hash))
             lxm.register_delivery_callback(self.message_notification)
             lxm.register_failed_callback(self.message_notification)
 

@@ -818,18 +818,9 @@ class RVDetails(MDRecycleView):
                 stamp_cost = self.delegate.app.sideband.message_router.get_outbound_stamp_cost(self.delegate.object_hash)
                 t_str = ""
                 if ticket_expires:
-                    t_str = " (but have ticket)"
+                    t_str = ", but have ticket"
                 if stamp_cost:
                     self.entries.append({"icon": "postage-stamp", "text": f"Required stamp cost [b]{stamp_cost}[/b]"+t_str, "on_release": pass_job})
-                if ticket_expires:
-                    valid_for = ticket_expires - time.time()
-                    self.entries.append({"icon": "ticket-confirmation", "text": f"Delivery ticket valid for [b]{RNS.prettytime(valid_for)}[/b]", "on_release": pass_job})
-
-            except Exception as e:
-                RNS.trace_exception(e)
-
-            try:
-                ticket_expires = self.delegate.app.sideband.message_router.get_outbound_ticket_expiry(self.delegate.object_hash)
                 if ticket_expires:
                     valid_for = ticket_expires - time.time()
                     self.entries.append({"icon": "ticket-confirmation", "text": f"Delivery ticket valid for [b]{RNS.prettytime(valid_for)}[/b]", "on_release": pass_job})
