@@ -160,7 +160,7 @@ class Messages():
                         if prg <= 0.00:
                             stamp_cost = self.app.sideband.get_lxm_stamp_cost(msg["hash"])
                             if stamp_cost:
-                                sphrase = f"Generating stamp (cost {stamp_cost})"
+                                sphrase = f"Generating stamp with cost {stamp_cost}"
                                 prgstr = ""
                             else:
                                 sphrase = "Waiting for path"

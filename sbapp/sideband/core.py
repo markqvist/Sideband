@@ -3647,14 +3647,20 @@ class SidebandCore():
 
     def message_notification(self, message, no_display=False):
         if message.state == LXMF.LXMessage.FAILED and hasattr(message, "try_propagation_on_fail") and message.try_propagation_on_fail:
-            RNS.log("Direct delivery of "+str(message)+" failed. Retrying as propagated message.", RNS.LOG_VERBOSE)
-            message.try_propagation_on_fail = None
-            message.delivery_attempts = 0
-            del message.next_delivery_attempt
-            message.packed = None
-            message.desired_method = LXMF.LXMessage.PROPAGATED
-            self._db_message_set_method(message.hash, LXMF.LXMessage.PROPAGATED)
-            self.message_router.handle_outbound(message)
+            if hasattr(message, "stamp_generation_failed") and message.stamp_generation_failed == True:
+                RNS.log(f"Could not send {message} due to a stamp generation failure", RNS.LOG_ERROR)
+                if not no_display:
+                    self.lxm_ingest(message, originator=True)
+            else:
+                RNS.log("Direct delivery of "+str(message)+" failed. Retrying as propagated message.", RNS.LOG_VERBOSE)
+                message.try_propagation_on_fail = None
+                message.delivery_attempts = 0
+                if hasattr(message, "next_delivery_attempt"):
+                    del message.next_delivery_attempt
+                message.packed = None
+                message.desired_method = LXMF.LXMessage.PROPAGATED
+                self._db_message_set_method(message.hash, LXMF.LXMessage.PROPAGATED)
+                self.message_router.handle_outbound(message)
         else:
             if not no_display:
                 self.lxm_ingest(message, originator=True)
@@ -3771,9 +3777,6 @@ class SidebandCore():
                 fields[LXMF.FIELD_AUDIO] = audio
 
             lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = fields)
-
-            # Defer stamp generation so workload doesn't run on UI thread
-            lxm.defer_stamp = True
             
             if not no_display:
                 lxm.register_delivery_callback(self.message_notification)
@@ -3925,6 +3928,11 @@ class SidebandCore():
                 if (LXMF.FIELD_TELEMETRY in message.fields or LXMF.FIELD_TELEMETRY_STREAM in message.fields or LXMF.FIELD_COMMANDS in message.fields):
                     RNS.log("Squelching notification due to telemetry-only message", RNS.LOG_DEBUG)
                     telemetry_only = True
+
+            if LXMF.FIELD_TICKET in message.fields:
+                if self.is_service:
+                    RNS.log("Notifying UI of newly arrived delivery ticket", RNS.LOG_DEBUG)
+                    self.setstate("app.flags.new_ticket", True)
 
         if not telemetry_only:
             if self._db_conversation(context_dest) == None:

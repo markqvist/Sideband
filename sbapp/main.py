@@ -936,6 +936,12 @@ class SidebandApp(MDApp):
             if self.conversations_view != None:
                 self.conversations_view.update()
 
+        if self.sideband.getstate("app.flags.new_ticket", allow_cache=True):
+            def cb(d):
+                self.sideband.message_router.reload_available_tickets()
+                self.sideband.setstate("app.flags.new_ticket", False)
+            Clock.schedule_once(cb, 1.5)
+
         if self.sideband.getstate("wants.viewupdate.conversations", allow_cache=True):
             if self.conversations_view != None:
                 self.conversations_view.update()
