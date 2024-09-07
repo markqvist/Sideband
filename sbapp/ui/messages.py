@@ -119,6 +119,11 @@ class Messages():
             layout.bind(minimum_height=layout.setter('height'))
             self.list = layout
 
+        if self.ptt_enabled:
+            self.hide_widget(self.ids.message_ptt, False)
+        else:
+            self.hide_widget(self.ids.message_ptt, True)
+
         c_ts = time.time()
         if len(self.new_messages) > 0:
             self.update_widget()
@@ -237,13 +242,6 @@ class Messages():
             mt_color = [1.0, 1.0, 1.0, 0.95]
 
         self.ids.message_text.font_name = self.app.input_font
-
-        if self.ptt_enabled:
-            RNS.log("PTT display") # TODO: Remove and fix this
-            self.hide_widget(self.ids.message_ptt, False)
-        else:
-            RNS.log("PTT hide") # TODO: Remove and fix this
-            self.hide_widget(self.ids.message_ptt, True)
 
         if self.loading_earlier_messages:
             self.new_messages.reverse()

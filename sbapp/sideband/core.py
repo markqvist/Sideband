@@ -35,7 +35,7 @@ if RNS.vendor.platformutils.get_platform() == "android":
     jnius.reflect.log = redirect_log()
     ############################################
 else:
-    import sbapp.plyer as plyer    
+    import sbapp.plyer as plyer
 
 class PropagationNodeDetector():
     EMITTED_DELTA_GRACE = 300

@@ -2138,6 +2138,7 @@ class SidebandApp(MDApp):
                 keys_str = "The crytographic keys for the destination address are unknown at this time. You can wait for an announce to arrive, or query the network for the necessary keys."
                 self.messages_view.ids.nokeys_text.text = keys_str
             self.widget_hide(self.messages_view.ids.message_input_part, True)
+            self.widget_hide(self.messages_view.ids.message_ptt, True)
             self.widget_hide(self.messages_view.ids.no_keys_part, False)
 
 
