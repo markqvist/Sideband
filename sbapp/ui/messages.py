@@ -280,6 +280,8 @@ class Messages():
                 has_attachment = False
                 force_markup = False
                 signature_valid = False
+                stamp_valid = False
+                stamp_value = None
 
                 if "lxm" in m and m["lxm"] != None and m["lxm"].signature_validated:
                     signature_valid = True
@@ -289,6 +291,10 @@ class Messages():
                         telemeter = Telemeter.from_packed(m["extras"]["packed_telemetry"])
                     except Exception as e:
                         pass
+
+                if "extras" in m and m["extras"] != None and "stamp_checked" in m["extras"] and m["extras"]["stamp_checked"] == True:
+                    stamp_valid = m["extras"]["stamp_valid"]
+                    stamp_value = m["extras"]["stamp_value"]
 
                 if "lxm" in m and m["lxm"] != None and m["lxm"].fields != None and LXMF.FIELD_COMMANDS in m["lxm"].fields:
                     try:
@@ -409,6 +415,8 @@ class Messages():
                     heading_str = titlestr
                     if phy_stats_str != "" and self.app.sideband.config["advanced_stats"]:
                         heading_str += phy_stats_str+"\n"
+                    if stamp_valid:
+                        txstr += f" [b]Stamp[/b] value is {stamp_value} "
 
                     heading_str += "[b]Sent[/b] "+txstr
                     heading_str += "\n[b]Received[/b] "+rxstr

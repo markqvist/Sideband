@@ -821,6 +821,8 @@ class RVDetails(MDRecycleView):
                     t_str = ", but have ticket"
                 if stamp_cost:
                     self.entries.append({"icon": "postage-stamp", "text": f"Required stamp cost [b]{stamp_cost}[/b]"+t_str, "on_release": pass_job})
+                else:
+                    self.entries.append({"icon": "postage-stamp", "text": f"No required stamp cost", "on_release": pass_job})
                 if ticket_expires:
                     valid_for = ticket_expires - time.time()
                     self.entries.append({"icon": "ticket-confirmation", "text": f"Delivery ticket valid for [b]{RNS.prettytime(valid_for)}[/b]", "on_release": pass_job})

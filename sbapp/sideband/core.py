@@ -2606,6 +2606,14 @@ class SidebandCore():
                     extras["snr"] = lxm.snr
                     extras["q"] = lxm.q
 
+                if lxm.stamp_checked:
+                    extras["stamp_checked"] = True
+                    extras["stamp_valid"] = lxm.stamp_valid
+                    extras["stamp_value"] = lxm.stamp_value
+
+                if lxm.ratchet_id:
+                    extras["ratchet_id"] = lxm.ratchet_id
+
                 if packed_telemetry != None:
                     extras["packed_telemetry"] = packed_telemetry
 
@@ -2671,7 +2679,7 @@ class SidebandCore():
     def lxmf_announce(self, attached_interface=None):
         if self.is_standalone or self.is_service:
             if self.config["lxmf_require_stamps"]:
-                self.message_router.set_inbound_stamp_cost(self.lxmf_destination, self.config["lxmf_inbound_stamp_cost"])
+                self.message_router.set_inbound_stamp_cost(self.lxmf_destination.hash, self.config["lxmf_inbound_stamp_cost"])
                 self.message_router.announce(self.lxmf_destination.hash, attached_interface=attached_interface)
             else:
                 self.lxmf_destination.announce(attached_interface=attached_interface)
