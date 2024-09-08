@@ -413,7 +413,7 @@ class MDDialog(BaseDialog):
     and defaults to `[]`.
     """
 
-    width_offset = NumericProperty(dp(48))
+    width_offset = NumericProperty(dp(32))
     """
     Dialog offset from device width.
 
@@ -601,7 +601,7 @@ class MDDialog(BaseDialog):
             self.width = min(dp(560), Window.width - self.width_offset)
         elif self.size_hint == [1, 1] and DEVICE_TYPE == "mobile":
             self.size_hint = (None, None)
-            self.width = min(dp(280), Window.width - self.width_offset)
+            self.width = min(dp(560), Window.width - self.width_offset)
 
         if not self.title:
             self._spacer_top = 0
@@ -634,7 +634,7 @@ class MDDialog(BaseDialog):
         self.width = max(
             self.height + self.width_offset,
             min(
-                dp(560) if DEVICE_TYPE != "mobile" else dp(280),
+                dp(560) if DEVICE_TYPE != "mobile" else dp(560),
                 Window.width - self.width_offset,
             ),
         )
