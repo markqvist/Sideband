@@ -45,6 +45,11 @@ if RNS.vendor.platformutils.is_darwin():
     from PIL import Image as PilImage
 
 from kivy.lang.builder import Builder
+from kivymd.uix.list import OneLineIconListItem, IconLeftWidget
+
+class DialogItem(OneLineIconListItem):
+    divider = None
+    icon = StringProperty()
 
 class ListLXMessageCard(MDCard):
 # class ListLXMessageCard(MDCard, FakeRectangularElevationBehavior):
@@ -73,6 +78,7 @@ class Messages():
         self.widgets = []
         self.send_error_dialog = None
         self.load_more_button = None
+        self.details_dialog = None
         self.update()
 
     def reload(self):
@@ -94,6 +100,69 @@ class Messages():
         if len(self.new_messages) > 0:
             self.loading_earlier_messages = True
             self.list.remove_widget(self.load_more_button)
+
+    def message_details_dialog(self, lxm_hash):
+        RNS.log(f"Opening dialog for {RNS.prettyhexrep(lxm_hash)}", RNS.LOG_DEBUG)
+        ss = int(dp(16))
+        
+        msg = self.app.sideband.message(lxm_hash)
+        if msg:
+            close_button = MDRectangleFlatButton(text="Close", font_size=dp(18))
+            # d_items = [ ]
+            # d_items.append(DialogItem(IconLeftWidget(icon="postage-stamp"), text="[size="+str(ss)+"]Stamp[/size]"))
+
+            d_text = ""
+
+            if "lxm" in msg and msg["lxm"] != None:
+                if msg["lxm"].signature_validated:
+                    d_text += f"[size={ss}][b]Signature[/b] validated successfully[/size]\n"
+                else:
+                    d_text += f"[size={ss}][b]Signature[/b] is invalid[/size]\n"
+
+                if "method" in msg:
+                    if msg["method"] == LXMF.LXMessage.UNKNOWN:
+                        d_text += f"[size={ss}][b]Delivered[/b] via unknown method[/size]\n"
+                    if msg["method"] == LXMF.LXMessage.OPPORTUNISTIC:
+                        d_text += f"[size={ss}][b]Delivered[/b] opportunistically[/size]\n"
+                    if msg["method"] == LXMF.LXMessage.DIRECT:
+                        d_text += f"[size={ss}][b]Delivered[/b] over direct link[/size]\n"
+                    if msg["method"] == LXMF.LXMessage.PROPAGATED:
+                        d_text += f"[size={ss}][b]Delivered[/b] to propagation network[/size]\n"
+
+            if msg["extras"] != None and "ratchet_id" in msg["extras"]:
+                r_str = RNS.prettyhexrep(msg["extras"]["ratchet_id"])
+                d_text += f"[size={ss}][b]Encrypted[/b] with ratchet {r_str}[/size]\n"
+            
+            if msg["extras"] != None and "stamp_checked" in msg["extras"] and msg["extras"]["stamp_checked"] == True:
+                valid_str = " is not valid"
+                if msg["extras"]["stamp_valid"] == True:
+                    valid_str = " is valid"
+                sv = msg["extras"]["stamp_value"]
+                if sv == None:
+                    sv_str = "was not included in the message"
+                    valid_str = ""
+                elif sv > 255:
+                    sv_str = "generated from ticket"
+                else:
+                    sv_str = f"with value {sv}"
+
+                if "stamp_raw" in msg["extras"] and type(msg["extras"]["stamp_raw"]) == bytes:
+                    sstr = RNS.hexrep(msg["extras"]["stamp_raw"])
+                    d_text += f"[size={ss}][b]Raw stamp[/b] {sstr}[/size]\n"
+
+                d_text += f"[size={ss}][b]Stamp[/b] {sv_str}{valid_str}[/size]\n"
+
+            self.details_dialog = MDDialog(
+                title="Message Details",
+                type="simple",
+                text=d_text,
+                # items=d_items,
+                buttons=[ close_button ],
+                width_offset=dp(32),
+            )
+
+            close_button.bind(on_release=self.details_dialog.dismiss)
+            self.details_dialog.open()
 
     def update(self, limit=8):
         for new_message in self.app.sideband.list_messages(self.context_dest, after=self.latest_message_timestamp,limit=limit):
@@ -565,6 +634,15 @@ class Messages():
 
                     return x
 
+                def gen_details(mhash, item):
+                    def x():
+                        item.dmenu.dismiss()
+                        def cb(dt):
+                            self.message_details_dialog(mhash)
+                        Clock.schedule_once(cb, 0.2)
+
+                    return x
+
                 def gen_copy(msg, item):
                     def x():
                         Clipboard.copy(msg)
@@ -826,6 +904,14 @@ class Messages():
                     "height": dp(40),
                     "on_release": gen_retry(m["hash"], m["content"], item)
                 }
+
+                details_item = {
+                    "viewclass": "OneLineListItem",
+                    "text": "Details",
+                    "height": dp(40),
+                    "on_release": gen_details(m["hash"], item)
+                }
+
                 if m["method"] == LXMF.LXMessage.PAPER:
                     if RNS.vendor.platformutils.is_android():
                         qr_save_text = "Share QR Code"
@@ -910,6 +996,7 @@ class Messages():
                     else:
                         if telemeter != None:
                             dm_items = [
+                                details_item,
                                 {
                                     "viewclass": "OneLineListItem",
                                     "text": "Copy",
@@ -932,6 +1019,7 @@ class Messages():
 
                         else:
                             dm_items = [
+                                details_item,
                                 {
                                     "viewclass": "OneLineListItem",
                                     "text": "Copy",

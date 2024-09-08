@@ -2451,6 +2451,12 @@ class SidebandCore():
                 else:
                     packed_lxm = entry[10]
 
+                extras = None
+                try:
+                    extras = msgpack.unpackb(entry[11])
+                except:
+                    pass
+
                 lxm = LXMF.LXMessage.unpack_from_bytes(packed_lxm, original_method = lxm_method)
 
                 if lxm.desired_method == LXMF.LXMessage.PAPER:
@@ -2466,7 +2472,8 @@ class SidebandCore():
                     "sent": lxm.timestamp,
                     "state": entry[6],
                     "method": entry[7],
-                    "lxm": lxm
+                    "lxm": lxm,
+                    "extras": extras,
                 }
                 return message
 
@@ -2610,6 +2617,7 @@ class SidebandCore():
                     extras["stamp_checked"] = True
                     extras["stamp_valid"] = lxm.stamp_valid
                     extras["stamp_value"] = lxm.stamp_value
+                    extras["stamp_raw"] = lxm.stamp
 
                 if lxm.ratchet_id:
                     extras["ratchet_id"] = lxm.ratchet_id
@@ -2682,6 +2690,7 @@ class SidebandCore():
                 self.message_router.set_inbound_stamp_cost(self.lxmf_destination.hash, self.config["lxmf_inbound_stamp_cost"])
                 self.message_router.announce(self.lxmf_destination.hash, attached_interface=attached_interface)
             else:
+                # TODO: Remove this announce option when LXMF 0.5.0 is deployed
                 self.lxmf_destination.announce(attached_interface=attached_interface)
             self.last_lxmf_announce = time.time()
             self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)+SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)

@@ -1978,7 +1978,7 @@ class SidebandApp(MDApp):
                 save_item,
             ],
             buttons=[ cancel_button ],
-            width_offset=dp(12),
+            width_offset=dp(32),
         )
         cancel_button.bind(on_release=self.rec_dialog.dismiss)
         self.rec_dialog.recording = False
@@ -2001,7 +2001,6 @@ class SidebandApp(MDApp):
 
         self.rec_dialog.open()
         self.rec_dialog_is_open = True
-        self.rec_dialog.update_width()
 
     def message_attach_action(self, attach_type=None, nodialog=False):
         file_attach_types = ["lbimg", "defimg", "hqimg", "file"]
@@ -2071,13 +2070,12 @@ class SidebandApp(MDApp):
                     text="Select the type of attachment you want to send with this message\n",
                     items=ad_items,
                     buttons=[ cancel_button ],
-                    width_offset=dp(12),
+                    width_offset=dp(32),
                 )
 
                 cancel_button.bind(on_release=self.attach_dialog.dismiss)
 
             self.attach_dialog.open()
-            self.attach_dialog.update_width()
 
         else:
             self.attach_path = None
