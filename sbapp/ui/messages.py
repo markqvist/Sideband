@@ -128,19 +128,21 @@ class Messages():
                 if msg["method"] == LXMF.LXMessage.UNKNOWN:
                     d_text += f"[size={ss}][b]Delivered[/b] via unknown method[/size]\n"
                 if msg["method"] == LXMF.LXMessage.OPPORTUNISTIC:
+                    ratchet_method = "with ratchet"
                     d_text += f"[size={ss}][b]Delivered[/b] opportunistically[/size]\n"
                 if msg["method"] == LXMF.LXMessage.DIRECT:
-                    ratchet_method = "link "
+                    ratchet_method = "by link"
                     d_text += f"[size={ss}][b]Delivered[/b] over direct link[/size]\n"
                 if msg["method"] == LXMF.LXMessage.PROPAGATED:
+                    ratchet_method = "with ratchet"
                     d_text += f"[size={ss}][b]Delivered[/b] to propagation network[/size]\n"
 
             if msg["extras"] != None and "ratchet_id" in msg["extras"]:
                 r_str = RNS.prettyhexrep(msg["extras"]["ratchet_id"])
-                d_text += f"[size={ss}][b]Encrypted[/b] with {ratchet_method}ratchet {r_str}[/size]\n"
+                d_text += f"[size={ss}][b]Encrypted[/b] {ratchet_method} {r_str}[/size]\n"
             else:
                 if msg["method"] == LXMF.LXMessage.OPPORTUNISTIC or msg["method"] == LXMF.LXMessage.PROPAGATED:
-                    d_text += f"[size={ss}][b]Encrypted[/b] with your identity key[/size]\n"
+                    d_text += f"[size={ss}][b]Encrypted[/b] with destination identity key[/size]\n"
                 else:
                     d_text += f"[size={ss}][b]Encryption[/b] status unknown[/size]\n"
             
