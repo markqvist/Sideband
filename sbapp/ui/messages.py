@@ -115,6 +115,9 @@ class Messages():
             d_text = ""
 
             if "lxm" in msg and msg["lxm"] != None:
+                size_str = RNS.prettysize(msg["lxm"].packed_size)
+                d_text += f"[size={ss}][b]Message size[/b] {size_str}[/size]\n"
+
                 if msg["lxm"].signature_validated:
                     d_text += f"[size={ss}][b]Signature[/b] validated successfully[/size]\n"
                 else:
