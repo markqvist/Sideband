@@ -123,21 +123,26 @@ class Messages():
                 else:
                     d_text += f"[size={ss}][b]Signature[/b] is invalid[/size]\n"
 
-                ratchet_method = ""
-                if "method" in msg:
-                    if msg["method"] == LXMF.LXMessage.UNKNOWN:
-                        d_text += f"[size={ss}][b]Delivered[/b] via unknown method[/size]\n"
-                    if msg["method"] == LXMF.LXMessage.OPPORTUNISTIC:
-                        d_text += f"[size={ss}][b]Delivered[/b] opportunistically[/size]\n"
-                    if msg["method"] == LXMF.LXMessage.DIRECT:
-                        ratchet_method = "link "
-                        d_text += f"[size={ss}][b]Delivered[/b] over direct link[/size]\n"
-                    if msg["method"] == LXMF.LXMessage.PROPAGATED:
-                        d_text += f"[size={ss}][b]Delivered[/b] to propagation network[/size]\n"
+            ratchet_method = ""
+            if "method" in msg:
+                if msg["method"] == LXMF.LXMessage.UNKNOWN:
+                    d_text += f"[size={ss}][b]Delivered[/b] via unknown method[/size]\n"
+                if msg["method"] == LXMF.LXMessage.OPPORTUNISTIC:
+                    d_text += f"[size={ss}][b]Delivered[/b] opportunistically[/size]\n"
+                if msg["method"] == LXMF.LXMessage.DIRECT:
+                    ratchet_method = "link "
+                    d_text += f"[size={ss}][b]Delivered[/b] over direct link[/size]\n"
+                if msg["method"] == LXMF.LXMessage.PROPAGATED:
+                    d_text += f"[size={ss}][b]Delivered[/b] to propagation network[/size]\n"
 
             if msg["extras"] != None and "ratchet_id" in msg["extras"]:
                 r_str = RNS.prettyhexrep(msg["extras"]["ratchet_id"])
                 d_text += f"[size={ss}][b]Encrypted[/b] with {ratchet_method}ratchet {r_str}[/size]\n"
+            else:
+                if msg["method"] == LXMF.LXMessage.OPPORTUNISTIC or msg["method"] == LXMF.LXMessage.PROPAGATED:
+                    d_text += f"[size={ss}][b]Encrypted[/b] with your identity key[/size]\n"
+                else:
+                    d_text += f"[size={ss}][b]Encryption[/b] status unknown[/size]\n"
             
             if msg["extras"] != None and "stamp_checked" in msg["extras"]:
                 valid_str = " is not valid"
