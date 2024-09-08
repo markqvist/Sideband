@@ -2388,13 +2388,39 @@ class SidebandCore():
             dbc.execute(query, {"outbound_state": LXMF.LXMessage.OUTBOUND, "sending_state": LXMF.LXMessage.SENDING})
             db.commit()
 
-    def _db_message_set_state(self, lxm_hash, state, is_retry=False):
+    def _db_message_set_state(self, lxm_hash, state, is_retry=False, ratchet_id=None, originator_stamp=None):
+        msg_extras = None
+        if ratchet_id != None:
+            try:
+                msg = self._db_message(lxm_hash)
+                if msg != None:
+                    msg_extras = msg["extras"]
+
+                if ratchet_id:
+                    msg_extras["ratchet_id"] = ratchet_id
+
+                if originator_stamp:
+                    msg_extras["stamp_checked"] = False
+                    msg_extras["stamp_raw"] = originator_stamp[0]
+                    msg_extras["stamp_valid"] = originator_stamp[1]
+                    msg_extras["stamp_value"] = originator_stamp[2]
+
+            except Exception as e:
+                RNS.log("An error occurred while getting message extras: "+str(e))
+
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
-            
-            query = "UPDATE lxm set state = ? where lxm_hash = ?"
-            data = (state, lxm_hash)
+
+            if msg_extras != None:
+                extras = msgpack.packb(msg_extras)
+                query = "UPDATE lxm set state = ?, extra = ? where lxm_hash = ?"
+                data = (state, extras, lxm_hash)
+                
+            else:
+                query = "UPDATE lxm set state = ? where lxm_hash = ?"
+                data = (state, lxm_hash)
+
             dbc.execute(query, data)
 
             try:
@@ -3934,7 +3960,10 @@ class SidebandCore():
 
         if self._db_message(message.hash):
             RNS.log("Message exists, setting state to: "+str(message.state), RNS.LOG_DEBUG)
-            self._db_message_set_state(message.hash, message.state)
+            stamp = None
+            if originator and message.stamp != None:
+                stamp = [message.stamp, message.stamp_valid, message.stamp_value]
+            self._db_message_set_state(message.hash, message.state, ratchet_id=message.ratchet_id, originator_stamp=stamp)
         else:
             RNS.log("Message does not exist, saving", RNS.LOG_DEBUG)
             self._db_save_lxm(message, context_dest, originator, own_command=own_command)

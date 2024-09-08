@@ -104,6 +104,7 @@ class Messages():
     def message_details_dialog(self, lxm_hash):
         RNS.log(f"Opening dialog for {RNS.prettyhexrep(lxm_hash)}", RNS.LOG_DEBUG)
         ss = int(dp(16))
+        ms = int(dp(14))
         
         msg = self.app.sideband.message(lxm_hash)
         if msg:
@@ -119,21 +120,23 @@ class Messages():
                 else:
                     d_text += f"[size={ss}][b]Signature[/b] is invalid[/size]\n"
 
+                ratchet_method = ""
                 if "method" in msg:
                     if msg["method"] == LXMF.LXMessage.UNKNOWN:
                         d_text += f"[size={ss}][b]Delivered[/b] via unknown method[/size]\n"
                     if msg["method"] == LXMF.LXMessage.OPPORTUNISTIC:
                         d_text += f"[size={ss}][b]Delivered[/b] opportunistically[/size]\n"
                     if msg["method"] == LXMF.LXMessage.DIRECT:
+                        ratchet_method = "link "
                         d_text += f"[size={ss}][b]Delivered[/b] over direct link[/size]\n"
                     if msg["method"] == LXMF.LXMessage.PROPAGATED:
                         d_text += f"[size={ss}][b]Delivered[/b] to propagation network[/size]\n"
 
             if msg["extras"] != None and "ratchet_id" in msg["extras"]:
                 r_str = RNS.prettyhexrep(msg["extras"]["ratchet_id"])
-                d_text += f"[size={ss}][b]Encrypted[/b] with ratchet {r_str}[/size]\n"
+                d_text += f"[size={ss}][b]Encrypted[/b] with {ratchet_method}ratchet {r_str}[/size]\n"
             
-            if msg["extras"] != None and "stamp_checked" in msg["extras"] and msg["extras"]["stamp_checked"] == True:
+            if msg["extras"] != None and "stamp_checked" in msg["extras"]:
                 valid_str = " is not valid"
                 if msg["extras"]["stamp_valid"] == True:
                     valid_str = " is valid"
@@ -146,11 +149,24 @@ class Messages():
                 else:
                     sv_str = f"with value {sv}"
 
+                if msg["extras"]["stamp_checked"] == True:
+                    d_text += f"[size={ss}][b]Stamp[/b] {sv_str}{valid_str}[/size]\n"
+
+                else:
+                    sv = msg["extras"]["stamp_value"]
+                    if sv == None:
+                        pass
+                    elif sv > 255:
+                        d_text += f"[size={ss}][b]Stamp[/b] generated from ticket[/size]\n"
+                    else:
+                        d_text += f"[size={ss}][b]Value[/b] of stamp is {sv}[/size]\n"
+
+                # Stamp details
                 if "stamp_raw" in msg["extras"] and type(msg["extras"]["stamp_raw"]) == bytes:
                     sstr = RNS.hexrep(msg["extras"]["stamp_raw"])
-                    d_text += f"[size={ss}][b]Raw stamp[/b] {sstr}[/size]\n"
-
-                d_text += f"[size={ss}][b]Stamp[/b] {sv_str}{valid_str}[/size]\n"
+                    sstr1 = RNS.hexrep(msg["extras"]["stamp_raw"][:16])
+                    sstr2 = RNS.hexrep(msg["extras"]["stamp_raw"][16:])
+                    d_text += f"[size={ss}]\n[b]Raw stamp[/b]\n[/size][size={ms}][font=RobotoMono-Regular]{sstr1}\n{sstr2}[/font][/size]\n"
 
             self.details_dialog = MDDialog(
                 title="Message Details",
@@ -484,8 +500,9 @@ class Messages():
                     heading_str = titlestr
                     if phy_stats_str != "" and self.app.sideband.config["advanced_stats"]:
                         heading_str += phy_stats_str+"\n"
-                    if stamp_valid:
-                        txstr += f" [b]Stamp[/b] value is {stamp_value} "
+                    # TODO: Remove
+                    # if stamp_valid:
+                    #     txstr += f" [b]Stamp[/b] value is {stamp_value} "
 
                     heading_str += "[b]Sent[/b] "+txstr
                     heading_str += "\n[b]Received[/b] "+rxstr
