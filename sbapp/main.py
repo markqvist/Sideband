@@ -2718,6 +2718,16 @@ class SidebandApp(MDApp):
                     self.settings_screen.ids.settings_print_command.text = self.sideband.config["print_command"]
                     self.sideband.save_configuration()
 
+            def save_lxmf_stamp_cost(sender=None, event=None, save=True):
+                if self.settings_screen.ids.settings_lxmf_require_stamps.active:
+                    self.widget_hide(self.settings_screen.ids.lxmf_costslider_container, False)
+                else:
+                    self.widget_hide(self.settings_screen.ids.lxmf_costslider_container, True)
+
+                if save:
+                    self.sideband.config["lxmf_require_stamps"] = self.settings_screen.ids.settings_lxmf_require_stamps.active
+                    self.sideband.save_configuration()
+
             def save_lxmf_periodic_sync(sender=None, event=None, save=True):
                 if self.settings_screen.ids.settings_lxmf_periodic_sync.active:
                     self.widget_hide(self.settings_screen.ids.lxmf_syncslider_container, False)
@@ -2746,6 +2756,19 @@ class SidebandApp(MDApp):
                 self.settings_screen.ids.settings_lxmf_sync_periodic.text = "Auto sync every "+interval_text
                 if save:
                     self.sideband.config["lxmf_sync_interval"] = interval
+                    self.sideband.save_configuration()
+
+            def stamp_cost_change(sender=None, event=None, save=True):
+                slider_val = int(self.settings_screen.ids.settings_lxmf_require_stamps_cost.value)
+                cost_text = str(slider_val)
+
+                self.settings_screen.ids.settings_lxmf_require_stamps_label.text = f"Require stamp cost {cost_text} for inbound messages"
+                if save:
+                    if slider_val > 32:
+                        slider_val = 32
+                    if slider_val < 1:
+                        slider_val = 1
+                    self.sideband.config["lxmf_inbound_stamp_cost"] = slider_val
                     self.sideband.save_configuration()
 
             self.settings_screen.ids.settings_lxmf_address.text = RNS.hexrep(self.sideband.lxmf_destination.hash, delimit=False)
@@ -2813,6 +2836,22 @@ class SidebandApp(MDApp):
             self.settings_screen.ids.settings_lxmf_sync_interval.bind(on_touch_up=sync_interval_change)
             self.settings_screen.ids.settings_lxmf_sync_interval.value = self.interval_to_slider_val(self.sideband.config["lxmf_sync_interval"])
             sync_interval_change(save=False)
+
+            self.settings_screen.ids.settings_lxmf_require_stamps.active = self.sideband.config["lxmf_require_stamps"]
+            self.settings_screen.ids.settings_lxmf_require_stamps.bind(active=save_lxmf_stamp_cost)
+            save_lxmf_stamp_cost(save=False)
+
+            def stamp_cost_change_cb(sender=None, event=None):
+                stamp_cost_change(sender=sender, event=event, save=False)
+            self.settings_screen.ids.settings_lxmf_require_stamps_cost.bind(value=stamp_cost_change_cb)
+            self.settings_screen.ids.settings_lxmf_require_stamps_cost.bind(on_touch_up=stamp_cost_change)
+            cost_val = self.sideband.config["lxmf_inbound_stamp_cost"]
+            if cost_val == None or cost_val < 1:
+                cost_val = 1
+            if cost_val > 32:
+                cost_val = 32
+            self.settings_screen.ids.settings_lxmf_require_stamps_cost.value = cost_val
+            stamp_cost_change(save=False)
 
             if self.sideband.config["lxmf_sync_limit"] == None or self.sideband.config["lxmf_sync_limit"] == False:
                 sync_limit = False

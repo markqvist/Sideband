@@ -215,7 +215,6 @@ class SidebandCore():
         self.saving_configuration = False
         self.last_lxmf_announce = 0
         self.last_if_change_announce = 0
-        self.inbound_stamp_cost = None
         self.interface_local_adding = False
         self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)+SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)
 
@@ -2717,13 +2716,19 @@ class SidebandCore():
                 self.message_router.set_inbound_stamp_cost(self.lxmf_destination.hash, self.config["lxmf_inbound_stamp_cost"])
                 self.message_router.announce(self.lxmf_destination.hash, attached_interface=attached_interface)
             else:
-                # TODO: Remove this announce option when LXMF 0.5.0 is deployed
+                self.message_router.set_inbound_stamp_cost(self.lxmf_destination.hash, None)
                 self.lxmf_destination.announce(attached_interface=attached_interface)
             self.last_lxmf_announce = time.time()
             self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)+SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)
             RNS.log("Next auto announce in "+RNS.prettytime(self.next_auto_announce-time.time()), RNS.LOG_DEBUG)
             self.setstate("wants.announce", False)
+        
         else:
+            if self.config["lxmf_require_stamps"]:
+                self.message_router.set_inbound_stamp_cost(self.lxmf_destination.hash, self.config["lxmf_inbound_stamp_cost"])
+            else:
+                self.message_router.set_inbound_stamp_cost(self.lxmf_destination.hash, None)
+            
             self.setstate("wants.announce", True)
 
     def run_telemetry(self):
@@ -2804,11 +2809,6 @@ class SidebandCore():
                     self.latest_telemetry = telemetry
                     self.latest_packed_telemetry = packed_telemetry
                     self.setstate("app.flags.last_telemetry", time.time())
-
-                    # TODO: Remove
-                    # tbt = Telemeter.from_packed(packed_telemetry)
-                    # tbts = tbt.read_all()["time"]["utc"]
-                    # RNS.log("TELEMETRY CHANGED, TIMEBASE IS NOW "+str(tbts))
 
                     if self.is_client:
                         try:
@@ -3669,9 +3669,17 @@ class SidebandCore():
         self.message_router = LXMF.LXMRouter(identity = self.identity, storagepath = self.lxmf_storage, autopeer = True, delivery_limit = lxm_limit)
         self.message_router.register_delivery_callback(self.lxmf_delivery)
 
-        self.lxmf_destination = self.message_router.register_delivery_identity(self.identity, display_name=self.config["display_name"], stamp_cost=self.inbound_stamp_cost)
+        configured_stamp_cost = None
+        if self.config["lxmf_require_stamps"]:
+            configured_stamp_cost = self.config["lxmf_inbound_stamp_cost"]
+
+        self.lxmf_destination = self.message_router.register_delivery_identity(self.identity, display_name=self.config["display_name"], stamp_cost=configured_stamp_cost)
+        
         # TODO: Update to announce call in LXMF when full 0.5.0 support is added (get app data from LXMRouter instead)
-        self.lxmf_destination.set_default_app_data(self.get_display_name_bytes)
+        # Currently overrides the LXMF routers auto-generated announce data so that Sideband will announce old-format
+        # LXMF announces if require_stamps is disabled.
+        # if not self.config["lxmf_require_stamps"]:
+        #     self.lxmf_destination.set_default_app_data(self.get_display_name_bytes)
 
         self.rns_dir = RNS.Reticulum.configdir
 
@@ -3771,7 +3779,7 @@ class SidebandCore():
             
             desired_method = LXMF.LXMessage.PAPER
             # TODO: Should paper messages also include a ticket to trusted peers?
-            lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = self.get_message_fields(destination_hash))
+            lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = self.get_message_fields(destination_hash), include_ticket=self.is_trusted(destination_hash))
 
             self.lxm_ingest(lxm, originator=True)
 
