@@ -864,12 +864,13 @@ class SidebandCore():
                 RNS.log("Error while setting LXMF propagation node: "+str(e), RNS.LOG_ERROR)
 
     def notify(self, title, content, group=None, context_id=None):
-        if RNS.vendor.platformutils.is_linux():
-            from sbapp.ui.helpers import strip_emojis
-            title = strip_emojis(title)
-            content = strip_emojis(content)
-
         if not self.is_daemon:
+            if RNS.vendor.platformutils.is_linux():
+                from sbapp.ui.helpers import strip_emojis
+                title = strip_emojis(title)
+                content = strip_emojis(content)
+
+        
             if self.config["notifications_on"]:
                 if RNS.vendor.platformutils.is_android():
                     if self.getpersistent("permissions.notifications"):
