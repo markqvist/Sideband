@@ -214,10 +214,13 @@ class Messages():
             layout.bind(minimum_height=layout.setter('height'))
             self.list = layout
 
-        if self.ptt_enabled:
-            self.hide_widget(self.ids.message_ptt, False)
-        else:
+        if RNS.vendor.platformutils.is_darwin() or RNS.vendor.platformutils.is_windows():
             self.hide_widget(self.ids.message_ptt, True)
+        else:
+            if self.ptt_enabled:
+                self.hide_widget(self.ids.message_ptt, False)
+            else:
+                self.hide_widget(self.ids.message_ptt, True)
 
         c_ts = time.time()
         if len(self.new_messages) > 0:
