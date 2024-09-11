@@ -508,6 +508,8 @@ class SidebandCore():
             self.config["lxmf_try_propagation_on_fail"] = True
         if not "lxmf_require_stamps" in self.config:
             self.config["lxmf_require_stamps"] = False
+        if not "lxmf_ignore_invalid_stamps" in self.config:
+            self.config["lxmf_ignore_invalid_stamps"] = True
         if not "lxmf_inbound_stamp_cost" in self.config:
             self.config["lxmf_inbound_stamp_cost"] = None
         if not "notifications_on" in self.config:
@@ -746,6 +748,7 @@ class SidebandCore():
             if unpacked_config != None and len(unpacked_config) != 0:
                 self.config = unpacked_config
                 self.update_active_lxmf_propagation_node()
+                self.update_ignore_invalid_stamps()
         except Exception as e:
             RNS.log("Error while reloading configuration: "+str(e), RNS.LOG_ERROR)
 
@@ -3674,6 +3677,10 @@ class SidebandCore():
             configured_stamp_cost = self.config["lxmf_inbound_stamp_cost"]
 
         self.lxmf_destination = self.message_router.register_delivery_identity(self.identity, display_name=self.config["display_name"], stamp_cost=configured_stamp_cost)
+        if self.config["lxmf_ignore_invalid_stamps"]:
+            self.message_router.enforce_stamps()
+        else:
+            self.message_router.ignore_stamps()
         
         # TODO: Update to announce call in LXMF when full 0.5.0 support is added (get app data from LXMRouter instead)
         # Currently overrides the LXMF routers auto-generated announce data so that Sideband will announce old-format
@@ -3693,6 +3700,12 @@ class SidebandCore():
                 self.set_active_propagation_node(self.config["last_lxmf_propagation_node"])
             else:
                 self.set_active_propagation_node(None)
+
+    def update_ignore_invalid_stamps(self):
+        if self.config["lxmf_ignore_invalid_stamps"]:
+            self.message_router.enforce_stamps()
+        else:
+            self.message_router.ignore_stamps()
 
     def message_notification_no_display(self, message):
         self.message_notification(message, no_display=True)

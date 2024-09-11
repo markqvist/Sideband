@@ -2693,6 +2693,11 @@ class SidebandApp(MDApp):
                 self.sideband.config["lxmf_ignore_unknown"] = self.settings_screen.ids.settings_lxmf_ignore_unknown.active
                 self.sideband.save_configuration()
 
+            def save_lxmf_ignore_invalid_stamps(sender=None, event=None):
+                self.sideband.config["lxmf_ignore_invalid_stamps"] = self.settings_screen.ids.settings_ignore_invalid_stamps.active
+                self.sideband.save_configuration()
+                self.sideband.update_ignore_invalid_stamps()
+
             def save_lxmf_sync_limit(sender=None, event=None):
                 self.sideband.config["lxmf_sync_limit"] = self.settings_screen.ids.settings_lxmf_sync_limit.active
                 self.sideband.save_configuration()
@@ -2762,7 +2767,7 @@ class SidebandApp(MDApp):
                 slider_val = int(self.settings_screen.ids.settings_lxmf_require_stamps_cost.value)
                 cost_text = str(slider_val)
 
-                self.settings_screen.ids.settings_lxmf_require_stamps_label.text = f"Require stamp cost {cost_text} for inbound messages"
+                self.settings_screen.ids.settings_lxmf_require_stamps_label.text = f"Require stamp cost {cost_text} for incoming messages"
                 if save:
                     if slider_val > 32:
                         slider_val = 32
@@ -2825,6 +2830,9 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.settings_lxmf_ignore_unknown.active = self.sideband.config["lxmf_ignore_unknown"]
             self.settings_screen.ids.settings_lxmf_ignore_unknown.bind(active=save_lxmf_ignore_unknown)
+
+            self.settings_screen.ids.settings_ignore_invalid_stamps.active = self.sideband.config["lxmf_ignore_invalid_stamps"]
+            self.settings_screen.ids.settings_ignore_invalid_stamps.bind(active=save_lxmf_ignore_invalid_stamps)
 
             self.settings_screen.ids.settings_lxmf_periodic_sync.active = self.sideband.config["lxmf_periodic_sync"]
             self.settings_screen.ids.settings_lxmf_periodic_sync.bind(active=save_lxmf_periodic_sync)

@@ -1611,7 +1611,7 @@ MDScreen:
                     
                     MDLabel:
                         id: settings_lxmf_require_stamps_label
-                        text: "Require stamps for inbound messages"
+                        text: "Require stamps for incoming"
                         font_style: "H6"
 
                     MDSwitch:
@@ -1634,6 +1634,22 @@ MDScreen:
                         id: settings_lxmf_require_stamps_cost
                         sensitivity: "all"
                         hint: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Ignore messages with invalid stamps"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: settings_ignore_invalid_stamps
+                        pos_hint: {"center_y": 0.3}
+                        disabled: False
+                        active: False
 
                 MDBoxLayout:
                     orientation: "horizontal"

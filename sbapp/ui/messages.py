@@ -152,8 +152,12 @@ class Messages():
                     valid_str = " is valid"
                 sv = msg["extras"]["stamp_value"]
                 if sv == None:
-                    sv_str = "was not included in the message"
-                    valid_str = ""
+                    if "stamp_raw" in msg["extras"]:
+                        sv_str = ""
+                        valid_str = "is not valid"
+                    else:
+                        sv_str = ""
+                        valid_str = "was not included in the message"
                 elif sv > 255:
                     sv_str = "generated from ticket"
                 else:
