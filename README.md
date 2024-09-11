@@ -146,15 +146,24 @@ sideband
 
 ## On macOS
 
-A DMG file containing a macOS app bundle is available on the [latest release](https://github.com/markqvist/Sideband/releases/latest) page.
+On macOS, you can install Sideband with `pip3` or `pipx`. Due to the many different potential Python versions and install paths across macOS versions, the easiest install method is to use `pipx`.
 
-Please note that audio messaging functionality isn't supported on macOS yet. Please support the development if you'd like to see this feature added faster.
-
-Alternatively, you can install Sideband with ``pip3`` on macOS:
+If you don't already have the `pipx` package manager installed, it can be installed via [Homebrew](https://brew.sh/) with `brew install pipx`.
 
 ```bash
-# Install Sideband and dependencies on macOS:
-pip3 install sbapp
+# Install Sideband and dependencies on macOS using pipx:
+pipx install sbapp
+pipx ensurepath
+
+# Run it
+sideband
+```
+
+Or, if you prefer to use `pip` directly, follow the instructions below. In this case, if you have not already installed Python and `pip3` on your macOS system, [download and install](https://www.python.org/downloads/) the latest version first.
+
+```bash
+# Install Sideband and dependencies on macOS using pip:
+pip3 install sbapp --user --break-system-packages
 
 # Run it:
 python3 -m sbapp.main
@@ -165,8 +174,6 @@ python3 -m sbapp.main
 sideband
 
 ```
-
-If you have not already installed Python and `pip3` on your macOS system, [download and install](https://www.python.org/downloads/) the latest version first.
 
 ## On Windows
 
