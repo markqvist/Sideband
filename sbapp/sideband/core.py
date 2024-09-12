@@ -155,6 +155,7 @@ class SidebandCore():
         self.service_stopped = False
         self.service_context = service_context
         self.owner_service = owner_service
+        self.allow_service_dispatch = True
         self.version_str = ""
 
         if config_path == None:
@@ -1620,8 +1621,27 @@ class SidebandCore():
                                     connection.send(True)
                                 elif "get_plugins_info" in call:
                                     connection.send(self._get_plugins_info())
+                                elif "send_message" in call:
+                                    args = call["send_message"]
+                                    RNS.log(str(call))
+                                    RNS.log(str(args))
+                                    RNS.log("Handling RPC send")
+                                    send_result = self.send_message(
+                                        args["content"],
+                                        args["destination_hash"],
+                                        args["propagation"],
+                                        skip_fields=args["skip_fields"],
+                                        no_display=args["no_display"],
+                                        attachment=args["attachment"],
+                                        image=args["image"],
+                                        audio=args["audio"])
+                                    RNS.log("RPC send complete")
+                                    connection.send(send_result)
+                                elif "get_lxm_progress" in call:
+                                    args = call["get_lxm_progress"]
+                                    connection.send(self.get_lxm_progress(args["lxm_hash"]))
                                 else:
-                                    return None
+                                    connection.send(None)
 
                         except Exception as e:
                             RNS.log("Error on client RPC connection: "+str(e), RNS.LOG_ERROR)
@@ -3808,9 +3828,34 @@ class SidebandCore():
             RNS.log("Error while creating paper message: "+str(e), RNS.LOG_ERROR)
             return False
 
+    def _service_get_lxm_progress(self, lxm_hash):
+        if not RNS.vendor.platformutils.is_android():
+            return False
+        else:
+            if self.is_client:
+                try:
+                    if self.rpc_connection == None:
+                        self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
+
+                    self.rpc_connection.send({"get_lxm_progress": {"lxm_hash": lxm_hash}})
+                    response = self.rpc_connection.recv()
+                    return response
+                
+                except Exception as e:
+                    RNS.log("Error while getting LXM progress over RPC: "+str(e), RNS.LOG_DEBUG)
+                    RNS.trace_exception(e)
+                    return False
+            else:
+                return False
+
+
     def get_lxm_progress(self, lxm_hash):
         try:
-            return self.message_router.get_outbound_progress(lxm_hash)
+            prg = self.message_router.get_outbound_progress(lxm_hash)
+            if not prg and self.is_client:
+                prg = self._service_get_lxm_progress(lxm_hash)
+
+            return prg
         except Exception as e:
             RNS.log("An error occurred while getting message transfer progress: "+str(e), RNS.LOG_ERROR)
             return None
@@ -3822,56 +3867,95 @@ class SidebandCore():
             RNS.log("An error occurred while getting message transfer stamp cost: "+str(e), RNS.LOG_ERROR)
             return None
 
-    def send_message(self, content, destination_hash, propagation, skip_fields=False, no_display=False, attachment = None, image = None, audio = None):
-        try:
-            if content == "":
-                raise ValueError("Message content cannot be empty")
-
-            dest_identity = RNS.Identity.recall(destination_hash)
-            dest = RNS.Destination(dest_identity, RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
-            source = self.lxmf_destination
-            
-            if propagation:
-                desired_method = LXMF.LXMessage.PROPAGATED
-            else:
-                desired_method = LXMF.LXMessage.DIRECT
-
-            if skip_fields:
-                fields = {}
-            else:
-                fields = self.get_message_fields(destination_hash)
-
-            if attachment != None:
-                fields[LXMF.FIELD_FILE_ATTACHMENTS] = [attachment]
-            if image != None:
-                fields[LXMF.FIELD_IMAGE] = image
-            if audio != None:
-                fields[LXMF.FIELD_AUDIO] = audio
-
-            lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = fields, include_ticket=self.is_trusted(destination_hash))
-            
-            if not no_display:
-                lxm.register_delivery_callback(self.message_notification)
-                lxm.register_failed_callback(self.message_notification)
-            else:
-                lxm.register_delivery_callback(self.message_notification_no_display)
-                lxm.register_failed_callback(self.message_notification_no_display)
-
-            if self.message_router.get_outbound_propagation_node() != None:
-                if self.config["lxmf_try_propagation_on_fail"]:
-                    lxm.try_propagation_on_fail = True
-
-            self.message_router.handle_outbound(lxm)
-
-            if not no_display:
-                self.lxm_ingest(lxm, originator=True)
-
-            return True
-
-        except Exception as e:
-            RNS.log("Error while sending message: "+str(e), RNS.LOG_ERROR)
-            RNS.trace_exception(e)
+    def _service_send_message(self, content, destination_hash, propagation, skip_fields=False, no_display=False, attachment = None, image = None, audio = None):
+        if not RNS.vendor.platformutils.is_android():
             return False
+        else:
+            if self.is_client:
+                try:
+                    if self.rpc_connection == None:
+                        self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
+
+                    self.rpc_connection.send({"send_message": {
+                        "content": content,
+                        "destination_hash": destination_hash,
+                        "propagation": propagation,
+                        "skip_fields": skip_fields,
+                        "no_display": no_display,
+                        "attachment": attachment,
+                        "image": image,
+                        "audio": audio}
+                    })
+                    response = self.rpc_connection.recv()
+                    return response
+                
+                except Exception as e:
+                    RNS.log("Error while sending message over RPC: "+str(e), RNS.LOG_DEBUG)
+                    RNS.trace_exception(e)
+                    return False
+            else:
+                return False
+
+    def send_message(self, content, destination_hash, propagation, skip_fields=False, no_display=False, attachment = None, image = None, audio = None):
+        if self.allow_service_dispatch and self.is_client:
+            try:
+                return self._service_send_message(content, destination_hash, propagation, skip_fields, no_display, attachment, image, audio)
+
+            except Exception as e:
+                RNS.log("Error while sending message: "+str(e), RNS.LOG_ERROR)
+                RNS.trace_exception(e)
+                return False
+
+        else:
+            try:
+                if content == "":
+                    raise ValueError("Message content cannot be empty")
+
+                dest_identity = RNS.Identity.recall(destination_hash)
+                dest = RNS.Destination(dest_identity, RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
+                source = self.lxmf_destination
+                
+                if propagation:
+                    desired_method = LXMF.LXMessage.PROPAGATED
+                else:
+                    desired_method = LXMF.LXMessage.DIRECT
+
+                if skip_fields:
+                    fields = {}
+                else:
+                    fields = self.get_message_fields(destination_hash)
+
+                if attachment != None:
+                    fields[LXMF.FIELD_FILE_ATTACHMENTS] = [attachment]
+                if image != None:
+                    fields[LXMF.FIELD_IMAGE] = image
+                if audio != None:
+                    fields[LXMF.FIELD_AUDIO] = audio
+
+                lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = fields, include_ticket=self.is_trusted(destination_hash))
+                
+                if not no_display:
+                    lxm.register_delivery_callback(self.message_notification)
+                    lxm.register_failed_callback(self.message_notification)
+                else:
+                    lxm.register_delivery_callback(self.message_notification_no_display)
+                    lxm.register_failed_callback(self.message_notification_no_display)
+
+                if self.message_router.get_outbound_propagation_node() != None:
+                    if self.config["lxmf_try_propagation_on_fail"]:
+                        lxm.try_propagation_on_fail = True
+
+                self.message_router.handle_outbound(lxm)
+
+                if not no_display:
+                    self.lxm_ingest(lxm, originator=True)
+
+                return True
+
+            except Exception as e:
+                RNS.log("Error while sending message: "+str(e), RNS.LOG_ERROR)
+                RNS.trace_exception(e)
+                return False
 
     def send_command(self, content, destination_hash, propagation):
         try:
