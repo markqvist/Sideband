@@ -110,11 +110,12 @@ class SidebandCore():
         # This reformats the new v0.5.0 announce data back to the expected format
         # for Sidebands database and other handling functions.
         dn = LXMF.display_name_from_app_data(app_data)
+        sc = LXMF.stamp_cost_from_app_data(app_data)
         app_data = b""
         if dn != None:
             app_data = dn.encode("utf-8")
 
-        self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter)
+        self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter, stamp_cost=sc)
 
     def __init__(self, owner_app, config_path = None, is_service=False, is_client=False, android_app_dir=None, verbose=False, owner_service=None, service_context=None, is_daemon=False, load_config_only=False):
         self.is_service = is_service
@@ -891,11 +892,12 @@ class SidebandCore():
                     else:
                         plyer.notification.notify(title, content, app_icon=self.icon_32)
 
-    def log_announce(self, dest, app_data, dest_type):
+    def log_announce(self, dest, app_data, dest_type, stamp_cost=None):
         try:
             if app_data == None:
                 app_data = b""
-            RNS.log("Received "+str(dest_type)+" announce for "+RNS.prettyhexrep(dest)+" with data: "+app_data.decode("utf-8"), RNS.LOG_DEBUG)
+            app_data = msgpack.packb([app_data, stamp_cost])
+            RNS.log("Received "+str(dest_type)+" announce for "+RNS.prettyhexrep(dest)+" with data: "+str(app_data), RNS.LOG_DEBUG)
             self._db_save_announce(dest, app_data, dest_type)
             self.setstate("app.flags.new_announces", True)
 
@@ -1090,9 +1092,11 @@ class SidebandCore():
             else:
                 app_data = RNS.Identity.recall_app_data(context_dest)
                 if app_data != None:
-                    return LXMF.display_name_from_app_data(app_data)+" "+RNS.prettyhexrep(context_dest)
+                    name_str = LXMF.display_name_from_app_data(app_data)
+                    addr_str = RNS.prettyhexrep(context_dest)
+                    return name_str+" "+addr_str
                 else:
-                    return RNS.prettyhexrep(context_dest)
+                    return "Anonymous Peer "+RNS.prettyhexrep(context_dest)
 
 
         except Exception as e:
@@ -2268,9 +2272,11 @@ class SidebandCore():
                 for entry in result:
                     try:
                         if not entry[2] in added_dests:
+                            app_data = entry[3]
                             announce = {
                                 "dest": entry[2],
-                                "data": entry[3].decode("utf-8"),
+                                "name": LXMF.display_name_from_app_data(app_data),
+                                "cost": LXMF.stamp_cost_from_app_data(app_data),
                                 "time": entry[1],
                                 "type": entry[4]
                             }

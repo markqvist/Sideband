@@ -89,7 +89,8 @@ class Announces():
         for announce in self.announces:
             context_dest = announce["dest"]
             ts = announce["time"]
-            a_data = announce["data"]
+            a_name = announce["name"]
+            a_cost = announce["cost"]
             dest_type = announce["type"]
 
             if not context_dest in self.added_item_dests:
@@ -98,15 +99,16 @@ class Announces():
                 else:
                     trust_icon = "account-question"
 
-                def gen_info(ts, dest, name, dtype):
+                def gen_info(ts, dest, name, cost, dtype):
                     name = multilingual_markup(escape_markup(str(name)).encode("utf-8")).decode("utf-8")
+                    cost = str(cost)
                     def x(sender):
                         yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))    
                         if dtype == "lxmf.delivery":
-                            ad_text = "[size=22dp]LXMF Peer[/size]\n\nReceived: "+ts+"\nAnnounced Name: "+name+"\nAddress: "+RNS.prettyhexrep(dest)
+                            ad_text = "[size=22dp]LXMF Peer[/size]\n\n[b]Received[/b] "+ts+"\n[b]Address[/b] "+RNS.prettyhexrep(dest)+"\n[b]Name[/b] "+name+"\n[b]Stamp Cost[/b] "+cost
 
                         if dtype == "lxmf.propagation":
-                            ad_text = "[size=22dp]LXMF Propagation Node[/size]\n\nReceived: "+ts+"\nAddress: "+RNS.prettyhexrep(dest)
+                            ad_text = "[size=22dp]LXMF Propagation Node[/size]\n\n[b]Received[/b] "+ts+"\n[b]Address[/b] "+RNS.prettyhexrep(dest)
 
                         dialog = MDDialog(
                             text=ad_text,
@@ -135,7 +137,7 @@ class Announces():
                     disp_name = "Unknown Announce"
                     iconl = IconLeftWidget(icon="progress-question")
 
-                item = TwoLineAvatarIconListItem(text=time_string, secondary_text=disp_name, on_release=gen_info(time_string, context_dest, a_data, dest_type))
+                item = TwoLineAvatarIconListItem(text=time_string, secondary_text=disp_name, on_release=gen_info(time_string, context_dest, a_name, a_cost, dest_type))
                 item.add_widget(iconl)
                 item.sb_uid = context_dest
                 item.ts = ts
