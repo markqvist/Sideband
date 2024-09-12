@@ -1623,9 +1623,6 @@ class SidebandCore():
                                     connection.send(self._get_plugins_info())
                                 elif "send_message" in call:
                                     args = call["send_message"]
-                                    RNS.log(str(call))
-                                    RNS.log(str(args))
-                                    RNS.log("Handling RPC send")
                                     send_result = self.send_message(
                                         args["content"],
                                         args["destination_hash"],
@@ -1635,7 +1632,13 @@ class SidebandCore():
                                         attachment=args["attachment"],
                                         image=args["image"],
                                         audio=args["audio"])
-                                    RNS.log("RPC send complete")
+                                    connection.send(send_result)
+                                elif "send_command" in call:
+                                    args = call["send_command"]
+                                    send_result = self.send_command(
+                                        args["content"],
+                                        args["destination_hash"],
+                                        args["propagation"])
                                     connection.send(send_result)
                                 elif "get_lxm_progress" in call:
                                     args = call["get_lxm_progress"]
@@ -3896,6 +3899,30 @@ class SidebandCore():
             else:
                 return False
 
+    def _service_send_command(self, content, destination_hash, propagation):
+        if not RNS.vendor.platformutils.is_android():
+            return False
+        else:
+            if self.is_client:
+                try:
+                    if self.rpc_connection == None:
+                        self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
+
+                    self.rpc_connection.send({"send_command": {
+                        "content": content,
+                        "destination_hash": destination_hash,
+                        "propagation": propagation}
+                    })
+                    response = self.rpc_connection.recv()
+                    return response
+                
+                except Exception as e:
+                    RNS.log("Error while sending command over RPC: "+str(e), RNS.LOG_DEBUG)
+                    RNS.trace_exception(e)
+                    return False
+            else:
+                return False
+
     def send_message(self, content, destination_hash, propagation, skip_fields=False, no_display=False, attachment = None, image = None, audio = None):
         if self.allow_service_dispatch and self.is_client:
             try:
@@ -3958,50 +3985,60 @@ class SidebandCore():
                 return False
 
     def send_command(self, content, destination_hash, propagation):
-        try:
-            if content == "":
+        if self.allow_service_dispatch and self.is_client:
+            try:
+                return self._service_send_command(content, destination_hash, propagation)
+
+            except Exception as e:
+                RNS.log("Error while sending message: "+str(e), RNS.LOG_ERROR)
+                RNS.trace_exception(e)
                 return False
 
-            commands = []
-            if content.startswith("echo "):
-                echo_content = content.replace("echo ", "").encode("utf-8")
-                if len(echo_content) > 0:
-                    commands.append({Commands.ECHO: echo_content})
-            elif content.startswith("sig"):
-                commands.append({Commands.SIGNAL_REPORT: True})
-            elif content.startswith("ping"):
-                commands.append({Commands.PING: True})
-            else:
-                commands.append({Commands.PLUGIN_COMMAND: content})
+        else:
+            try:
+                if content == "":
+                    return False
 
-            if len(commands) == 0:
+                commands = []
+                if content.startswith("echo "):
+                    echo_content = content.replace("echo ", "").encode("utf-8")
+                    if len(echo_content) > 0:
+                        commands.append({Commands.ECHO: echo_content})
+                elif content.startswith("sig"):
+                    commands.append({Commands.SIGNAL_REPORT: True})
+                elif content.startswith("ping"):
+                    commands.append({Commands.PING: True})
+                else:
+                    commands.append({Commands.PLUGIN_COMMAND: content})
+
+                if len(commands) == 0:
+                    return False
+
+                dest_identity = RNS.Identity.recall(destination_hash)
+                dest = RNS.Destination(dest_identity, RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
+                source = self.lxmf_destination
+                
+                if propagation:
+                    desired_method = LXMF.LXMessage.PROPAGATED
+                else:
+                    desired_method = LXMF.LXMessage.DIRECT
+
+                lxm = LXMF.LXMessage(dest, source, "", title="", desired_method=desired_method, fields = {LXMF.FIELD_COMMANDS: commands}, include_ticket=self.is_trusted(destination_hash))
+                lxm.register_delivery_callback(self.message_notification)
+                lxm.register_failed_callback(self.message_notification)
+
+                if self.message_router.get_outbound_propagation_node() != None:
+                    if self.config["lxmf_try_propagation_on_fail"]:
+                        lxm.try_propagation_on_fail = True
+
+                self.message_router.handle_outbound(lxm)
+                self.lxm_ingest(lxm, originator=True)
+
+                return True
+
+            except Exception as e:
+                RNS.log("Error while sending message: "+str(e), RNS.LOG_ERROR)
                 return False
-
-            dest_identity = RNS.Identity.recall(destination_hash)
-            dest = RNS.Destination(dest_identity, RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
-            source = self.lxmf_destination
-            
-            if propagation:
-                desired_method = LXMF.LXMessage.PROPAGATED
-            else:
-                desired_method = LXMF.LXMessage.DIRECT
-
-            lxm = LXMF.LXMessage(dest, source, "", title="", desired_method=desired_method, fields = {LXMF.FIELD_COMMANDS: commands}, include_ticket=self.is_trusted(destination_hash))
-            lxm.register_delivery_callback(self.message_notification)
-            lxm.register_failed_callback(self.message_notification)
-
-            if self.message_router.get_outbound_propagation_node() != None:
-                if self.config["lxmf_try_propagation_on_fail"]:
-                    lxm.try_propagation_on_fail = True
-
-            self.message_router.handle_outbound(lxm)
-            self.lxm_ingest(lxm, originator=True)
-
-            return True
-
-        except Exception as e:
-            RNS.log("Error while sending message: "+str(e), RNS.LOG_ERROR)
-            return False
 
     def new_conversation(self, dest_str, name = "", trusted = False):
         if len(dest_str) != RNS.Reticulum.TRUNCATED_HASHLENGTH//8*2:
