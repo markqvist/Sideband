@@ -303,6 +303,7 @@ class SidebandApp(MDApp):
 
         self.final_load_completed = False
         self.service_last_available = 0
+        self.closing_app = False
 
         self.attach_path = None
         self.attach_type = None
@@ -988,6 +989,11 @@ class SidebandApp(MDApp):
                 ok_button.bind(on_release=dl_ok)
                 dialog.open()
 
+    def close_requested(self, *args):
+        if not self.closing_app:
+            self.quit_action(None)
+        return True
+
     def on_start(self):
         self.last_exit_event = time.time()
         self.root.ids.screen_manager.transition = self.slide_transition
@@ -997,6 +1003,7 @@ class SidebandApp(MDApp):
         EventLoop.window.bind(on_keyboard=self.keyboard_event)
         EventLoop.window.bind(on_key_down=self.keydown_event)
         EventLoop.window.bind(on_key_up=self.keyup_event)
+        Window.bind(on_request_close=self.close_requested)
 
         if __variant__ != "":
             variant_str = " "+__variant__
@@ -1241,6 +1248,7 @@ class SidebandApp(MDApp):
         self.root.ids.nav_drawer.set_state("closed")
 
     def quit_action(self, sender):
+        self.closing_app = True
         self.root.ids.nav_drawer.set_state("closed")
         self.sideband.should_persist_data()
 
