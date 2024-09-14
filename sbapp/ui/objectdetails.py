@@ -796,14 +796,10 @@ class RVDetails(MDRecycleView):
                     self.entries.append({"icon": "routes", "text": f"Current path on [b]{nhi}[/b]", "on_release": pass_job})
 
                 try:
-                    mr = self.delegate.app.sideband.message_router
-                    oh = self.delegate.object_hash
-                    if oh in mr.direct_links:
-                        ol = mr.direct_links[oh]
-                        ler = ol.get_establishment_rate()
-                        if ler:
-                            lers = RNS.prettyspeed(ler, "b")
-                            self.entries.append({"icon": "lock-check-outline", "text": f"Direct link established, LER is [b]{lers}[/b]", "on_release": pass_job})
+                    ler = self.delegate.app.sideband.get_destination_establishment_rate(self.delegate.object_hash)
+                    if ler:
+                        lers = RNS.prettyspeed(ler, "b")
+                        self.entries.append({"icon": "lock-check-outline", "text": f"Direct link established, LER is [b]{lers}[/b]", "on_release": pass_job})
                 except Exception as e:
                     RNS.trace_exception(e)
 

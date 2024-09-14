@@ -1578,7 +1578,45 @@ class SidebandCore():
                     RNS.log(ed, RNS.LOG_DEBUG)
                     return ed
 
-    
+    def _get_destination_establishment_rate(self, destination_hash):
+        try:
+            mr = self.message_router
+            oh = destination_hash
+            ol = None
+            if oh in mr.direct_links:
+                ol = mr.direct_links[oh]
+            elif oh in mr.backchannel_links:
+                ol = mr.backchannel_links[oh]
+
+            if ol != None:
+                ler = ol.get_establishment_rate()
+                if ler:
+                    return ler
+
+            return None
+
+        except Exception as e:
+            RNS.trace_exception(e)
+            return None
+
+    def get_destination_establishment_rate(self, destination_hash):
+        if not RNS.vendor.platformutils.is_android():
+            return self._get_destination_establishment_rate(destination_hash)
+        else:
+            if self.is_service:
+                return self._get_destination_establishment_rate(destination_hash)
+            else:
+                try:
+                    if self.rpc_connection == None:
+                        self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
+                    self.rpc_connection.send({"get_destination_establishment_rate": destination_hash})
+                    response = self.rpc_connection.recv()
+                    return response
+                except Exception as e:
+                    ed = "Error while getting destination link etablishment rate over RPC: "+str(e)
+                    RNS.log(ed, RNS.LOG_DEBUG)
+                    return None
+
     def __start_rpc_listener(self):
         try:
             RNS.log("Starting RPC listener", RNS.LOG_DEBUG)
@@ -1621,6 +1659,8 @@ class SidebandCore():
                                     connection.send(True)
                                 elif "get_plugins_info" in call:
                                     connection.send(self._get_plugins_info())
+                                elif "get_destination_establishment_rate" in call:
+                                    connection.send(self._get_destination_establishment_rate(call["get_destination_establishment_rate"]))
                                 elif "send_message" in call:
                                     args = call["send_message"]
                                     send_result = self.send_message(
