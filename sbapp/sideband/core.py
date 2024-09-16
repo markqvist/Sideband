@@ -4067,7 +4067,11 @@ class SidebandCore():
                 if propagation:
                     desired_method = LXMF.LXMessage.PROPAGATED
                 else:
-                    desired_method = LXMF.LXMessage.DIRECT
+                    if not self.message_router.delivery_link_available(destination_hash) and RNS.Identity.current_ratchet_id(destination_hash) != None:
+                        RNS.log(f"Have ratchet for {RNS.prettyhexrep(destination_hash)}, requesting opportunistic delivery of message", RNS.LOG_DEBUG)
+                        desired_method = LXMF.LXMessage.OPPORTUNISTIC
+                    else:
+                        desired_method = LXMF.LXMessage.DIRECT
 
                 if skip_fields:
                     fields = {}

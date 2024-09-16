@@ -102,7 +102,6 @@ class Messages():
             self.list.remove_widget(self.load_more_button)
 
     def message_details_dialog(self, lxm_hash):
-        RNS.log(f"Opening dialog for {RNS.prettyhexrep(lxm_hash)}", RNS.LOG_DEBUG)
         ss = int(dp(16))
         ms = int(dp(14))
         
@@ -247,10 +246,10 @@ class Messages():
             else:
                 w.line_color = (1.0, 1.0, 1.0, 0.5)
 
-            if m["state"] == LXMF.LXMessage.SENDING or m["state"] == LXMF.LXMessage.OUTBOUND:
+            if m["state"] == LXMF.LXMessage.SENDING or m["state"] == LXMF.LXMessage.OUTBOUND or m["state"] == LXMF.LXMessage.SENT:
                 msg = self.app.sideband.message(m["hash"])
 
-                if msg["state"] == LXMF.LXMessage.OUTBOUND or msg["state"] == LXMF.LXMessage.SENDING:
+                if msg["state"] == LXMF.LXMessage.OUTBOUND or msg["state"] == LXMF.LXMessage.SENDING or msg["state"] == LXMF.LXMessage.SENT:
                     w.md_bg_color = msg_color = mdc(color_unknown, intensity_msgs)
                     txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
                     titlestr = ""
