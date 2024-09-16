@@ -249,6 +249,17 @@ class Messages():
             if m["state"] == LXMF.LXMessage.SENDING or m["state"] == LXMF.LXMessage.OUTBOUND or m["state"] == LXMF.LXMessage.SENT:
                 msg = self.app.sideband.message(m["hash"])
 
+                delivery_syms = ""
+                # if msg["extras"] != None and "ratchet_id" in m["extras"]:
+                #     delivery_syms += " ⚙️"
+                if msg["method"] == LXMF.LXMessage.OPPORTUNISTIC:
+                    delivery_syms += " 📨"
+                if msg["method"] == LXMF.LXMessage.DIRECT:
+                    delivery_syms += " 🔗"
+                if msg["method"] == LXMF.LXMessage.PROPAGATED:
+                    delivery_syms += " 📦"
+                delivery_syms = multilingual_markup(delivery_syms.encode("utf-8")).decode("utf-8")
+
                 if msg["state"] == LXMF.LXMessage.OUTBOUND or msg["state"] == LXMF.LXMessage.SENDING or msg["state"] == LXMF.LXMessage.SENT:
                     w.md_bg_color = msg_color = mdc(color_unknown, intensity_msgs)
                     txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
@@ -289,7 +300,7 @@ class Messages():
                     titlestr = ""
                     if msg["title"]:
                         titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                    w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Delivered"
+                    w.heading = titlestr+"[b]Sent[/b] "+txstr+delivery_syms+"\n[b]State[/b] Delivered"
                     if w.has_audio:
                         alstr = RNS.prettysize(w.audio_size)
                         w.heading += f"\n[b]Audio Message[/b] ({alstr})"
@@ -310,7 +321,7 @@ class Messages():
                     titlestr = ""
                     if msg["title"]:
                         titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                    w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] On Propagation Net"
+                    w.heading = titlestr+"[b]Sent[/b] "+txstr+delivery_syms+"\n[b]State[/b] On Propagation Net"
                     if w.has_audio:
                         alstr = RNS.prettysize(w.audio_size)
                         w.heading += f"\n[b]Audio Message[/b] ({alstr})"
@@ -387,6 +398,17 @@ class Messages():
                 signature_valid = False
                 stamp_valid = False
                 stamp_value = None
+
+                delivery_syms = ""
+                # if m["extras"] != None and "ratchet_id" in m["extras"]:
+                #     delivery_syms += " ⚙️"
+                if m["method"] == LXMF.LXMessage.OPPORTUNISTIC:
+                    delivery_syms += " 📨"
+                if m["method"] == LXMF.LXMessage.DIRECT:
+                    delivery_syms += " 🔗"
+                if m["method"] == LXMF.LXMessage.PROPAGATED:
+                    delivery_syms += " 📦"
+                delivery_syms = multilingual_markup(delivery_syms.encode("utf-8")).decode("utf-8")
 
                 if "lxm" in m and m["lxm"] != None and m["lxm"].signature_validated:
                     signature_valid = True
@@ -493,11 +515,11 @@ class Messages():
                 if m["source"] == self.app.sideband.lxmf_destination.hash:
                     if m["state"] == LXMF.LXMessage.DELIVERED:
                         msg_color = mdc(color_delivered, intensity_msgs)
-                        heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Delivered"
+                        heading_str = titlestr+"[b]Sent[/b] "+txstr+delivery_syms+"\n[b]State[/b] Delivered"
 
                     elif m["method"] == LXMF.LXMessage.PROPAGATED and m["state"] == LXMF.LXMessage.SENT:
                         msg_color = mdc(color_propagated, intensity_msgs)
-                        heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] On Propagation Net"
+                        heading_str = titlestr+"[b]Sent[/b] "+txstr+delivery_syms+"\n[b]State[/b] On Propagation Net"
 
                     elif m["method"] == LXMF.LXMessage.PAPER:
                         msg_color = mdc(color_paper, intensity_msgs)
@@ -524,7 +546,7 @@ class Messages():
                     # if stamp_valid:
                     #     txstr += f" [b]Stamp[/b] value is {stamp_value} "
 
-                    heading_str += "[b]Sent[/b] "+txstr
+                    heading_str += "[b]Sent[/b] "+txstr+delivery_syms
                     heading_str += "\n[b]Received[/b] "+rxstr
 
                     if rcvd_d_str != "":
