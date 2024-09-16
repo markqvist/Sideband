@@ -357,10 +357,14 @@ class Messages():
 
         for m in self.new_messages:
             if not m["hash"] in self.added_item_hashes:
-                if not self.is_trusted:
-                    message_input = str( escape_markup(m["content"].decode("utf-8")) ).encode("utf-8")
-                else:
-                    message_input = m["content"]
+                try:
+                    if not self.is_trusted:
+                        message_input = str( escape_markup(m["content"].decode("utf-8")) ).encode("utf-8")
+                    else:
+                        message_input = m["content"]
+                except Exception as e:
+                    RNS.log(f"Message content could not be decoded: {e}", RNS.LOG_DEBUG)
+                    message_input = b""
 
                 if message_input.strip() == b"":
                     if not ("lxm" in m and m["lxm"] != None and m["lxm"].fields != None and LXMF.FIELD_COMMANDS in m["lxm"].fields):
@@ -966,7 +970,7 @@ class Messages():
                                 "viewclass": "OneLineListItem",
                                 "text": "Copy message text",
                                 "height": dp(40),
-                                "on_release": gen_copy(m["content"].decode("utf-8"), item)
+                                "on_release": gen_copy(message_input.decode("utf-8"), item)
                             },
                             {
                                 "text": "Delete",
@@ -1000,7 +1004,7 @@ class Messages():
                                 "viewclass": "OneLineListItem",
                                 "text": "Copy message text",
                                 "height": dp(40),
-                                "on_release": gen_copy(m["content"].decode("utf-8"), item)
+                                "on_release": gen_copy(message_input.decode("utf-8"), item)
                             },
                             {
                                 "text": "Delete",
@@ -1018,7 +1022,7 @@ class Messages():
                                 "viewclass": "OneLineListItem",
                                 "text": "Copy",
                                 "height": dp(40),
-                                "on_release": gen_copy(m["content"].decode("utf-8"), item)
+                                "on_release": gen_copy(message_input.decode("utf-8"), item)
                             },
                             {
                                 "text": "Delete",
@@ -1035,7 +1039,7 @@ class Messages():
                                     "viewclass": "OneLineListItem",
                                     "text": "Copy",
                                     "height": dp(40),
-                                    "on_release": gen_copy(m["content"].decode("utf-8"), item)
+                                    "on_release": gen_copy(message_input.decode("utf-8"), item)
                                 },
                                 {
                                     "viewclass": "OneLineListItem",
@@ -1058,7 +1062,7 @@ class Messages():
                                     "viewclass": "OneLineListItem",
                                     "text": "Copy",
                                     "height": dp(40),
-                                    "on_release": gen_copy(m["content"].decode("utf-8"), item)
+                                    "on_release": gen_copy(message_input.decode("utf-8"), item)
                                 },
                                 {
                                     "text": "Delete",
