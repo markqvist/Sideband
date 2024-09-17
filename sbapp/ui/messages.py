@@ -249,96 +249,97 @@ class Messages():
             if m["state"] == LXMF.LXMessage.SENDING or m["state"] == LXMF.LXMessage.OUTBOUND or m["state"] == LXMF.LXMessage.SENT:
                 msg = self.app.sideband.message(m["hash"])
 
-                delivery_syms = ""
-                # if msg["extras"] != None and "ratchet_id" in m["extras"]:
-                #     delivery_syms += " ⚙️"
-                if msg["method"] == LXMF.LXMessage.OPPORTUNISTIC:
-                    delivery_syms += " 📨"
-                if msg["method"] == LXMF.LXMessage.DIRECT:
-                    delivery_syms += " 🔗"
-                if msg["method"] == LXMF.LXMessage.PROPAGATED:
-                    delivery_syms += " 📦"
-                delivery_syms = multilingual_markup(delivery_syms.encode("utf-8")).decode("utf-8")
+                if msg != None:
+                    delivery_syms = ""
+                    # if msg["extras"] != None and "ratchet_id" in m["extras"]:
+                    #     delivery_syms += " ⚙️"
+                    if msg["method"] == LXMF.LXMessage.OPPORTUNISTIC:
+                        delivery_syms += " 📨"
+                    if msg["method"] == LXMF.LXMessage.DIRECT:
+                        delivery_syms += " 🔗"
+                    if msg["method"] == LXMF.LXMessage.PROPAGATED:
+                        delivery_syms += " 📦"
+                    delivery_syms = multilingual_markup(delivery_syms.encode("utf-8")).decode("utf-8")
 
-                if msg["state"] == LXMF.LXMessage.OUTBOUND or msg["state"] == LXMF.LXMessage.SENDING or msg["state"] == LXMF.LXMessage.SENT:
-                    w.md_bg_color = msg_color = mdc(color_unknown, intensity_msgs)
-                    txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
-                    titlestr = ""
-                    prgstr = ""
-                    sphrase = "Sending"
-                    prg = self.app.sideband.get_lxm_progress(msg["hash"])
-                    if prg != None:
-                        prgstr = ", "+str(round(prg*100, 1))+"% done"
-                        if prg <= 0.00:
-                            stamp_cost = self.app.sideband.get_lxm_stamp_cost(msg["hash"])
-                            if stamp_cost:
-                                sphrase = f"Generating stamp with cost {stamp_cost}"
-                                prgstr = ""
-                            else:
+                    if msg["state"] == LXMF.LXMessage.OUTBOUND or msg["state"] == LXMF.LXMessage.SENDING or msg["state"] == LXMF.LXMessage.SENT:
+                        w.md_bg_color = msg_color = mdc(color_unknown, intensity_msgs)
+                        txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
+                        titlestr = ""
+                        prgstr = ""
+                        sphrase = "Sending"
+                        prg = self.app.sideband.get_lxm_progress(msg["hash"])
+                        if prg != None:
+                            prgstr = ", "+str(round(prg*100, 1))+"% done"
+                            if prg <= 0.00:
+                                stamp_cost = self.app.sideband.get_lxm_stamp_cost(msg["hash"])
+                                if stamp_cost:
+                                    sphrase = f"Generating stamp with cost {stamp_cost}"
+                                    prgstr = ""
+                                else:
+                                    sphrase = "Waiting for path"
+                            elif prg <= 0.01:
                                 sphrase = "Waiting for path"
-                        elif prg <= 0.01:
-                            sphrase = "Waiting for path"
-                        elif prg <= 0.03:
-                            sphrase = "Establishing link"
-                        elif prg <= 0.05:
-                            sphrase = "Link established"
-                        elif prg >= 0.05:
-                            sphrase = "Sending"
-                        
-                    if msg["title"]:
-                        titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                    w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] "+sphrase+prgstr+"                          "
-                    if w.has_audio:
-                        alstr = RNS.prettysize(w.audio_size)
-                        w.heading += f"\n[b]Audio Message[/b] ({alstr})"
-                    m["state"] = msg["state"]
+                            elif prg <= 0.03:
+                                sphrase = "Establishing link"
+                            elif prg <= 0.05:
+                                sphrase = "Link established"
+                            elif prg >= 0.05:
+                                sphrase = "Sending"
+                            
+                        if msg["title"]:
+                            titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
+                        w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] "+sphrase+prgstr+"                          "
+                        if w.has_audio:
+                            alstr = RNS.prettysize(w.audio_size)
+                            w.heading += f"\n[b]Audio Message[/b] ({alstr})"
+                        m["state"] = msg["state"]
 
 
-                if msg["state"] == LXMF.LXMessage.DELIVERED:
-                    w.md_bg_color = msg_color = mdc(color_delivered, intensity_msgs)
-                    txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
-                    titlestr = ""
-                    if msg["title"]:
-                        titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                    w.heading = titlestr+"[b]Sent[/b] "+txstr+delivery_syms+"\n[b]State[/b] Delivered"
-                    if w.has_audio:
-                        alstr = RNS.prettysize(w.audio_size)
-                        w.heading += f"\n[b]Audio Message[/b] ({alstr})"
-                    m["state"] = msg["state"]
+                    if msg["state"] == LXMF.LXMessage.DELIVERED:
+                        w.md_bg_color = msg_color = mdc(color_delivered, intensity_msgs)
+                        txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
+                        titlestr = ""
+                        if msg["title"]:
+                            titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
+                        w.heading = titlestr+"[b]Sent[/b] "+txstr+delivery_syms+"\n[b]State[/b] Delivered"
+                        if w.has_audio:
+                            alstr = RNS.prettysize(w.audio_size)
+                            w.heading += f"\n[b]Audio Message[/b] ({alstr})"
+                        m["state"] = msg["state"]
 
-                if msg["method"] == LXMF.LXMessage.PAPER:
-                    w.md_bg_color = msg_color = mdc(color_paper, intensity_msgs)
-                    txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
-                    titlestr = ""
-                    if msg["title"]:
-                        titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                    w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Paper Message"
-                    m["state"] = msg["state"]
+                    if msg["method"] == LXMF.LXMessage.PAPER:
+                        w.md_bg_color = msg_color = mdc(color_paper, intensity_msgs)
+                        txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
+                        titlestr = ""
+                        if msg["title"]:
+                            titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
+                        w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Paper Message"
+                        m["state"] = msg["state"]
 
-                if msg["method"] == LXMF.LXMessage.PROPAGATED and msg["state"] == LXMF.LXMessage.SENT:
-                    w.md_bg_color = msg_color = mdc(color_propagated, intensity_msgs)
-                    txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
-                    titlestr = ""
-                    if msg["title"]:
-                        titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                    w.heading = titlestr+"[b]Sent[/b] "+txstr+delivery_syms+"\n[b]State[/b] On Propagation Net"
-                    if w.has_audio:
-                        alstr = RNS.prettysize(w.audio_size)
-                        w.heading += f"\n[b]Audio Message[/b] ({alstr})"
-                    m["state"] = msg["state"]
+                    if msg["method"] == LXMF.LXMessage.PROPAGATED and msg["state"] == LXMF.LXMessage.SENT:
+                        w.md_bg_color = msg_color = mdc(color_propagated, intensity_msgs)
+                        txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
+                        titlestr = ""
+                        if msg["title"]:
+                            titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
+                        w.heading = titlestr+"[b]Sent[/b] "+txstr+delivery_syms+"\n[b]State[/b] On Propagation Net"
+                        if w.has_audio:
+                            alstr = RNS.prettysize(w.audio_size)
+                            w.heading += f"\n[b]Audio Message[/b] ({alstr})"
+                        m["state"] = msg["state"]
 
-                if msg["state"] == LXMF.LXMessage.FAILED:
-                    w.md_bg_color = msg_color = mdc(color_failed, intensity_msgs)
-                    txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
-                    titlestr = ""
-                    if msg["title"]:
-                        titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                    w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Failed"
-                    m["state"] = msg["state"]
-                    if w.has_audio:
-                        alstr = RNS.prettysize(w.audio_size)
-                        w.heading += f"\n[b]Audio Message[/b] ({alstr})"
-                    w.dmenu.items.append(w.dmenu.retry_item)
+                    if msg["state"] == LXMF.LXMessage.FAILED:
+                        w.md_bg_color = msg_color = mdc(color_failed, intensity_msgs)
+                        txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
+                        titlestr = ""
+                        if msg["title"]:
+                            titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
+                        w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Failed"
+                        m["state"] = msg["state"]
+                        if w.has_audio:
+                            alstr = RNS.prettysize(w.audio_size)
+                            w.heading += f"\n[b]Audio Message[/b] ({alstr})"
+                        w.dmenu.items.append(w.dmenu.retry_item)
 
 
     def hide_widget(self, wid, dohide=True):
