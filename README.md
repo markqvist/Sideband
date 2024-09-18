@@ -45,12 +45,12 @@ After the application is installed on your Android device, it is also possible t
 
 ## On Linux
 
-On all Linux-based operating systems, Sideband is available as a `pipx`/`pip` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers.
+On all Linux-based operating systems, Sideband is available as a `pipx`/`pip` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers. Below are install steps for the most common recent Linux distros. For Debian 11, see the end of this section.
 
 You will first need to install a few dependencies for audio messaging and Codec2 support to work:
 
 ```bash
-# For Debian, Ubuntu and derivatives
+# For Debian (12+), Ubuntu (22.04+) and derivatives
 sudo apt install pipx python3-pyaudio python3-dev build-essential libopusfile0 portaudio19-dev codec2 xclip xsel
 
 # For Manjaro and derivatives
@@ -112,6 +112,14 @@ pip install sbapp --no-dependencies
 # In the above case, you will still need to
 # manually install the RNS and LXMF dependencies:
 pip install rns lxmf
+
+# Install Sideband on Debian 11 and derivatives:
+sudo apt install python3-pip python3-pyaudio python3-dev build-essential libopusfile0 portaudio19-dev codec2 xclip xsel
+pip install sbapp
+
+# On Debian 11, run Sideband manually via the
+# terminal once to install desktop integration:
+python3 -m sbapp.main
 ```
 
 ## On Raspberry Pi
