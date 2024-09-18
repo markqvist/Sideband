@@ -3001,35 +3001,35 @@ class SidebandApp(MDApp):
                 self.widget_hide(self.connectivity_screen.ids.connectivity_transport_fields)
 
             def con_collapse_local(collapse=True):
-                # self.widget_hide(self.root.ids.connectivity_local_fields, collapse)
+                # self.widget_hide(self.connectivity_screen.ids.connectivity_local_fields, collapse)
                 pass
                 
             def con_collapse_tcp(collapse=True):
-                # self.widget_hide(self.root.ids.connectivity_tcp_fields, collapse)
+                # self.widget_hide(self.connectivity_screen.ids.connectivity_tcp_fields, collapse)
                 pass
                 
             def con_collapse_i2p(collapse=True):
-                # self.widget_hide(self.root.ids.connectivity_i2p_fields, collapse)
+                # self.widget_hide(self.connectivity_screen.ids.connectivity_i2p_fields, collapse)
                 pass
                 
             def con_collapse_bluetooth(collapse=True):
-                # self.widget_hide(self.root.ids.connectivity_bluetooth_fields, collapse)
+                # self.widget_hide(self.connectivity_screen.ids.connectivity_bluetooth_fields, collapse)
                 pass
                 
             def con_collapse_rnode(collapse=True):
-                # self.widget_hide(self.root.ids.connectivity_rnode_fields, collapse)
+                # self.widget_hide(self.connectivity_screen.ids.connectivity_rnode_fields, collapse)
                 pass
                 
             def con_collapse_modem(collapse=True):
-                # self.widget_hide(self.root.ids.connectivity_modem_fields, collapse)
+                # self.widget_hide(self.connectivity_screen.ids.connectivity_modem_fields, collapse)
                 pass
                 
             def con_collapse_serial(collapse=True):
-                # self.widget_hide(self.root.ids.connectivity_serial_fields, collapse)
+                # self.widget_hide(self.connectivity_screen.ids.connectivity_serial_fields, collapse)
                 pass
                 
             def con_collapse_transport(collapse=True):
-                # self.widget_hide(self.root.ids.connectivity_transport_fields, collapse)
+                # self.widget_hide(self.connectivity_screen.ids.connectivity_transport_fields, collapse)
                 pass
                 
             def save_connectivity(sender=None, event=None):
