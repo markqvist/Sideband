@@ -96,9 +96,9 @@ class SidebandCore():
     TELEMETRY_INTERVAL = 60
     SERVICE_TELEMETRY_INTERVAL = 300
 
-    IF_CHANGE_ANNOUNCE_MIN_INTERVAL = 6    # In seconds
+    IF_CHANGE_ANNOUNCE_MIN_INTERVAL = 3.5  # In seconds
     AUTO_ANNOUNCE_RANDOM_MIN        = 90   # In minutes
-    AUTO_ANNOUNCE_RANDOM_MAX        = 480  # In minutes
+    AUTO_ANNOUNCE_RANDOM_MAX        = 300  # In minutes
 
     DEFAULT_APPEARANCE = ["account", [0,0,0,1], [1,1,1,1]]
 
