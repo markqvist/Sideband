@@ -2768,8 +2768,9 @@ class SidebandApp(MDApp):
                 pre = self.settings_screen.ids.settings_lxmf_sync_periodic.text
                 self.settings_screen.ids.settings_lxmf_sync_periodic.text = "Auto sync every "+interval_text
                 if save:
-                    self.sideband.config["lxmf_sync_interval"] = interval
-                    self.sideband.save_configuration()
+                    if (event == None or not hasattr(event, "button") or not event.button) or not "scroll" in event.button:
+                        self.sideband.config["lxmf_sync_interval"] = interval
+                        self.sideband.save_configuration()
 
             def stamp_cost_change(sender=None, event=None, save=True):
                 slider_val = int(self.settings_screen.ids.settings_lxmf_require_stamps_cost.value)
@@ -2782,7 +2783,8 @@ class SidebandApp(MDApp):
                     if slider_val < 1:
                         slider_val = 1
                     self.sideband.config["lxmf_inbound_stamp_cost"] = slider_val
-                    self.sideband.save_configuration()
+                    if (event == None or not hasattr(event, "button") or not event.button) or not "scroll" in event.button:
+                        self.sideband.save_configuration()
 
             self.settings_screen.ids.settings_lxmf_address.text = RNS.hexrep(self.sideband.lxmf_destination.hash, delimit=False)
             self.settings_screen.ids.settings_identity_hash.text = RNS.hexrep(self.sideband.lxmf_destination.identity.hash, delimit=False)
