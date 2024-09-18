@@ -616,7 +616,7 @@ MDScreen:
                 MDLabel:
                     text: "Shared Instance Access\\n"
                     id: connectivity_shared_access_label
-                    font_style: "H6"
+                    font_style: "H5"
 
                 MDLabel:
                     id: connectivity_shared_access
@@ -1176,7 +1176,7 @@ MDScreen:
                     padding: [0,dp(0),dp(0),dp(0)]
                     text: "Plugin Settings"
                     id: plugins_active_heading
-                    font_style: "H6"
+                    font_style: "H5"
                     size_hint_y: None
                     height: self.texture_size[1]
 
@@ -1286,7 +1286,7 @@ MDScreen:
 
                 MDLabel:
                     text: "User Options"
-                    font_style: "H6"
+                    font_style: "H5"
                     size_hint_y: None
                     height: self.texture_size[1]
 
@@ -1326,8 +1326,17 @@ MDScreen:
                         height: dp(64)
 
                 MDLabel:
-                    text: "Address & Identity"
+                    text: "•"
                     font_style: "H6"
+                    text_size: self.size
+                    halign: "center"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    padding: [0, dp(2), 0, dp(22)]
+
+                MDLabel:
+                    text: "Address & Identity"
+                    font_style: "H5"
                     size_hint_y: None
                     height: self.texture_size[1]
 
@@ -1361,8 +1370,17 @@ MDScreen:
                         height: dp(64)
 
                 MDLabel:
-                    text: "Appearance"
+                    text: "•"
                     font_style: "H6"
+                    text_size: self.size
+                    halign: "center"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    padding: [0, dp(2), 0, dp(22)]
+
+                MDLabel:
+                    text: "Appearance"
+                    font_style: "H5"
                     size_hint_y: None
                     height: self.texture_size[1]
 
@@ -1464,8 +1482,17 @@ MDScreen:
                         active: False
 
                 MDLabel:
-                    text: "\\nBehaviour"
+                    text: "•"
                     font_style: "H6"
+                    text_size: self.size
+                    halign: "center"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    padding: [0, dp(22), 0, dp(2)]
+
+                MDLabel:
+                    text: "\\nBehaviour"
+                    font_style: "H5"
                     size_hint_y: None
                     height: self.texture_size[1]
 
@@ -1498,7 +1525,7 @@ MDScreen:
                     height: dp(48)
                     
                     MDLabel:
-                        text: "Try Propagation Node on direct delivery failure"
+                        text: "Try propagation on direct delivery failure"
                         font_style: "H6"
 
                     MDSwitch:
@@ -1684,8 +1711,17 @@ MDScreen:
                         active: False
 
                 MDLabel:
-                    text: "Input Options & Localisation"
+                    text: "•"
                     font_style: "H6"
+                    text_size: self.size
+                    halign: "center"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    padding: [0, dp(0), 0, dp(30)]
+
+                MDLabel:
+                    text: "Input Options & Localisation"
+                    font_style: "H5"
                     size_hint_y: None
                     height: self.texture_size[1]
 
