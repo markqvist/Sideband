@@ -1478,7 +1478,7 @@ class SidebandCore():
                         RNS.log("Service heartbeat did not recover after retry", RNS.LOG_DEBUG)
                         return False
                     else:
-                        RNS.log("Service heartbeat recovered at"+str(time), RNS.LOG_DEBUG)
+                        RNS.log("Service heartbeat recovered at"+str(now), RNS.LOG_DEBUG)
                         return True
                 else:
                     return True
@@ -4311,6 +4311,7 @@ class SidebandCore():
                 self.notify(title=self.peer_display_name(context_dest), content=notification_content, group="LXM", context_id=RNS.hexrep(context_dest, delimit=False))
             except Exception as e:
                 RNS.log("Could not post notification for received message: "+str(e), RNS.LOG_ERROR)
+                RNS.trace_exception(e)
 
     def ptt_playback(self, message):
         ptt_timeout = 60
