@@ -116,7 +116,7 @@ class SidebandService():
                 notification_intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 notification_intent.setAction(Intent.ACTION_MAIN)
                 notification_intent.addCategory(Intent.CATEGORY_LAUNCHER)
-                self.notification_intent = PendingIntent.getActivity(self.app_context, 0, notification_intent, 0)
+                self.notification_intent = PendingIntent.getActivity(self.app_context, 0, notification_intent, PendingIntent.FLAG_IMMUTABLE)
 
             notification.setContentIntent(self.notification_intent)
             notification.setAutoCancel(True)
