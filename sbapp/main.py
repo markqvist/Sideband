@@ -406,6 +406,20 @@ class SidebandApp(MDApp):
         else:
             self.open_conversations()
 
+        if RNS.vendor.platformutils.is_android():
+            if self.sideband.getstate("android.power_restricted", allow_cache=False):
+                RNS.log("Android power restrictions detected, background connectivity will not work. Asking for permissions.", RNS.LOG_DEBUG)
+                def pm_job(dt):
+                    Settings = autoclass("android.provider.Settings")
+                    Intent = autoclass("android.content.Intent")
+                    Uri = autoclass("android.net.Uri")
+
+                    requestIntent = Intent()
+                    requestIntent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                    requestIntent.setData(Uri.parse("package:io.unsigned.sideband"))
+                    mActivity.startActivity(requestIntent)
+                Clock.schedule_once(pm_job, 1.5)
+
         if not self.root.ids.screen_manager.has_screen("messages_screen"):
             self.messages_screen = Builder.load_string(messages_screen_kv)
             self.messages_screen.app = self
