@@ -42,6 +42,7 @@ if RNS.vendor.platformutils.get_platform() == "android":
     if android_api_version >= 26:
         NotificationBuilder = autoclass('android.app.Notification$Builder')
         NotificationChannel = autoclass('android.app.NotificationChannel')
+        RingtoneManager = autoclass('android.media.RingtoneManager')
 
     from usb4a import usb
     from usbserial4a import serial4a
@@ -149,6 +150,18 @@ class SidebandService():
 
         return True
 
+    def update_power_restrictions(self):
+        package_name = "io.unsigned.sideband"
+        if RNS.vendor.platformutils.is_android():
+            if android_api_version >= 28:
+                if self.power_manager != None:
+                    if self.power_manager.isIgnoringBatteryOptimizations(package_name):
+                        self.power_restricted = False
+                    else:
+                        self.power_restricted = True
+
+                    self.sideband.setstate("android.power_restricted", self.power_restricted)
+
     def android_location_callback(self, **kwargs):
         self._raw_gps = kwargs
         self._last_gps_update = time.time()
@@ -200,6 +213,7 @@ class SidebandService():
         self.app_context = None
         self.wifi_manager = None
         self.power_manager = None
+        self.power_restricted = False
         self.usb_devices = []
         self.usb_device_filter = SidebandService.usb_device_filter
 
@@ -235,6 +249,7 @@ class SidebandService():
 
         self.sideband.start()
         self.update_connectivity_type()
+        self.update_power_restrictions()
         
         if RNS.vendor.platformutils.is_android():
             RNS.log("Discovered USB devices: "+str(self.usb_devices), RNS.LOG_EXTREME)
