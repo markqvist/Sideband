@@ -830,12 +830,14 @@ class SidebandApp(MDApp):
             JString = autoclass('java.lang.String')
             Intent = autoclass("android.content.Intent")
             try:
-                data = intent.getExtras().getString("intent_action", "undefined")
-                if data.startswith("conversation."):
-                    conv_hexhash = bytes.fromhex(data.replace("conversation.", ""))
-                    def cb(dt):
-                        self.open_conversation(conv_hexhash)
-                    Clock.schedule_once(cb, 0.2)
+                extras = intent.getExtras()
+                if extras:
+                    data = extras.getString("intent_action", "undefined")
+                    if data.startswith("conversation."):
+                        conv_hexhash = bytes.fromhex(data.replace("conversation.", ""))
+                        def cb(dt):
+                            self.open_conversation(conv_hexhash)
+                        Clock.schedule_once(cb, 0.2)
 
             except Exception as e:
                 RNS.log(f"Error while getting intent action data: {e}", RNS.LOG_ERROR)

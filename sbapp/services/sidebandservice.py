@@ -116,14 +116,14 @@ class SidebandService():
             # bitmap_icon = BitmapFactory.decodeFile(large_icon_path)
             # notification.setLargeIcon(bitmap_icon)
 
-            if not self.notification_intent:
-                notification_intent = Intent(self.app_context, python_act)
-                notification_intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                notification_intent.setAction(Intent.ACTION_MAIN)
-                notification_intent.addCategory(Intent.CATEGORY_LAUNCHER)
-                if context_id != None:
-                    notification_intent.putExtra(JString("intent_action"), JString(f"conversation.{context_id}"))
-                self.notification_intent = PendingIntent.getActivity(self.app_context, 0, notification_intent, PendingIntent.FLAG_MUTABLE)
+            notification_intent = Intent(self.app_context, python_act)
+            notification_intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            notification_intent.setAction(Intent.ACTION_MAIN)
+            notification_intent.addCategory(Intent.CATEGORY_LAUNCHER)
+            if context_id != None:
+                cstr = f"conversation.{context_id}"
+                notification_intent.putExtra(JString("intent_action"), JString(cstr))
+            self.notification_intent = PendingIntent.getActivity(self.app_context, 0, notification_intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT)
 
             notification.setContentIntent(self.notification_intent)
             notification.setAutoCancel(True)
