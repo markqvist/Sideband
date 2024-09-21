@@ -38,6 +38,7 @@ if RNS.vendor.platformutils.get_platform() == "android":
     AndroidString = autoclass('java.lang.String')
     NotificationManager = autoclass('android.app.NotificationManager')
     Context = autoclass('android.content.Context')
+    JString = autoclass('java.lang.String')
 
     if android_api_version >= 26:
         NotificationBuilder = autoclass('android.app.Notification$Builder')
@@ -90,22 +91,26 @@ class SidebandService():
 
             self.notification_channel = NotificationChannel(channel_id, channel_name, NotificationManager.IMPORTANCE_DEFAULT)
             self.notification_channel.enableVibration(True)
+            self.notification_channel.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), None)
             self.notification_channel.setShowBadge(True)
             self.notification_service.createNotificationChannel(self.notification_channel)
 
             notification = NotificationBuilder(self.app_context, channel_id)
             notification.setContentTitle(title)
             notification.setContentText(AndroidString(content))
+            notification.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
             
             # if group != None:
             #     notification.setGroup(group_id)
 
             if not self.notification_small_icon:
-                path = self.sideband.notification_icon
+                # path = self.sideband.notification_icon
+                path = self.sideband.notif_icon_black
                 bitmap = BitmapFactory.decodeFile(path)
                 self.notification_small_icon = Icon.createWithBitmap(bitmap)
 
             notification.setSmallIcon(self.notification_small_icon)
+            # notification.setLargeIcon(self.notification_small_icon)
 
             # large_icon_path = self.sideband.icon
             # bitmap_icon = BitmapFactory.decodeFile(large_icon_path)
@@ -116,7 +121,9 @@ class SidebandService():
                 notification_intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 notification_intent.setAction(Intent.ACTION_MAIN)
                 notification_intent.addCategory(Intent.CATEGORY_LAUNCHER)
-                self.notification_intent = PendingIntent.getActivity(self.app_context, 0, notification_intent, PendingIntent.FLAG_IMMUTABLE)
+                if context_id != None:
+                    notification_intent.putExtra(JString("intent_action"), JString(f"conversation.{context_id}"))
+                self.notification_intent = PendingIntent.getActivity(self.app_context, 0, notification_intent, PendingIntent.FLAG_MUTABLE)
 
             notification.setContentIntent(self.notification_intent)
             notification.setAutoCancel(True)

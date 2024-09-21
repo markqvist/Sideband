@@ -820,10 +820,26 @@ class SidebandApp(MDApp):
         self.check_bluetooth_permissions()
 
     def on_new_intent(self, intent):
-        RNS.log("Received intent", RNS.LOG_DEBUG)
         intent_action = intent.getAction()
         action = None
         data = None
+
+        RNS.log(f"Received intent: {intent_action}", RNS.LOG_DEBUG)
+
+        if intent_action == "android.intent.action.MAIN":
+            JString = autoclass('java.lang.String')
+            Intent = autoclass("android.content.Intent")
+            try:
+                data = intent.getExtras().getString("intent_action", "undefined")
+                if data.startswith("conversation."):
+                    conv_hexhash = bytes.fromhex(data.replace("conversation.", ""))
+                    def cb(dt):
+                        self.open_conversation(conv_hexhash)
+                    Clock.schedule_once(cb, 0.2)
+
+            except Exception as e:
+                RNS.log(f"Error while getting intent action data: {e}", RNS.LOG_ERROR)
+                RNS.trace_exception(e)
 
         if intent_action == "android.intent.action.WEB_SEARCH":
             SearchManager = autoclass('android.app.SearchManager')

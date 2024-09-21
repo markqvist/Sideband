@@ -198,6 +198,7 @@ class SidebandCore():
         self.icon_32           = self.asset_dir+"/icon_32.png"
         self.icon_macos        = self.asset_dir+"/icon_macos.png"
         self.notification_icon = self.asset_dir+"/notification_icon.png"
+        self.notif_icon_black  = self.asset_dir+"/notification_icon_black.png"
 
         os.environ["TELEMETER_GEOID_PATH"] = os.path.join(self.asset_dir, "geoids")
 

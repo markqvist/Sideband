@@ -142,13 +142,13 @@ public class PythonService extends Service implements Runnable {
             manager.createNotificationChannel(chan);
 
             Notification.Builder builder = new Notification.Builder(context, NOTIFICATION_CHANNEL_ID);
-            builder.setContentTitle("Sideband Active");
-            // builder.setContentText("Reticulum Active");
+            builder.setContentTitle("Reticulum available");
+            // builder.setContentText("Reticulum available");
             builder.setContentIntent(pIntent);
             // builder.setOngoing(true);
 
             String files_path = context.getFilesDir().getPath();
-            Bitmap icon_bitmap = BitmapFactory.decodeFile(files_path+"/app/assets/notification_icon.png");
+            Bitmap icon_bitmap = BitmapFactory.decodeFile(files_path+"/app/assets/notification_icon_black.png");
             Icon service_icon = Icon.createWithBitmap(icon_bitmap);
             // builder.setSmallIcon(context.getApplicationInfo().icon);
             builder.setSmallIcon(service_icon);
