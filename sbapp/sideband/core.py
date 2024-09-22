@@ -151,6 +151,7 @@ class SidebandCore():
         self.default_lxm_limit = 128*1000
         self.state_db = {}
         self.state_lock = Lock()
+        self.message_router = None
         self.rpc_connection = None
         self.service_stopped = False
         self.service_context = service_context
@@ -859,12 +860,13 @@ class SidebandCore():
             RNS.log("No active propagation node configured")
         else:
             try:
-                self.active_propagation_node = dest
-                self.config["last_lxmf_propagation_node"] = dest
-                self.message_router.set_outbound_propagation_node(dest)
-                
-                RNS.log("Active propagation node set to: "+RNS.prettyhexrep(dest))
-                self.__save_config()
+                if self.message_router:
+                    self.active_propagation_node = dest
+                    self.config["last_lxmf_propagation_node"] = dest
+                    self.message_router.set_outbound_propagation_node(dest)
+                    
+                    RNS.log("Active propagation node set to: "+RNS.prettyhexrep(dest))
+                    self.__save_config()
             except Exception as e:
                 RNS.log("Error while setting LXMF propagation node: "+str(e), RNS.LOG_ERROR)
 
