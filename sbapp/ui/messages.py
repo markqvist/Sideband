@@ -201,7 +201,7 @@ class Messages():
         else:
             if self.ids.message_text.input_type != "text":
                 self.ids.message_text.input_type = "text"
-                self.ids.message_text.keyboard_suggestions = False
+                self.ids.message_text.keyboard_suggestions = True
 
         for new_message in self.app.sideband.list_messages(self.context_dest, after=self.latest_message_timestamp,limit=limit):
             self.new_messages.append(new_message)
