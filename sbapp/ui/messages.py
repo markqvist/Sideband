@@ -194,6 +194,15 @@ class Messages():
             self.details_dialog.open()
 
     def update(self, limit=8):
+        if self.app.sideband.config["block_predictive_text"]:
+            if self.ids.message_text.input_type != "null":
+                self.ids.message_text.input_type = "null"
+                self.ids.message_text.keyboard_suggestions = False
+        else:
+            if self.ids.message_text.input_type != "text":
+                self.ids.message_text.input_type = "text"
+                self.ids.message_text.keyboard_suggestions = False
+
         for new_message in self.app.sideband.list_messages(self.context_dest, after=self.latest_message_timestamp,limit=limit):
             self.new_messages.append(new_message)
 
@@ -1229,6 +1238,7 @@ MDScreen:
 
             MDTextField:
                 id: message_text
+                input_type: "text"
                 keyboard_suggestions: True
                 multiline: True
                 hint_text: "Write message"

@@ -2751,6 +2751,10 @@ class SidebandApp(MDApp):
                 self.sideband.save_configuration()
                 self.sideband._reticulum_log_debug(self.sideband.config["debug"])
 
+            def save_block_predictive_text(sender=None, event=None):
+                self.sideband.config["block_predictive_text"] = self.settings_screen.ids.settings_block_predictive_text.active
+                self.sideband.save_configuration()
+
             def save_print_command(sender=None, event=None):
                 if not sender.focus:
                     in_cmd = self.settings_screen.ids.settings_print_command.text
@@ -2916,6 +2920,9 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.settings_debug.active = self.sideband.config["debug"]
             self.settings_screen.ids.settings_debug.bind(active=save_debug)
+
+            self.settings_screen.ids.settings_block_predictive_text.active = self.sideband.config["block_predictive_text"]
+            self.settings_screen.ids.settings_block_predictive_text.bind(active=save_block_predictive_text)
 
             self.settings_screen.ids.settings_lang_default.active = False
             self.settings_screen.ids.settings_lang_chinese.active = False

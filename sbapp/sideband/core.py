@@ -531,6 +531,8 @@ class SidebandCore():
             self.config["input_language"] = None
         if not "allow_predictive_text" in self.config:
             self.config["allow_predictive_text"] = False
+        if not "block_predictive_text" in self.config:
+            self.config["block_predictive_text"] = False
 
         if not "connect_transport" in self.config:
             self.config["connect_transport"] = False
