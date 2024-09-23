@@ -526,6 +526,8 @@ class SidebandCore():
             self.config["display_style_in_contact_list"] = False
         if not "lxm_limit_1mb" in self.config:
             self.config["lxm_limit_1mb"] = True
+        if not "hq_ptt" in self.config:
+            self.config["hq_ptt"] = False
 
         if not "input_language" in self.config:
             self.config["input_language"] = None

@@ -1811,7 +1811,11 @@ class SidebandApp(MDApp):
             return
 
         self.sideband.ui_started_recording()
-        self.audio_msg_mode = LXMF.AM_CODEC2_2400
+        if self.sideband.config["hq_ptt"]:
+            self.audio_msg_mode = LXMF.AM_OPUS_OGG
+        else:
+            self.audio_msg_mode = LXMF.AM_CODEC2_2400
+
         self.message_attach_action(attach_type="audio", nodialog=True)
         if self.rec_dialog == None:
             self.message_init_rec_dialog()
@@ -2755,6 +2759,10 @@ class SidebandApp(MDApp):
                 self.sideband.config["block_predictive_text"] = self.settings_screen.ids.settings_block_predictive_text.active
                 self.sideband.save_configuration()
 
+            def save_hq_ptt(sender=None, event=None):
+                self.sideband.config["hq_ptt"] = self.settings_screen.ids.settings_hq_ptt.active
+                self.sideband.save_configuration()
+
             def save_print_command(sender=None, event=None):
                 if not sender.focus:
                     in_cmd = self.settings_screen.ids.settings_print_command.text
@@ -2917,6 +2925,9 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.settings_lxm_limit_1mb.active = self.sideband.config["lxm_limit_1mb"]
             self.settings_screen.ids.settings_lxm_limit_1mb.bind(active=save_lxm_limit_1mb)
+
+            self.settings_screen.ids.settings_hq_ptt.active = self.sideband.config["hq_ptt"]
+            self.settings_screen.ids.settings_hq_ptt.bind(active=save_hq_ptt)
 
             self.settings_screen.ids.settings_debug.active = self.sideband.config["debug"]
             self.settings_screen.ids.settings_debug.bind(active=save_debug)
