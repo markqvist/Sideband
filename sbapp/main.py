@@ -1677,8 +1677,6 @@ class SidebandApp(MDApp):
                     ate_dialog.open()
         
         else:
-            self.sideband.config["map_storage_path"] = None
-            self.sideband.save_configuration()
             if RNS.vendor.platformutils.get_platform() == "android":
                 toast("No file access, check permissions!")
             else:
