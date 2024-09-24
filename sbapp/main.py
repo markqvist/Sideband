@@ -1,7 +1,7 @@
 __debug_build__ = False
 __disable_shaders__ = False
-__version__ = "0.9.8"
-__variant__ = "beta"
+__version__ = "1.0.0"
+__variant__ = ""
 
 import sys
 import argparse
