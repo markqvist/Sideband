@@ -30,7 +30,7 @@ def get_variant() -> str:
         version = re.findall(version_regex, version_file_data, re.M)[0]
         return version
     except IndexError:
-        raise ValueError(f"Unable to find version string in {version_file}.")
+        return None
 
 __version__ = get_version()
 __variant__ = get_variant()
@@ -67,7 +67,10 @@ package_data = {
     ]
 }
 
-print("Packaging Sideband "+__version__+" "+__variant__)
+variant_str = ""
+if __variant__:
+    variant_str = " "+__variant__
+print("Packaging Sideband "+__version__+variant_str)
 
 setuptools.setup(
     name="sbapp",
