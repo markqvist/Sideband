@@ -5601,7 +5601,7 @@ class SidebandApp(MDApp):
                 threading.Thread(target=lj, daemon=True).start()
 
             guide_text1 = """
-[size=18dp][b]Introduction[/b][/size][size=5dp]\n \n[/size]Welcome to [i]Sideband[/i], an LXMF client for Android, Linux and macOS. With Sideband, you can communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, or anything else Reticulum supports.
+[size=18dp][b]Introduction[/b][/size][size=5dp]\n \n[/size]Welcome to [i]Sideband[/i], an LXMF client for Android, Linux, macOS and Windows. With Sideband, you can communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, or anything else Reticulum supports.
 
 This short guide will give you a basic introduction to the concepts that underpin Sideband and LXMF (which is the protocol that Sideband uses to communicate). If you are not already familiar with LXMF and Reticulum, it is probably a good idea to read this guide, since Sideband is very different from other messaging apps."""
             guide_text2 = """
@@ -5610,25 +5610,28 @@ This short guide will give you a basic introduction to the concepts that underpi
 This also means that Sideband operates differently than what you might be used to. It does not need a connection to a server on the Internet to function, and you do not have an account anywhere."""
             
             guide_text3 = """
-[size=18dp][b]Operating Principles[/b][/size][size=5dp]\n \n[/size]When Sideband is started on your device for the first time, it randomly generates a set of cryptographic keys. These keys are then used to create an LXMF address for your use. Any other endpoint in [i]any[/i] Reticulum network will be able to send data to this address, as long as there is [i]some sort of physical connection[/i] between your device and the remote endpoint. You can also move around to other Reticulum networks with this address, even ones that were never connected to the network the address was created on, or that didn't exist when the address was created. The address is yours to keep and control for as long (or short) a time you need it, and you can always delete it and create a new one."""
+[size=18dp][b]Operating Principles[/b][/size][size=5dp]\n \n[/size]When Sideband is started on your device for the first time, it randomly generates a 512-bit Reticulum Identity Key. This cryptographic key is then used to create an LXMF address for your use, and in turn to secure any communication to your address. Any other endpoint in [i]any[/i] Reticulum network will be able to send data to your address, as long as there is [i]some sort of physical connection[/i] between your device and the remote endpoint. You can also move around to other Reticulum networks with this address, even ones that were never connected to the network the address was created on, or that didn't exist when the address was created.\n\nYour LXMF address is yours to keep and control for as long (or short) a time you need it, and you can always delete it and create a new one. You identity keys and corresponding addresses are never registered on or controlled by any external servers or services, and will never leave your device, unless you manually export them for backup."""
+            
+            guide_text10 = """
+[size=18dp][b]Getting Connected[/b][/size][size=5dp]\n \n[/size]If you already have Reticulum connectivity set up on the device you are running Sideband on, no further configuration should be necessary, and Sideband will simply use the available Reticulum connectivity.\n\nIf you are running Sideband on a computer, you can configure interfaces in the Reticulum configuration file ([b]~/.reticulum/config[/b] by default). If you are running Sideband on an Android device, you can configure various interface types in the [b]Connectivity[/b] section. By default, only an [i]AutoInterface[/i] is enabled, which will connect you automatically with any other local devices on the same WiFi and/or Ethernet networks. This may or may not include Reticulum Transport Nodes, which can route your traffic to wider networks.\n\nYou can enable any or all of the other available interface types to gain wider connectivity. For more specific information on interface types, configuration options, and how to effectively build your own Reticulum networks, see the [b]Reticulum Manual[b]."""
         
             guide_text4 = """
-[size=18dp][b]Becoming Reachable[/b][/size][size=5dp]\n \n[/size]To establish reachability for any Reticulum address on a network, an [i]announce[/i] must be sent. Sideband does not do this automatically by default, but can be configured to do so every time the program starts. To send an announce manually, press the [i]Announce[/i] button in the [i]Conversations[/i] section of the program. When you send an announce, you make your LXMF address reachable for real-time messaging to the entire network you are connected to. Even in very large networks, you can expect global reachability for your address to be established in under a minute.
+[size=18dp][b]Becoming Reachable[/b][/size][size=5dp]\n \n[/size]To establish reachability for any Reticulum destination on a network, an [i]announce[/i] must be sent. By default, Sideband will announce automatically when necessary, but if you want to stay silent, automatic announces can be disabled in [b]Preferences[/b].\n\nTo send an announce manually, press the [i]Announce[/i] button in the [i]Conversations[/i] section of the program. When you send an announce, you make your LXMF address reachable for real-time messaging to the entire network you are connected to. Even in very large networks, you can expect global reachability for your address to be established in under a minute.
 
 If you don't move to other places in the network, and keep connected through the same hubs or gateways, it is generally not necessary to send an announce more often than once every week. If you change your entry point to the network, you may want to send an announce, or you may just want to stay quiet."""
 
             guide_text5 = """
 [size=18dp][b]Relax & Disconnect[/b][/size][size=5dp]\n \n[/size]If you are not connected to the network, it is still possible for other people to message you, as long as one or more [i]Propagation Nodes[/i] exist on the network. These nodes pick up and hold encrypted in-transit messages for offline users. Messages are always encrypted before leaving the originators device, and nobody else than the intended recipient can decrypt messages in transit.
 
-The Propagation Nodes also distribute copies of messages between each other, such that even the failure of almost every node in the network will still allow users to sync their waiting messages. If all Propagation Nodes disappear or are destroyed, users can still communicate directly. Reticulum and LXMF will degrade gracefully all the way down to single users communicating directly via long-range data radios. Anyone can start up new propagation nodes and integrate them into existing networks without permission or coordination. Even a small and cheap device like a Rasperry Pi can handle messages for millions of users. LXMF networks are designed to be quite resilient, as long as there are people using them."""
+The Propagation Nodes also distribute copies of messages between each other, such that even the failure of almost every node in the network will still allow users to sync their waiting messages. If all Propagation Nodes disappear or are destroyed, users can still communicate directly.\n\nReticulum and LXMF will degrade gracefully all the way down to single users communicating directly via long-range data radios. Anyone can start up new propagation nodes and integrate them into existing networks without permission or coordination. Even a small and cheap device like a Rasperry Pi can handle messages for millions of users. LXMF networks are designed to be quite resilient, as long as there are people using them."""
 
             guide_text6 = """
-[size=18dp][b]Packets Find A Way[/b][/size][size=5dp]\n \n[/size]Connections in Reticulum networks can be wired or wireless, span many intermediary hops, run over fast links or ultra-low bandwidth radio, tunnel over the Invisible Internet (I2P), private networks, satellite connections, serial lines or anything else that Reticulum can carry data over. In most cases it will not be possible to know what path data takes in a Reticulum network, and no transmitted packets carries any identifying characteristics, apart from a destination address. There is no source addresses in Reticulum. As long as you do not reveal any connecting details between your person and your LXMF address, you can remain anonymous. Sending messages to others does not reveal [i]your[/i] address to anyone else than the intended recipient."""
+[size=18dp][b]Packets Find A Way[/b][/size][size=5dp]\n \n[/size]Connections in Reticulum networks can be wired or wireless, span many intermediary hops, run over fast links or ultra-low bandwidth radio, tunnel over the Invisible Internet (I2P), private networks, satellite connections, serial lines or anything else that Reticulum can carry data over.\n\nIn most cases it will not be possible to know what path packets takes in a Reticulum network, and apart from a destination hash, no transmitted packets carries any identifying characteristics. In Reticulum, [i]there is no source addresses[/i].\n\nAs long as you do not reveal any connecting details between your person and your LXMF address, you can remain anonymous. Sending messages to others does not reveal [i]your[/i] address to anyone else than the intended recipient."""
 
             guide_text7 = """
-[size=18dp][b]Be Yourself, Be Unknown, Stay Free[/b][/size][size=5dp]\n \n[/size]Even with the above characteristics in mind, you [b]must remember[/b] that LXMF and Reticulum is not a technology that can guarantee anonymising connections that are already de-anonymised! If you use Sideband to connect to TCP Reticulum hubs over the clear Internet, from a network that can be tied to your personal identity, an adversary may learn that you are generating LXMF traffic. If you want to avoid this, it is recommended to use I2P to connect to Reticulum hubs on the Internet. Or only connecting from within pure Reticulum networks, that take one or more hops to reach connections that span the Internet. This is a complex topic, with many more nuances than can be covered here. You are encouraged to ask on the various Reticulum discussion forums if you are in doubt.
+[size=18dp][b]Be Yourself, Be Unknown, Stay Free[/b][/size][size=5dp]\n \n[/size]Even with the above characteristics in mind, you [b]must remember[/b] that LXMF and Reticulum is not a technology that can guarantee anonymising connections that are already de-anonymised! If you use Sideband to connect to TCP Reticulum hubs over the clear Internet, from a network that can be tied to your personal identity, an adversary may learn that you are generating LXMF traffic.\n\nIf you want to avoid this, it is recommended to use I2P to connect to Reticulum hubs on the Internet. Or only connecting from within pure Reticulum networks, that take one or more hops to reach connections that span the Internet. This is a complex topic, with many more nuances than can be covered here. You are encouraged to ask on the various Reticulum discussion forums if you are in doubt.
 
-If you use Reticulum and LXMF on hardware that does not carry any identifiers tied to you, it is possible to establish a completely free and anonymous communication system with Reticulum and LXMF clients."""
+If you use Reticulum and LXMF on hardware that does not carry any identifiers tied to you, it is possible to establish a completely free and identification-less communication system with Reticulum and LXMF clients."""
         
             guide_text8 = """
 [size=18dp][b]Keyboard Shortcuts[/b][/size][size=5dp]\n \n[/size]To ease navigation and operation of the program, Sideband has keyboard shortcuts mapped to the most common actions. A reference is included below.
@@ -5647,9 +5650,10 @@ If you use Reticulum and LXMF on hardware that does not carry any identifiers ti
  - [b]Ctrl-Shift-F[/b] add file
  - [b]Ctrl-D[/b] or [b]Ctrl-S[/b] Send message
 
- [b]Voice Recording[/b]
+ [b]Voice & PTT[/b]
  - [b]Space[/b] Start/stop recording
  - [b]Enter[/b] Save recording to message
+ - With PTT enabled, hold [b]Space[/b] to talk
 
  [b]Navigation[/b]
  - [b]Ctrl-[i]n[/i][/b] Go to conversation number [i]n[/i]
@@ -5671,7 +5675,7 @@ If you use Reticulum and LXMF on hardware that does not carry any identifiers ti
  - Hold [b]Alt[/b] to navigate more finely"""
 
             guide_text9 = """
-[size=18dp][b]Please Support This Project[/b][/size][size=5dp]\n \n[/size]It took me more than seven years to design and built the entire ecosystem of software and hardware that makes this possible. If this project is valuable to you, please go to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project with a donation. Every donation directly makes the entire Reticulum project possible.
+[size=18dp][b]Please Support This Project[/b][/size][size=5dp]\n \n[/size]It took me more than eight years to design and build the entire ecosystem of software and hardware that makes this possible. If this project is valuable to you, please go to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project with a donation. Every donation directly makes the entire Reticulum project possible.
 
 Thank you very much for using Free Communications Systems.
 """
@@ -5679,6 +5683,7 @@ Thank you very much for using Free Communications Systems.
             info2 = guide_text8
             info3 = guide_text2
             info4 = guide_text3
+            info10 = guide_text10
             info5 = guide_text4
             info6 = guide_text5
             info7 = guide_text6
@@ -5695,6 +5700,7 @@ Thank you very much for using Free Communications Systems.
                 info7 = "[color=#"+dark_theme_text_color+"]"+info7+"[/color]"
                 info8 = "[color=#"+dark_theme_text_color+"]"+info8+"[/color]"
                 info9 = "[color=#"+dark_theme_text_color+"]"+info9+"[/color]"
+                info10 = "[color=#"+dark_theme_text_color+"]"+info10+"[/color]"
             self.guide_screen.ids.guide_info1.text = info1
             self.guide_screen.ids.guide_info2.text = info2
             self.guide_screen.ids.guide_info3.text = info3
@@ -5704,6 +5710,7 @@ Thank you very much for using Free Communications Systems.
             self.guide_screen.ids.guide_info7.text = info7
             self.guide_screen.ids.guide_info8.text = info8
             self.guide_screen.ids.guide_info9.text = info9
+            self.guide_screen.ids.guide_info10.text = info10
             self.guide_screen.ids.guide_info9.bind(on_ref_press=link_exec)
             self.guide_screen.ids.guide_scrollview.effect_cls = ScrollEffect
 

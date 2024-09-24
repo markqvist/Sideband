@@ -808,6 +808,14 @@ MDScreen:
                     height: self.texture_size[1]
 
                 MDLabel:
+                    id: guide_info10
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
                     id: guide_info5
                     markup: True
                     text: ""
