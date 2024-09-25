@@ -759,6 +759,7 @@ class SidebandCore():
                 self.update_ignore_invalid_stamps()
         except Exception as e:
             RNS.log("Error while reloading configuration: "+str(e), RNS.LOG_ERROR)
+            RNS.trace_exception(e)
 
     def __save_config(self):
         RNS.log("Saving Sideband configuration...", RNS.LOG_DEBUG)
@@ -1203,7 +1204,8 @@ class SidebandCore():
             self.message_router.handle_outbound(message)
         else:
             if message.state == LXMF.LXMessage.DELIVERED:
-                self.setpersistent(f"telemetry.{RNS.hexrep(message.destination_hash, delimit=False)}.last_request_success_timebase", message.request_timebase)
+                delivery_timebase = int(time.time())
+                self.setpersistent(f"telemetry.{RNS.hexrep(message.destination_hash, delimit=False)}.last_request_success_timebase", delivery_timebase)
                 self.setstate(f"telemetry.{RNS.hexrep(message.destination_hash, delimit=False)}.request_sending", False)
                 if message.destination_hash == self.config["telemetry_collector"]:
                     self.pending_telemetry_request = False
