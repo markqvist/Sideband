@@ -370,7 +370,13 @@ class SidebandService():
                 else:
                     rs = "Interface Down"
 
-                stat += "[b]RNode[/b]\n{rs}\n\n".format(rs=rs)
+                bs = ""
+                bat_state = self.sideband.interface_rnode.get_battery_state_string()
+                bat_percent = self.sideband.interface_rnode.get_battery_percent()
+                if bat_state != "unknown":
+                    bs = f"\nBattery at {bat_percent}%"
+
+                stat += f"[b]RNode[/b]\n{rs}{bs}\n\n"
 
             if self.sideband.interface_modem != None:
                 if self.sideband.interface_modem.online:
