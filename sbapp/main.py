@@ -933,6 +933,26 @@ class SidebandApp(MDApp):
             else:
                 self.service_last_available = time.time()
 
+            if RNS.vendor.platformutils.is_android():
+                rnode_errors = self.sideband.getpersistent("runtime.errors.rnode")
+                if rnode_errors != None:
+                    description = rnode_errors["description"]
+                    self.sideband.setpersistent("runtime.errors.rnode", None)
+                    yes_button = MDRectangleFlatButton(
+                        text="OK",
+                        font_size=dp(18),
+                    )
+                    self.hw_error_dialog = MDDialog(
+                        title="Hardware Error",
+                        text="While connecting an RNode, Reticulum reported the following error:\n\n[i]"+str(description)+"[/i]",
+                        buttons=[ yes_button ],
+                        # elevation=0,
+                    )
+                    def dl_yes(s):
+                        self.hw_error_dialog.dismiss()
+                    yes_button.bind(on_release=dl_yes)
+                    self.hw_error_dialog.open()
+
 
         if self.root.ids.screen_manager.current == "messages_screen":
             self.messages_view.update()

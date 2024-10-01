@@ -89,13 +89,13 @@ MDNavigationLayout:
                                 on_release: root.ids.screen_manager.app.announces_action(self)
 
                                                        
-                        OneLineIconListItem:
-                            text: "Local Broadcasts"
-                            on_release: root.ids.screen_manager.app.broadcasts_action(self)
+                        # OneLineIconListItem:
+                        #     text: "Local Broadcasts"
+                        #     on_release: root.ids.screen_manager.app.broadcasts_action(self)
                         
-                            IconLeftWidget:
-                                icon: "radio-tower"
-                                on_release: root.ids.screen_manager.app.broadcasts_action(self)
+                        #     IconLeftWidget:
+                        #         icon: "radio-tower"
+                        #         on_release: root.ids.screen_manager.app.broadcasts_action(self)
 
                                                        
                         OneLineIconListItem:

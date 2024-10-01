@@ -221,6 +221,7 @@ class SidebandCore():
         self.last_lxmf_announce = 0
         self.last_if_change_announce = 0
         self.interface_local_adding = False
+        self.interface_rnode_adding = False
         self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)+SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)
 
         try:
@@ -3109,6 +3110,25 @@ class SidebandCore():
                                         self.lxmf_announce(attached_interface=self.interface_local)
                                 threading.Thread(target=job, daemon=True).start()
 
+                    if hasattr(self, "interface_rnode") and self.interface_rnode != None:
+                        if len(self.interface_rnode.hw_errors) > 0:
+                            self.setpersistent("runtime.errors.rnode", self.interface_rnode.hw_errors[0])
+                            self.interface_rnode.hw_errors = []
+
+                            # if not self.interface_rnode_adding:
+                            #     RNS.log("Hardware error on RNodeInterface, scheduling re-init", RNS.LOG_DEBUG)
+                            #     if self.interface_rnode in RNS.Transport.interfaces:
+                            #         RNS.Transport.interfaces.remove(self.interface_rnode)
+                            #     del self.interface_rnode
+                            #     self.interface_rnode = None
+                            #     self.interface_rnode_adding = True
+                            #     def job():
+                            #         self.__add_rnodeinterface(delay=5)
+                            #         if self.config["start_announce"] == True:
+                            #             time.sleep(12)
+                            #             self.lxmf_announce(attached_interface=self.interface_rnode)
+                            #     threading.Thread(target=job, daemon=True).start()
+
                     if (now - last_multicast_lock_check > 120):
                         RNS.log("Checking multicast and wake locks", RNS.LOG_DEBUG)
                         self.owner_service.take_locks()
@@ -3427,6 +3447,146 @@ class SidebandCore():
             self.interface_local = None
             self.interface_local_adding = False
 
+    def __add_rnodeinterface(self, delay=None):
+        self.interface_rnode_adding = True
+        if delay:
+            time.sleep(delay)
+
+        try:
+            RNS.log("Adding RNode Interface...", RNS.LOG_DEBUG)
+            target_device = None
+            if len(self.owner_app.usb_devices) > 0:
+                # TODO: Add more intelligent selection here
+                target_device = self.owner_app.usb_devices[0]
+
+            # if target_device or self.config["hw_rnode_bluetooth"]:
+            if target_device != None:
+                target_port = target_device["port"]
+            else:
+                target_port = None
+        
+            bt_device_name = None
+            rnode_allow_bluetooth = False
+            rnode_allow_ble = False
+            if self.getpersistent("permissions.bluetooth"):
+                if self.config["hw_rnode_bluetooth"]:
+                    RNS.log("Allowing RNode bluetooth", RNS.LOG_DEBUG)
+                    rnode_allow_bluetooth = True
+                    if self.config["hw_rnode_bt_device"] != None:
+                        bt_device_name = self.config["hw_rnode_bt_device"]
+
+                else:
+                    RNS.log("Disallowing RNode bluetooth since config is disabled", RNS.LOG_DEBUG)
+                    rnode_allow_bluetooth = False
+
+                if self.config["hw_rnode_ble"] and self.getpersistent("permissions.bluetooth"):
+                    RNS.log("Allowing RNode BLE", RNS.LOG_DEBUG)
+                    rnode_allow_ble = True
+                else:
+                    RNS.log("Disallowing RNode BLE", RNS.LOG_DEBUG)
+                    rnode_allow_ble = False
+
+            else:
+                RNS.log("Disallowing RNode bluetooth due to missing permission", RNS.LOG_DEBUG)
+                rnode_allow_bluetooth = False
+
+            if self.config["connect_rnode_ifac_netname"] == "":
+                ifac_netname = None
+            else:
+                ifac_netname = self.config["connect_rnode_ifac_netname"]
+
+            if self.config["connect_rnode_ifac_passphrase"] == "":
+                ifac_netkey = None
+            else:
+                ifac_netkey = self.config["connect_rnode_ifac_passphrase"]
+
+            if self.config["hw_rnode_atl_short"] == "":
+                atl_short = None
+            else:
+                atl_short = self.config["hw_rnode_atl_short"]
+
+            if self.config["hw_rnode_atl_long"] == "":
+                atl_long = None
+            else:
+                atl_long = self.config["hw_rnode_atl_long"]
+
+            if rnode_allow_ble:
+                rnodeinterface = RNS.Interfaces.Android.RNodeInterface.RNodeInterface(
+                        RNS.Transport,
+                        "RNodeInterface",
+                        None,
+                        frequency = self.config["hw_rnode_frequency"],
+                        bandwidth = self.config["hw_rnode_bandwidth"],
+                        txpower = self.config["hw_rnode_tx_power"],
+                        sf = self.config["hw_rnode_spreading_factor"],
+                        cr = self.config["hw_rnode_coding_rate"],
+                        flow_control = None,
+                        id_interval = self.config["hw_rnode_beaconinterval"],
+                        id_callsign = self.config["hw_rnode_beacondata"],
+                        allow_bluetooth = False,
+                        st_alock = atl_short,
+                        lt_alock = atl_long,
+                        force_ble = True,
+                        ble_name = bt_device_name,
+                    )
+
+            else:
+                rnodeinterface = RNS.Interfaces.Android.RNodeInterface.RNodeInterface(
+                        RNS.Transport,
+                        "RNodeInterface",
+                        target_port,
+                        frequency = self.config["hw_rnode_frequency"],
+                        bandwidth = self.config["hw_rnode_bandwidth"],
+                        txpower = self.config["hw_rnode_tx_power"],
+                        sf = self.config["hw_rnode_spreading_factor"],
+                        cr = self.config["hw_rnode_coding_rate"],
+                        flow_control = None,
+                        id_interval = self.config["hw_rnode_beaconinterval"],
+                        id_callsign = self.config["hw_rnode_beacondata"],
+                        allow_bluetooth = rnode_allow_bluetooth,
+                        target_device_name = bt_device_name,
+                        st_alock = atl_short,
+                        lt_alock = atl_long,
+                    )
+
+            rnodeinterface.OUT = True
+
+            if RNS.Reticulum.transport_enabled():
+                if_mode = Interface.Interface.MODE_FULL
+                if self.config["connect_ifmode_rnode"] == "gateway":
+                    if_mode = Interface.Interface.MODE_GATEWAY
+                elif self.config["connect_ifmode_rnode"] == "access point":
+                    if_mode = Interface.Interface.MODE_ACCESS_POINT
+                elif self.config["connect_ifmode_rnode"] == "roaming":
+                    if_mode = Interface.Interface.MODE_ROAMING
+                elif self.config["connect_ifmode_rnode"] == "boundary":
+                    if_mode = Interface.Interface.MODE_BOUNDARY
+            else:
+                if_mode = None
+                
+            self.reticulum._add_interface(rnodeinterface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
+            self.interface_rnode = rnodeinterface
+            self.interface_rnode_adding = False
+
+            if rnodeinterface != None:
+                if len(rnodeinterface.hw_errors) > 0:
+                    self.setpersistent("startup.errors.rnode", rnodeinterface.hw_errors[0])
+
+            if self.config["hw_rnode_enable_framebuffer"] == True:
+                if self.interface_rnode.online:
+                    self.interface_rnode.display_image(sideband_fb_data)
+                    self.interface_rnode.enable_external_framebuffer()
+                else:
+                    self.interface_rnode.last_imagedata = sideband_fb_data
+            else:
+                if self.interface_rnode.online:
+                    self.interface_rnode.disable_external_framebuffer()
+
+        except Exception as e:
+            RNS.log("Error while adding RNode Interface. The contained exception was: "+str(e))
+            self.interface_rnode = None
+            self.interface_rnode_adding = False
+
     def _reticulum_log_debug(self, debug=False):
         self.log_verbose = debug
         if self.log_verbose:
@@ -3587,138 +3747,7 @@ class SidebandCore():
 
                 if self.config["connect_rnode"]:
                     self.setstate("init.loadingstate", "Starting RNode")
-                    try:
-                        RNS.log("Adding RNode Interface...", RNS.LOG_DEBUG)
-                        target_device = None
-                        if len(self.owner_app.usb_devices) > 0:
-                            # TODO: Add more intelligent selection here
-                            target_device = self.owner_app.usb_devices[0]
-
-                        # if target_device or self.config["hw_rnode_bluetooth"]:
-                        if target_device != None:
-                            target_port = target_device["port"]
-                        else:
-                            target_port = None
-                    
-                        bt_device_name = None
-                        rnode_allow_bluetooth = False
-                        rnode_allow_ble = False
-                        if self.getpersistent("permissions.bluetooth"):
-                            if self.config["hw_rnode_bluetooth"]:
-                                RNS.log("Allowing RNode bluetooth", RNS.LOG_DEBUG)
-                                rnode_allow_bluetooth = True
-                                if self.config["hw_rnode_bt_device"] != None:
-                                    bt_device_name = self.config["hw_rnode_bt_device"]
-
-                            else:
-                                RNS.log("Disallowing RNode bluetooth since config is disabled", RNS.LOG_DEBUG)
-                                rnode_allow_bluetooth = False
-
-                            if self.config["hw_rnode_ble"] and self.getpersistent("permissions.bluetooth"):
-                                RNS.log("Allowing RNode BLE", RNS.LOG_DEBUG)
-                                rnode_allow_ble = True
-                            else:
-                                RNS.log("Disallowing RNode BLE", RNS.LOG_DEBUG)
-                                rnode_allow_ble = False
-
-                        else:
-                            RNS.log("Disallowing RNode bluetooth due to missing permission", RNS.LOG_DEBUG)
-                            rnode_allow_bluetooth = False
-
-                        if self.config["connect_rnode_ifac_netname"] == "":
-                            ifac_netname = None
-                        else:
-                            ifac_netname = self.config["connect_rnode_ifac_netname"]
-
-                        if self.config["connect_rnode_ifac_passphrase"] == "":
-                            ifac_netkey = None
-                        else:
-                            ifac_netkey = self.config["connect_rnode_ifac_passphrase"]
-
-                        if self.config["hw_rnode_atl_short"] == "":
-                            atl_short = None
-                        else:
-                            atl_short = self.config["hw_rnode_atl_short"]
-
-                        if self.config["hw_rnode_atl_long"] == "":
-                            atl_long = None
-                        else:
-                            atl_long = self.config["hw_rnode_atl_long"]
-
-                        if rnode_allow_ble:
-                            rnodeinterface = RNS.Interfaces.Android.RNodeInterface.RNodeInterface(
-                                    RNS.Transport,
-                                    "RNodeInterface",
-                                    None,
-                                    frequency = self.config["hw_rnode_frequency"],
-                                    bandwidth = self.config["hw_rnode_bandwidth"],
-                                    txpower = self.config["hw_rnode_tx_power"],
-                                    sf = self.config["hw_rnode_spreading_factor"],
-                                    cr = self.config["hw_rnode_coding_rate"],
-                                    flow_control = None,
-                                    id_interval = self.config["hw_rnode_beaconinterval"],
-                                    id_callsign = self.config["hw_rnode_beacondata"],
-                                    allow_bluetooth = False,
-                                    st_alock = atl_short,
-                                    lt_alock = atl_long,
-                                    force_ble = True,
-                                    ble_name = bt_device_name,
-                                )
-
-                        else:
-                            rnodeinterface = RNS.Interfaces.Android.RNodeInterface.RNodeInterface(
-                                    RNS.Transport,
-                                    "RNodeInterface",
-                                    target_port,
-                                    frequency = self.config["hw_rnode_frequency"],
-                                    bandwidth = self.config["hw_rnode_bandwidth"],
-                                    txpower = self.config["hw_rnode_tx_power"],
-                                    sf = self.config["hw_rnode_spreading_factor"],
-                                    cr = self.config["hw_rnode_coding_rate"],
-                                    flow_control = None,
-                                    id_interval = self.config["hw_rnode_beaconinterval"],
-                                    id_callsign = self.config["hw_rnode_beacondata"],
-                                    allow_bluetooth = rnode_allow_bluetooth,
-                                    target_device_name = bt_device_name,
-                                    st_alock = atl_short,
-                                    lt_alock = atl_long,
-                                )
-
-                        rnodeinterface.OUT = True
-
-                        if RNS.Reticulum.transport_enabled():
-                            if_mode = Interface.Interface.MODE_FULL
-                            if self.config["connect_ifmode_rnode"] == "gateway":
-                                if_mode = Interface.Interface.MODE_GATEWAY
-                            elif self.config["connect_ifmode_rnode"] == "access point":
-                                if_mode = Interface.Interface.MODE_ACCESS_POINT
-                            elif self.config["connect_ifmode_rnode"] == "roaming":
-                                if_mode = Interface.Interface.MODE_ROAMING
-                            elif self.config["connect_ifmode_rnode"] == "boundary":
-                                if_mode = Interface.Interface.MODE_BOUNDARY
-                        else:
-                            if_mode = None
-                            
-                        self.reticulum._add_interface(rnodeinterface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
-                        self.interface_rnode = rnodeinterface
-
-                        if rnodeinterface != None:
-                            if len(rnodeinterface.hw_errors) > 0:
-                                self.setpersistent("startup.errors.rnode", rnodeinterface.hw_errors[0])
-
-                        if self.config["hw_rnode_enable_framebuffer"] == True:
-                            if self.interface_rnode.online:
-                                self.interface_rnode.display_image(sideband_fb_data)
-                                self.interface_rnode.enable_external_framebuffer()
-                            else:
-                                self.interface_rnode.last_imagedata = sideband_fb_data
-                        else:
-                            if self.interface_rnode.online:
-                                self.interface_rnode.disable_external_framebuffer()
-
-                    except Exception as e:
-                        RNS.log("Error while adding RNode Interface. The contained exception was: "+str(e))
-                        self.interface_rnode = None
+                    self.__add_rnodeinterface()
 
                 elif self.config["connect_serial"]:
                     self.setstate("init.loadingstate", "Starting Serial Interface")
