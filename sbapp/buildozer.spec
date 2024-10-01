@@ -10,9 +10,9 @@ source.exclude_patterns = app_storage/*,venv/*,Makefile,./Makefil*,requirements,
 
 version.regex = __version__ = ['"](.*)['"]
 version.filename = %(source.dir)s/main.py
-android.numeric_version = 20240925
+android.numeric_version = 20241001
 
-requirements = kivy==2.3.0,libbz2,pillow==10.2.0,qrcode==7.3.1,usb4a,usbserial4a,libwebp,libogg,libopus,opusfile,numpy,cryptography,ffpyplayer,codec2,pycodec2,sh,pynacl
+requirements = kivy==2.3.0,libbz2,pillow==10.2.0,qrcode==7.3.1,usb4a,usbserial4a,able_recipe,libwebp,libogg,libopus,opusfile,numpy,cryptography,ffpyplayer,codec2,pycodec2,sh,pynacl,typing-extensions
 
 android.gradle_dependencies =  com.android.support:support-compat:28.0.0
 #android.enable_androidx = True
@@ -29,7 +29,7 @@ android.presplash_color = #00000000
 orientation = portrait
 fullscreen = 0
 
-android.permissions = INTERNET,POST_NOTIFICATIONS,WAKE_LOCK,FOREGROUND_SERVICE,CHANGE_WIFI_MULTICAST_STATE,BLUETOOTH_CONNECT,ACCESS_NETWORK_STATE,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,MANAGE_EXTERNAL_STORAGE,ACCESS_BACKGROUND_LOCATION,RECORD_AUDIO,REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+android.permissions = INTERNET,POST_NOTIFICATIONS,WAKE_LOCK,FOREGROUND_SERVICE,CHANGE_WIFI_MULTICAST_STATE,BLUETOOTH_SCAN,BLUETOOTH_ADVERTISE,BLUETOOTH_CONNECT,ACCESS_NETWORK_STATE,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,MANAGE_EXTERNAL_STORAGE,ACCESS_BACKGROUND_LOCATION,RECORD_AUDIO,REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,FOREGROUND_SERVICE_CONNECTED_DEVICE
 
 android.api = 31
 android.minapi = 24
