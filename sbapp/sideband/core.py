@@ -433,6 +433,7 @@ class SidebandCore():
         self.config["hw_rnode_beacondata"] = None
         self.config["hw_rnode_bt_device"] = None
         self.config["hw_rnode_bluetooth"] = False
+        self.config["hw_rnode_ble"] = False
         self.config["hw_modem_baudrate"] = 57600
         self.config["hw_modem_databits"] = 8
         self.config["hw_modem_stopbits"] = 1
@@ -590,6 +591,8 @@ class SidebandCore():
             self.config["hw_rnode_beacondata"] = None
         if not "hw_rnode_bluetooth" in self.config:
             self.config["hw_rnode_bluetooth"] = False
+        if not "hw_rnode_ble" in self.config:
+            self.config["hw_rnode_ble"] = False
         if not "hw_rnode_enable_framebuffer" in self.config:
             self.config["hw_rnode_enable_framebuffer"] = False
         if not "hw_rnode_bt_device" in self.config:
@@ -3620,6 +3623,7 @@ class SidebandCore():
                     
                         bt_device_name = None
                         rnode_allow_bluetooth = False
+                        rnode_allow_ble = False
                         if self.getpersistent("permissions.bluetooth"):
                             if self.config["hw_rnode_bluetooth"]:
                                 RNS.log("Allowing RNode bluetooth", RNS.LOG_DEBUG)
@@ -3630,6 +3634,14 @@ class SidebandCore():
                             else:
                                 RNS.log("Disallowing RNode bluetooth since config is disabled", RNS.LOG_DEBUG)
                                 rnode_allow_bluetooth = False
+
+                            if self.config["hw_rnode_ble"] and self.getpersistent("permissions.ble"):
+                                RNS.log("Allowing RNode BLE", RNS.LOG_DEBUG)
+                                # rnode_allow_ble = True
+                            else:
+                                RNS.log("Disallowing RNode BLE due to missing permission", RNS.LOG_DEBUG)
+                                # rnode_allow_ble = False
+
                         else:
                             RNS.log("Disallowing RNode bluetooth due to missing permission", RNS.LOG_DEBUG)
                             rnode_allow_bluetooth = False
@@ -3654,23 +3666,44 @@ class SidebandCore():
                         else:
                             atl_long = self.config["hw_rnode_atl_long"]
 
-                        rnodeinterface = RNS.Interfaces.Android.RNodeInterface.RNodeInterface(
-                                RNS.Transport,
-                                "RNodeInterface",
-                                target_port,
-                                frequency = self.config["hw_rnode_frequency"],
-                                bandwidth = self.config["hw_rnode_bandwidth"],
-                                txpower = self.config["hw_rnode_tx_power"],
-                                sf = self.config["hw_rnode_spreading_factor"],
-                                cr = self.config["hw_rnode_coding_rate"],
-                                flow_control = None,
-                                id_interval = self.config["hw_rnode_beaconinterval"],
-                                id_callsign = self.config["hw_rnode_beacondata"],
-                                allow_bluetooth = rnode_allow_bluetooth,
-                                target_device_name = bt_device_name,
-                                st_alock = atl_short,
-                                lt_alock = atl_long,
-                            )
+                        if rnode_allow_ble:
+                            rnodeinterface = RNS.Interfaces.Android.RNodeInterface.RNodeInterface(
+                                    RNS.Transport,
+                                    "RNodeInterface",
+                                    None,
+                                    frequency = self.config["hw_rnode_frequency"],
+                                    bandwidth = self.config["hw_rnode_bandwidth"],
+                                    txpower = self.config["hw_rnode_tx_power"],
+                                    sf = self.config["hw_rnode_spreading_factor"],
+                                    cr = self.config["hw_rnode_coding_rate"],
+                                    flow_control = None,
+                                    id_interval = self.config["hw_rnode_beaconinterval"],
+                                    id_callsign = self.config["hw_rnode_beacondata"],
+                                    allow_bluetooth = False,
+                                    st_alock = atl_short,
+                                    lt_alock = atl_long,
+                                    force_ble = True,
+                                    ble_name = bt_device_name,
+                                )
+
+                        else:
+                            rnodeinterface = RNS.Interfaces.Android.RNodeInterface.RNodeInterface(
+                                    RNS.Transport,
+                                    "RNodeInterface",
+                                    target_port,
+                                    frequency = self.config["hw_rnode_frequency"],
+                                    bandwidth = self.config["hw_rnode_bandwidth"],
+                                    txpower = self.config["hw_rnode_tx_power"],
+                                    sf = self.config["hw_rnode_spreading_factor"],
+                                    cr = self.config["hw_rnode_coding_rate"],
+                                    flow_control = None,
+                                    id_interval = self.config["hw_rnode_beaconinterval"],
+                                    id_callsign = self.config["hw_rnode_beacondata"],
+                                    allow_bluetooth = rnode_allow_bluetooth,
+                                    target_device_name = bt_device_name,
+                                    st_alock = atl_short,
+                                    lt_alock = atl_long,
+                                )
 
                         rnodeinterface.OUT = True
 
