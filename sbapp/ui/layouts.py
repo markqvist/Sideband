@@ -2391,6 +2391,21 @@ MDScreen:
                         pos_hint: {"center_y": 0.3}
                         active: False
 
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Device requires BLE"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: hardware_rnode_ble
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
                 MDLabel:
                     id: hardware_rnode_info
                     markup: True

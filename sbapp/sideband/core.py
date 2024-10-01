@@ -1580,8 +1580,9 @@ class SidebandCore():
                 return response
 
         except Exception as e:
-            RNS.log(f"An error occurred while executing the service RPC request: {request}", RNS.LOG_ERROR)
-            RNS.log(f"The contained exception was: {e}", RNS.LOG_ERROR)
+            if not type(e) == ConnectionRefusedError:
+                RNS.log(f"An error occurred while executing the service RPC request: {request}", RNS.LOG_ERROR)
+                RNS.log(f"The contained exception was: {e}", RNS.LOG_ERROR)
 
     def getstate(self, prop, allow_cache=False):
         with self.state_lock:
@@ -3613,12 +3614,12 @@ class SidebandCore():
                                 RNS.log("Disallowing RNode bluetooth since config is disabled", RNS.LOG_DEBUG)
                                 rnode_allow_bluetooth = False
 
-                            if self.config["hw_rnode_ble"] and self.getpersistent("permissions.ble"):
+                            if self.config["hw_rnode_ble"] and self.getpersistent("permissions.bluetooth"):
                                 RNS.log("Allowing RNode BLE", RNS.LOG_DEBUG)
-                                # rnode_allow_ble = True
+                                rnode_allow_ble = True
                             else:
-                                RNS.log("Disallowing RNode BLE due to missing permission", RNS.LOG_DEBUG)
-                                # rnode_allow_ble = False
+                                RNS.log("Disallowing RNode BLE", RNS.LOG_DEBUG)
+                                rnode_allow_ble = False
 
                         else:
                             RNS.log("Disallowing RNode bluetooth due to missing permission", RNS.LOG_DEBUG)

@@ -1,6 +1,6 @@
 __debug_build__ = False
 __disable_shaders__ = False
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 __variant__ = ""
 
 import sys
@@ -722,7 +722,18 @@ class SidebandApp(MDApp):
 
             if check_permission(bt_permission_name):
                 RNS.log("Have bluetooth connect permissions", RNS.LOG_DEBUG)
-                self.sideband.setpersistent("permissions.bluetooth", True)
+
+                if android_api_version > 30:
+                    if check_permission("android.permission.BLUETOOTH_SCAN"):
+                        RNS.log("Have bluetooth scan permissions", RNS.LOG_DEBUG)
+                        self.sideband.setpersistent("permissions.bluetooth", True)
+
+                    else:
+                        RNS.log("Do not have bluetooth scan permissions")
+                        self.sideband.setpersistent("permissions.bluetooth", False)
+
+                else:
+                    self.sideband.setpersistent("permissions.bluetooth", True)
             else:
                 RNS.log("Do not have bluetooth connect permissions")
                 self.sideband.setpersistent("permissions.bluetooth", False)
@@ -813,9 +824,9 @@ class SidebandApp(MDApp):
 
     def request_bluetooth_permissions(self):
         if RNS.vendor.platformutils.get_platform() == "android":
-            if not check_permission("android.permission.BLUETOOTH_CONNECT"):
-                RNS.log("Requesting bluetooth permission", RNS.LOG_DEBUG)
-                request_permissions(["android.permission.BLUETOOTH_CONNECT"])
+            if not check_permission("android.permission.BLUETOOTH_CONNECT") or not check_permission("android.permission.BLUETOOTH_SCAN"):
+                RNS.log("Requesting Bluetooth permissions", RNS.LOG_DEBUG)
+                request_permissions(["android.permission.BLUETOOTH_CONNECT", "android.permission.BLUETOOTH_SCAN"])
 
         self.check_bluetooth_permissions()
 
@@ -3710,6 +3721,15 @@ class SidebandApp(MDApp):
 
         self.sideband.save_configuration()
    
+    def hardware_rnode_ble_toggle_action(self, sender=None, event=None):
+        if sender.active:
+            self.sideband.config["hw_rnode_ble"] = True
+            self.request_bluetooth_permissions()
+        else:
+            self.sideband.config["hw_rnode_ble"] = False
+
+        self.sideband.save_configuration()
+   
     def hardware_rnode_framebuffer_toggle_action(self, sender=None, event=None):
         if sender.active:
             self.sideband.config["hw_rnode_enable_framebuffer"] = True
@@ -3777,6 +3797,7 @@ class SidebandApp(MDApp):
                 t_atl = ""
 
             self.hardware_rnode_screen.ids.hardware_rnode_bluetooth.active = self.sideband.config["hw_rnode_bluetooth"]
+            self.hardware_rnode_screen.ids.hardware_rnode_ble.active = self.sideband.config["hw_rnode_ble"]
             self.hardware_rnode_screen.ids.hardware_rnode_framebuffer.active = self.sideband.config["hw_rnode_enable_framebuffer"]
             self.hardware_rnode_screen.ids.hardware_rnode_frequency.text = t_freq
             self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.text = t_bw
@@ -3806,6 +3827,7 @@ class SidebandApp(MDApp):
             self.hardware_rnode_screen.ids.hardware_rnode_atl_short.bind(on_text_validate=save_connectivity)
             self.hardware_rnode_screen.ids.hardware_rnode_atl_long.bind(on_text_validate=save_connectivity)
             self.hardware_rnode_screen.ids.hardware_rnode_bluetooth.bind(active=self.hardware_rnode_bt_toggle_action)
+            self.hardware_rnode_screen.ids.hardware_rnode_ble.bind(active=self.hardware_rnode_ble_toggle_action)
             self.hardware_rnode_screen.ids.hardware_rnode_framebuffer.bind(active=self.hardware_rnode_framebuffer_toggle_action)
 
             self.hardware_rnode_ready = True
