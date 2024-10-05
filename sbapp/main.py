@@ -300,6 +300,7 @@ class SidebandApp(MDApp):
         self.hardware_rnode_ready = False
         self.hardware_modem_ready = False
         self.hardware_serial_ready = False
+        self.hw_error_dialog = None
 
         self.final_load_completed = False
         self.service_last_available = 0
@@ -432,22 +433,25 @@ class SidebandApp(MDApp):
 
         def check_errors(dt):
             if self.sideband.getpersistent("startup.errors.rnode") != None:
-                description = self.sideband.getpersistent("startup.errors.rnode")["description"]
-                self.sideband.setpersistent("startup.errors.rnode", None)
-                yes_button = MDRectangleFlatButton(
-                    text="OK",
-                    font_size=dp(18),
-                )
-                self.hw_error_dialog = MDDialog(
-                    title="Hardware Error",
-                    text="When starting a connected RNode, Reticulum reported the following error:\n\n[i]"+str(description)+"[/i]",
-                    buttons=[ yes_button ],
-                    # elevation=0,
-                )
-                def dl_yes(s):
-                    self.hw_error_dialog.dismiss()
-                yes_button.bind(on_release=dl_yes)
-                self.hw_error_dialog.open()
+                if self.hw_error_dialog == None or (self.hw_error_dialog != None and not self.hw_error_dialog.is_open):
+                    description = self.sideband.getpersistent("startup.errors.rnode")["description"]
+                    self.sideband.setpersistent("startup.errors.rnode", None)
+                    yes_button = MDRectangleFlatButton(
+                        text="OK",
+                        font_size=dp(18),
+                    )
+                    self.hw_error_dialog = MDDialog(
+                        title="Hardware Error",
+                        text="When starting a connected RNode, Reticulum reported the following error:\n\n[i]"+str(description)+"[/i]",
+                        buttons=[ yes_button ],
+                        # elevation=0,
+                    )
+                    def dl_yes(s):
+                        self.hw_error_dialog.is_open = False
+                        self.hw_error_dialog.dismiss()
+                    yes_button.bind(on_release=dl_yes)
+                    self.hw_error_dialog.open()
+                    self.hw_error_dialog.is_open = True
 
         Clock.schedule_once(check_errors, 1.5)
 
@@ -936,22 +940,25 @@ class SidebandApp(MDApp):
             if RNS.vendor.platformutils.is_android():
                 rnode_errors = self.sideband.getpersistent("runtime.errors.rnode")
                 if rnode_errors != None:
-                    description = rnode_errors["description"]
-                    self.sideband.setpersistent("runtime.errors.rnode", None)
-                    yes_button = MDRectangleFlatButton(
-                        text="OK",
-                        font_size=dp(18),
-                    )
-                    self.hw_error_dialog = MDDialog(
-                        title="Hardware Error",
-                        text="While connecting an RNode, Reticulum reported the following error:\n\n[i]"+str(description)+"[/i]",
-                        buttons=[ yes_button ],
-                        # elevation=0,
-                    )
-                    def dl_yes(s):
-                        self.hw_error_dialog.dismiss()
-                    yes_button.bind(on_release=dl_yes)
-                    self.hw_error_dialog.open()
+                    if self.hw_error_dialog == None or (self.hw_error_dialog != None and not self.hw_error_dialog.is_open):
+                        description = rnode_errors["description"]
+                        self.sideband.setpersistent("runtime.errors.rnode", None)
+                        yes_button = MDRectangleFlatButton(
+                            text="OK",
+                            font_size=dp(18),
+                        )
+                        self.hw_error_dialog = MDDialog(
+                            title="Hardware Error",
+                            text="While communicating with an RNode, Reticulum reported the following error:\n\n[i]"+str(description)+"[/i]",
+                            buttons=[ yes_button ],
+                            # elevation=0,
+                        )
+                        def dl_yes(s):
+                            self.hw_error_dialog.dismiss()
+                            self.hw_error_dialog.is_open = False
+                        yes_button.bind(on_release=dl_yes)
+                        self.hw_error_dialog.open()
+                        self.hw_error_dialog.is_open = True
 
 
         if self.root.ids.screen_manager.current == "messages_screen":
