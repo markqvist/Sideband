@@ -4445,7 +4445,7 @@ class SidebandCore():
         thread.start()
 
         self.setstate("core.started", True)
-        RNS.log("Sideband Core "+str(self)+" version "+str(self.version_str)+" started")
+        RNS.log("Sideband Core "+str(self)+" "+str(self.version_str)+" started")
 
     def stop_webshare(self):
         if self.webshare_server != None:
