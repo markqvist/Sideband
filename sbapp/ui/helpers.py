@@ -72,7 +72,7 @@ def multilingual_markup(data):
                     match = True
                     if rfont != mapped_font:
                         rfont = mapped_font
-                        switch = True               
+                        switch = True
                     break
 
         if (not match) and rfont != "default":

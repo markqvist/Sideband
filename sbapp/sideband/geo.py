@@ -139,12 +139,12 @@ def ellipsoid_distance(c1, c2):
             sin_sigma = t**0.5
             cos_sigma = sin(U1)*sin(U2) + cos(U1)*cos(U2)*cos(lambda_old)
             sigma = atan2(sin_sigma, cos_sigma)
-        
+
             sin_alpha = cos(U1)*cos(U2)*sin(lambda_old) / sin_sigma
             cos_sq_alpha = 1 - sin_alpha**2
             cos_2sigma_m = cos_sigma - 2*sin(U1)*sin(U2)/cos_sq_alpha
             C = f*cos_sq_alpha*(4 + f*(4-3*cos_sq_alpha))/16
-        
+
             t = sigma + C*sin_sigma*(cos_2sigma_m + C*cos_sigma*(-1 + 2*cos_2sigma_m**2))
             lambda_new = L + (1 - C)*f*sin_alpha*t
             if abs(lambda_new - lambda_old) <= tolerance:
@@ -155,7 +155,7 @@ def ellipsoid_distance(c1, c2):
             if iteration%1000 == 0:
                 if iteration >= max_iterations:
                     return None
-                
+
                 if time.time() > st+timeout:
                     return None
 
@@ -171,7 +171,7 @@ def ellipsoid_distance(c1, c2):
     except Exception as e:
         return None
 
-def azalt(c1, c2, ellipsoid=True):              
+def azalt(c1, c2, ellipsoid=True):
     c2rp = rotate_globe(c1, c2, ellipsoid=ellipsoid)
     altitude = None
     azimuth = None
@@ -280,7 +280,7 @@ def radio_horizon(h, rh=0, ellipsoid=False):
 def shared_radio_horizon(c1, c2,):
     lat1 = c1[0]; lon1 = c1[1]; h1 = c1[2]
     lat2 = c2[0]; lon2 = c2[1]; h2 = c2[2]
-    
+
     geodesic_distance = orthodromic_distance((lat1, lon1, 0.0), (lat2, lon2, 0.0) , ellipsoid=False)
     antenna_distance = euclidian_distance(c1,c2,ellipsoid=False)
     rh1 = radio_horizon(h1)
@@ -532,7 +532,7 @@ class GeoidHeight:
 #         us = time.time()
 #         ld = c1+c2; g = geod.Inverse(c1[0], c1[1], c2[0], c2[1])
 #         print("Lib computed in "+str(round((time.time()-us)*1e6, 3))+"us")
-#         us = time.time()        
+#         us = time.time()
 #         eld = orthodromic_distance(c1,c2,ellipsoid=True)
 #         if eld:
 #             print("Own computed in "+str(round((time.time()-us)*1e6, 3))+"us")

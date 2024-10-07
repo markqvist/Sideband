@@ -34,7 +34,7 @@ class LinuxAudio(Audio):
                     run = False
 
         self.is_playing = False
-        
+
         if self._finished_callback and callable(self._finished_callback):
             self._check_thread = None
             self._finished_callback(self)
@@ -52,7 +52,7 @@ class LinuxAudio(Audio):
         frame_duration = frame_duration_ms/1000
         frame_size = int(frame_duration * samples_per_second)
         bytes_per_frame = frame_size*bytes_per_sample
-        
+
         read_bytes = 0
         pcm_buf = b""
         should_continue = True

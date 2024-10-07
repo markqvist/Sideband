@@ -93,7 +93,7 @@ class Telemeter():
           self.sensors[sensor]._telemeter = self
         if not self.sensors[sensor].active:
           self.sensors[sensor].start()
-  
+
   def disable(self, sensor):
     if not self.from_packed:
       if sensor in self.available:
@@ -159,9 +159,9 @@ class Telemeter():
 
         except Exception as e:
             RNS.log(f"Error while checking permission: {e)}", RNS.LOG_ERROR)
-        
+
         return False
-      
+
       else:
         from android.permissions import check_permission
         return check_permission(f"android.permission.{permission}")
@@ -440,7 +440,7 @@ class Battery(Sensor):
     if RNS.vendor.platformutils.is_android():
       from plyer import battery
       self.battery = battery
-    
+
     elif RNS.vendor.platformutils.is_linux():
       node_exists = False
       bn = 0
@@ -467,7 +467,7 @@ class Battery(Sensor):
         self.battery.get_state()
         b = self.battery.status
         self.data = {"charge_percent": b["percentage"], "charging": b["isCharging"], "temperature": None}
-      
+
       elif RNS.vendor.platformutils.is_linux():
         if self.battery_node_name:
           status = {"isCharging": None, "percentage": None}
@@ -486,7 +486,7 @@ class Battery(Sensor):
           is_charging = output['POWER_SUPPLY_STATUS'] == 'Charging'
           charge_percent = float(output['POWER_SUPPLY_CAPACITY'])
           self.data = {"charge_percent": round(charge_percent, 1), "charging": is_charging, "temperature": None}
-    
+
     except:
       self.data = None
 
@@ -515,7 +515,7 @@ class Battery(Sensor):
   def render(self, relative_to=None):
     if self.data == None:
       return None
-    
+
     d = self.data
     p = d["charge_percent"]
     t = d["temperature"]
@@ -580,7 +580,7 @@ class Pressure(Sensor):
     try:
       if RNS.vendor.platformutils.is_android():
         self.data = {"mbar": round(self.android_sensor.pressure, 2)}
-    
+
     except:
       self.data = None
 
@@ -623,7 +623,7 @@ class Pressure(Sensor):
 
 class Location(Sensor):
   SID = Sensor.SID_LOCATION
-  
+
   STALE_TIME = 15
   MIN_DISTANCE = 4
   ACCURACY_TARGET = 250
@@ -679,11 +679,11 @@ class Location(Sensor):
           self._location_provider = self
 
     self.update_data()
-    
+
   def teardown_sensor(self):
     if RNS.vendor.platformutils.is_android():
       self.gps.stop()
-    
+
     self.latitude = None
     self.longitude = None
     self.altitude = None
@@ -764,7 +764,7 @@ class Location(Sensor):
               "accuracy": round(self.accuracy, 2),
               "last_update": int(self._last_update),
               }
-    
+
     except:
       self.data = None
 
@@ -816,7 +816,7 @@ class Location(Sensor):
       coords = (self.data["latitude"], self.data["longitude"], aamsl)
       obj_ath = angle_to_horizon(coords)
       obj_rh = radio_horizon(aamsl)
-    
+
     rendered = {
       "icon": "map-marker",
       "name": "Location",
@@ -856,7 +856,7 @@ class Location(Sensor):
                 above_horizon = True
               else:
                 above_horizon = False
-            
+
             srh = shared_radio_horizon(cs, cr)
             if salt != None and alt != None:
               dalt = salt-alt
@@ -917,7 +917,7 @@ class PhysicalLink(Sensor):
   def render(self, relative_to=None):
     if self.data == None:
       return None
-    
+
     q = self.data["q"]
     rendered = {
       "icon": "network-strength-outline",
@@ -956,7 +956,7 @@ class Temperature(Sensor):
     try:
       if RNS.vendor.platformutils.is_android():
         self.data = {"c": round(self.android_sensor.temperature, 2)}
-    
+
     except:
       self.data = None
 
@@ -1012,7 +1012,7 @@ class Humidity(Sensor):
     try:
       if RNS.vendor.platformutils.is_android():
         self.data = {"percent_relative": round(self.android_sensor.tell, 2)}
-    
+
     except:
       self.data = None
 
@@ -1035,7 +1035,7 @@ class Humidity(Sensor):
   def render(self, relative_to=None):
     if self.data == None:
       return None
-    
+
     rendered = {
       "icon": "water-percent",
       "name": "Relative Humidity",
@@ -1069,7 +1069,7 @@ class MagneticField(Sensor):
       if RNS.vendor.platformutils.is_android():
         vectors = self.android_sensor.field
         self.data = {"x": round(vectors[0], 6), "y": round(vectors[1], 6), "z": round(vectors[2], 6)}
-    
+
     except:
       self.data = None
 
@@ -1092,7 +1092,7 @@ class MagneticField(Sensor):
   def render(self, relative_to=None):
     if self.data == None:
       return None
-    
+
     rendered = {
       "icon": "magnet",
       "name": "Magnetic Field",
@@ -1125,7 +1125,7 @@ class AmbientLight(Sensor):
     try:
       if RNS.vendor.platformutils.is_android():
         self.data = {"lux": round(self.android_sensor.illumination, 2)}
-    
+
     except:
       self.data = None
 
@@ -1155,7 +1155,7 @@ class AmbientLight(Sensor):
       if rs.data != None and "lux" in rs.data and rs.data["lux"] != None:
         if self.data["lux"] != None:
           delta = round(rs.data["lux"] - self.data["lux"], 2)
-    
+
     rendered = {
       "icon": "white-balance-sunny",
       "name": "Ambient Light",
@@ -1192,7 +1192,7 @@ class Gravity(Sensor):
       if RNS.vendor.platformutils.is_android():
         vectors = self.android_sensor.gravity
         self.data = {"x": round(vectors[0], 6), "y": round(vectors[1], 6), "z": round(vectors[2], 6)}
-    
+
     except:
       self.data = None
 
@@ -1215,7 +1215,7 @@ class Gravity(Sensor):
   def render(self, relative_to=None):
     if self.data == None:
       return None
-    
+
     rendered = {
       "icon": "arrow-down-thin-circle-outline",
       "name": "Gravity",
@@ -1249,7 +1249,7 @@ class AngularVelocity(Sensor):
       if RNS.vendor.platformutils.is_android():
         vectors = self.android_sensor.rotation
         self.data = {"x": round(vectors[0], 6), "y": round(vectors[1], 6), "z": round(vectors[2], 6)}
-    
+
     except:
       self.data = None
 
@@ -1272,7 +1272,7 @@ class AngularVelocity(Sensor):
   def render(self, relative_to=None):
     if self.data == None:
       return None
-    
+
     rendered = {
       "icon": "orbit",
       "name": "Angular Velocity",
@@ -1306,7 +1306,7 @@ class Acceleration(Sensor):
       if RNS.vendor.platformutils.is_android():
         vectors = self.android_sensor.acceleration
         self.data = {"x": round(vectors[0], 6), "y": round(vectors[1], 6), "z": round(vectors[2], 6)}
-    
+
     except:
       self.data = None
 
@@ -1351,7 +1351,7 @@ class Proximity(Sensor):
     try:
       if RNS.vendor.platformutils.is_android():
         self.data = self.android_sensor.proximity
-    
+
     except:
       self.data = None
 
@@ -1374,7 +1374,7 @@ class Proximity(Sensor):
   def render(self, relative_to=None):
     if self.data == None:
       return None
-    
+
     rendered = {
       "icon": "signal-distance-variant",
       "name": "Proximity",
@@ -1439,7 +1439,7 @@ class PowerConsumption(Sensor):
         for entry in packed:
           unpacked[entry[0]] = entry[1]
         return unpacked
-        
+
     except:
       return None
 
@@ -1454,7 +1454,7 @@ class PowerConsumption(Sensor):
       else:
         label = type_label
       consumers.append({"label": label, "w": self.data[type_label][0], "custom_icon": self.data[type_label][1]})
-    
+
     rendered = {
       "icon": "power-plug-outline",
       "name": "Power Consumption",
@@ -1520,7 +1520,7 @@ class PowerProduction(Sensor):
         for entry in packed:
           unpacked[entry[0]] = entry[1]
         return unpacked
-        
+
     except:
       return None
 
@@ -1535,7 +1535,7 @@ class PowerProduction(Sensor):
       else:
         label = type_label
       producers.append({"label": label, "w": self.data[type_label][0], "custom_icon": self.data[type_label][1]})
-    
+
     rendered = {
       "icon": "lightning-bolt",
       "name": "Power Production",
@@ -1601,7 +1601,7 @@ class Processor(Sensor):
         for entry in packed:
           unpacked[entry[0]] = entry[1]
         return unpacked
-        
+
     except:
       return None
 
@@ -1621,7 +1621,7 @@ class Processor(Sensor):
         "load_avgs": self.data[type_label][1],
         "clock": self.data[type_label][2],
       })
-    
+
     rendered = {
       "icon": "chip",
       "name": "Processor",
@@ -1687,7 +1687,7 @@ class RandomAccessMemory(Sensor):
         for entry in packed:
           unpacked[entry[0]] = entry[1]
         return unpacked
-        
+
     except:
       return None
 
@@ -1708,7 +1708,7 @@ class RandomAccessMemory(Sensor):
         "free": self.data[type_label][0]-self.data[type_label][1],
         "percent": (self.data[type_label][1]/self.data[type_label][0])*100,
       })
-    
+
     rendered = {
       "icon": "memory",
       "name": "Random Access Memory",
@@ -1774,7 +1774,7 @@ class NonVolatileMemory(Sensor):
         for entry in packed:
           unpacked[entry[0]] = entry[1]
         return unpacked
-        
+
     except:
       return None
 
@@ -1795,7 +1795,7 @@ class NonVolatileMemory(Sensor):
         "free": self.data[type_label][0]-self.data[type_label][1],
         "percent": (self.data[type_label][1]/self.data[type_label][0])*100,
       })
-    
+
     rendered = {
       "icon": "harddisk",
       "name": "Non-Volatile Memory",
@@ -1861,7 +1861,7 @@ class Custom(Sensor):
         for entry in packed:
           unpacked[entry[0]] = entry[1]
         return unpacked
-        
+
     except:
       return None
 
@@ -1880,7 +1880,7 @@ class Custom(Sensor):
         "value": self.data[type_label][0],
         "custom_icon": self.data[type_label][1],
       })
-    
+
     rendered = {
       "icon": "ruler",
       "name": "Custom",
@@ -1950,7 +1950,7 @@ class Tank(Sensor):
         for entry in packed:
           unpacked[entry[0]] = entry[1]
         return unpacked
-        
+
     except:
       return None
 
@@ -1974,7 +1974,7 @@ class Tank(Sensor):
         "percent": (self.data[type_label][1]/self.data[type_label][0])*100,
         "custom_icon": self.data[type_label][3],
       })
-    
+
     rendered = {
       "icon": "storage-tank",
       "name": "Tank",
@@ -2043,7 +2043,7 @@ class Fuel(Sensor):
         for entry in packed:
           unpacked[entry[0]] = entry[1]
         return unpacked
-        
+
     except:
       return None
 
@@ -2067,7 +2067,7 @@ class Fuel(Sensor):
         "percent": (self.data[type_label][1]/self.data[type_label][0])*100,
         "custom_icon": self.data[type_label][3],
       })
-    
+
     rendered = {
       "icon": "fuel",
       "name": "Fuel",

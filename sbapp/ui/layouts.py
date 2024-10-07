@@ -12,7 +12,7 @@ MDNavigationLayout:
 
         MDScreen:
             name: "starting_screen"
-                 
+
             AnchorLayout:
                 padding: [dp(0), dp(72), dp(0), dp(0)]
                 anchor_x: "center"
@@ -49,141 +49,141 @@ MDNavigationLayout:
                 id: nav_scrollview
                 DrawerList:
                     id: md_list
-                    
+
                     MDList:
                         OneLineIconListItem:
                             text: "Conversations"
                             on_release: root.ids.screen_manager.app.conversations_action(self)
                             # _no_ripple_effect: True
-                        
+
                             IconLeftWidget:
                                 icon: "comment-text-multiple"
                                 on_release: root.ids.screen_manager.app.conversations_action(self)
-                                
+
 
                         OneLineIconListItem:
                             text: "Objects & Devices"
                             on_release: root.ids.screen_manager.app.objects_action(self)
                             # _no_ripple_effect: True
-                        
+
                             IconLeftWidget:
                                 icon: "devices"
                                 on_release: root.ids.screen_manager.app.objects_action(self)
-                                
+
 
                         OneLineIconListItem:
                             text: "Situation Map"
                             on_release: root.ids.screen_manager.app.map_action(self)
-                        
+
                             IconLeftWidget:
                                 icon: "map"
                                 on_release: root.ids.screen_manager.app.map_action(self)
 
-                                                       
+
                         OneLineIconListItem:
                             text: "Announce Stream"
                             on_release: root.ids.screen_manager.app.announces_action(self)
-                        
+
                             IconLeftWidget:
                                 icon: "account-voice"
                                 on_release: root.ids.screen_manager.app.announces_action(self)
 
-                                                       
+
                         # OneLineIconListItem:
                         #     text: "Local Broadcasts"
                         #     on_release: root.ids.screen_manager.app.broadcasts_action(self)
-                        
+
                         #     IconLeftWidget:
                         #         icon: "radio-tower"
                         #         on_release: root.ids.screen_manager.app.broadcasts_action(self)
 
-                                                       
+
                         OneLineIconListItem:
                             text: "Telemetry"
                             on_release: root.ids.screen_manager.app.telemetry_action(self)
-                        
+
                             IconLeftWidget:
                                 icon: "map-marker-path"
                                 on_release: root.ids.screen_manager.app.telemetry_action(self)
 
-                                                       
+
                         OneLineIconListItem:
                             text: "Preferences"
                             on_release: root.ids.screen_manager.app.settings_action(self)
-                        
+
                             IconLeftWidget:
                                 icon: "cog"
                                 on_release: root.ids.screen_manager.app.settings_action(self)
 
-                                                       
+
                         OneLineIconListItem:
                             text: "Connectivity"
                             on_release: root.ids.screen_manager.app.connectivity_action(self)
-                        
+
                             IconLeftWidget:
                                 icon: "wifi"
                                 on_release: root.ids.screen_manager.app.connectivity_action(self)
 
-                                                       
+
                         OneLineIconListItem:
                             text: "Hardware"
                             on_release: root.ids.screen_manager.app.hardware_action(self)
-                        
+
                             IconLeftWidget:
                                 icon: "router-wireless"
                                 on_release: root.ids.screen_manager.app.hardware_action(self)
 
-                                                       
+
                         OneLineIconListItem:
                             text: "Encryption Keys"
                             on_release: root.ids.screen_manager.app.keys_action(self)
-                        
+
                             IconLeftWidget:
                                 icon: "key-chain"
                                 on_release: root.ids.screen_manager.app.keys_action(self)
 
-                                                       
+
                         OneLineIconListItem:
                             text: "Plugins"
                             on_release: root.ids.screen_manager.app.plugins_action(self)
-                        
+
                             IconLeftWidget:
                                 icon: "google-circles-extended"
                                 on_release: root.ids.screen_manager.app.keys_action(self)
 
-                                                       
+
                         OneLineIconListItem:
                             text: "Guide"
                             on_release: root.ids.screen_manager.app.guide_action(self)
-                        
+
                             IconLeftWidget:
                                 icon: "book-open"
                                 on_release: root.ids.screen_manager.app.guide_action(self)
 
-                                                       
+
                         OneLineIconListItem:
                             text: "Repository"
                             on_release: root.ids.screen_manager.app.repository_action(self)
-                        
+
                             IconLeftWidget:
                                 icon: "book-multiple"
                                 on_release: root.ids.screen_manager.app.guide_action(self)
 
-                                                       
+
                         OneLineIconListItem:
                             id: app_version_info
                             text: ""
                             on_release: root.ids.screen_manager.app.information_action(self)
-                        
+
                             IconLeftWidget:
                                 icon: "information"
                                 on_release: root.ids.screen_manager.app.information_action(self)
 
-                                                       
+
                         OneLineIconListItem:
                             text: "Shutdown"
                             on_release: root.ids.screen_manager.app.quit_action(self)
-                        
+
                             IconLeftWidget:
                                 icon: "power"
                                 on_release: root.ids.screen_manager.app.quit_action(self)
@@ -193,7 +193,7 @@ MDNavigationLayout:
 layout_broadcasts_screen = """
 MDScreen:
     name: "broadcasts_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -230,7 +230,7 @@ MDScreen:
 layout_exit_screen = """
 MDScreen:
     name: "exit_screen"
-         
+
     AnchorLayout:
         padding: [dp(0), dp(72), dp(0), dp(0)]
         anchor_x: "center"
@@ -262,7 +262,7 @@ MDScreen:
 layout_loader_screen = """
 MDScreen:
     name: "loader_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -295,7 +295,7 @@ MDScreen:
 layout_connectivity_screen = """
 MDScreen:
     name: "connectivity_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -337,7 +337,7 @@ MDScreen:
                     padding: [0,0,dp(24),0]
                     size_hint_y: None
                     height: dp(24)
-                    
+
                     MDLabel:
                         id: connectivity_local_label
                         text: "Connect via local WiFi/Ethernet"
@@ -380,7 +380,7 @@ MDScreen:
                     padding: [0,0,dp(24),0]
                     size_hint_y: None
                     height: dp(24)
-                    
+
                     MDLabel:
                         id: connectivity_tcp_label
                         text: "Connect via TCP"
@@ -429,7 +429,7 @@ MDScreen:
                     padding: [0,0,dp(24),0]
                     size_hint_y: None
                     height: dp(24)
-                    
+
                     MDLabel:
                         id: connectivity_i2p_label
                         text: "Connect via I2P"
@@ -472,7 +472,7 @@ MDScreen:
                     padding: [0,0,dp(24),0]
                     size_hint_y: None
                     height: dp(24)
-                    
+
                     MDLabel:
                         id: connectivity_rnode_label
                         text: "Connect via RNode"
@@ -510,7 +510,7 @@ MDScreen:
                     padding: [0,0,dp(24),0]
                     size_hint_y: None
                     height: dp(24)
-                    
+
                     MDLabel:
                         id: connectivity_modem_label
                         text: "Connect via Radio Modem"
@@ -548,7 +548,7 @@ MDScreen:
                     padding: [0,0,dp(24),0]
                     size_hint_y: None
                     height: dp(24)
-                    
+
                     MDLabel:
                         id: connectivity_serial_label
                         text: "Connect via Serial Port"
@@ -586,7 +586,7 @@ MDScreen:
                 #     padding: [0,0,dp(24),0]
                 #     size_hint_y: None
                 #     height: dp(24)
-                    
+
                 #     MDLabel:
                 #         id: connectivity_bluetooth_label
                 #         text: "Connect via Bluetooth"
@@ -648,7 +648,7 @@ MDScreen:
                     padding: [0,0,dp(24),0]
                     size_hint_y: None
                     height: dp(24)
-                    
+
                     MDLabel:
                         id: connectivity_transport_label
                         text: "Enable Reticulum Transport"
@@ -751,7 +751,7 @@ MDScreen:
 layout_guide_screen = """
 MDScreen:
     name: "guide_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -859,7 +859,7 @@ MDScreen:
 layout_information_screen = """
 MDScreen:
     name: "information_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -913,7 +913,7 @@ MDScreen:
 layout_map_settings_screen = """
 MDScreen:
     name: "map_settings_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -961,7 +961,7 @@ MDScreen:
                     padding: [0,0,dp(24),0]
                     size_hint_y: None
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Use online map sources"
                         font_style: "H6"
@@ -976,7 +976,7 @@ MDScreen:
                     padding: [0,0,dp(24),0]
                     size_hint_y: None
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Use offline map source"
                         font_style: "H6"
@@ -991,7 +991,7 @@ MDScreen:
                     padding: [0,0,dp(24),0]
                     size_hint_y: None
                     height: dp(48)
-                    
+
                     MDLabel:
                         id: map_storage_external_label
                         text: "Use external storage path"
@@ -1035,7 +1035,7 @@ MDScreen:
 layout_map_screen = """
 MDScreen:
     name: "map_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -1063,7 +1063,7 @@ MDScreen:
 layout_keys_screen = """
 MDScreen:
     name: "keys_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -1155,7 +1155,7 @@ MDScreen:
 layout_plugins_screen = """
 MDScreen:
     name: "plugins_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -1200,7 +1200,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(26),dp(0)]
                     height: dp(24)
-                    
+
                     MDLabel:
                         text: "Enable Plugins"
                         font_style: "H6"
@@ -1215,7 +1215,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(26),dp(0)]
                     height: dp(24)
-                    
+
                     MDLabel:
                         text: "Enable Command Plugins"
                         font_style: "H6"
@@ -1262,7 +1262,7 @@ MDScreen:
 layout_settings_screen = """
 MDScreen:
     name: "settings_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -1404,7 +1404,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Notifications"
                         font_style: "H6"
@@ -1419,7 +1419,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Dark Mode"
                         font_style: "H6"
@@ -1434,7 +1434,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "E-Ink Mode"
                         font_style: "H6"
@@ -1449,7 +1449,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Show user icons in conversation list"
                         font_style: "H6"
@@ -1464,7 +1464,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Only show user icons from trusted"
                         font_style: "H6"
@@ -1479,7 +1479,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Advanced Metrics"
                         font_style: "H6"
@@ -1516,7 +1516,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Announce Automatically"
                         font_style: "H6"
@@ -1531,7 +1531,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Try propagation on direct delivery failure"
                         font_style: "H6"
@@ -1547,7 +1547,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Send via Propagation Node by default"
                         font_style: "H6"
@@ -1563,7 +1563,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Ignore unknown senders"
                         font_style: "H6"
@@ -1579,7 +1579,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Limit incoming messages to 1MB"
                         font_style: "H6"
@@ -1595,7 +1595,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Limit each sync to 3 messages"
                         font_style: "H6"
@@ -1611,7 +1611,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         id: settings_lxmf_sync_periodic
                         text: "Sync with Propagation Node periodically"
@@ -1643,7 +1643,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         id: settings_lxmf_require_stamps_label
                         text: "Require stamps for incoming"
@@ -1675,7 +1675,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Ignore messages with invalid stamps"
                         font_style: "H6"
@@ -1691,7 +1691,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Use high-quality voice for PTT"
                         font_style: "H6"
@@ -1707,7 +1707,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Use Home Node as Broadcast Repeater"
                         font_style: "H6"
@@ -1723,7 +1723,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(24)]
                     height: dp(48+24)
-                    
+
                     MDLabel:
                         text: "Debug Logging"
                         font_style: "H6"
@@ -1761,7 +1761,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Latin, Greek, Cyrillic"
                         font_style: "H6"
@@ -1776,7 +1776,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Chinese"
                         font_style: "H6"
@@ -1791,7 +1791,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Japanese"
                         font_style: "H6"
@@ -1806,7 +1806,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Korean"
                         font_style: "H6"
@@ -1821,7 +1821,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Devanagari"
                         font_style: "H6"
@@ -1836,7 +1836,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Hebrew (incomplete)"
                         font_style: "H6"
@@ -1851,7 +1851,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Block Predictive Text"
                         font_style: "H6"
@@ -1882,7 +1882,7 @@ MDScreen:
 layout_repository_screen = """
 MDScreen:
     name: "repository_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -1971,7 +1971,7 @@ MDScreen:
 layout_hardware_screen = """
 MDScreen:
     name: "hardware_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -2052,7 +2052,7 @@ MDScreen:
 layout_hardware_modem_screen = """
 MDScreen:
     name: "hardware_modem_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -2200,7 +2200,7 @@ MDScreen:
 layout_hardware_rnode_screen = """
 MDScreen:
     name: "hardware_rnode_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -2366,7 +2366,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Control RNode Display"
                         font_style: "H6"
@@ -2381,7 +2381,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Connect using Bluetooth"
                         font_style: "H6"
@@ -2396,7 +2396,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Device requires BLE"
                         font_style: "H6"
@@ -2463,7 +2463,7 @@ MDScreen:
 layout_hardware_serial_screen = """
 MDScreen:
     name: "hardware_serial_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 

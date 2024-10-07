@@ -87,7 +87,7 @@ class OpusDecoder:
         # data)
         Buffer = ctypes.c_char * len(encoded_bytes)
         encoded_bytes_ctypes = Buffer.from_buffer(encoded_bytes)
-            
+
         # Create pointer to encoded bytes
         encoded_bytes_ptr = ctypes.cast(
             encoded_bytes_ctypes,
@@ -127,16 +127,16 @@ class OpusDecoder:
             * ctypes.sizeof(opus.opus_int16)
             * self._channels
         )
-        
+
         # Create memoryview of PCM buffer to avoid copying data during slice.
         mv = memoryview(self._pcm_buffer)
-        
+
         # Cast memoryview to chars
         mv = mv.cast('c')
-        
+
         # Slice memoryview to extract only valid data
         mv = mv[:end_valid_data]
-        
+
         return mv
 
 

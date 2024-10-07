@@ -103,7 +103,7 @@ class GpsdLocationPlugin(SidebandTelemetryPlugin):
                 telemeter.sensors["location"].accuracy   = self.accuracy
                 telemeter.sensors["location"].stale_time = 5
                 telemeter.sensors["location"].set_update_time(self.last_update)
-            
+
             else:
                 RNS.log("No location from GPSd yet", RNS.LOG_DEBUG)
 

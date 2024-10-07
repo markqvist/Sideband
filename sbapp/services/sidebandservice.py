@@ -30,7 +30,7 @@ if RNS.vendor.platformutils.get_platform() == "android":
 
     from android import python_act
     android_api_version = autoclass('android.os.Build$VERSION').SDK_INT
-            
+
     Intent = autoclass('android.content.Intent')
     BitmapFactory = autoclass('android.graphics.BitmapFactory')
     Icon = autoclass("android.graphics.drawable.Icon")
@@ -63,7 +63,7 @@ class SidebandService():
         0x239A: [0x8029], # Adafruit (RAK4631)
         0x303A: [0x1001], # ESP-32S3
     }
-    
+
     def android_notification(self, title="", content="", ticker="", group=None, context_id=None):
         if android_api_version < 26:
             return
@@ -99,7 +99,7 @@ class SidebandService():
             notification.setContentTitle(title)
             notification.setContentText(AndroidString(content))
             notification.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-            
+
             # if group != None:
             #     notification.setGroup(group_id)
 
@@ -140,9 +140,9 @@ class SidebandService():
 
             except Exception as e:
                 RNS.log(f"Error while checking permission: {e)}", RNS.LOG_ERROR)
-            
+
             return False
-        
+
         else:
             return False
 
@@ -184,7 +184,7 @@ class SidebandService():
             if self.should_update_location():
                 if not self._gps_started:
                     RNS.log("Starting service location provider", RNS.LOG_DEBUG)
-                    
+
                     if self.gps == None:
                         from plyer import gps
                         self.gps = gps
@@ -232,7 +232,7 @@ class SidebandService():
         if RNS.vendor.platformutils.is_android():
             self.android_service = autoclass('org.kivy.android.PythonService').mService
             self.app_context = self.android_service.getApplication().getApplicationContext()
-            
+
             try:
                 self.wifi_manager = self.app_context.getSystemService(Context.WIFI_SERVICE)
             except Exception as e:
@@ -248,7 +248,7 @@ class SidebandService():
                 RNS.log(f"The contained exception was: {e)}", RNS.LOG_ERROR)
 
             self.discover_usb_devices()
-        
+
         self.sideband = SidebandCore(self, is_service=True, android_app_dir=self.app_dir, verbose=__debug_build__, owner_service=self, service_context=self.android_service)
 
         if self.sideband.config["debug"]:
@@ -257,7 +257,7 @@ class SidebandService():
         self.sideband.start()
         self.update_connectivity_type()
         self.update_power_restrictions()
-        
+
         if RNS.vendor.platformutils.is_android():
             RNS.log(f"Discovered USB devices: {self.usb_devices)}", RNS.LOG_EXTREME)
             self.update_location_provider()
@@ -282,7 +282,7 @@ class SidebandService():
 
         except Exception as e:
             RNS.log(f"Could not list USB devices. The contained exception was: {e)}", RNS.LOG_ERROR)
-    
+
     def start(self):
         self.should_run = True
         self.take_locks()
@@ -334,7 +334,7 @@ class SidebandService():
             is_controlling = True
 
         self.sideband.setpersistent("service.is_controlling_connectivity", is_controlling)
-    
+
     def get_connectivity_status(self):
         if self.sideband.reticulum.is_connected_to_shared_instance:
             return "[size=22dp][b]Connectivity Status[/b][/size]\n\nSideband is connected via a shared Reticulum instance running on this system. Use the rnstatus utility to obtain full connectivity info."
@@ -425,23 +425,23 @@ class SidebandService():
             if self.sideband.interface_local != None:
                 total_rxb += self.sideband.interface_local.rxb
                 total_txb += self.sideband.interface_local.txb
-            
+
             if self.sideband.interface_rnode != None:
                 total_rxb += self.sideband.interface_rnode.rxb
                 total_txb += self.sideband.interface_rnode.txb
-            
+
             if self.sideband.interface_modem != None:
                 total_rxb += self.sideband.interface_modem.rxb
                 total_txb += self.sideband.interface_modem.txb
-            
+
             if self.sideband.interface_serial != None:
                 total_rxb += self.sideband.interface_serial.rxb
                 total_txb += self.sideband.interface_serial.txb
-            
+
             if self.sideband.interface_tcp != None:
                 total_rxb += self.sideband.interface_tcp.rxb
                 total_txb += self.sideband.interface_tcp.txb
-            
+
             if self.sideband.interface_i2p != None:
                 total_rxb += self.sideband.interface_i2p.rxb
                 total_txb += self.sideband.interface_i2p.txb

@@ -107,7 +107,7 @@ class FlacFile(AudioFile):
             ctypes.c_byte *
             (self.bytes_per_sample * len(self.buffer))
         )
-        self.buffer = CharBuffer.from_buffer(self.buffer) 
+        self.buffer = CharBuffer.from_buffer(self.buffer)
 
         # FLAC audio is always signed.  See
         # https://xiph.org/flac/api/group__flac__stream__decoder.html#gaf98a4f9e2cac5747da6018c3dfc8dde1

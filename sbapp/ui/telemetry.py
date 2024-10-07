@@ -30,7 +30,7 @@ class Telemetry():
         self.sensors_screen = None
         self.icons_screen = None
         self.color_picker = None
-    
+
         if not self.app.root.ids.screen_manager.has_screen("telemetry_screen"):
             self.screen = Builder.load_string(layout_telemetry_screen)
             self.screen.app = self.app
@@ -74,17 +74,17 @@ class Telemetry():
 
         self.screen.ids.telemetry_try_propagation_on_fail.active = self.app.sideband.config["telemetry_try_propagation_on_fail"]
         self.screen.ids.telemetry_try_propagation_on_fail.bind(active=self.telemetry_save)
-        
+
         self.screen.ids.telemetry_requests_only_send_latest.active = self.app.sideband.config["telemetry_requests_only_send_latest"]
         self.screen.ids.telemetry_requests_only_send_latest.bind(active=self.telemetry_save)
-        
+
         self.screen.ids.telemetry_allow_requests_from_trusted.active = self.app.sideband.config["telemetry_allow_requests_from_trusted"]
         self.screen.ids.telemetry_allow_requests_from_trusted.bind(active=self.telemetry_save)
-        
+
         self.screen.ids.telemetry_allow_requests_from_anyone.active = self.app.sideband.config["telemetry_allow_requests_from_anyone"]
         self.screen.ids.telemetry_allow_requests_from_anyone.bind(active=self.telemetry_save)
-        
-        
+
+
         self.screen.ids.telemetry_scrollview.effect_cls = ScrollEffect
         info  = "\nSideband allows you to securely share telemetry, such as location and sensor data, with people, custom programs, "
         info += "machines or other systems over LXMF. You have complete control over what kind of telemetry to send, and who you share "
@@ -100,7 +100,7 @@ class Telemetry():
 
         if self.app.theme_cls.theme_style == "Dark":
             info = f"[color=#{self.app.dark_theme_text_color}]{info}[/color]"
-        
+
         self.screen.ids.telemetry_info.text = info
 
         def send_interval_change(sender=None, event=None, save=True):
@@ -229,7 +229,7 @@ class Telemetry():
             self.app.sideband.run_telemetry()
         else:
             self.app.sideband.stop_telemetry()
-    
+
     def telemetry_save(self, sender=None, event=None):
         run_telemetry_update = False
         if len(self.screen.ids.telemetry_collector.text) != 32:
@@ -259,7 +259,7 @@ class Telemetry():
         self.app.sideband.config["telemetry_allow_requests_from_trusted"] = self.screen.ids.telemetry_allow_requests_from_trusted.active
         self.app.sideband.config["telemetry_allow_requests_from_anyone"] = self.screen.ids.telemetry_allow_requests_from_anyone.active
         self.app.sideband.config["telemetry_collector_enabled"] = self.screen.ids.telemetry_collector_enabled.active
-        
+
         self.app.sideband.save_configuration()
         if run_telemetry_update:
             self.app.sideband.update_telemetry()
@@ -276,14 +276,14 @@ class Telemetry():
     def telemetry_fg_color(self, sender=None):
         if self.color_picker == None:
             self.color_picker = MDColorPicker(size_hint=(0.85, 0.85))
-        
+
         self.color_picker.open()
         self.color_picker.bind(on_release=self.telemetry_fg_select)
         def job(sender=None):
             self.color_picker._rgb = self.app.sideband.config["telemetry_fg"][0:3]
             self.color_picker.ids.view_headline.on_tab_press()
         Clock.schedule_once(job, 0)
-    
+
     def telemetry_fg_select(self, instance_color_picker: MDColorPicker, type_color: str, selected_color: Union[list, str]):
         s = selected_color; color = [s[0], s[1], s[2], 1]
         self.screen.ids.telemetry_icon_preview.icon_color = color
@@ -304,7 +304,7 @@ class Telemetry():
             self.color_picker._rgb = self.app.sideband.config["telemetry_bg"][0:3]
             self.color_picker.ids.view_headline.on_tab_press()
         Clock.schedule_once(job, 0)
-    
+
     def telemetry_bg_select(self, instance_color_picker: MDColorPicker, type_color: str, selected_color: Union[list, str]):
         s = selected_color; color = [s[0], s[1], s[2], 1]
         self.screen.ids.telemetry_icon_preview.md_bg_color = color
@@ -329,7 +329,7 @@ class Telemetry():
 
         info3 = "\nTo include a specific type of telemetry data while sending, it must be enabled below. Please note that some sensor types are not supported on all devices. Sideband will only be able to read a specific type of sensor if your device actually includes hardware for it.\n"
         if self.app.theme_cls.theme_style == "Dark":
-            info3 = f"[color=#{self.app.dark_theme_text_color}]{info3}[/color]"            
+            info3 = f"[color=#{self.app.dark_theme_text_color}]{info3}[/color]"
         self.sensors_screen.ids.telemetry_info3.text = info3
         self.sensors_screen.ids.sensors_scrollview.effect_cls = ScrollEffect
 
@@ -491,7 +491,7 @@ class Telemetry():
         self.app.root.ids.screen_manager.transition.direction = "left"
         self.app.root.ids.screen_manager.current = "icons_screen"
         self.app.sideband.setstate("app.displaying", self.app.root.ids.screen_manager.current)
-        
+
         # sf = self.icons_screen.ids.icons_search_field.text
         # self.icons_filter(sf, len(sf)>0)
 
@@ -541,7 +541,7 @@ class Telemetry():
 layout_telemetry_screen = """
 MDScreen:
     name: "telemetry_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -582,7 +582,7 @@ MDScreen:
                     padding: [0,0,dp(24),0]
                     size_hint_y: None
                     height: dp(48)
-                    
+
                     MDLabel:
                         id: telemetry_enabled_label
                         text: "Enable telemetry"
@@ -598,7 +598,7 @@ MDScreen:
                     padding: [0,0,dp(24),0]
                     size_hint_y: None
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Enable collector"
                         font_style: "H6"
@@ -613,7 +613,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Send display style to everyone"
                         font_style: "H6"
@@ -628,7 +628,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Only display trusted on map"
                         font_style: "H6"
@@ -643,7 +643,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Only receive from trusted"
                         font_style: "H6"
@@ -658,7 +658,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         id: telemetry_send_to_collector_label
                         text: "Auto sync to collector"
@@ -689,7 +689,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         id: telemetry_request_from_collector_label
                         text: "Auto sync from collector"
@@ -730,7 +730,7 @@ MDScreen:
                         text: ""
                         font_size: dp(24)
 
-                
+
                     # MDRectangleFlatIconButton:
                     #     id: telemetry_copy_button
                     #     icon: "content-copy"
@@ -799,7 +799,7 @@ MDScreen:
                             on_release: root.app.map_display_own_telemetry(self)
                             disabled: False
 
-                    
+
 
                 MDLabel:
                     text: "Display Options"
@@ -897,7 +897,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Embed telemetry to all trusted"
                         font_style: "H6"
@@ -912,7 +912,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Sync all known telemetry to collector"
                         font_style: "H6"
@@ -927,7 +927,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Always use propagation for telemetry"
                         font_style: "H6"
@@ -942,7 +942,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Try propagation if direct delivery fails"
                         font_style: "H6"
@@ -957,7 +957,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Requests receive only latest"
                         font_style: "H6"
@@ -972,7 +972,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Allow requests from all trusted"
                         font_style: "H6"
@@ -987,7 +987,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Allow requests from anyone"
                         font_style: "H6"
@@ -997,13 +997,13 @@ MDScreen:
                         pos_hint: {"center_y": 0.3}
                         active: False
 
-                
+
 """
 
 layout_sensors_screen = """
 MDScreen:
     name: "sensors_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -1051,7 +1051,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Location"
                         font_style: "H6"
@@ -1066,7 +1066,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Battery State"
                         font_style: "H6"
@@ -1081,7 +1081,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Pressure"
                         font_style: "H6"
@@ -1096,7 +1096,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Temperature"
                         font_style: "H6"
@@ -1111,7 +1111,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Humidity"
                         font_style: "H6"
@@ -1126,7 +1126,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Magnetic Field"
                         font_style: "H6"
@@ -1141,7 +1141,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Ambient Light"
                         font_style: "H6"
@@ -1156,7 +1156,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Gravity"
                         font_style: "H6"
@@ -1171,7 +1171,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Angular Velocity"
                         font_style: "H6"
@@ -1186,7 +1186,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Acceleration"
                         font_style: "H6"
@@ -1201,7 +1201,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Proximity"
                         font_style: "H6"
@@ -1216,7 +1216,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Information"
                         font_style: "H6"
@@ -1247,7 +1247,7 @@ MDScreen:
                     size_hint_y: None
                     padding: [0,0,dp(24),dp(0)]
                     height: dp(48)
-                    
+
                     MDLabel:
                         text: "Fixed Location"
                         font_style: "H6"
@@ -1285,7 +1285,7 @@ MDScreen:
 layout_icons_screen = """
 MDScreen:
     name: "icons_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 

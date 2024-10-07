@@ -18,7 +18,7 @@ from .pyogg_error import PyOggError
 class OggOpusWriter():
     """Encodes PCM data into an OggOpus file."""
 
-    def __init__(self, 
+    def __init__(self,
                  f: Union[BinaryIO, str],
                  encoder: OpusBufferedEncoder,
                  custom_pre_skip: Optional[int] = None) -> None:
@@ -29,7 +29,7 @@ class OggOpusWriter():
 
         If f is an already-opened file handle, then it is the
         user's responsibility to close the file when they are
-        finished with it.  The file should be opened for writing 
+        finished with it.  The file should be opened for writing
         in binary (not text) mode.
 
         The encoder should be a
@@ -123,7 +123,7 @@ class OggOpusWriter():
 
     def _write_to_oggopus(self, pcm: memoryview, flush: bool = False) -> None:
         assert self._encoder is not None
-        
+
         def handle_encoded_packet(encoded_packet: memoryview,
                                   samples: int,
                                   end_of_stream: bool) -> None:
@@ -132,7 +132,7 @@ class OggOpusWriter():
             encoded_packet_ctypes = Buffer.from_buffer(encoded_packet)
 
             # Obtain a pointer to the encoded packet
-            encoded_packet_ptr = ctypes.cast( 
+            encoded_packet_ptr = ctypes.cast(
                 encoded_packet_ctypes,
                 ctypes.POINTER(ctypes.c_ubyte)
             )

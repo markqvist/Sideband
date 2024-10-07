@@ -721,7 +721,7 @@ class MapView(Widget):
             if int_diff < 0.08:
                 target = scatter.scale-diff
                 factor = target/scatter.scale
-                
+
                 scatter.apply_transform(
                     Matrix().scale(factor, factor, factor),
                     post_multiply=True,
@@ -746,7 +746,7 @@ class MapView(Widget):
                 d = 1 if touch.button == "scrolldown" else -1
             else:
                 d = 0.1 if touch.button == "scrolldown" else -0.1
-            
+
             self.animated_diff_scale_at(d, *touch.pos)
             return True
         elif touch.is_double_tap and self.double_tap_zoom:
@@ -793,7 +793,7 @@ class MapView(Widget):
         zoom = self._zoom
         scatter = self._scatter
         scale = scatter.scale
-        
+
         if self.high_res:
             if self.high_res_mode == 2:
                 # Double resolution mode

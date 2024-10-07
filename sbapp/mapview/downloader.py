@@ -58,7 +58,7 @@ class Downloader:
         logging.getLogger("urllib3.connection").setLevel(logging.WARNING)
         logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
         logging.getLogger("requests").setLevel(logging.WARNING)
-        
+
         logging.getLogger("urllib3").propagate = True
         logging.getLogger("requests").propagate = True
         logging.getLogger("urllib3.response").propagate = True

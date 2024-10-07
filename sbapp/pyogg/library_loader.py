@@ -24,7 +24,7 @@ if architecture == "32bit":
     for arch_style in ["32bit", "32" "86", "win32", "x86", "_x86", "_32", "_win32", "_32bit"]:
         for style in ["{}", "lib{}"]:
             _windows_styles.append(style.format(f"{{}}{arch_style}"))
-            
+
 elif architecture == "64bit":
     for arch_style in ["64bit", "64" "86_64", "amd64", "win_amd64", "x86_64", "_x86_64", "_64", "_amd64", "_64bit"]:
         for style in ["{}", "lib{}"]:
@@ -33,7 +33,7 @@ elif architecture == "64bit":
 
 run_tests = lambda lib, tests: [f(lib) for f in tests]
 
-# Get the appropriate directory for the shared libraries depending 
+# Get the appropriate directory for the shared libraries depending
 # on the current platform and architecture
 platform_ = platform.system()
 lib_dir = None
@@ -53,7 +53,7 @@ class Library:
         if lib is None:
             lib = ExternalLibrary.load(names["external"], paths, tests)
         return lib
-        
+
 
 class InternalLibrary:
     @staticmethod
@@ -61,7 +61,7 @@ class InternalLibrary:
         # If we do not have a library directory, give up immediately
         if lib_dir is None:
             return None
-            
+
         # Get the appropriate library filename given the platform
         try:
             name = names[platform_]
@@ -69,7 +69,7 @@ class InternalLibrary:
             return None
 
         # Attempt to load the library from here
-        path = f"{_here}/{lib_dir}/{name}" 
+        path = f"{_here}/{lib_dir}/{name}"
         try:
             lib = ctypes.CDLL(path)
         except OSError as e:
@@ -81,7 +81,7 @@ class InternalLibrary:
 
         # Library failed tests
         return None
-        
+
 # Cache of libraries that have already been loaded
 _loaded_libraries: Dict[str, ctypes.CDLL] = {}
 
@@ -119,7 +119,7 @@ class ExternalLibrary:
     def load_windows(name, paths = None, tests = []):
         os.environ["PATH"] += f";{f"{os.getcwd()};{_here}"}"
         if paths: os.environ["PATH"] += f";{';'.join(paths)}"
-        
+
         not_supported = [] # libraries that were found, but are not supported
         for style in _windows_styles:
             candidate = style.format(name)
@@ -134,7 +134,7 @@ class ExternalLibrary:
                     pass
                 except OSError:
                     not_supported.append(library)
-            
+
 
         if not_supported:
             raise ExternalLibraryError(f"library '{name}' couldn't be loaded, because the following candidates were not supported:"
@@ -142,6 +142,6 @@ class ExternalLibrary:
 
         raise ExternalLibraryError(f"library '{name}' couldn't be loaded")
 
-        
 
-        
+
+

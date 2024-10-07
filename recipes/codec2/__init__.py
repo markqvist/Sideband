@@ -27,7 +27,7 @@ class Codec2Recipe(Recipe):
     #     variable `LIBS`'''
     #     return ' -lcodec2{version} -lssl{version}'.format(version=self.version)
 
-    def build_arch(self, arch):        
+    def build_arch(self, arch):
         with current_directory(self.get_build_dir(arch.arch)):
             env = self.get_recipe_env(arch)
             flags = [

@@ -131,8 +131,8 @@ class OpusEncoder:
             ctypes.cast(ctypes.pointer(self._output_buffer),
                         ctypes.POINTER(ctypes.c_ubyte))
         )
-        
-        
+
+
     def encode(self, pcm: Union[bytes, bytearray, memoryview]) -> memoryview:
         """Encodes PCM data into an Opus frame.
 
@@ -146,7 +146,7 @@ class OpusEncoder:
         # If we haven't already created an encoder, do so now
         if self._encoder is None:
             self._encoder = self._create_encoder()
-            
+
         # Sanity checks also satisfy mypy type checking
         assert self._channels is not None
         assert self._samples_per_second is not None
@@ -177,7 +177,7 @@ class OpusEncoder:
         PcmCtypes = ctypes.c_ubyte * len(pcm)
         try:
             # Attempt to share the PCM memory
-            
+
             # Unfortunately, as at 2020-09-27, the type hinting for
             # read-only and writeable buffer protocols was a
             # work-in-progress.  The following only works for writable
@@ -225,27 +225,27 @@ class OpusEncoder:
         # * https://github.com/python/typing/issues/593
         # * https://github.com/python/typeshed/pull/4232
         mv = memoryview(self._output_buffer) # type: ignore
-        
+
         # Cast the memoryview to char
         mv = mv.cast('c')
 
         # Slice just the valid data from the memoryview
         valid_data_as_bytes = mv[:result]
-        
+
         # DEBUG
         # Convert memoryview back to ctypes instance
         Buffer = ctypes.c_ubyte * len(valid_data_as_bytes)
         buf = Buffer.from_buffer( valid_data_as_bytes )
-        
+
         # Convert PCM back to pointer and dump 4,000-byte buffer
         ptr = ctypes.cast(
             buf,
             ctypes.POINTER(ctypes.c_ubyte)
         )
-        
+
         return valid_data_as_bytes
 
-    
+
     def get_algorithmic_delay(self):
         """Gets the total samples of delay added by the entire codec.
 
@@ -266,9 +266,9 @@ class OpusEncoder:
         # If we haven't already created an encoder, do so now
         if self._encoder is None:
             self._encoder = self._create_encoder()
-        
+
         # Obtain the algorithmic delay of the Opus encoder.  See
-        # https://tools.ietf.org/html/rfc7845#page-27 
+        # https://tools.ietf.org/html/rfc7845#page-27
         delay = opus.opus_int32()
 
         result = opus.opus_encoder_ctl(
@@ -285,7 +285,7 @@ class OpusEncoder:
         delay_samples = delay.value
         return delay_samples
 
-    
+
     #
     # Internal methods
     #

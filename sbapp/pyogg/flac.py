@@ -64,7 +64,7 @@ if libflac:
     PYOGG_FLAC_AVAIL = True
 else:
     PYOGG_FLAC_AVAIL = False
-    
+
 # ctypes
 c_ubyte_p = POINTER(c_ubyte)
 c_uchar_p = c_ubyte_p
@@ -76,7 +76,7 @@ c_off_t = c_int32
 if PYOGG_FLAC_AVAIL:
     # Sanity check also satisfies mypy type checking
     assert libflac is not None
-    
+
     # ordinals
 
     FLAC__int8 = c_int8
@@ -170,7 +170,7 @@ if PYOGG_FLAC_AVAIL:
     FLAC__EntropyCodingMethodType = c_int
 
     FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE = 0
-            
+
     FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 = 1
 
 
@@ -272,10 +272,10 @@ if PYOGG_FLAC_AVAIL:
         _fields_ = [("type", FLAC__SubframeType),
                     ("data", FLAC__Subframe_data),
                     ("wasted_bits", c_uint)]
-        
+
 
     FLAC__SUBFRAME_ZERO_PAD_LEN = c_uint.in_dll(libflac, "FLAC__SUBFRAME_ZERO_PAD_LEN")
-    
+
     FLAC__SUBFRAME_TYPE_LEN = c_uint.in_dll(libflac, "FLAC__SUBFRAME_TYPE_LEN")
 
     FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN = c_uint.in_dll(libflac, "FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN")
@@ -327,7 +327,7 @@ if PYOGG_FLAC_AVAIL:
                     ("number_type", FLAC__FrameNumberType),
                     ("number", FLAC__FrameHeader_number),
                     ("crc", FLAC__uint8)]
-        
+
 
     FLAC__FRAME_HEADER_SYNC = c_uint.in_dll(libflac, "FLAC__FRAME_HEADER_SYNC")
 
@@ -360,7 +360,7 @@ if PYOGG_FLAC_AVAIL:
         _fields_ = [("header", FLAC__FrameHeader),
                     ("subframes", FLAC__Subframe * FLAC__MAX_CHANNELS),
                     ("footer", FLAC__FrameFooter)]
-        
+
 
     FLAC__MetadataType = c_int
 
@@ -435,7 +435,7 @@ if PYOGG_FLAC_AVAIL:
                     ("data", FLAC__byte_p)]
 
     FLAC__STREAM_METADATA_APPLICATION_ID_LEN = c_uint.in_dll(libflac, "FLAC__STREAM_METADATA_APPLICATION_ID_LEN")
-    
+
 
     class FLAC__StreamMetadata_SeekPoint(Structure):
         _fields_ = [("sample_number", FLAC__uint64),
@@ -475,10 +475,10 @@ if PYOGG_FLAC_AVAIL:
     class FLAC__StreamMetadata_CueSheet_Index(Structure):
         _fields_ = [("offset", FLAC__uint64),
                     ("number", FLAC__byte)]
-        
+
 
     FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN = c_uint.in_dll(libflac, "FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN")
-    
+
     FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN = c_uint.in_dll(libflac, "FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN")
 
     FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN = c_uint.in_dll(libflac, "FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN")
@@ -494,7 +494,7 @@ if PYOGG_FLAC_AVAIL:
                     ("indices", POINTER(FLAC__StreamMetadata_CueSheet_Index))]
 
     FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN = c_uint.in_dll(libflac, "FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN")
-    
+
     FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN = c_uint.in_dll(libflac, "FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN")
 
     FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN = c_uint.in_dll(libflac, "FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN")
@@ -516,7 +516,7 @@ if PYOGG_FLAC_AVAIL:
                     ("tracks", POINTER(FLAC__StreamMetadata_CueSheet_Track))]
 
     FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN = c_uint.in_dll(libflac, "FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN")
-        
+
 
     FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN = c_uint.in_dll(libflac, "FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN")
 
@@ -584,7 +584,7 @@ if PYOGG_FLAC_AVAIL:
 
     FLAC__STREAM_METADATA_PICTURE_COLORS_LEN = c_uint.in_dll(libflac, "FLAC__STREAM_METADATA_PICTURE_COLORS_LEN")
 
-    FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN = c_uint.in_dll(libflac, "FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN")  
+    FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN = c_uint.in_dll(libflac, "FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN")
 
 
     class FLAC__StreamMetadata_Unknown(Structure):
@@ -608,7 +608,7 @@ if PYOGG_FLAC_AVAIL:
                     ("data", FLAC__StreamMetadata_data)]
 
     FLAC__STREAM_METADATA_IS_LAST_LEN = c_uint.in_dll(libflac, "FLAC__STREAM_METADATA_IS_LAST_LEN")
-        
+
     FLAC__STREAM_METADATA_TYPE_LEN = c_uint.in_dll(libflac, "FLAC__STREAM_METADATA_TYPE_LEN")
 
     FLAC__STREAM_METADATA_LENGTH_LEN = c_uint.in_dll(libflac, "FLAC__STREAM_METADATA_LENGTH_LEN")
@@ -798,7 +798,7 @@ if PYOGG_FLAC_AVAIL:
 
     def FLAC__metadata_simple_iterator_get_block(iterator):
         return libflac.FLAC__metadata_simple_iterator_get_block(iterator)
-     
+
     libflac.FLAC__metadata_simple_iterator_set_block.restype = FLAC__bool
     libflac.FLAC__metadata_simple_iterator_set_block.argtypes = [POINTER(FLAC__Metadata_SimpleIterator), POINTER(FLAC__StreamMetadata), FLAC__bool]
 
@@ -819,7 +819,7 @@ if PYOGG_FLAC_AVAIL:
 
     class FLAC__Metadata_Chain(Structure):
         _fields_ = [("dummy", c_int)]
-        
+
     class FLAC__Metadata_Iterator(Structure):
         _fields_ = [("dummy", c_int)]
 
@@ -1261,13 +1261,13 @@ if PYOGG_FLAC_AVAIL:
     FLAC__StreamDecoderStateEnum = ["FLAC__STREAM_DECODER_SEARCH_FOR_METADATA",
                                     "FLAC__STREAM_DECODER_READ_METADATA",
                                     "FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC",
-                                    "FLAC__STREAM_DECODER_READ_FRAME", 
+                                    "FLAC__STREAM_DECODER_READ_FRAME",
                                     "FLAC__STREAM_DECODER_END_OF_STREAM",
                                     "FLAC__STREAM_DECODER_OGG_ERROR",
                                     "FLAC__STREAM_DECODER_SEEK_ERROR",
-                                    "FLAC__STREAM_DECODER_ABORTED", 
+                                    "FLAC__STREAM_DECODER_ABORTED",
                                     "FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR",
-                                    "FLAC__STREAM_DECODER_UNINITIALIZED"] 
+                                    "FLAC__STREAM_DECODER_UNINITIALIZED"]
 
     libflac.FLAC__StreamDecoderStateString.restype = c_char_p
     libflac.FLAC__StreamDecoderStateString.argtypes = []
@@ -1280,7 +1280,7 @@ if PYOGG_FLAC_AVAIL:
     FLAC__StreamDecoderInitStatusEnum = ["FLAC__STREAM_DECODER_INIT_STATUS_OK",
                                          "FLAC__STREAM_DECODER_INIT_STATUS_UNSUPPORTED_CONTAINER",
                                          "FLAC__STREAM_DECODER_INIT_STATUS_INVALID_CALLBACKS",
-                                         "FLAC__STREAM_DECODER_INIT_STATUS_MEMORY_ALLOCATION_ERROR", 
+                                         "FLAC__STREAM_DECODER_INIT_STATUS_MEMORY_ALLOCATION_ERROR",
                                          "FLAC__STREAM_DECODER_INIT_STATUS_ERROR_OPENING_FILE",
                                          "FLAC__STREAM_DECODER_INIT_STATUS_ALREADY_INITIALIZED"]
 

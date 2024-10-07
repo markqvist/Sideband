@@ -21,7 +21,7 @@ class PyCodec2Recipe(CythonRecipe):
         env['LDFLAGS'] += f' -L{self.ctx.get_libs_dir(arch.arch)}'
         env['LDFLAGS'] += f' -L{self.ctx.libs_dir}'
         env['LDFLAGS'] += codec2_recipe.link_dirs_flags(arch)
-        
+
         return env
 
     def build_arch(self, arch):
@@ -32,7 +32,7 @@ class PyCodec2Recipe(CythonRecipe):
             # print(arch)
             # shprint(sh.Command("pwd"))
             # shprint(sh.Command("ls"))
-            
+
             # pe_args = ["--replace-needed", "libcodec2.so.1.2", "libcodec2.so", "build/lib.linux-x86_64-3.11/pycodec2/pycodec2.cpython-311-x86_64-linux-gnu.so"]
             # shprint(sh.Command("patchelf"), *pe_args)
 

@@ -105,7 +105,7 @@ class OpusBufferedEncoder(OpusEncoder):
                 "rather than bytes)."
             )
             pcm_ctypes = Buffer.from_buffer(pcm_bytes)
-            
+
         # Either store the encoded packet to return at the end of the
         # method or immediately call the callback with the encoded
         # packet.
@@ -135,7 +135,7 @@ class OpusBufferedEncoder(OpusEncoder):
             assert self._buffer_index is not None
             assert self._channels is not None
             assert self._buffer is not None
-            
+
             # If the buffer is already empty, we have no work to do
             if self._buffer_index == 0:
                 return
@@ -156,7 +156,7 @@ class OpusBufferedEncoder(OpusEncoder):
                 # count
                 len(self._buffer) - self._buffer_index
             )
-            
+
             # Encode the PCM
             # As at 2020-11-05, mypy is unaware that ctype Arrays
             # support the buffer protocol.
@@ -166,16 +166,16 @@ class OpusBufferedEncoder(OpusEncoder):
             # callback
             store_or_callback(encoded_packet, samples, True)
 
-            
+
         # Copy the data remaining from the provided PCM into the
         # buffer.  Flush if required.
         def copy_insufficient_data() -> None:
             # Sanity checks to satisfy mypy
             assert self._buffer is not None
-            
+
             # Calculate remaining data
             remaining_data = len(pcm_bytes) - pcm_index
-                
+
             # Copy the data into the buffer.
             ctypes.memmove(
                 # destination
@@ -191,7 +191,7 @@ class OpusBufferedEncoder(OpusEncoder):
             # If we've been asked to flush the buffer then do so
             if flush:
                 flush_buffer()
-            
+
         # Loop through the provided PCM and the current buffer,
         # encoding as we have full packets.
         while True:
@@ -227,7 +227,7 @@ class OpusBufferedEncoder(OpusEncoder):
                         // self._channels
                         // ctypes.sizeof(opus.opus_int16)
                     )
-                    
+
                     # Encode the PCM
                     encoded_packet = super().encode(frame_data)
 
@@ -266,7 +266,7 @@ class OpusBufferedEncoder(OpusEncoder):
                     pcm_index += remaining
                     self._buffer_index += remaining
                     assert self._buffer_index == len(self._buffer)
-                    
+
                     # Encode the PCM
                     encoded_packet = super().encode(
                         # Memoryviews of ctypes do work, even though
@@ -284,7 +284,7 @@ class OpusBufferedEncoder(OpusEncoder):
 
                     # We've now processed the buffer
                     self._buffer_index = 0
-                    
+
                     # Either store the encoded packet or call the
                     # callback
                     store_or_callback(encoded_packet, samples)

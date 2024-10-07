@@ -37,14 +37,14 @@ def samples_from_ogg(file_path=None, output_rate=8000):
         audio = AudioSegment(
             bytes(opus_file.as_array()),
             frame_rate=opus_file.frequency,
-            sample_width=opus_file.bytes_per_sample, 
+            sample_width=opus_file.bytes_per_sample,
             channels=opus_file.channels)
 
         audio = audio.split_to_mono()[0]
         audio = audio.apply_gain(-audio.max_dBFS)
         audio = audio.set_frame_rate(output_rate)
         audio = audio.set_sample_width(2)
-        
+
         return audio.get_array_of_samples()
 
 def resample(samples, width, channels, input_rate, output_rate, normalize):
@@ -80,12 +80,12 @@ def samples_to_ogg(samples=None, file_path=None, normalize=False, input_channels
             frame_duration = frame_duration_ms/1000.0
             frame_size = int(frame_duration * samples_per_second)
             bytes_per_frame = frame_size*bytes_per_sample
-            
+
             ogg_opus_writer.write(memoryview(bytearray(samples)))
             ogg_opus_writer.close()
-            
+
             return True
-    
+
     except Exception as e:
         RNS.trace_exception(e)
         return False
@@ -153,7 +153,7 @@ def encode_codec2(samples, mode):
     N_FRAMES = math.floor(len(samples)/SPF)
     # TODO: Add padding to align to whole frames
     frames = np.array(samples[0:N_FRAMES*SPF], dtype=np.int16)
-    
+
     encoded = b""
     for pi in range(0, N_FRAMES):
         pstart = pi*SPF

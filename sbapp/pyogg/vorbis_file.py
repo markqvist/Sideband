@@ -22,7 +22,7 @@ class VorbisFile(AudioFile):
                  bytes_per_sample: int = 2,
                  signed:bool = True) -> None:
         """Load an OggVorbis File.
-        
+
         path specifies the location of the Vorbis file.  Unicode
         filenames may not work correctly under Windows.
 
@@ -40,7 +40,7 @@ class VorbisFile(AudioFile):
 
         # Sanity check that the vorbis library is available (for mypy)
         assert vorbis.libvorbisfile is not None
-        
+
         #: Bytes per sample
         self.bytes_per_sample = bytes_per_sample
 
@@ -104,7 +104,7 @@ class VorbisFile(AudioFile):
         )
 
         # Storage for the index of the logical bitstream
-        bitstream_previous = None 
+        bitstream_previous = None
         bitstream = ctypes.c_int()
 
         # Set bytes remaining to read into PCM
@@ -142,9 +142,9 @@ class VorbisFile(AudioFile):
                 if bitstream_previous != bitstream:
                     raise PyOggError(
                         "PyOgg currently supports Vorbis files "+
-                        "with only one logical stream" 
+                        "with only one logical stream"
                     )
-                    
+
             # Check for end of file
             if result == 0:
                 break
@@ -154,7 +154,7 @@ class VorbisFile(AudioFile):
 
             # Update the pointer into the buffer
             buf_ptr.value += result
-            
+
 
         # Close the file and clean up memory
         vorbis.libvorbisfile.ov_clear(ctypes.byref(vf))

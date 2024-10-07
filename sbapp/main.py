@@ -350,7 +350,7 @@ class SidebandApp(MDApp):
         self.check_permissions()
         self.check_bluetooth_permissions()
         self.start_service()
-        
+
         Clock.schedule_interval(self.jobs, 1.5)
 
         def dismiss_splash(dt):
@@ -367,7 +367,7 @@ class SidebandApp(MDApp):
             self.sideband.setstate("app.running", True)
             self.sideband.setstate("app.foreground", True)
         Clock.schedule_once(sjob, 6.5)
-        
+
     def start_service(self):
         if RNS.vendor.platformutils.is_android():
             RNS.log(f"Running on Android API level {android_api_version)}")
@@ -385,7 +385,7 @@ class SidebandApp(MDApp):
 
         # Pre-load announce stream widgets
         self.update_loading_text()
-        
+
         self.loader_init()
         if not RNS.vendor.platformutils.is_android():
             self.telemetry_init()
@@ -511,7 +511,7 @@ class SidebandApp(MDApp):
             self.input_font = "defaultinput"
         else:
             self.input_font = language
-        
+
         RNS.log(f"Setting input language to {self.input_font)}", RNS.LOG_DEBUG)
 
     # def modify_input_font(self, ids):
@@ -538,7 +538,7 @@ class SidebandApp(MDApp):
                 self.color_hover  = colors["Light"]["CardsDialogs"]
             else:
                 self.color_hover  = colors["Light"]["AppBar"]
-        
+
         self.apply_eink_mods()
         self.set_bars_colors()
 
@@ -665,7 +665,7 @@ class SidebandApp(MDApp):
                 )
                 def dl_ok(s):
                     dialog.dismiss()
-                
+
                 ok_button.bind(on_release=dl_ok)
                 dialog.open()
 
@@ -695,7 +695,7 @@ class SidebandApp(MDApp):
             if self.conversations_view != None:
                 self.conversations_view.ids.conversations_scrollview.effect_cls = ScrollEffect
                 self.conversations_view.ids.conversations_scrollview.scroll = 1
-                
+
             else:
                 RNS.log("Conversations view did not exist", RNS.LOG_DEBUG)
 
@@ -718,7 +718,7 @@ class SidebandApp(MDApp):
         if RNS.vendor.platformutils.get_platform() == "android":
             mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
             Context = autoclass('android.content.Context')
-            
+
             if android_api_version > 30:
                 bt_permission_name = "android.permission.BLUETOOTH_CONNECT"
             else:
@@ -771,7 +771,7 @@ class SidebandApp(MDApp):
             if not check_permission("android.permission.POST_NOTIFICATIONS"):
                 RNS.log("Requesting notification permission", RNS.LOG_DEBUG)
                 request_permissions(["android.permission.POST_NOTIFICATIONS"])
-            
+
         self.check_permissions()
 
     def request_microphone_permission(self):
@@ -803,7 +803,7 @@ class SidebandApp(MDApp):
                 def dl_ok(s):
                     dialog.dismiss()
                     self.request_storage_permission()
-                
+
                 ok_button.bind(on_release=dl_ok)
                 dialog.open()
 
@@ -815,7 +815,7 @@ class SidebandApp(MDApp):
                 if not check_permission("android.permission.WRITE_EXTERNAL_STORAGE"):
                     RNS.log("Requesting storage write permission", RNS.LOG_DEBUG)
                     request_permissions(["android.permission.WRITE_EXTERNAL_STORAGE"])
-                
+
                 if not check_permission("android.permission.READ_EXTERNAL_STORAGE"):
                     RNS.log("Requesting storage read permission", RNS.LOG_DEBUG)
                     request_permissions(["android.permission.READ_EXTERNAL_STORAGE"])
@@ -861,7 +861,7 @@ class SidebandApp(MDApp):
         if intent_action == "android.intent.action.WEB_SEARCH":
             SearchManager = autoclass('android.app.SearchManager')
             data = intent.getStringExtra(SearchManager.QUERY)
-            
+
             if data.lower().startswith(LXMF.LXMessage.URI_SCHEMA):
                 action = "lxm_uri"
 
@@ -880,7 +880,7 @@ class SidebandApp(MDApp):
     def ingest_lxm_uri(self, lxm_uri):
         RNS.log(f"Ingesting LXMF paper message from URI: {lxm_uri)}", RNS.LOG_DEBUG)
         self.sideband.lxm_ingest_uri(lxm_uri)
-        
+
     def build(self):
         FONT_PATH = f"{self.sideband.asset_dir}/fonts"
         if RNS.vendor.platformutils.is_darwin():
@@ -926,7 +926,7 @@ class SidebandApp(MDApp):
                         def dl_ok(s):
                             dialog.dismiss()
                             self.quit_action(s)
-                        
+
                         ok_button.bind(on_release=dl_ok)
                         self.final_load_completed = False
                         dialog.open()
@@ -1034,7 +1034,7 @@ class SidebandApp(MDApp):
                 )
                 def dl_ok(s):
                     dialog.dismiss()
-                
+
                 ok_button.bind(on_release=dl_ok)
                 dialog.open()
 
@@ -1055,7 +1055,7 @@ class SidebandApp(MDApp):
                 )
                 def dl_ok(s):
                     dialog.dismiss()
-                
+
                 ok_button.bind(on_release=dl_ok)
                 dialog.open()
 
@@ -1165,7 +1165,7 @@ class SidebandApp(MDApp):
                 if modifiers[0] == "ctrl":
                     if text == "q":
                         self.quit_action(self)
-                    
+
                     if text == "w":
                         if self.root.ids.screen_manager.current == "conversations_screen":
                             if self.include_conversations and not self.include_objects:
@@ -1182,11 +1182,11 @@ class SidebandApp(MDApp):
                             self.close_sub_telemetry_action()
                         else:
                             self.open_conversations(direction="right")
-                    
+
                     if text == "s" or text == "d":
                         if self.root.ids.screen_manager.current == "messages_screen":
                             self.message_send_action()
-                    
+
                     if text == "l":
                         if self.root.ids.screen_manager.current == "messages_screen":
                             self.message_propagation_action(self)
@@ -1194,7 +1194,7 @@ class SidebandApp(MDApp):
                             self.map_layers_action()
                         else:
                             self.announces_action(self)
-                    
+
                     if text == "m":
                         if self.root.ids.screen_manager.current == "messages_screen":
                             context_dest = self.messages_view.ids.messages_scrollview.active_conversation
@@ -1204,13 +1204,13 @@ class SidebandApp(MDApp):
                             self.map_show_peer_location(context_dest)
                         else:
                             self.map_action(self)
-                    
+
                     if text == "p":
                         if self.root.ids.screen_manager.current == "map_screen":
                             self.map_settings_action()
                         else:
                             self.settings_action(self)
-                    
+
                     if text == "t":
                         if self.root.ids.screen_manager.current == "messages_screen":
                             self.object_details_action(self.messages_view, from_conv=True)
@@ -1240,15 +1240,15 @@ class SidebandApp(MDApp):
                                 self.conversations_action(self, direction="right")
                         else:
                             self.conversations_action(self, direction="right")
-                    
+
                     if len(modifiers) > 0 and modifiers[0] == 'ctrl' and (text == "g"):
                         self.guide_action(self)
-                    
+
                     if text == "n":
                         if self.root.ids.screen_manager.current == "conversations_screen":
                             if not hasattr(self, "dialog_open") or not self.dialog_open:
                                 self.new_conversation_action(self)
-            
+
     def keyboard_event(self, window, key, *largs):
         if self.keyboard_enabled:
             # Handle escape/back
@@ -1365,7 +1365,7 @@ class SidebandApp(MDApp):
         )
         def dl_yes(s):
             dialog.dismiss()
-        
+
         yes_button.bind(on_release=dl_yes)
         dialog.open()
 
@@ -1441,7 +1441,7 @@ class SidebandApp(MDApp):
 
         self.root.ids.screen_manager.current = "messages_screen"
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
-    
+
         self.sideband.read_conversation(context_dest)
         self.sideband.setstate("app.flags.unread_conversations", True)
 
@@ -1503,7 +1503,7 @@ class SidebandApp(MDApp):
                         try:
                             RNS.log(f"Processing {self.attach_type)} attachment \"{self.attach_path)}\"", RNS.LOG_DEBUG)
                             fbn = os.path.basename(self.attach_path)
-                            
+
                             if self.attach_type == "file":
                                 with open(self.attach_path, "rb") as af:
                                     attachment = [fbn, af.read()]
@@ -1586,7 +1586,7 @@ class SidebandApp(MDApp):
                         self.messages_view.ids.message_text.text = ""
                         self.messages_view.ids.messages_scrollview.scroll_y = 0
                         self.jobs(0)
-                
+
                 elif self.sideband.send_message(msg_content, context_dest, self.outbound_mode_propagation, attachment = attachment, image = image, audio = audio):
                     self.messages_view.ids.message_text.text = ""
                     self.messages_view.ids.messages_scrollview.scroll_y = 0
@@ -1647,7 +1647,7 @@ class SidebandApp(MDApp):
             tf = open(path, "rb")
             tf.close()
             self.attach_path = path
-            
+
             if RNS.vendor.platformutils.is_android():
                 toast(f"Attached \"{fbn)}\"")
             else:
@@ -1713,7 +1713,7 @@ class SidebandApp(MDApp):
                     )
                     ok_button.bind(on_release=ate_dialog.dismiss)
                     ate_dialog.open()
-        
+
         else:
             if RNS.vendor.platformutils.get_platform() == "android":
                 toast("No file access, check permissions!")
@@ -1798,7 +1798,7 @@ class SidebandApp(MDApp):
                     elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
                         temp_path = f"{self.sideband.rec_cache}/msg.ogg"
                         from sideband.audioproc import samples_to_ogg, decode_codec2, detect_codec2
-                        
+
                         target_rate = 8000
                         if RNS.vendor.platformutils.is_linux():
                             target_rate = 48000
@@ -1812,7 +1812,7 @@ class SidebandApp(MDApp):
                             self.last_msg_audio = None
                             self.display_codec2_error()
                             return
-                    
+
                     else:
                         raise NotImplementedError(audio_field[0])
 
@@ -1822,7 +1822,7 @@ class SidebandApp(MDApp):
                             self.request_microphone_permission()
                         else:
                             from sbapp.plyer import audio
-                        
+
                         self.msg_sound = audio
 
                     self.msg_sound._file_path = temp_path
@@ -1866,7 +1866,7 @@ class SidebandApp(MDApp):
         def cb(dt):
             self.msg_audio.start()
         Clock.schedule_once(cb, 0.15)
-        
+
 
     def message_ptt_up_action(self, sender=None):
         if not self.sideband.ui_recording:
@@ -1920,12 +1920,12 @@ class SidebandApp(MDApp):
             audio = AudioSegment(
                 bytes(opus_file.as_array()),
                 frame_rate=opus_file.frequency,
-                sample_width=opus_file.bytes_per_sample, 
+                sample_width=opus_file.bytes_per_sample,
                 channels=opus_file.channels,
             )
             audio = audio.split_to_mono()[0]
             audio = audio.apply_gain(-audio.max_dBFS)
-            
+
             if self.audio_msg_mode >= LXMF.AM_CODEC2_700C and self.audio_msg_mode <= LXMF.AM_CODEC2_3200:
                 audio = audio.set_frame_rate(8000)
                 audio = audio.set_sample_width(2)
@@ -2013,9 +2013,9 @@ class SidebandApp(MDApp):
             self.rec_dialog.playing = False
             self.rec_dialog.play_item.children[0].children[0].icon = "play"
             self.rec_dialog.play_item.text = f"[size={ss)}]Play[/size]"
-            
+
         self.msg_audio._finished_callback = a_finished
-            
+
         def a_save(sender):
             if self.rec_dialog.recording:
                 a_rec_action(sender)
@@ -2038,7 +2038,7 @@ class SidebandApp(MDApp):
 
                 self.update_message_widgets()
                 toast("Added recorded audio to message")
-            
+
             except Exception as e:
                 RNS.trace_exception(e)
 
@@ -2085,7 +2085,7 @@ class SidebandApp(MDApp):
     def message_attach_action(self, attach_type=None, nodialog=False):
         file_attach_types = ["lbimg", "defimg", "hqimg", "file"]
         rec_attach_types = ["audio"]
-        
+
         self.attach_path = None
         self.rec_dialog_is_open = False
         if attach_type in file_attach_types:
@@ -2131,7 +2131,7 @@ class SidebandApp(MDApp):
                         DialogItem(IconLeftWidget(icon="account-voice", on_release=a_audio_lb), text=f"[size={ss)}]Low-bandwidth Voice[/size]", on_release=a_audio_lb),
                         DialogItem(IconLeftWidget(icon="microphone-message", on_release=a_audio_hq), text=f"[size={ss)}]High-quality Voice[/size]", on_release=a_audio_hq),
                         DialogItem(IconLeftWidget(icon="file-outline", on_release=a_file), text=f"[size={ss)}]File Attachment[/size]", on_release=a_file)]
-                
+
                 if RNS.vendor.platformutils.is_windows():
                     ad_items.pop(3)
                     ad_items.pop(3)
@@ -2200,7 +2200,7 @@ class SidebandApp(MDApp):
                     mode_item.icon = "upload-network"
                     self.messages_view.ids.message_text.hint_text = "Message for propagation"
             # self.root.ids.message_text.hint_text = "Write message for delivery via propagation nodes"
-    
+
     def key_query_action(self, sender):
         context_dest = self.messages_view.ids.messages_scrollview.active_conversation
         if self.sideband.request_key(context_dest):
@@ -2227,7 +2227,7 @@ class SidebandApp(MDApp):
 
 
     ### Conversations screen
-    ######################################       
+    ######################################
     def conversations_action(self, sender=None, direction="left", no_transition=False):
         self.rec_dialog_is_open = False
         if self.include_objects:
@@ -2266,7 +2266,7 @@ class SidebandApp(MDApp):
     def open_conversations(self, direction="left"):
         self.root.ids.screen_manager.transition.direction = direction
         self.root.ids.nav_drawer.set_state("closed")
-        
+
         if not self.conversations_view:
             self.conversations_view = Conversations(self)
 
@@ -2301,7 +2301,7 @@ class SidebandApp(MDApp):
         except Exception as e:
             RNS.log(f"An error occurred while retrieving connectivity status: {e)}", RNS.LOG_ERROR)
             return "Could not retrieve connectivity status"
-    
+
     def connectivity_status(self, sender):
         hs = dp(22)
 
@@ -2337,7 +2337,7 @@ class SidebandApp(MDApp):
         try:
             cancel_button = MDRectangleFlatButton(text="Cancel",font_size=dp(18))
             ingest_button = MDRectangleFlatButton(text="Read LXM",font_size=dp(18), theme_text_color="Custom", line_color=self.color_accept, text_color=self.color_accept)
-            
+
             dialog = MDDialog(
                 title="Ingest Paper Message",
                 text="You can read LXMF paper messages into this program by scanning a QR-code containing the message with your device camera or QR-scanner app, and then opening the resulting link in Sideband.\n\nAlternatively, you can copy an [b]lxm://[/b] link from any source to your clipboard, and ingest it using the [i]Read LXM[/i] button below.",
@@ -2391,7 +2391,7 @@ class SidebandApp(MDApp):
             )
             def dl_yes(s):
                 dialog.dismiss()
-            
+
             yes_button.bind(on_release=dl_yes)
             dialog.open()
         else:
@@ -2413,7 +2413,7 @@ class SidebandApp(MDApp):
                     # elevation=0,
                 )
                 dialog.d_content = dialog_content
-                def dl_close(s):                
+                def dl_close(s):
                     self.sideband.setstate("app.flags.lxmf_sync_dialog_open", False)
                     dialog.dismiss()
                     self.message_sync_dialog.d_content.ids.sync_progress.value = 0.1
@@ -2421,7 +2421,7 @@ class SidebandApp(MDApp):
 
                     # self.sideband.cancel_lxmf_sync()
 
-                def dl_stop(s):                
+                def dl_stop(s):
                     # self.sideband.setstate("app.flags.lxmf_sync_dialog_open", False)
                     # dialog.dismiss()
                     self.sideband.cancel_lxmf_sync()
@@ -2435,7 +2435,7 @@ class SidebandApp(MDApp):
                 self.message_sync_dialog = dialog
                 self.sync_dialog = dialog_content
                 self.sync_dialog.stop_button = stop_button
-               
+
             s_state = self.sideband.message_router.propagation_transfer_state
             if s_state > LXMF.LXMRouter.PR_PATH_REQUESTED and s_state <= LXMF.LXMRouter.PR_COMPLETE:
                 dsp = self.sideband.get_sync_progress()*100
@@ -2465,7 +2465,7 @@ class SidebandApp(MDApp):
         try:
             cancel_button = MDRectangleFlatButton(text="Cancel",font_size=dp(18))
             create_button = MDRectangleFlatButton(text="Create",font_size=dp(18), theme_text_color="Custom", line_color=self.color_accept, text_color=self.color_accept)
-            
+
             dialog_content = NewConv()
             dialog = MDDialog(
                 title="New Conversation",
@@ -2687,22 +2687,22 @@ class SidebandApp(MDApp):
                 if sender.active:
                     if sender != self.settings_screen.ids.settings_lang_default:
                         self.settings_screen.ids.settings_lang_default.active = False
-                    
+
                     if sender != self.settings_screen.ids.settings_lang_chinese:
                         self.settings_screen.ids.settings_lang_chinese.active = False
-                    
+
                     if sender != self.settings_screen.ids.settings_lang_japanese:
                         self.settings_screen.ids.settings_lang_japanese.active = False
-                    
+
                     if sender != self.settings_screen.ids.settings_lang_korean:
                         self.settings_screen.ids.settings_lang_korean.active = False
-                    
+
                     if sender != self.settings_screen.ids.settings_lang_devangari:
                         self.settings_screen.ids.settings_lang_devangari.active = False
-                    
+
                     if sender != self.settings_screen.ids.settings_lang_hebrew:
                         self.settings_screen.ids.settings_lang_hebrew.active = False
-                    
+
                     if self.settings_screen.ids.settings_lang_default.active:
                         self.sideband.config["input_language"] = None
                         self.settings_screen.ids.settings_display_name.font_name = "defaultinput"
@@ -3089,35 +3089,35 @@ class SidebandApp(MDApp):
             def con_collapse_local(collapse=True):
                 # self.widget_hide(self.connectivity_screen.ids.connectivity_local_fields, collapse)
                 pass
-                
+
             def con_collapse_tcp(collapse=True):
                 # self.widget_hide(self.connectivity_screen.ids.connectivity_tcp_fields, collapse)
                 pass
-                
+
             def con_collapse_i2p(collapse=True):
                 # self.widget_hide(self.connectivity_screen.ids.connectivity_i2p_fields, collapse)
                 pass
-                
+
             def con_collapse_bluetooth(collapse=True):
                 # self.widget_hide(self.connectivity_screen.ids.connectivity_bluetooth_fields, collapse)
                 pass
-                
+
             def con_collapse_rnode(collapse=True):
                 # self.widget_hide(self.connectivity_screen.ids.connectivity_rnode_fields, collapse)
                 pass
-                
+
             def con_collapse_modem(collapse=True):
                 # self.widget_hide(self.connectivity_screen.ids.connectivity_modem_fields, collapse)
                 pass
-                
+
             def con_collapse_serial(collapse=True):
                 # self.widget_hide(self.connectivity_screen.ids.connectivity_serial_fields, collapse)
                 pass
-                
+
             def con_collapse_transport(collapse=True):
                 # self.widget_hide(self.connectivity_screen.ids.connectivity_transport_fields, collapse)
                 pass
-                
+
             def save_connectivity(sender=None, event=None):
                 self.sideband.config["connect_transport"] = self.connectivity_screen.ids.connectivity_enable_transport.active
                 self.sideband.config["connect_local"] = self.connectivity_screen.ids.connectivity_use_local.active
@@ -3294,12 +3294,12 @@ class SidebandApp(MDApp):
                     self.connectivity_screen.ids.connectivity_tcp_port.bind(focus=focus_save)
                     self.connectivity_screen.ids.connectivity_tcp_ifac_netname.bind(focus=focus_save)
                     self.connectivity_screen.ids.connectivity_tcp_ifac_passphrase.bind(focus=focus_save)
-                    
+
                     self.connectivity_screen.ids.connectivity_use_i2p.bind(active=save_connectivity)
                     self.connectivity_screen.ids.connectivity_i2p_b32.bind(focus=focus_save)
                     self.connectivity_screen.ids.connectivity_i2p_ifac_netname.bind(focus=focus_save)
                     self.connectivity_screen.ids.connectivity_i2p_ifac_passphrase.bind(focus=focus_save)
-                    
+
                     self.connectivity_screen.ids.connectivity_use_rnode.bind(active=serial_connectivity_save)
                     self.connectivity_screen.ids.connectivity_rnode_ifac_netname.bind(focus=focus_save)
                     self.connectivity_screen.ids.connectivity_rnode_ifac_passphrase.bind(focus=focus_save)
@@ -3341,7 +3341,7 @@ class SidebandApp(MDApp):
 
     def close_connectivity_action(self, sender=None):
         self.open_conversations(direction="right")
-    
+
     def rpc_copy_action(self, sender=None):
         c_yes_button = MDRectangleFlatButton(text="Yes",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
         c_no_button = MDRectangleFlatButton(text="No, go back",font_size=dp(18))
@@ -3359,7 +3359,7 @@ class SidebandApp(MDApp):
             rpc_string = f"rpc_key = {RNS.hexrep(self.sideband.reticulum.rpc_key, delimit=False)}"
             Clipboard.copy(rpc_string)
             dialog.open()
-        
+
         c_yes_button.bind(on_release=c_dl_yes)
         c_no_button.bind(on_release=c_dl_no)
 
@@ -3405,7 +3405,7 @@ class SidebandApp(MDApp):
         info += "If you want to share the Sideband application itself via the repository server, you must first download it into the local repository, using the \"Update Content\" button below.\n\n"
         info += "To make the repository available on your local network, simply start it below, and it will become browsable on a local IP address for anyone connected to the same WiFi or wired network.\n\n"
         if self.sideband.webshare_server != None:
-            if RNS.vendor.platformutils.is_android():                    
+            if RNS.vendor.platformutils.is_android():
                 def getIP():
                     adrs = []
                     try:
@@ -3462,7 +3462,7 @@ class SidebandApp(MDApp):
 
     def repository_stop_action(self, sender=None):
         self.reposository_url = None
-        self.sideband.stop_webshare() 
+        self.sideband.stop_webshare()
         Clock.schedule_once(self.repository_update_info, 0.75)
 
     def repository_download_action(self, sender=None):
@@ -3518,7 +3518,7 @@ class SidebandApp(MDApp):
                 self.root.ids.screen_manager.add_widget(self.repository_screen)
 
             self.repository_screen.ids.repository_scrollview.effect_cls = ScrollEffect
-                                
+
             self.repository_update_info()
 
             if not RNS.vendor.platformutils.is_android():
@@ -3564,7 +3564,7 @@ class SidebandApp(MDApp):
 
     def close_sub_hardware_action(self, sender=None):
         self.hardware_action(direction="right")
-    
+
     def hardware_init(self, sender=None):
         if not self.hardware_ready:
             if not self.root.ids.screen_manager.has_screen("hardware_screen"):
@@ -3661,12 +3661,12 @@ class SidebandApp(MDApp):
             self.sideband.config["hw_rnode_spreading_factor"] = int(self.hardware_rnode_screen.ids.hardware_rnode_spreadingfactor.text)
         except:
             pass
-        
+
         try:
             self.sideband.config["hw_rnode_coding_rate"] = int(self.hardware_rnode_screen.ids.hardware_rnode_codingrate.text)
         except:
             pass
-        
+
         try:
             self.sideband.config["hw_rnode_atl_short"] = float(self.hardware_rnode_screen.ids.hardware_rnode_atl_short.text)
         except:
@@ -3676,7 +3676,7 @@ class SidebandApp(MDApp):
             self.sideband.config["hw_rnode_atl_long"] = float(self.hardware_rnode_screen.ids.hardware_rnode_atl_long.text)
         except:
             self.sideband.config["hw_rnode_atl_long"] = None
-        
+
         if self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text == "":
             self.sideband.config["hw_rnode_beaconinterval"] = None
         else:
@@ -3747,7 +3747,7 @@ class SidebandApp(MDApp):
             self.sideband.config["hw_rnode_bluetooth"] = False
 
         self.sideband.save_configuration()
-   
+
     def hardware_rnode_ble_toggle_action(self, sender=None, event=None):
         if sender.active:
             self.sideband.config["hw_rnode_ble"] = True
@@ -3756,7 +3756,7 @@ class SidebandApp(MDApp):
             self.sideband.config["hw_rnode_ble"] = False
 
         self.sideband.save_configuration()
-   
+
     def hardware_rnode_framebuffer_toggle_action(self, sender=None, event=None):
         if sender.active:
             self.sideband.config["hw_rnode_enable_framebuffer"] = True
@@ -3764,7 +3764,7 @@ class SidebandApp(MDApp):
             self.sideband.config["hw_rnode_enable_framebuffer"] = False
 
         self.sideband.save_configuration()
-    
+
     def hardware_rnode_init(self, sender=None):
         if not self.hardware_rnode_ready:
             if not self.root.ids.screen_manager.has_screen("hardware_rnode_screen"):
@@ -3860,7 +3860,7 @@ class SidebandApp(MDApp):
             self.hardware_rnode_ready = True
 
     def hardware_rnode_validate(self, sender=None):
-        valid = True        
+        valid = True
         try:
             val = float(self.hardware_rnode_screen.ids.hardware_rnode_frequency.text)
             if not val > 0:
@@ -3870,7 +3870,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_rnode_screen.ids.hardware_rnode_frequency.error = True
             valid = False
-        
+
         try:
             valid_vals = [7.8, 10.4, 15.6, 20.8, 31.25, 41.7, 62.5, 125, 250, 500]
             val = float(self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.text)
@@ -3881,7 +3881,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.error = True
             valid = False
-        
+
         try:
             val = int(self.hardware_rnode_screen.ids.hardware_rnode_txpower.text)
             if not val >= 0:
@@ -3891,7 +3891,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_rnode_screen.ids.hardware_rnode_txpower.error = True
             valid = False
-        
+
         try:
             val = int(self.hardware_rnode_screen.ids.hardware_rnode_spreadingfactor.text)
             if val < 7 or val > 12:
@@ -3901,7 +3901,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_rnode_screen.ids.hardware_rnode_spreadingfactor.error = True
             valid = False
-        
+
         try:
             val = int(self.hardware_rnode_screen.ids.hardware_rnode_codingrate.text)
             if val < 5 or val > 8:
@@ -3911,7 +3911,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_rnode_screen.ids.hardware_rnode_codingrate.error = True
             valid = False
-        
+
         try:
             if self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text != "":
                 val = int(self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text)
@@ -3923,7 +3923,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text = ""
             valid = False
-        
+
         return valid
 
     def hardware_rnode_import(self, sender=None):
@@ -3950,7 +3950,7 @@ class SidebandApp(MDApp):
             self.hardware_rnode_screen.ids.hardware_rnode_txpower.text          = str(config["t"])
             self.hardware_rnode_screen.ids.hardware_rnode_spreadingfactor.text  = str(config["s"])
             self.hardware_rnode_screen.ids.hardware_rnode_codingrate.text       = str(config["c"])
-            
+
             if "n" in config and config["n"] != None:
                 ifn = str(config["n"])
             else:
@@ -4047,9 +4047,9 @@ class SidebandApp(MDApp):
                 dialog.dismiss()
             yes_button.bind(on_release=dl_yes)
             dialog.open()
-    
+
     ## Modem hardware screen
-    
+
     def hardware_modem_action(self, sender=None, direction="left"):
         if self.hardware_modem_ready:
             self.hardware_modem_open(direction=direction)
@@ -4109,22 +4109,22 @@ class SidebandApp(MDApp):
                 t_p = str(self.sideband.config["hw_modem_parity"])
             else:
                 t_p = ""
-            
+
             if self.sideband.config["hw_modem_stopbits"] != None:
                 t_sb = str(self.sideband.config["hw_modem_stopbits"])
             else:
                 t_sb = ""
-            
+
             if self.sideband.config["hw_modem_preamble"] != None:
                 t_pa = str(self.sideband.config["hw_modem_preamble"])
             else:
                 t_pa = ""
-            
+
             if self.sideband.config["hw_modem_tail"] != None:
                 t_t = str(self.sideband.config["hw_modem_tail"])
             else:
                 t_t = ""
-            
+
             if self.sideband.config["hw_modem_persistence"] != None:
                 t_ps = str(self.sideband.config["hw_modem_persistence"])
             else:
@@ -4143,7 +4143,7 @@ class SidebandApp(MDApp):
                 t_bd = str(self.sideband.config["hw_modem_beacondata"])
             else:
                 t_bd = ""
-            
+
             self.hardware_modem_screen.ids.hardware_modem_baudrate.text = t_b
             self.hardware_modem_screen.ids.hardware_modem_databits.text = t_db
             self.hardware_modem_screen.ids.hardware_modem_parity.text = t_p
@@ -4176,7 +4176,7 @@ class SidebandApp(MDApp):
             self.hardware_modem_screen.ids.hardware_modem_slottime.bind(on_text_validate=save_connectivity)
 
             self.hardware_modem_ready = True
-    
+
     def hardware_modem_save(self):
         self.sideband.config["hw_modem_baudrate"] = int(self.hardware_modem_screen.ids.hardware_modem_baudrate.text)
         self.sideband.config["hw_modem_databits"] = int(self.hardware_modem_screen.ids.hardware_modem_databits.text)
@@ -4200,7 +4200,7 @@ class SidebandApp(MDApp):
         self.sideband.save_configuration()
 
     def hardware_modem_validate(self, sender=None):
-        valid = True        
+        valid = True
         try:
             val = int(self.hardware_modem_screen.ids.hardware_modem_baudrate.text)
             if not val > 0:
@@ -4210,7 +4210,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_modem_screen.ids.hardware_modem_baudrate.error = True
             valid = False
-        
+
         try:
             val = int(self.hardware_modem_screen.ids.hardware_modem_databits.text)
             if not val > 0:
@@ -4220,7 +4220,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_modem_screen.ids.hardware_modem_databits.error = True
             valid = False
-        
+
         try:
             val = int(self.hardware_modem_screen.ids.hardware_modem_stopbits.text)
             if not val > 0:
@@ -4230,7 +4230,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_modem_screen.ids.hardware_modem_stopbits.error = True
             valid = False
-        
+
         try:
             val = int(self.hardware_modem_screen.ids.hardware_modem_preamble.text)
             if not (val >= 0 and val <= 1000):
@@ -4240,7 +4240,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_modem_screen.ids.hardware_modem_preamble.error = True
             valid = False
-        
+
         try:
             val = int(self.hardware_modem_screen.ids.hardware_modem_tail.text)
             if not (val > 0 and val <= 500):
@@ -4250,7 +4250,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_modem_screen.ids.hardware_modem_tail.error = True
             valid = False
-        
+
         try:
             val = int(self.hardware_modem_screen.ids.hardware_modem_slottime.text)
             if not (val > 0 and val <= 500):
@@ -4260,7 +4260,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_modem_screen.ids.hardware_modem_slottime.error = True
             valid = False
-        
+
         try:
             val = int(self.hardware_modem_screen.ids.hardware_modem_persistence.text)
             if not (val > 0 and val <= 255):
@@ -4270,7 +4270,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_modem_screen.ids.hardware_modem_persistence.error = True
             valid = False
-        
+
         try:
             val = self.hardware_modem_screen.ids.hardware_modem_parity.text
             nval = val.lower()
@@ -4301,7 +4301,7 @@ class SidebandApp(MDApp):
             valid = False
 
         return valid
-    
+
     ## Serial hardware screen
     def hardware_serial_action(self, sender=None, direction="left"):
         if self.hardware_serial_ready:
@@ -4361,12 +4361,12 @@ class SidebandApp(MDApp):
                 t_p = str(self.sideband.config["hw_serial_parity"])
             else:
                 t_p = ""
-            
+
             if self.sideband.config["hw_serial_stopbits"] != None:
                 t_sb = str(self.sideband.config["hw_serial_stopbits"])
             else:
                 t_sb = ""
-            
+
             self.hardware_serial_screen.ids.hardware_serial_baudrate.text = t_b
             self.hardware_serial_screen.ids.hardware_serial_databits.text = t_db
             self.hardware_serial_screen.ids.hardware_serial_parity.text = t_p
@@ -4383,7 +4383,7 @@ class SidebandApp(MDApp):
             self.hardware_serial_ready = True
 
     def hardware_serial_validate(self, sender=None):
-        valid = True        
+        valid = True
         try:
             val = int(self.hardware_serial_screen.ids.hardware_serial_baudrate.text)
             if not val > 0:
@@ -4393,7 +4393,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_serial_screen.ids.hardware_serial_baudrate.error = True
             valid = False
-        
+
         try:
             val = int(self.hardware_serial_screen.ids.hardware_serial_databits.text)
             if not val > 0:
@@ -4403,7 +4403,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_serial_screen.ids.hardware_serial_databits.error = True
             valid = False
-        
+
         try:
             val = int(self.hardware_serial_screen.ids.hardware_serial_stopbits.text)
             if not val > 0:
@@ -4413,7 +4413,7 @@ class SidebandApp(MDApp):
         except:
             self.hardware_serial_screen.ids.hardware_serial_stopbits.error = True
             valid = False
-        
+
         try:
             val = self.hardware_serial_screen.ids.hardware_serial_parity.text
             nval = val.lower()
@@ -4476,7 +4476,7 @@ class SidebandApp(MDApp):
             self.root.ids.screen_manager.transition.direction = direction
 
         self.root.ids.nav_drawer.set_state("closed")
-        
+
         if self.sideband.getstate("app.flags.new_announces"):
             self.announces_view.update()
 
@@ -4500,7 +4500,7 @@ class SidebandApp(MDApp):
 
     ### Keys screen
     ######################################
-    
+
     def keys_action(self, sender=None, direction="left"):
         if self.root.ids.screen_manager.has_screen("keys_screen"):
             self.keys_open(direction=direction)
@@ -4556,7 +4556,7 @@ class SidebandApp(MDApp):
         )
         def dl_yes(s):
             dialog.dismiss()
-        
+
         yes_button.bind(on_release=dl_yes)
         dialog.open()
 
@@ -4576,7 +4576,7 @@ class SidebandApp(MDApp):
 
             Clipboard.copy(str(base64.b32encode(self.sideband.identity.get_private_key()).decode("utf-8")))
             dialog.open()
-        
+
         c_yes_button.bind(on_release=c_dl_yes)
         c_no_button.bind(on_release=c_dl_no)
 
@@ -4595,7 +4595,7 @@ class SidebandApp(MDApp):
         def c_dl_yes(s):
             c_dialog.dismiss()
             b32_text = self.keys_screen.ids.key_restore_text.text
-        
+
             try:
                 key_bytes = base64.b32decode(b32_text)
                 new_id = RNS.Identity.from_bytes(key_bytes)
@@ -4618,8 +4618,8 @@ class SidebandApp(MDApp):
                     dialog.dismiss()
                 yes_button.bind(on_release=dl_yes)
                 dialog.open()
-            
-        
+
+
         c_yes_button.bind(on_release=c_dl_yes)
         c_no_button.bind(on_release=c_dl_no)
 
@@ -4627,7 +4627,7 @@ class SidebandApp(MDApp):
 
     ### Plugins & Services screen
     ######################################
-    
+
     def plugins_action(self, sender=None, direction="left"):
         if self.root.ids.screen_manager.has_screen("plugins_screen"):
             self.plugins_open(direction=direction)
@@ -4695,7 +4695,7 @@ class SidebandApp(MDApp):
             if os.path.isdir(path):
                 self.sideband.config["command_plugins_path"] = path
                 self.sideband.save_configuration()
-                
+
                 if RNS.vendor.platformutils.is_android():
                     toast(f"Using \"{path)}\" as plugin directory")
                 else:
@@ -4707,7 +4707,7 @@ class SidebandApp(MDApp):
                     )
                     ok_button.bind(on_release=ate_dialog.dismiss)
                     ate_dialog.open()
-        
+
         except Exception as e:
             RNS.log(f"Error while setting plugins directory to \"{path}\": {e)}", RNS.LOG_ERROR)
             if RNS.vendor.platformutils.get_platform() == "android":
@@ -4730,7 +4730,7 @@ class SidebandApp(MDApp):
         perm_ok = False
         if self.sideband.config["command_plugins_path"] == None:
             if RNS.vendor.platformutils.is_android():
-                perm_ok = self.check_storage_permission()    
+                perm_ok = self.check_storage_permission()
                 path = primary_external_storage_path()
 
             else:
@@ -4747,13 +4747,13 @@ class SidebandApp(MDApp):
                     exit_manager=self.plugins_fm_exited,
                     select_path=self.plugins_fm_got_path,
                 )
-                
+
                 self.file_manager.show(path)
 
             except Exception as e:
                 self.sideband.config["command_plugins_path"] = None
                 self.sideband.save_configuration()
-                
+
                 if RNS.vendor.platformutils.is_android():
                     toast("Error reading directory, check permissions!")
                 else:
@@ -4765,7 +4765,7 @@ class SidebandApp(MDApp):
                     )
                     ok_button.bind(on_release=ate_dialog.dismiss)
                     ate_dialog.open()
-        
+
         else:
             self.sideband.config["command_plugins_path"] = None
             self.sideband.save_configuration()
@@ -4789,7 +4789,7 @@ class SidebandApp(MDApp):
         if not self.telemetry_ready:
             self.telemetry_screen = Telemetry(self)
             self.telemetry_ready = True
-    
+
     def telemetry_open(self, sender=None, direction="left", no_transition=False):
         if no_transition:
             self.root.ids.screen_manager.transition = self.no_transition
@@ -4830,7 +4830,7 @@ class SidebandApp(MDApp):
                     self.sideband.setstate("app.flags.new_conversations", True)
 
                 self.open_conversation(context_dest)
-    
+
     def telemetry_send_update(self, sender=None):
         if not hasattr(self, "telemetry_info_dialog") or self.telemetry_info_dialog == None:
             ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
@@ -4976,7 +4976,7 @@ class SidebandApp(MDApp):
                 if self.sideband.config["map_storage_external"]:
                     path = secondary_external_storage_path()
                     if path == None: path = primary_external_storage_path()
-                else: 
+                else:
                     path = primary_external_storage_path()
 
             else:
@@ -5012,7 +5012,7 @@ class SidebandApp(MDApp):
                     )
                     ok_button.bind(on_release=ate_dialog.dismiss)
                     ate_dialog.open()
-        
+
         else:
             self.sideband.config["map_storage_path"] = None
             self.sideband.save_configuration()
@@ -5039,7 +5039,7 @@ class SidebandApp(MDApp):
                 source = MBTilesMapSource(current_map_path, cache_dir=self.map_cache)
                 self.offline_source = source
                 return self.offline_source
-            
+
             except Exception as e:
                 RNS.log(f"Error while loading map from \"{current_map_path}\": {e)}")
                 self.sideband.config["map_storage_file"] = None
@@ -5054,7 +5054,7 @@ class SidebandApp(MDApp):
         source = None
         if self.sideband.config["map_use_offline"]:
             source = self.map_get_offline_source()
-        
+
         if source == None:
             source = MapSource.from_provider("osm", cache_dir=self.map_cache, quad_key=False)
 
@@ -5063,13 +5063,13 @@ class SidebandApp(MDApp):
     def map_update_source(self, source=None):
         ns = source or self.map_get_source()
         if self.map != None:
-            
+
             if source != None:
                 maxz = source.max_zoom
                 minz = source.min_zoom
                 if self.map.zoom > maxz:
                     mz = maxz; px, py = self.map_get_zoom_center(); self.map.set_zoom_at(mz, px, py)
-                
+
                 if self.map.zoom < minz:
                     mz = minz; px, py = self.map_get_zoom_center(); self.map.set_zoom_at(mz, px, py)
 
@@ -5156,7 +5156,7 @@ class SidebandApp(MDApp):
 
     def map_get_zoom_center(self):
         bb = self.map.get_bbox()
-        slat = (bb[2]-bb[0])/2; slon = (bb[3]-bb[1])/2            
+        slat = (bb[2]-bb[0])/2; slon = (bb[3]-bb[1])/2
         zlat = bb[0]+slat; zlon = bb[1]+slon
         return self.map.get_window_xy_from(zlat, zlon, self.map.zoom)
 
@@ -5515,7 +5515,7 @@ class SidebandApp(MDApp):
         try:
             if own_telemetry != None and "location" in own_telemetry and own_telemetry["location"] != None and own_telemetry["location"]["latitude"] != None and own_telemetry["location"]["longitude"] != None:
                 retain_own = True
-                
+
                 if not own_address in self.map_markers:
                     marker = self.map_create_marker(own_address, own_telemetry, own_appearance)
                     if marker != None:
@@ -5554,7 +5554,7 @@ class SidebandApp(MDApp):
                     changes = True
                 except Exception as e:
                     RNS.log(f"Error while removing map marker: {e)}", RNS.LOG_ERROR)
-        
+
         except Exception as e:
             RNS.log(f"Error while updating own map marker: {e)}", RNS.LOG_ERROR)
 
@@ -5657,13 +5657,13 @@ This short guide will give you a basic introduction to the concepts that underpi
 [size=18dp][b]Communication Without Subjection[/b][/size][size=5dp]\n \n[/size]Sideband is completely free, permission-less, anonymous and infrastructure-less. Sideband uses the peer-to-peer and distributed messaging system LXMF. There is no sign-up, no service providers, no "end-user license agreements", no data theft and no surveillance. You own the system.
 
 This also means that Sideband operates differently than what you might be used to. It does not need a connection to a server on the Internet to function, and you do not have an account anywhere."""
-            
+
             guide_text3 = """
 [size=18dp][b]Operating Principles[/b][/size][size=5dp]\n \n[/size]When Sideband is started on your device for the first time, it randomly generates a 512-bit Reticulum Identity Key. This cryptographic key is then used to create an LXMF address for your use, and in turn to secure any communication to your address. Any other endpoint in [i]any[/i] Reticulum network will be able to send data to your address, as long as there is [i]some sort of physical connection[/i] between your device and the remote endpoint. You can also move around to other Reticulum networks with this address, even ones that were never connected to the network the address was created on, or that didn't exist when the address was created.\n\nYour LXMF address is yours to keep and control for as long (or short) a time you need it, and you can always delete it and create a new one. You identity keys and corresponding addresses are never registered on or controlled by any external servers or services, and will never leave your device, unless you manually export them for backup."""
-            
+
             guide_text10 = """
 [size=18dp][b]Getting Connected[/b][/size][size=5dp]\n \n[/size]If you already have Reticulum connectivity set up on the device you are running Sideband on, no further configuration should be necessary, and Sideband will simply use the available Reticulum connectivity.\n\nIf you are running Sideband on a computer, you can configure interfaces in the Reticulum configuration file ([b]~/.reticulum/config[/b] by default). If you are running Sideband on an Android device, you can configure various interface types in the [b]Connectivity[/b] section. By default, only an [i]AutoInterface[/i] is enabled, which will connect you automatically with any other local devices on the same WiFi and/or Ethernet networks. This may or may not include Reticulum Transport Nodes, which can route your traffic to wider networks.\n\nYou can enable any or all of the other available interface types to gain wider connectivity. For more specific information on interface types, configuration options, and how to effectively build your own Reticulum networks, see the [b]Reticulum Manual[b]."""
-        
+
             guide_text4 = """
 [size=18dp][b]Becoming Reachable[/b][/size][size=5dp]\n \n[/size]To establish reachability for any Reticulum destination on a network, an [i]announce[/i] must be sent. By default, Sideband will announce automatically when necessary, but if you want to stay silent, automatic announces can be disabled in [b]Preferences[/b].\n\nTo send an announce manually, press the [i]Announce[/i] button in the [i]Conversations[/i] section of the program. When you send an announce, you make your LXMF address reachable for real-time messaging to the entire network you are connected to. Even in very large networks, you can expect global reachability for your address to be established in under a minute.
 
@@ -5681,7 +5681,7 @@ The Propagation Nodes also distribute copies of messages between each other, suc
 [size=18dp][b]Be Yourself, Be Unknown, Stay Free[/b][/size][size=5dp]\n \n[/size]Even with the above characteristics in mind, you [b]must remember[/b] that LXMF and Reticulum is not a technology that can guarantee anonymising connections that are already de-anonymised! If you use Sideband to connect to TCP Reticulum hubs over the clear Internet, from a network that can be tied to your personal identity, an adversary may learn that you are generating LXMF traffic.\n\nIf you want to avoid this, it is recommended to use I2P to connect to Reticulum hubs on the Internet. Or only connecting from within pure Reticulum networks, that take one or more hops to reach connections that span the Internet. This is a complex topic, with many more nuances than can be covered here. You are encouraged to ask on the various Reticulum discussion forums if you are in doubt.
 
 If you use Reticulum and LXMF on hardware that does not carry any identifiers tied to you, it is possible to establish a completely free and identification-less communication system with Reticulum and LXMF clients."""
-        
+
             guide_text8 = """
 [size=18dp][b]Keyboard Shortcuts[/b][/size][size=5dp]\n \n[/size]To ease navigation and operation of the program, Sideband has keyboard shortcuts mapped to the most common actions. A reference is included below.
 
@@ -5690,7 +5690,7 @@ If you use Reticulum and LXMF on hardware that does not carry any identifiers ti
  - [b]Ctrl+Q[/b] Shut down Sideband
  - [b]Ctrl-R[/b] Start LXMF sync (from Conversations screen)
  - [b]Ctrl-N[/b] Create new conversation
- 
+
  [b]Message Actions[/b]
  - [b]Ctrl-Shift-A[/b] add message attachment
  - [b]Ctrl-Shift-V[/b] add high-quality voice

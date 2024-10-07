@@ -37,7 +37,7 @@ class AndroidAudio(Audio):
             time.sleep(0.25)
 
         self.is_playing = False
-        
+
         if self._finished_callback and callable(self._finished_callback):
             self._check_thread = None
             self._finished_callback(self)

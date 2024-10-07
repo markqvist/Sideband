@@ -115,7 +115,7 @@ class ObjectDetails():
 
             yes_button.bind(on_release=dl_yes)
             no_button.bind(on_release=dl_no)
-        
+
         self.delete_dialog.open()
 
     def reload_telemetry(self, sender=None, notoast=False):
@@ -195,7 +195,7 @@ class ObjectDetails():
                     def job(dt):
                         self.screen.ids.coordinates_button.disabled = False
                     Clock.schedule_once(job, 0.01)
-                    
+
                 self.telemetry_list.update_source(rendered_telemetry)
                 def job(dt):
                     self.screen.ids.telemetry_button.disabled = False
@@ -239,7 +239,7 @@ class ObjectDetails():
             else:
                 title_str = "Unknown Status"
                 info_str  = "The status of the telemetry update is unknown."
-            
+
             self.info_dialog.title = title_str
             self.info_dialog.text  = info_str
             self.info_dialog.open()
@@ -263,7 +263,7 @@ class ObjectDetails():
             else:
                 title_str = "Unknown Status"
                 info_str  = "The status of the telemetry request is unknown."
-            
+
             self.info_dialog.title = title_str
             self.info_dialog.text  = info_str
             self.info_dialog.open()
@@ -273,7 +273,7 @@ class ObjectDetails():
 
     def update(self):
         us = time.time()
-        self.update_widget()        
+        self.update_widget()
         RNS.log(f"Updated object details in {RNS.prettytime(time.time() - us)}", RNS.LOG_DEBUG)
 
     def update_widget(self):
@@ -303,7 +303,7 @@ class RVDetails(MDRecycleView):
         try:
             if not rendered_telemetry:
                 rendered_telemetry = []
-            
+
             sort = {
                 "Information": 5,
                 "Physical Link": 10,
@@ -329,7 +329,7 @@ class RVDetails(MDRecycleView):
                 "Timestamp": 190,
                 "Received": 200,
             }
-            
+
             def pass_job(sender=None):
                 pass
 
@@ -341,7 +341,7 @@ class RVDetails(MDRecycleView):
                     release_function = pass_job
                     formatted_values = None
                     name = s["name"]
-                    
+
                     if name == "Timestamp":
                         ts = s["values"]["UTC"]
                         if ts != None:
@@ -351,7 +351,7 @@ class RVDetails(MDRecycleView):
                                 Clipboard.copy(ts_str)
                                 toast("Copied to clipboard")
                             release_function = copy_info
-                    
+
                     elif name == "Information":
                         info = s["values"]["contents"]
                         if info != None:
@@ -362,7 +362,7 @@ class RVDetails(MDRecycleView):
                             release_function = copy_info
                             external_text = multilingual_markup(escape_markup(istr).encode("utf-8")).decode("utf-8")
                             formatted_values = f"[b]Information[/b]: {external_text}"
-                    
+
                     elif name == "Received":
                         formatted_values = ""
                         by = s["values"]["by"];
@@ -380,14 +380,14 @@ class RVDetails(MDRecycleView):
                             if via != None and via == by:
                                 vstr = self.app.sideband.peer_display_name(via)
                                 formatted_values = f"Received from, and collected by [b]{vstr}[/b]"
-                            
+
                             else:
                                 if via != None:
                                     vstr = self.app.sideband.peer_display_name(via)
                                     via_str = f"Received from [b]{vstr}[/b]"
                                 else:
                                     via_str = "Received from an [b]unknown peer[/b]"
-                                
+
                                 if by != None:
                                     dstr = self.app.sideband.peer_display_name(by)
                                     by_str = f", collected by [b]{dstr}[/b]"
@@ -401,7 +401,7 @@ class RVDetails(MDRecycleView):
 
                         if not by == self.app.sideband.lxmf_destination.hash and not self.app.sideband.is_trusted(by):
                             extra_entries.append({"icon": "alert", "text": "Collected by a [b]non-trusted[/b] peer"})
-                        
+
                     elif name == "Battery":
                         p = s["values"]["percent"]
                         cs = s["values"]["_meta"]
@@ -415,7 +415,7 @@ class RVDetails(MDRecycleView):
                                 cs_str = f" ({cs})"
 
                         if p != None: formatted_values = f"{name} [b]{p}%[/b]{cs_str}"
-                    
+
                     elif name == "Ambient Pressure":
                         p = s["values"]["mbar"]
                         if p != None: formatted_values = f"{name} [b]{p} mbar[/b]"
@@ -423,7 +423,7 @@ class RVDetails(MDRecycleView):
                         if "deltas" in s and dt in s["deltas"] and s["deltas"][dt] != None:
                             d = s["deltas"][dt]
                             formatted_values += f"  (Δ = {d} mbar)"
-                    
+
                     elif name == "Ambient Temperature":
                         c = s["values"]["c"]
                         if c != None: formatted_values = f"{name} [b]{c}° C[/b]"
@@ -431,7 +431,7 @@ class RVDetails(MDRecycleView):
                         if "deltas" in s and dt in s["deltas"] and s["deltas"][dt] != None:
                             d = s["deltas"][dt]
                             formatted_values += f"  (Δ = {d}° C)"
-                    
+
                     elif name == "Relative Humidity":
                         r = s["values"]["percent"]
                         if r != None: formatted_values = f"{name} [b]{r}%[/b]"
@@ -439,7 +439,7 @@ class RVDetails(MDRecycleView):
                         if "deltas" in s and dt in s["deltas"] and s["deltas"][dt] != None:
                             d = s["deltas"][dt]
                             formatted_values += f"  (Δ = {d}%)"
-                    
+
                     elif name == "Physical Link":
                         rssi = s["values"]["rssi"]; rssi_str = None
                         snr = s["values"]["snr"]; snr_str = None
@@ -453,7 +453,7 @@ class RVDetails(MDRecycleView):
                             if q != None or rssi != None: snr_str = f", {snr_str}"
                         if q_str or rssi_str or snr_str:
                             formatted_values = q_str+rssi_str+snr_str
-                    
+
                     elif name == "Power Consumption":
                         cs = s["values"]
                         if cs != None:
@@ -664,13 +664,13 @@ class RVDetails(MDRecycleView):
                                 if od != None:
                                     od_text = f"Geodesic distance [b]{RNS.prettydistance(od)}[/b]"
                                     extra_entries.append({"icon": "earth", "text": od_text})
-                            
+
                             if "euclidian" in s["distance"]:
                                 ed = s["distance"]["euclidian"]
                                 if ed != None:
                                     ed_text = f"Euclidian distance [b]{RNS.prettydistance(ed)}[/b]"
                                     extra_entries.append({"icon": "axis-arrow", "text": ed_text})
-                            
+
                             if "vertical" in s["distance"]:
                                 vd = s["distance"]["vertical"]
                                 if vd != None:
@@ -710,7 +710,7 @@ class RVDetails(MDRecycleView):
                                 az = s["azalt"]["azimuth"]
                                 az_text = f"Azimuth [b]{round(az,3)}°[/b]"
                                 azalt_formatted_text += az_text
-                            
+
                             if "altitude" in s["azalt"]:
                                 al = s["azalt"]["altitude"]
                                 al_text = f"altitude [b]{round(al,3)}°[/b]"
@@ -740,7 +740,7 @@ class RVDetails(MDRecycleView):
                                 rh_icon = "set-none"
                             else:
                                 rh_formatted_text = f"[b]Outside[/b] shared radio horizon of [b]{crange_text}[/b]"
-                            
+
                             extra_entries.append({"icon": rh_icon, "text": rh_formatted_text})
 
                         def select(e=None):
@@ -763,7 +763,7 @@ class RVDetails(MDRecycleView):
 
                             formatted_values += ", "
                         formatted_values = formatted_values[:-2]
-                    
+
                     data = None
                     if formatted_values != None:
                         if release_function:
@@ -775,7 +775,7 @@ class RVDetails(MDRecycleView):
                         self.entries.append(data)
                     for extra in extra_entries:
                         self.entries.append(extra)
-                
+
                 except Exception as e:
                     RNS.log("An error ocurred while displaying telemetry for object", RNS.LOG_ERROR)
                     RNS.log(f"The contained exception was: {e)}", RNS.LOG_ERROR)
@@ -860,7 +860,7 @@ layout_object_details = """
 
 MDScreen:
     name: "object_details_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -930,7 +930,7 @@ MDScreen:
                 size_hint: [1.0, None]
                 on_release: root.delegate.copy_coordinates(self)
                 disabled: False
-                
+
         MDSeparator:
             orientation: "horizontal"
             height: dp(1)
@@ -938,7 +938,7 @@ MDScreen:
         MDBoxLayout:
             orientation: "vertical"
             id: object_details_container
-                
+
         MDSeparator:
             orientation: "horizontal"
             height: dp(1)
@@ -989,5 +989,5 @@ MDScreen:
         #         size_hint: [1.0, None]
         #         on_release: root.delegate.copy_telemetry(self)
         #         disabled: False
-                
+
 """

@@ -294,18 +294,18 @@ Example of filtering
                     orientation: "vertical"
         '''
     )
-    
-    
+
+
     class CustomOneLineIconListItem(OneLineIconListItem):
         icon = StringProperty()
-    
-    
+
+
     class PreviewIconsScreen(MDScreen):
         filter = ListProperty()  # list of tags for filtering icons
-    
+
         def set_filter_chips(self):
             '''Asynchronously creates and adds chips to the container.'''
-    
+
             async def set_filter_chips():
                 for tag in ["Outline", "Off", "On"]:
                     await asynckivy.sleep(0)
@@ -318,7 +318,7 @@ Example of filtering
                     )
                     chip.bind(active=lambda x, y, z=tag: self.set_filter(y, z))
                     self.ids.chip_box.add_widget(chip)
-    
+
             asynckivy.start(set_filter_chips())
 
         def set_filter(self, active: bool, tag: str) -> None:

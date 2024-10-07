@@ -7,7 +7,7 @@ class VorbisFileStream:
     def __init__(self, path, buffer_size=8192):
         self.exists = False
         self._buffer_size = buffer_size
-        
+
         self.vf = vorbis.OggVorbis_File()
         error = vorbis.ov_fopen(path, ctypes.byref(self.vf))
         if error != 0:

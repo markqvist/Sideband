@@ -104,7 +104,7 @@ class Messages():
     def message_details_dialog(self, lxm_hash):
         ss = int(dp(16))
         ms = int(dp(14))
-        
+
         msg = self.app.sideband.message(lxm_hash)
         if msg:
             close_button = MDRectangleFlatButton(text="Close", font_size=dp(18))
@@ -144,7 +144,7 @@ class Messages():
                     d_text += f"[size={ss}][b]Encrypted[/b] with destination identity key[/size]\n"
                 else:
                     d_text += f"[size={ss}][b]Encryption[/b] status unknown[/size]\n"
-            
+
             if msg["extras"] != None and "stamp_checked" in msg["extras"]:
                 valid_str = " is not valid"
                 if msg["extras"]["stamp_valid"] == True:
@@ -294,7 +294,7 @@ class Messages():
                                 sphrase = "Link established"
                             elif prg >= 0.05:
                                 sphrase = "Sending"
-                            
+
                         if msg["title"]:
                             titlestr = f"[b]Title[/b] {msg['title'].decode('utf-8')}\n"
                         w.heading = f"{titlestr}[b]Sent[/b] {txstr}\n[b]State[/b] {sphrase}{prgstr}                          "
@@ -481,7 +481,7 @@ class Messages():
                             pass
 
                 rcvd_d_str = ""
-                
+
                 trcvd = telemeter.read("received") if telemeter else None
                 if trcvd and "distance" in trcvd:
                     d = trcvd["distance"]
@@ -725,7 +725,7 @@ class Messages():
                             image_field = item.image_field
                             extension = str(image_field[0]).replace(".", "")
                             filename = f"{time.strftime('LXM_%Y_%m_%d_%H_%M_%S', time.localtime(time.time()))}.{extension)}"
-                            
+
                             self.app.share_image(image_field[1], filename)
                             item.dmenu.dismiss()
                         return x
@@ -755,7 +755,7 @@ class Messages():
                                 )
                                 def dl_ok(s):
                                     dialog.dismiss()
-                                
+
                                 ok_button.bind(on_release=dl_ok)
                                 dialog.open()
 
@@ -770,7 +770,7 @@ class Messages():
                                 )
                                 def dl_ok(s):
                                     dialog.dismiss()
-                                
+
                                 ok_button.bind(on_release=dl_ok)
                                 dialog.open()
 
@@ -824,7 +824,7 @@ class Messages():
                                 )
                                 def dl_ok(s):
                                     dialog.dismiss()
-                                
+
                                 ok_button.bind(on_release=dl_ok)
                                 dialog.open()
 
@@ -839,7 +839,7 @@ class Messages():
                                 )
                                 def dl_ok(s):
                                     dialog.dismiss()
-                                
+
                                 ok_button.bind(on_release=dl_ok)
                                 dialog.open()
 
@@ -858,7 +858,7 @@ class Messages():
                                 if "snr" in physical_link: telemeter.sensors["physical_link"].snr = physical_link["snr"]
                                 if "quality" in physical_link: telemeter.sensors["physical_link"].q = physical_link["quality"]
                                 telemeter.sensors["physical_link"].update_data()
-                            
+
                             tlm = telemeter.read_all()
                             Clipboard.copy(str(tlm))
                             item.dmenu.dismiss()
@@ -909,7 +909,7 @@ class Messages():
                                 )
                                 def dl_ok(s):
                                     dialog.dismiss()
-                                
+
                                 ok_button.bind(on_release=dl_ok)
                                 dialog.open()
 
@@ -924,7 +924,7 @@ class Messages():
                                 )
                                 def dl_ok(s):
                                     dialog.dismiss()
-                                
+
                                 ok_button.bind(on_release=dl_ok)
                                 dialog.open()
 
@@ -935,7 +935,7 @@ class Messages():
                         def x():
                             item.dmenu.dismiss()
                         return x
-                    
+
                     else:
                         def x():
                             try:
@@ -961,7 +961,7 @@ class Messages():
                                 )
                                 def dl_ok(s):
                                     dialog.dismiss()
-                                
+
                                 ok_button.bind(on_release=dl_ok)
                                 dialog.open()
 
@@ -1166,7 +1166,7 @@ class Messages():
 messages_screen_kv = """
 MDScreen:
     name: "messages_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 
@@ -1227,7 +1227,7 @@ MDScreen:
                 on_release: root.app.message_ptt_up_action(self)
                 _no_ripple_effect: True
                 background_normal: ""
-                background_down: ""            
+                background_down: ""
 
         BoxLayout:
             id: message_input_part

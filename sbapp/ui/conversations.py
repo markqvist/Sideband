@@ -51,7 +51,7 @@ class Conversations():
             self.screen.app = self.app
             self.ids = self.screen.ids
             self.app.root.ids.screen_manager.add_widget(self.screen)
-        
+
         self.conversation_dropdown = None
         self.delete_dialog = None
         self.clear_dialog = None
@@ -73,9 +73,9 @@ class Conversations():
     def update(self):
         # if self.app.sideband.getstate("app.flags.unread_conversations"):
         #     self.clear_list()
-        
+
         self.context_dests = self.app.sideband.list_conversations(conversations=self.app.include_conversations, objects=self.app.include_objects)
-        
+
         view_title = "Conversations"
         if self.app.include_conversations:
             if self.app.include_objects:
@@ -104,7 +104,7 @@ class Conversations():
                 trust_icon = "email"
             else:
                 trust_icon = appearance[0] or da[0];
-        
+
         else:
             if self.app.sideband.requests_allowed_from(context_dest):
                 if unread:
@@ -183,7 +183,7 @@ class Conversations():
         for w in remove_widgets:
             self.list.remove_widget(w)
 
-            
+
         for conv in self.context_dests:
             context_dest = conv["dest"]
             unread = conv["unread"]
@@ -447,7 +447,7 @@ class Conversations():
                 item.add_widget(item.iconr)
 
                 item.trusted = self.app.sideband.is_trusted(context_dest, conv_data=existing_conv)
-                
+
                 self.added_item_dests.append(context_dest)
                 self.list.add_widget(item)
 
@@ -487,7 +487,7 @@ class Conversations():
 conv_screen_kv = """
 MDScreen:
     name: "conversations_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 

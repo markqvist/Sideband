@@ -14,7 +14,7 @@ class OpusFileStream:
         An exception will be raised if the file cannot be opened
         correctly.
 
-        """ 
+        """
         error = ctypes.c_int()
 
         self.of = opus.op_open_file(ogg.to_char_p(path), ctypes.pointer(error))
