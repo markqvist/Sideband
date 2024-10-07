@@ -222,10 +222,7 @@ def main():
             iconsetDir.mkdir()
         except Exception as ex:
             raise SystemExit(
-                " ".join((
-                    "[ERROR] Could not create temporary",
-                    f"iconset folder: {iconsetDir}"
-                ))
+                f"[ERROR] Could not create temporary iconset folder: {iconsetDir}"
             )
     else:
         if False:  # cliArgs.delete_tmp_iconset:
@@ -303,10 +300,7 @@ def main():
         )
     else:
         print(
-            " ".join((
-                "[SUCCESS] An iconset was successfully",
-                f"generated to {resultingIconset}"
-            ))
+            f"[SUCCESS] An iconset was successfully generated to {resultingIconset}"
         )
         raise SystemExit(0)
 

@@ -224,7 +224,7 @@ class Conversations():
 
                             dialog = MDDialog(
                                 title="Edit Conversation",
-                                text= "With "+RNS.prettyhexrep(dest),
+                                text= f"With {RNS.prettyhexrep(dest)}",
                                 type="custom",
                                 content_cls=dialog_content,
                                 buttons=[ yes_button, no_button ],
@@ -269,7 +269,7 @@ class Conversations():
                                     self.app.sideband.named_conversation(name, dest)
 
                                 except Exception as e:
-                                    RNS.log("Error while saving conversation settings: "+str(e), RNS.LOG_ERROR)
+                                    RNS.log(f"Error while saving conversation settings: {e)}", RNS.LOG_ERROR)
 
                                 dialog.dismiss()
 
@@ -284,10 +284,10 @@ class Conversations():
                             no_button.bind(on_release=dl_no)
                             item.dmenu.dismiss()
                             dialog.open()
-                            RNS.log("Generated edit dialog in "+str(RNS.prettytime(time.time()-t_s)), RNS.LOG_DEBUG)
+                            RNS.log(f"Generated edit dialog in {RNS.prettytime(time.time() - t_s))}", RNS.LOG_DEBUG)
 
                         except Exception as e:
-                            RNS.log("Error while creating conversation settings: "+str(e), RNS.LOG_ERROR)
+                            RNS.log(f"Error while creating conversation settings: {e)}", RNS.LOG_ERROR)
 
                     return x
 
@@ -479,7 +479,7 @@ class Conversations():
 
         self.list.children.sort(key=lambda w: (w.trusted, w.last_activity))
 
-        RNS.log("Updated conversation list widgets in "+RNS.prettytime(time.time()-us), RNS.LOG_DEBUG)
+        RNS.log(f"Updated conversation list widgets in {RNS.prettytime(time.time() - us)}", RNS.LOG_DEBUG)
 
     def get_widget(self):
         return self.list

@@ -18,7 +18,7 @@ class MacOSMaps(Maps):
         '''
 
         address = quote_plus(address, safe=',')
-        maps_address = 'http://maps.apple.com/?address=' + address
+        maps_address = f"http://maps.apple.com/?address={address}"
 
         process = Popen(
             ['open', '-a', 'Maps', maps_address],
@@ -34,8 +34,7 @@ class MacOSMaps(Maps):
         '''
 
         name = kwargs.get("name", "Selected Location")
-        maps_address = 'http://maps.apple.com/?ll={},{}&q={}'.format(
-            latitude, longitude, name)
+        maps_address = f'http://maps.apple.com/?ll={latitude},{longitude}&q={name}'
 
         process = Popen(
             ['open', '-a', 'Maps', maps_address],
@@ -57,10 +56,10 @@ class MacOSMaps(Maps):
         longitude = kwargs.get('longitude')
 
         query = quote_plus(query, safe=',')
-        maps_address = 'http://maps.apple.com/?q=' + query
+        maps_address = f"http://maps.apple.com/?q={query}"
 
         if latitude is not None and longitude is not None:
-            maps_address += '&sll={},{}'.format(latitude, longitude)
+            maps_address += f'&sll={latitude},{longitude}'
 
         process = Popen(
             ['open', '-a', 'Maps', maps_address],
@@ -75,8 +74,7 @@ class MacOSMaps(Maps):
         saddr = quote_plus(saddr, safe=',')
         daddr = quote_plus(daddr, safe=',')
 
-        maps_address = 'http://maps.apple.com/?saddr={}&daddr={}'.format(
-                                                            saddr, daddr)
+        maps_address = f'http://maps.apple.com/?saddr={saddr}&daddr={daddr}'
         process = Popen(
             ['open', '-a', 'Maps', maps_address],
             stdout=PIPE, stderr=PIPE)

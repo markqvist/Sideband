@@ -134,7 +134,7 @@ class SpeechListener(PythonJavaClass):
             msg = 'speech_timeout'
 
         if msg and self.error_callback:
-            self.error_callback('error:' + msg)
+            self.error_callback(f"error:{msg}")
 
     @java_method('(ILandroid/os/Bundle;)V')
     def onEvent(self, event_type, params):

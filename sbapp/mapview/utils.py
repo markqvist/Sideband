@@ -1,5 +1,3 @@
-# coding=utf-8
-
 __all__ = ["clamp", "haversine", "get_zoom_for_radius"]
 
 from math import asin, cos, pi, radians, sin, sqrt

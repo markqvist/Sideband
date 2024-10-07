@@ -131,7 +131,7 @@ class CameraSource(ViewSource):
                 self.frame_queue.put(frame)
 
         except Exception as e:
-            RNS.log("An error occurred while reading frames from the camera: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"An error occurred while reading frames from the camera: {e)}", RNS.LOG_ERROR)
 
         self.release_camera()
 
@@ -195,10 +195,10 @@ class StreamSource(ViewSource):
                     
                     self.frame_queue.put(frame)
 
-            RNS.log(str(self)+" idled", RNS.LOG_DEBUG)
+            RNS.log(f"{self)} idled", RNS.LOG_DEBUG)
 
         except Exception as e:
-            RNS.log("An error occurred while reading frames from the stream: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"An error occurred while reading frames from the stream: {e)}", RNS.LOG_ERROR)
 
         self.release_stream()
 
@@ -236,7 +236,7 @@ class FileSource(ViewSource):
                 self.source_data = image_file.read()
 
         except Exception as e:
-            RNS.log("Could not read image at \"{self.path}\": "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Could not read image at \"{self.path}\": {e)}", RNS.LOG_ERROR)
             self.source_data = None
 
 class ViewCommandPlugin(SidebandCommandPlugin):
@@ -292,7 +292,7 @@ class ViewCommandPlugin(SidebandCommandPlugin):
             else:
                 response = "Available Sources:\n"
                 for source in self.sources:
-                    response += "\n - "+str(source)
+                    response += f"\n - {source)}"
 
             self.message_response(response, requestor)
             return

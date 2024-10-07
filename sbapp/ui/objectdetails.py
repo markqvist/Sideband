@@ -155,9 +155,9 @@ class ObjectDetails():
             self.screen.ids.name_label.text = pds
 
             if source_dest == own_address:
-                self.screen.ids.name_label.text = pds+" (this device)"
+                self.screen.ids.name_label.text = f"{pds} (this device)"
             elif source_dest == self.app.sideband.config["telemetry_collector"]:
-                self.screen.ids.name_label.text = pds+" (collector)"
+                self.screen.ids.name_label.text = f"{pds} (collector)"
 
             self.screen.ids.coordinates_button.disabled = True
             self.screen.ids.object_appearance.icon = appearance[0]
@@ -211,7 +211,7 @@ class ObjectDetails():
         except Exception as e:
             import traceback
             exception_info = "".join(traceback.TracebackException.from_exception(e).format())
-            RNS.log(f"An {str(type(e))} occurred while updating service telemetry: {str(e)}", RNS.LOG_ERROR)
+            RNS.log(f"An {type(e))} occurred while updating service telemetry: {e)}", RNS.LOG_ERROR)
             RNS.log(exception_info, RNS.LOG_ERROR)
 
     def reload(self):
@@ -274,7 +274,7 @@ class ObjectDetails():
     def update(self):
         us = time.time()
         self.update_widget()        
-        RNS.log("Updated object details in "+RNS.prettytime(time.time()-us), RNS.LOG_DEBUG)
+        RNS.log(f"Updated object details in {RNS.prettytime(time.time() - us)}", RNS.LOG_DEBUG)
 
     def update_widget(self):
         if self.widget == None:
@@ -414,7 +414,7 @@ class RVDetails(MDRecycleView):
                             else:
                                 cs_str = f" ({cs})"
 
-                        if p != None: formatted_values = f"{name} [b]{p}%[/b]"+cs_str
+                        if p != None: formatted_values = f"{name} [b]{p}%[/b]{cs_str}"
                     
                     elif name == "Ambient Pressure":
                         p = s["values"]["mbar"]
@@ -447,10 +447,10 @@ class RVDetails(MDRecycleView):
                         if q != None: q_str = f"Link Quality [b]{q}%[/b]"
                         if rssi != None:
                             rssi_str = f"RSSI [b]{rssi} dBm[/b]"
-                            if q != None: rssi_str = ", "+rssi_str
+                            if q != None: rssi_str = f", {rssi_str}"
                         if snr != None:
                             snr_str = f"SNR [b]{snr} dB[/b]"
-                            if q != None or rssi != None: snr_str = ", "+snr_str
+                            if q != None or rssi != None: snr_str = f", {snr_str}"
                         if q_str or rssi_str or snr_str:
                             formatted_values = q_str+rssi_str+snr_str
                     
@@ -592,7 +592,7 @@ class RVDetails(MDRecycleView):
                                 pct   = round(load*100.0, 1)
 
                                 avgs_str  = f", averages are [b]{round(avgs[0],2)}[/b], [b]{round(avgs[1],2)}[/b], [b]{round(avgs[2],2)}[/b]" if avgs != None and len(avgs) == 3 else ""
-                                clock_str = " at [b]"+RNS.prettyfrequency(clock)+"[/b]" if clock != None else ""
+                                clock_str = f" at [b]{RNS.prettyfrequency(clock)}[/b]" if clock != None else ""
 
                                 e_text = f"Using [b]{pct}%[/b] of {label}{clock_str}{avgs_str}"
                                 e_text = f"{label} use is [b]{pct}%[/b]{clock_str}{avgs_str}"
@@ -650,7 +650,7 @@ class RVDetails(MDRecycleView):
                                 speed_formatted_values = f"Object is [b]stationary[/b]"
                         else:
                             speed_formatted_values = None
-                        extra_formatted_values = f"Uncertainty [b]{accuracy} meters[/b]"+updated_str
+                        extra_formatted_values = f"Uncertainty [b]{accuracy} meters[/b]{updated_str}"
 
                         data = {"icon": s["icon"], "text": f"{formatted_values}"}
 
@@ -778,7 +778,7 @@ class RVDetails(MDRecycleView):
                 
                 except Exception as e:
                     RNS.log("An error ocurred while displaying telemetry for object", RNS.LOG_ERROR)
-                    RNS.log("The contained exception was: "+str(e), RNS.LOG_ERROR)
+                    RNS.log(f"The contained exception was: {e)}", RNS.LOG_ERROR)
                     RNS.trace_exception(e)
 
             try:
@@ -816,7 +816,7 @@ class RVDetails(MDRecycleView):
                 if ticket_expires:
                     t_str = ", but have ticket"
                 if stamp_cost:
-                    self.entries.append({"icon": "postage-stamp", "text": f"Required stamp cost [b]{stamp_cost}[/b]"+t_str, "on_release": pass_job})
+                    self.entries.append({"icon": "postage-stamp", "text": f"Required stamp cost [b]{stamp_cost}[/b]{t_str}", "on_release": pass_job})
                 else:
                     self.entries.append({"icon": "postage-stamp", "text": f"No required stamp cost", "on_release": pass_job})
                 if ticket_expires:
@@ -834,7 +834,7 @@ class RVDetails(MDRecycleView):
         except Exception as e:
             import traceback
             exception_info = "".join(traceback.TracebackException.from_exception(e).format())
-            RNS.log(f"An {str(type(e))} occurred while updating service telemetry: {str(e)}", RNS.LOG_ERROR)
+            RNS.log(f"An {type(e))} occurred while updating service telemetry: {e)}", RNS.LOG_ERROR)
             RNS.log(exception_info, RNS.LOG_ERROR)
 
 

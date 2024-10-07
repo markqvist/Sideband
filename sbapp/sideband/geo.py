@@ -312,7 +312,7 @@ def altitude_to_aamsl(alt, lat, lon):
 # LGPLv3 License                                     #
 ######################################################
 
-class GeoidHeight(object):
+class GeoidHeight:
     c0 = 240
     c3 = (
         (  9, -18, -88,    0,  96,   90,   0,   0, -60, -20),

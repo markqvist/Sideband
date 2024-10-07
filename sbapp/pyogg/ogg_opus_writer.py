@@ -107,8 +107,7 @@ class OggOpusWriter():
         # Check that the stream hasn't already been finished
         if self._finished:
             raise PyOggError(
-                "Stream has already ended.  Perhaps close() was "+
-                "called too early?")
+                f"Stream has already ended.  Perhaps close() was called too early?")
 
         # If we haven't already written out the headers, do so
         # now.  Then, write a frame of silence to warm up the

@@ -278,7 +278,7 @@ class Messages():
                         sphrase = "Sending"
                         prg = self.app.sideband.get_lxm_progress(msg["hash"])
                         if prg != None:
-                            prgstr = ", "+str(round(prg*100, 1))+"% done"
+                            prgstr = f", {round(prg * 100, 1))}% done"
                             if prg <= 0.00:
                                 stamp_cost = self.app.sideband.get_lxm_stamp_cost(msg["hash"])
                                 if stamp_cost:
@@ -296,8 +296,8 @@ class Messages():
                                 sphrase = "Sending"
                             
                         if msg["title"]:
-                            titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                        w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] "+sphrase+prgstr+"                          "
+                            titlestr = f"[b]Title[/b] {msg['title'].decode('utf-8')}\n"
+                        w.heading = f"{titlestr}[b]Sent[/b] {txstr}\n[b]State[/b] {sphrase}{prgstr}                          "
                         if w.has_audio:
                             alstr = RNS.prettysize(w.audio_size)
                             w.heading += f"\n[b]Audio Message[/b] ({alstr})"
@@ -309,8 +309,8 @@ class Messages():
                         txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
                         titlestr = ""
                         if msg["title"]:
-                            titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                        w.heading = titlestr+"[b]Sent[/b] "+txstr+delivery_syms+"\n[b]State[/b] Delivered"
+                            titlestr = f"[b]Title[/b] {msg['title'].decode('utf-8')}\n"
+                        w.heading = f"{titlestr}[b]Sent[/b] {txstr}{delivery_syms}\n[b]State[/b] Delivered"
                         if w.has_audio:
                             alstr = RNS.prettysize(w.audio_size)
                             w.heading += f"\n[b]Audio Message[/b] ({alstr})"
@@ -321,8 +321,8 @@ class Messages():
                         txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
                         titlestr = ""
                         if msg["title"]:
-                            titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                        w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Paper Message"
+                            titlestr = f"[b]Title[/b] {msg['title'].decode('utf-8')}\n"
+                        w.heading = f"{titlestr}[b]Sent[/b] {txstr}\n[b]State[/b] Paper Message"
                         m["state"] = msg["state"]
 
                     if msg["method"] == LXMF.LXMessage.PROPAGATED and msg["state"] == LXMF.LXMessage.SENT:
@@ -330,8 +330,8 @@ class Messages():
                         txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
                         titlestr = ""
                         if msg["title"]:
-                            titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                        w.heading = titlestr+"[b]Sent[/b] "+txstr+delivery_syms+"\n[b]State[/b] On Propagation Net"
+                            titlestr = f"[b]Title[/b] {msg['title'].decode('utf-8')}\n"
+                        w.heading = f"{titlestr}[b]Sent[/b] {txstr}{delivery_syms}\n[b]State[/b] On Propagation Net"
                         if w.has_audio:
                             alstr = RNS.prettysize(w.audio_size)
                             w.heading += f"\n[b]Audio Message[/b] ({alstr})"
@@ -342,8 +342,8 @@ class Messages():
                         txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
                         titlestr = ""
                         if msg["title"]:
-                            titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
-                        w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Failed"
+                            titlestr = f"[b]Title[/b] {msg['title'].decode('utf-8')}\n"
+                        w.heading = f"{titlestr}[b]Sent[/b] {txstr}\n[b]State[/b] Failed"
                         m["state"] = msg["state"]
                         if w.has_audio:
                             alstr = RNS.prettysize(w.audio_size)
@@ -388,7 +388,7 @@ class Messages():
 
                 if message_input.strip() == b"":
                     if not ("lxm" in m and m["lxm"] != None and m["lxm"].fields != None and LXMF.FIELD_COMMANDS in m["lxm"].fields):
-                        message_input = "[i]This message contains no text content[/i]".encode("utf-8")
+                        message_input = b"[i]This message contains no text content[/i]"
 
                 message_markup = multilingual_markup(message_input)
 
@@ -438,18 +438,18 @@ class Messages():
                         commands = m["lxm"].fields[LXMF.FIELD_COMMANDS]
                         for command in commands:
                             if Commands.ECHO in command:
-                                extra_content = "[font=RobotoMono-Regular]> echo "+command[Commands.ECHO].decode("utf-8")+"[/font]\n"
+                                extra_content = f"[font=RobotoMono-Regular]> echo {command[Commands.ECHO].decode('utf-8')}[/font]\n"
                             if Commands.PING in command:
                                 extra_content = "[font=RobotoMono-Regular]> ping[/font]\n"
                             if Commands.SIGNAL_REPORT in command:
                                 extra_content = "[font=RobotoMono-Regular]> sig[/font]\n"
                             if Commands.PLUGIN_COMMAND in command:
                                 cmd_content = command[Commands.PLUGIN_COMMAND]
-                                extra_content = "[font=RobotoMono-Regular]> "+str(cmd_content)+"[/font]\n"
+                                extra_content = f"[font=RobotoMono-Regular]> {cmd_content)}[/font]\n"
                         extra_content = extra_content[:-1]
                         force_markup = True
                     except Exception as e:
-                        RNS.log("Error while generating command display: "+str(e), RNS.LOG_ERROR)
+                        RNS.log(f"Error while generating command display: {e)}", RNS.LOG_ERROR)
 
                 if telemeter == None and "lxm" in m and m["lxm"] and m["lxm"].fields != None and LXMF.FIELD_TELEMETRY in m["lxm"].fields:
                     try:
@@ -488,11 +488,11 @@ class Messages():
                     if "euclidian" in d:
                         edst = d["euclidian"]
                         if edst != None:
-                            rcvd_d_str = "\n[b]Distance[/b] "+RNS.prettydistance(edst)
+                            rcvd_d_str = f"\n[b]Distance[/b] {RNS.prettydistance(edst)}"
                     elif "geodesic" in d:
                         gdst = d["geodesic"]
                         if gdst != None:
-                            rcvd_d_str = "\n[b]Distance[/b] "+RNS.prettydistance(gdst) + " (geodesic)"
+                            rcvd_d_str = f"\n[b]Distance[/b] {RNS.prettydistance(gdst)} (geodesic)"
 
                 phy_stats_str = ""
                 if "extras" in m and m["extras"] != None:
@@ -500,64 +500,64 @@ class Messages():
                     if "q" in phy_stats:
                         try:
                             lq = round(float(phy_stats["q"]), 1)
-                            phy_stats_str += "[b]Link Quality[/b] "+str(lq)+"% "
+                            phy_stats_str += f"[b]Link Quality[/b] {lq)}% "
                             extra_telemetry["quality"] = lq
                         except:
                             pass
                     if "rssi" in phy_stats:
                         try:
                             lr = round(float(phy_stats["rssi"]), 1)
-                            phy_stats_str += "[b]RSSI[/b] "+str(lr)+"dBm "
+                            phy_stats_str += f"[b]RSSI[/b] {lr)}dBm "
                             extra_telemetry["rssi"] = lr
                         except:
                             pass
                     if "snr" in phy_stats:
                         try:
                             ls = round(float(phy_stats["snr"]), 1)
-                            phy_stats_str += "[b]SNR[/b] "+str(ls)+"dB "
+                            phy_stats_str += f"[b]SNR[/b] {ls)}dB "
                             extra_telemetry["snr"] = ls
                         except:
                             pass
 
                 if m["title"]:
-                    titlestr = "[b]Title[/b] "+m["title"].decode("utf-8")+"\n"
+                    titlestr = f"[b]Title[/b] {m['title'].decode('utf-8')}\n"
 
                 if m["source"] == self.app.sideband.lxmf_destination.hash:
                     if m["state"] == LXMF.LXMessage.DELIVERED:
                         msg_color = mdc(color_delivered, intensity_msgs)
-                        heading_str = titlestr+"[b]Sent[/b] "+txstr+delivery_syms+"\n[b]State[/b] Delivered"
+                        heading_str = f"{titlestr}[b]Sent[/b] {txstr}{delivery_syms}\n[b]State[/b] Delivered"
 
                     elif m["method"] == LXMF.LXMessage.PROPAGATED and m["state"] == LXMF.LXMessage.SENT:
                         msg_color = mdc(color_propagated, intensity_msgs)
-                        heading_str = titlestr+"[b]Sent[/b] "+txstr+delivery_syms+"\n[b]State[/b] On Propagation Net"
+                        heading_str = f"{titlestr}[b]Sent[/b] {txstr}{delivery_syms}\n[b]State[/b] On Propagation Net"
 
                     elif m["method"] == LXMF.LXMessage.PAPER:
                         msg_color = mdc(color_paper, intensity_msgs)
-                        heading_str = titlestr+"[b]Created[/b] "+txstr+"\n[b]State[/b] Paper Message"
+                        heading_str = f"{titlestr}[b]Created[/b] {txstr}\n[b]State[/b] Paper Message"
 
                     elif m["state"] == LXMF.LXMessage.FAILED:
                         msg_color = mdc(color_failed, intensity_msgs)
-                        heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Failed"
+                        heading_str = f"{titlestr}[b]Sent[/b] {txstr}\n[b]State[/b] Failed"
 
                     elif m["state"] == LXMF.LXMessage.OUTBOUND or m["state"] == LXMF.LXMessage.SENDING:
                         msg_color = mdc(color_unknown, intensity_msgs)
-                        heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Sending                          "
+                        heading_str = f"{titlestr}[b]Sent[/b] {txstr}\n[b]State[/b] Sending                          "
 
                     else:
                         msg_color = mdc(color_unknown, intensity_msgs)
-                        heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Unknown"
+                        heading_str = f"{titlestr}[b]Sent[/b] {txstr}\n[b]State[/b] Unknown"
 
                 else:
                     msg_color = mdc(color_received, intensity_msgs)
                     heading_str = titlestr
                     if phy_stats_str != "" and self.app.sideband.config["advanced_stats"]:
-                        heading_str += phy_stats_str+"\n"
+                        heading_str += f"{phy_stats_str}\n"
                     # TODO: Remove
                     # if stamp_valid:
                     #     txstr += f" [b]Stamp[/b] value is {stamp_value} "
 
-                    heading_str += "[b]Sent[/b] "+txstr+delivery_syms
-                    heading_str += "\n[b]Received[/b] "+rxstr
+                    heading_str += f"[b]Sent[/b] {txstr}{delivery_syms}"
+                    heading_str += f"\n[b]Received[/b] {rxstr}"
 
                     if rcvd_d_str != "":
                         heading_str += rcvd_d_str
@@ -575,7 +575,7 @@ class Messages():
                 if has_attachment:
                     heading_str += "\n[b]Attachments[/b] "
                     for attachment in attachments_field:
-                        heading_str += str(attachment[0])+", "
+                        heading_str += f"{attachment[0])}, "
                     heading_str = heading_str[:-2]
 
                 if has_audio:
@@ -724,7 +724,7 @@ class Messages():
                         def x():
                             image_field = item.image_field
                             extension = str(image_field[0]).replace(".", "")
-                            filename = time.strftime("LXM_%Y_%m_%d_%H_%M_%S", time.localtime(time.time()))+"."+str(extension)
+                            filename = f"{time.strftime('LXM_%Y_%m_%d_%H_%M_%S', time.localtime(time.time()))}.{extension)}"
                             
                             self.app.share_image(image_field[1], filename)
                             item.dmenu.dismiss()
@@ -735,11 +735,11 @@ class Messages():
                             image_field = item.image_field
                             try:
                                 extension = str(image_field[0]).replace(".", "")
-                                filename = time.strftime("LXM_%Y_%m_%d_%H_%M_%S", time.localtime(time.time()))+"."+str(extension)
+                                filename = f"{time.strftime('LXM_%Y_%m_%d_%H_%M_%S', time.localtime(time.time()))}.{extension)}"
                                 if RNS.vendor.platformutils.is_darwin():
                                     save_path = str(plyer.storagepath.get_downloads_dir()+filename).replace("file://", "")
                                 else:
-                                    save_path = plyer.storagepath.get_downloads_dir()+"/"+filename
+                                    save_path = f"{plyer.storagepath.get_downloads_dir()}/{filename}"
 
                                 with open(save_path, "wb") as save_file:
                                     save_file.write(image_field[1])
@@ -749,7 +749,7 @@ class Messages():
                                 ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                                 dialog = MDDialog(
                                     title="Image Saved",
-                                    text="The image has been saved to: "+save_path+"",
+                                    text=f"The image has been saved to: {save_path}",
                                     buttons=[ ok_button ],
                                     # elevation=0,
                                 )
@@ -764,7 +764,7 @@ class Messages():
                                 ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                                 dialog = MDDialog(
                                     title="Error",
-                                    text="Could not save the image:\n\n"+save_path+"\n\n"+str(e),
+                                    text=f"Could not save the image:\n\n{save_path}\n\n{e)}",
                                     buttons=[ ok_button ],
                                     # elevation=0,
                                 )
@@ -786,13 +786,13 @@ class Messages():
                                 if RNS.vendor.platformutils.is_darwin():
                                     output_path = str(plyer.storagepath.get_downloads_dir()).replace("file://", "")
                                 else:
-                                    output_path = plyer.storagepath.get_downloads_dir()+"/"
+                                    output_path = f"{plyer.storagepath.get_downloads_dir()}/"
 
                                 if len(attachments_field) == 1:
-                                    saved_text = "The attached file has been saved to: "+output_path
+                                    saved_text = f"The attached file has been saved to: {output_path}"
                                     saved_title = "Attachment Saved"
                                 else:
-                                    saved_text = "The attached files have been saved to: "+output_path
+                                    saved_text = f"The attached files have been saved to: {output_path}"
                                     saved_title = "Attachment Saved"
 
                                 for attachment in attachments_field:
@@ -800,15 +800,15 @@ class Messages():
                                     if RNS.vendor.platformutils.is_darwin():
                                         save_path = str(plyer.storagepath.get_downloads_dir()+filename).replace("file://", "")
                                     else:
-                                        save_path = plyer.storagepath.get_downloads_dir()+"/"+filename
+                                        save_path = f"{plyer.storagepath.get_downloads_dir()}/{filename}"
 
                                     name_counter = 1
                                     pre_count = save_path
                                     while os.path.exists(save_path):
-                                        save_path = str(pre_count)+"."+str(name_counter)
+                                        save_path = f"{pre_count)}.{name_counter)}"
                                         name_counter += 1
 
-                                    saved_text = "The attached file has been saved to: "+save_path
+                                    saved_text = f"The attached file has been saved to: {save_path}"
 
                                     with open(save_path, "wb") as save_file:
                                         save_file.write(attachment[1])
@@ -833,7 +833,7 @@ class Messages():
                                 ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                                 dialog = MDDialog(
                                     title="Error",
-                                    text="Could not save the attachment:\n\n"+save_path+"\n\n"+str(e),
+                                    text=f"Could not save the attachment:\n\n{save_path}\n\n{e)}",
                                     buttons=[ ok_button ],
                                     # elevation=0,
                                 )
@@ -863,7 +863,7 @@ class Messages():
                             Clipboard.copy(str(tlm))
                             item.dmenu.dismiss()
                         except Exception as e:
-                            RNS.log("An error occurred while decoding telemetry. The contained exception was: "+str(e), RNS.LOG_ERROR)
+                            RNS.log(f"An error occurred while decoding telemetry. The contained exception was: {e)}", RNS.LOG_ERROR)
                             Clipboard.copy("Could not decode telemetry")
 
                     return x
@@ -880,7 +880,7 @@ class Messages():
                         def x():
                             qr_image = lxm.as_qr()
                             hash_str = RNS.hexrep(lxm.hash[-2:], delimit=False)
-                            filename = "Paper_Message_"+time.strftime(file_ts_format, time.localtime(m["sent"]))+"_"+hash_str+".png"
+                            filename = f"Paper_Message_{time.strftime(file_ts_format, time.localtime(m['sent']))}_{hash_str}.png"
                             # filename = "Paper_Message.png"
                             self.app.share_image(qr_image, filename)
                             item.dmenu.dismiss()
@@ -891,11 +891,11 @@ class Messages():
                             try:
                                 qr_image = lxm.as_qr()
                                 hash_str = RNS.hexrep(lxm.hash[-2:], delimit=False)
-                                filename = "Paper_Message_"+time.strftime(file_ts_format, time.localtime(m["sent"]))+"_"+hash_str+".png"
+                                filename = f"Paper_Message_{time.strftime(file_ts_format, time.localtime(m['sent']))}_{hash_str}.png"
                                 if RNS.vendor.platformutils.is_darwin():
                                     save_path = str(plyer.storagepath.get_downloads_dir()+filename).replace("file://", "")
                                 else:
-                                    save_path = plyer.storagepath.get_downloads_dir()+"/"+filename
+                                    save_path = f"{plyer.storagepath.get_downloads_dir()}/{filename}"
 
                                 qr_image.save(save_path)
                                 item.dmenu.dismiss()
@@ -903,7 +903,7 @@ class Messages():
                                 ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                                 dialog = MDDialog(
                                     title="QR Code Saved",
-                                    text="The paper message has been saved to: "+save_path+"",
+                                    text=f"The paper message has been saved to: {save_path}",
                                     buttons=[ ok_button ],
                                     # elevation=0,
                                 )
@@ -918,7 +918,7 @@ class Messages():
                                 ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                                 dialog = MDDialog(
                                     title="Error",
-                                    text="Could not save the paper message QR-code to:\n\n"+save_path+"\n\n"+str(e),
+                                    text=f"Could not save the paper message QR-code to:\n\n{save_path}\n\n{e)}",
                                     buttons=[ ok_button ],
                                     # elevation=0,
                                 )
@@ -940,10 +940,10 @@ class Messages():
                         def x():
                             try:
                                 qr_image = lxm.as_qr()
-                                qr_tmp_path = self.app.sideband.tmp_dir+"/"+str(RNS.hexrep(lxm.hash, delimit=False))
+                                qr_tmp_path = f"{self.app.sideband.tmp_dir}/{RNS.hexrep(lxm.hash, delimit=False))}"
                                 qr_image.save(qr_tmp_path)
 
-                                print_command = self.app.sideband.config["print_command"]+" "+qr_tmp_path
+                                print_command = f"{self.app.sideband.config['print_command']} {qr_tmp_path}"
                                 return_code = subprocess.call(shlex.split(print_command), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
                                 os.unlink(qr_tmp_path)
@@ -955,7 +955,7 @@ class Messages():
                                 ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                                 dialog = MDDialog(
                                     title="Error",
-                                    text="Could not print the paper message QR-code.\n\n"+str(e),
+                                    text=f"Could not print the paper message QR-code.\n\n{e)}",
                                     buttons=[ ok_button ],
                                     # elevation=0,
                                 )

@@ -131,8 +131,7 @@ class VorbisFile(AudioFile):
             # Check for errors
             if result < 0:
                 raise PyOggError(
-                    "An error occurred decoding the Vorbis file: "+
-                    f"Error code: {result}"
+                    f"An error occurred decoding the Vorbis file: Error code: {result}"
                 )
 
             # Check that the bitstream hasn't changed as we only

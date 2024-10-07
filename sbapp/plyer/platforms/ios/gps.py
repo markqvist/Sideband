@@ -50,8 +50,7 @@ class IosGPS(GPS):
             elif status == 4:
                 provider_status = 'provider-enabled'
                 s_status = 'authorizedWhenInUse'
-            self.on_status(provider_status, '{}: {}'.format(
-                provider, s_status))
+            self.on_status(provider_status, f'{provider}: {s_status}')
 
     @protocol('CLLocationManagerDelegate')
     def locationManager_didUpdateLocations_(self, manager, locations):
@@ -60,7 +59,7 @@ class IosGPS(GPS):
         description = location.description.UTF8String()
         split_description = description.split('<')[-1].split('>')[0].split(',')
 
-        lat, lon = [float(coord) for coord in split_description]
+        lat, lon = (float(coord) for coord in split_description)
         acc = float(description.split(' +/- ')[-1].split('m ')[0])
 
         speed = location.speed

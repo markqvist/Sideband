@@ -1,5 +1,3 @@
-# coding=utf-8
-
 __all__ = ["Coordinate", "Bbox"]
 
 from collections import namedtuple

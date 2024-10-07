@@ -1477,7 +1477,7 @@ class MDIconButton(BaseButton, OldButtonIconMixin, ButtonContentsIcon):
         self.line_width = 0.001
         Clock.schedule_once(self.set_size)
 
-    def set_size(self, interval: Union[int, float]) -> None:
+    def set_size(self, interval: int | float) -> None:
         """
         Sets the icon width/height based on the current `icon_size`
         attribute, or the default value if it is zero. The icon size
@@ -1637,7 +1637,7 @@ class BaseFloatingBottomButton(MDFloatingActionButton, MDTooltip):
     _padding_right = NumericProperty(0)
     _bg_color = ColorProperty(None)
 
-    def set_size(self, interval: Union[int, float]) -> None:
+    def set_size(self, interval: int | float) -> None:
         self.width = "46dp"
         self.height = "46dp"
 

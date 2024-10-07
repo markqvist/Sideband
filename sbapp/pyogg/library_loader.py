@@ -23,12 +23,12 @@ _other_styles = ["{}", "lib{}"]
 if architecture == "32bit":
     for arch_style in ["32bit", "32" "86", "win32", "x86", "_x86", "_32", "_win32", "_32bit"]:
         for style in ["{}", "lib{}"]:
-            _windows_styles.append(style.format("{}"+arch_style))
+            _windows_styles.append(style.format(f"{{}}{arch_style}"))
             
 elif architecture == "64bit":
     for arch_style in ["64bit", "64" "86_64", "amd64", "win_amd64", "x86_64", "_x86_64", "_64", "_amd64", "_64bit"]:
         for style in ["{}", "lib{}"]:
-            _windows_styles.append(style.format("{}"+arch_style))
+            _windows_styles.append(style.format(f"{{}}{arch_style}"))
 
 
 run_tests = lambda lib, tests: [f(lib) for f in tests]
@@ -69,7 +69,7 @@ class InternalLibrary:
             return None
 
         # Attempt to load the library from here
-        path = _here + "/" + lib_dir + "/" + name 
+        path = f"{_here}/{lib_dir}/{name}" 
         try:
             lib = ctypes.CDLL(path)
         except OSError as e:
@@ -101,8 +101,8 @@ class ExternalLibrary:
 
     @staticmethod
     def load_other(name, paths = None, tests = []):
-        os.environ["PATH"] += ";" + ";".join((os.getcwd(), _here))
-        if paths: os.environ["PATH"] += ";" + ";".join(paths)
+        os.environ["PATH"] += f";{f"{os.getcwd()};{_here}"}"
+        if paths: os.environ["PATH"] += f";{';'.join(paths)}"
 
         for style in _other_styles:
             candidate = style.format(name)
@@ -117,8 +117,8 @@ class ExternalLibrary:
 
     @staticmethod
     def load_windows(name, paths = None, tests = []):
-        os.environ["PATH"] += ";" + ";".join((os.getcwd(), _here))
-        if paths: os.environ["PATH"] += ";" + ";".join(paths)
+        os.environ["PATH"] += f";{f"{os.getcwd()};{_here}"}"
+        if paths: os.environ["PATH"] += f";{';'.join(paths)}"
         
         not_supported = [] # libraries that were found, but are not supported
         for style in _windows_styles:
@@ -130,17 +130,17 @@ class ExternalLibrary:
                     if tests and all(run_tests(lib, tests)):
                         return lib
                     not_supported.append(library)
-                except WindowsError:
+                except OSError:
                     pass
                 except OSError:
                     not_supported.append(library)
             
 
         if not_supported:
-            raise ExternalLibraryError("library '{}' couldn't be loaded, because the following candidates were not supported:".format(name)
+            raise ExternalLibraryError(f"library '{name}' couldn't be loaded, because the following candidates were not supported:"
                                  + ("\n{}" * len(not_supported)).format(*not_supported))
 
-        raise ExternalLibraryError("library '{}' couldn't be loaded".format(name))
+        raise ExternalLibraryError(f"library '{name}' couldn't be loaded")
 
         
 

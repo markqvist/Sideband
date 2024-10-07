@@ -15,7 +15,7 @@ class IOSCall(Call):
 
     def _makecall(self, **kwargs):
         tel = kwargs.get('tel')
-        url = "tel://" + tel
+        url = f"tel://{tel}"
         nsurl = NSURL.alloc().initWithString_(objc_str(url))
 
         UIApplication.sharedApplication().openURL_(nsurl)

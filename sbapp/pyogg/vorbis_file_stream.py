@@ -11,7 +11,7 @@ class VorbisFileStream:
         self.vf = vorbis.OggVorbis_File()
         error = vorbis.ov_fopen(path, ctypes.byref(self.vf))
         if error != 0:
-            raise PyOggError("file couldn't be opened or doesn't exist. Error code : {}".format(error))
+            raise PyOggError(f"file couldn't be opened or doesn't exist. Error code : {error}")
 
         info = vorbis.ov_info(ctypes.byref(self.vf), -1)
 

@@ -99,7 +99,7 @@ class Telemetry():
         info += "Sideband will become a Telemetry Collector, and other authorized peers will be able to query its collected data.\n"
 
         if self.app.theme_cls.theme_style == "Dark":
-            info = "[color=#"+self.app.dark_theme_text_color+"]"+info+"[/color]"
+            info = f"[color=#{self.app.dark_theme_text_color}]{info}[/color]"
         
         self.screen.ids.telemetry_info.text = info
 
@@ -118,7 +118,7 @@ class Telemetry():
 
             interval_text = RNS.prettytime(interval)
             if self.screen.ids.telemetry_send_to_collector.active:
-                self.screen.ids.telemetry_send_to_collector_label.text = "Auto sync to collector every "+interval_text
+                self.screen.ids.telemetry_send_to_collector_label.text = f"Auto sync to collector every {interval_text}"
             else:
                 self.screen.ids.telemetry_send_to_collector_label.text = "Auto sync to collector"
 
@@ -164,7 +164,7 @@ class Telemetry():
 
             interval_text = RNS.prettytime(interval)
             if self.screen.ids.telemetry_request_from_collector.active:
-                self.screen.ids.telemetry_request_from_collector_label.text = "Auto sync from collector every "+interval_text
+                self.screen.ids.telemetry_request_from_collector_label.text = f"Auto sync from collector every {interval_text}"
             else:
                 self.screen.ids.telemetry_request_from_collector_label.text = "Auto sync from collector"
 
@@ -329,7 +329,7 @@ class Telemetry():
 
         info3 = "\nTo include a specific type of telemetry data while sending, it must be enabled below. Please note that some sensor types are not supported on all devices. Sideband will only be able to read a specific type of sensor if your device actually includes hardware for it.\n"
         if self.app.theme_cls.theme_style == "Dark":
-            info3 = "[color=#"+self.app.dark_theme_text_color+"]"+info3+"[/color]"            
+            info3 = f"[color=#{self.app.dark_theme_text_color}]{info3}[/color]"            
         self.sensors_screen.ids.telemetry_info3.text = info3
         self.sensors_screen.ids.sensors_scrollview.effect_cls = ScrollEffect
 
@@ -506,7 +506,7 @@ class Telemetry():
         self.own_appearance_changed = True
 
     def icons_selected(self, selected=None):
-        RNS.log("Selected: "+str(selected))
+        RNS.log(f"Selected: {selected)}")
         if selected == None:
             selected = "alpha-p-circle-outline"
         self.telemetry_set_icon(selected)

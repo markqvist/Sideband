@@ -243,7 +243,7 @@ class TimeInputTextField(MDTextField):
 
     def insert_text(self, text, from_undo=False):
         strip_text = self.text.strip()
-        current_string = "".join([strip_text, text])
+        current_string = f"{strip_text}{text}"
         if not self.validate_time(current_string):
             text = ""
         return super().insert_text(text, from_undo=from_undo)

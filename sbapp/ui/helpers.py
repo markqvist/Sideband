@@ -83,7 +83,7 @@ def multilingual_markup(data):
             if pfont != "default":
                 do += "[/font]"
             if rfont != "default":
-                do += "[font="+str(rfont)+"]"
+                do += f"[font={rfont)}]"
 
         do += cp
 

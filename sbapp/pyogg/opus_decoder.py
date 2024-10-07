@@ -32,8 +32,7 @@ class OpusDecoder:
         if self._decoder is None:
             if n < 0 or n > 2:
                 raise PyOggError(
-                    "Invalid number of channels in call to "+
-                    "set_channels()"
+                    f"Invalid number of channels in call to set_channels()"
                 )
             self._channels = n
         else:
@@ -65,7 +64,7 @@ class OpusDecoder:
             else:
                 raise PyOggError(
                     "Specified sampling frequency "+
-                    "({:d}) ".format(samples_per_second)+
+                    f"({samples_per_second:d}) "+
                     "was not one of the accepted values"
                 )
         else:
@@ -152,7 +151,7 @@ class OpusDecoder:
         # avoid floating-point comparisons.
         if int(frame_duration*10) not in [25, 50, 100, 200, 400, 600]:
             raise PyOggError(
-                "Frame duration ({:f}) is not one of the accepted values".format(frame_duration)
+                f"Frame duration ({frame_duration:f}) is not one of the accepted values"
             )
 
         # Calculate frame size

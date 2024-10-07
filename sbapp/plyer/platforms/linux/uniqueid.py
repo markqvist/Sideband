@@ -21,14 +21,14 @@ class LinuxUniqueID(UniqueID):
             stdout=PIPE, stderr=PIPE
         ).communicate()[0].decode('utf-8')
 
-        output = u''
+        output = ''
         for line in stdout.splitlines():
             if 'serial:' not in line:
                 continue
             output = line
             break
 
-        environ['LANG'] = old_lang or u''
+        environ['LANG'] = old_lang or ''
         result = None
 
         if output:

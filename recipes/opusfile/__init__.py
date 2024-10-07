@@ -15,7 +15,7 @@ class OpusFileRecipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             env = self.get_recipe_env(arch)
             flags = [
-                "--host=" + arch.command_prefix,
+                f"--host={arch.command_prefix}",
                 "--disable-http",
                 "--disable-examples",
                 "--disable-doc",

@@ -38,7 +38,7 @@ class Telemeter():
       return t
 
     except Exception as e:
-      RNS.log("An error occurred while unpacking telemetry. The contained exception was: "+str(e), RNS.LOG_ERROR)
+      RNS.log(f"An error occurred while unpacking telemetry. The contained exception was: {e)}", RNS.LOG_ERROR)
       return None
 
   def __init__(self, from_packed=False, android_context=None, service=False, location_provider=None):
@@ -153,18 +153,18 @@ class Telemeter():
     if RNS.vendor.platformutils.is_android():
       if self.android_context != None:
         try:
-            result = self.android_context.checkSelfPermission("android.permission."+permission)
+            result = self.android_context.checkSelfPermission(f"android.permission.{permission}")
             if result == 0:
                 return True
 
         except Exception as e:
-            RNS.log("Error while checking permission: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while checking permission: {e)}", RNS.LOG_ERROR)
         
         return False
       
       else:
         from android.permissions import check_permission
-        return check_permission("android.permission."+permission)
+        return check_permission(f"android.permission.{permission}")
 
     else:
       return False
@@ -273,7 +273,7 @@ class Sensor():
       return self._telemeter.check_permission(permission)
     else:
       from android.permissions import check_permission
-      return check_permission("android.permission."+permission)
+      return check_permission(f"android.permission.{permission}")
 
 class Time(Sensor):
   SID = Sensor.SID_TIME
@@ -446,9 +446,9 @@ class Battery(Sensor):
       bn = 0
       node_name = None
       for bi in range(0,10):
-          path = os.path.join('/sys', 'class', 'power_supply', 'BAT'+str(bi))
+          path = os.path.join('/sys', 'class', 'power_supply', f"BAT{bi)}")
           if os.path.isdir(path):
-              node_name = "BAT"+str(bi)
+              node_name = f"BAT{bi)}"
               break
 
       self.battery_node_name = node_name
@@ -784,7 +784,7 @@ class Location(Sensor):
           d["last_update"],
         ]
       except Exception as e:
-        RNS.log("An error occurred while packing location sensor data. The contained exception was: "+str(e), RNS.LOG_ERROR)
+        RNS.log(f"An error occurred while packing location sensor data. The contained exception was: {e)}", RNS.LOG_ERROR)
         return None
 
   def unpack(self, packed):

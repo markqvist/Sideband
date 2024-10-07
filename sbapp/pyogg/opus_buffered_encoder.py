@@ -38,8 +38,7 @@ class OpusBufferedEncoder(OpusEncoder):
         # units of 0.1ms to avoid floating point comparison
         if int(frame_size*10) not in [25, 50, 100, 200, 400, 600]:
             raise PyOggError(
-                "Frame size ({:f}) not one of ".format(frame_size)+
-                "the acceptable values"
+                f"Frame size ({frame_size:f}) not one of the acceptable values"
             )
 
         self._frame_size_ms = frame_size
@@ -336,7 +335,7 @@ class OpusBufferedEncoder(OpusEncoder):
         Returns None if insufficient data is available.
 
         """
-        next_frame = bytes()
+        next_frame = b''
         samples = 0
 
         # Ensure frame size has been specified

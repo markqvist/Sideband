@@ -32,10 +32,7 @@ class Platform:
         return self._get_platform()
 
     def __repr__(self):
-        return 'platform name: \'{platform}\' from: \n{instance}'.format(
-            platform=self._get_platform(),
-            instance=super().__repr__()
-        )
+        return f'platform name: \'{self._get_platform()}\' from: \n{super().__repr__()}'
 
     def __hash__(self):
         return self._get_platform().__hash__()
@@ -93,9 +90,9 @@ class Proxy:
         try:
             name = object.__getattribute__(self, '_name')
             if RNS.vendor.platformutils.is_android():
-                module = 'plyer.platforms.{}.{}'.format(platform, name)
+                module = f'plyer.platforms.{platform}.{name}'
             else:
-                module = 'sbapp.plyer.platforms.{}.{}'.format(platform, name)
+                module = f'sbapp.plyer.platforms.{platform}.{name}'
             mod = __import__(module, fromlist='.')
             obj = mod.instance()
         except Exception:
@@ -227,7 +224,7 @@ def deprecated(obj):
                 )
             )
 
-            warnings.warn('[{}] {}'.format('WARNING', warning))
+            warnings.warn(f'[WARNING] {warning}')
 
             # if there is a docstring present, emit docstring too
             if obj.__doc__:

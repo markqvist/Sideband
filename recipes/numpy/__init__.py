@@ -37,7 +37,7 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
         return env
 
     def _build_compiled_components(self, arch):
-        info('Building compiled components in {}'.format(self.name))
+        info(f'Building compiled components in {self.name}')
 
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
@@ -49,7 +49,7 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
                     env['STRIP'], '{}', ';', _env=env)
 
     def _rebuild_compiled_components(self, arch, env):
-        info('Rebuilding compiled components in {}'.format(self.name))
+        info(f'Rebuilding compiled components in {self.name}')
 
         hostpython = sh.Command(self.real_hostpython_location)
         shprint(hostpython, 'setup.py', 'clean', '--all', '--force', _env=env)

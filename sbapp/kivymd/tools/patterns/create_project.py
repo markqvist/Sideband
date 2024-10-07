@@ -982,7 +982,7 @@ def create_module_screens() -> None:
     path_to_module_screens = os.path.join(path_to_project, "View", "screens.py")
     with open(path_to_module_screens, "w", encoding="utf-8") as module_screens:
         module_screens.write(
-            "%s\nscreens = {%s}" % (temp_screens_imports, temp_screens_data)
+            f"{temp_screens_imports}\nscreens = {{{temp_screens_data}}}"
         )
 
 

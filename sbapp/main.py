@@ -11,7 +11,7 @@ parser.add_argument("-c", "--config", action='store', default=None, help="specif
 parser.add_argument("-d", "--daemon", action='store_true', default=False, help="run as a daemon, without user interface")
 parser.add_argument("--export-settings", action='store', default=None, help="export application settings to file")
 parser.add_argument("--import-settings", action='store', default=None, help="import application settings from file")
-parser.add_argument("--version", action="version", version="sideband {version}".format(version=__version__))
+parser.add_argument("--version", action="version", version=f"sideband {__version__}")
 args = parser.parse_args()
 sys.argv = [sys.argv[0]]
 
@@ -35,7 +35,7 @@ if args.export_settings:
         load_config_only=True,
     )
 
-    sideband.version_str = "v"+__version__+" "+__variant__
+    sideband.version_str = f"v{__version__} {__variant__}"
 
     import json
     export = sideband.config.copy()
@@ -64,7 +64,7 @@ elif args.import_settings:
         load_config_only=True,
     )
 
-    sideband.version_str = "v"+__version__+" "+__variant__
+    sideband.version_str = f"v{__version__} {__variant__}"
 
     import json
     addr_fields = ["lxmf_propagation_node", "last_lxmf_propagation_node", "nn_home_node", "telemetry_collector"]
@@ -106,9 +106,9 @@ if not args.daemon:
         def trace(self, arg):
             pass
         def warning(self, arg):
-            RNS.log("Kivy error: "+str(arg), RNS.LOG_WARNING)
+            RNS.log(f"Kivy error: {arg)}", RNS.LOG_WARNING)
         def critical(self, arg):
-            RNS.log("Kivy error: "+str(arg), RNS.LOG_ERROR)
+            RNS.log(f"Kivy error: {arg)}", RNS.LOG_ERROR)
 
     if RNS.vendor.platformutils.get_platform() == "android":
         import jnius.reflect
@@ -272,7 +272,7 @@ class SidebandApp(MDApp):
         else:
             self.sideband = SidebandCore(self, config_path=self.config_path, is_client=False, verbose=(args.verbose or __debug_build__))
 
-        self.sideband.version_str = "v"+__version__+" "+__variant__
+        self.sideband.version_str = f"v{__version__} {__variant__}"
 
         self.set_ui_theme()
         self.font_config()
@@ -318,8 +318,8 @@ class SidebandApp(MDApp):
         self.key_ptt_down = False
 
         Window.softinput_mode = "below_target"
-        self.icon = self.sideband.asset_dir+"/icon.png"
-        self.notification_icon = self.sideband.asset_dir+"/notification_icon.png"
+        self.icon = f"{self.sideband.asset_dir}/icon.png"
+        self.notification_icon = f"{self.sideband.asset_dir}/notification_icon.png"
 
         self.connectivity_updater = None
         self.last_map_update = 0
@@ -370,7 +370,7 @@ class SidebandApp(MDApp):
         
     def start_service(self):
         if RNS.vendor.platformutils.is_android():
-            RNS.log("Running on Android API level "+str(android_api_version))
+            RNS.log(f"Running on Android API level {android_api_version)}")
 
         RNS.log("Launching platform-specific service for RNS and LXMF")
         if RNS.vendor.platformutils.get_platform() == "android":
@@ -442,7 +442,7 @@ class SidebandApp(MDApp):
                     )
                     self.hw_error_dialog = MDDialog(
                         title="Hardware Error",
-                        text="When starting a connected RNode, Reticulum reported the following error:\n\n[i]"+str(description)+"[/i]",
+                        text=f"When starting a connected RNode, Reticulum reported the following error:\n\n[i]{description)}[/i]",
                         buttons=[ yes_button ],
                         # elevation=0,
                     )
@@ -479,31 +479,31 @@ class SidebandApp(MDApp):
 
     def font_config(self):
         from kivy.core.text import LabelBase, DEFAULT_FONT
-        fb_path = self.sideband.asset_dir+"/fonts/"
+        fb_path = f"{self.sideband.asset_dir}/fonts/"
         LabelBase.register(name="hebrew",
-            fn_regular=fb_path+"NotoSansHebrew-Regular.ttf",
-            fn_bold=fb_path+"NotoSansHebrew-Bold.ttf",)
+            fn_regular=f"{fb_path}NotoSansHebrew-Regular.ttf",
+            fn_bold=f"{fb_path}NotoSansHebrew-Bold.ttf",)
 
         LabelBase.register(name="japanese",
-            fn_regular=fb_path+"NotoSansJP-Regular.ttf")
+            fn_regular=f"{fb_path}NotoSansJP-Regular.ttf")
 
         LabelBase.register(name="chinese",
-            fn_regular=fb_path+"NotoSansSC-Regular.ttf")
+            fn_regular=f"{fb_path}NotoSansSC-Regular.ttf")
 
         LabelBase.register(name="korean",
-            fn_regular=fb_path+"NotoSansKR-Regular.ttf")
+            fn_regular=f"{fb_path}NotoSansKR-Regular.ttf")
 
         LabelBase.register(name="emoji",
-            fn_regular=fb_path+"NotoEmoji-Regular.ttf")
+            fn_regular=f"{fb_path}NotoEmoji-Regular.ttf")
 
         LabelBase.register(name="defaultinput",
-            fn_regular=fb_path+"DefaultInput.ttf")
+            fn_regular=f"{fb_path}DefaultInput.ttf")
 
         LabelBase.register(name="combined",
-            fn_regular=fb_path+"NotoSans-Regular.ttf",
-            fn_bold=fb_path+"NotoSans-Bold.ttf",
-            fn_italic=fb_path+"NotoSans-Italic.ttf",
-            fn_bolditalic=fb_path+"NotoSans-BoldItalic.ttf")
+            fn_regular=f"{fb_path}NotoSans-Regular.ttf",
+            fn_bold=f"{fb_path}NotoSans-Bold.ttf",
+            fn_italic=f"{fb_path}NotoSans-Italic.ttf",
+            fn_bolditalic=f"{fb_path}NotoSans-BoldItalic.ttf")
 
     def update_input_language(self):
         language = self.sideband.config["input_language"]
@@ -512,7 +512,7 @@ class SidebandApp(MDApp):
         else:
             self.input_font = language
         
-        RNS.log("Setting input language to "+str(self.input_font), RNS.LOG_DEBUG)
+        RNS.log(f"Setting input language to {self.input_font)}", RNS.LOG_DEBUG)
 
     # def modify_input_font(self, ids):
     #     BIND_CLASSES = ["kivymd.uix.textfield.textfield.MDTextField",]
@@ -629,11 +629,11 @@ class SidebandApp(MDApp):
     def share_image(self, image, filename):
         if RNS.vendor.platformutils.get_platform() == "android":
             save_path = self.sideband.exports_dir
-            file_path = save_path+"/"+filename
+            file_path = f"{save_path}/{filename}"
 
             try:
                 if not os.path.isdir(save_path):
-                    RNS.log("Creating directory: "+str(save_path))
+                    RNS.log(f"Creating directory: {save_path)}")
                     os.makedirs(save_path)
 
                 Intent = autoclass("android.content.Intent")
@@ -660,7 +660,7 @@ class SidebandApp(MDApp):
                 ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                 dialog = MDDialog(
                     title="Export Error",
-                    text="The resource could not be exported and shared:\n\n"+str(e),
+                    text=f"The resource could not be exported and shared:\n\n{e)}",
                     buttons=[ ok_button ],
                 )
                 def dl_ok(s):
@@ -878,15 +878,15 @@ class SidebandApp(MDApp):
             self.ingest_lxm_uri(data)
 
     def ingest_lxm_uri(self, lxm_uri):
-        RNS.log("Ingesting LXMF paper message from URI: "+str(lxm_uri), RNS.LOG_DEBUG)
+        RNS.log(f"Ingesting LXMF paper message from URI: {lxm_uri)}", RNS.LOG_DEBUG)
         self.sideband.lxm_ingest_uri(lxm_uri)
         
     def build(self):
-        FONT_PATH = self.sideband.asset_dir+"/fonts"
+        FONT_PATH = f"{self.sideband.asset_dir}/fonts"
         if RNS.vendor.platformutils.is_darwin():
-            self.icon = self.sideband.asset_dir+"/icon_macos_formed.png"
+            self.icon = f"{self.sideband.asset_dir}/icon_macos_formed.png"
         else:
-            self.icon = self.sideband.asset_dir+"/icon.png"
+            self.icon = f"{self.sideband.asset_dir}/icon.png"
 
         self.announces_view = None
 
@@ -949,7 +949,7 @@ class SidebandApp(MDApp):
                         )
                         self.hw_error_dialog = MDDialog(
                             title="Hardware Error",
-                            text="While communicating with an RNode, Reticulum reported the following error:\n\n[i]"+str(description)+"[/i]",
+                            text=f"While communicating with an RNode, Reticulum reported the following error:\n\n[i]{description)}[/i]",
                             buttons=[ yes_button ],
                             # elevation=0,
                         )
@@ -1076,12 +1076,12 @@ class SidebandApp(MDApp):
         Window.bind(on_request_close=self.close_requested)
 
         if __variant__ != "":
-            variant_str = " "+__variant__
+            variant_str = f" {__variant__}"
         else:
             variant_str = ""
 
         self.root.ids.screen_manager.app = self
-        self.root.ids.app_version_info.text = "Sideband v"+__version__+variant_str
+        self.root.ids.app_version_info.text = f"Sideband v{__version__}{variant_str}"
         self.root.ids.nav_scrollview.effect_cls = ScrollEffect
         Clock.schedule_once(self.start_core, 0.25)
 
@@ -1300,7 +1300,7 @@ class SidebandApp(MDApp):
                 action = "tap" if RNS.vendor.platformutils.is_android() else "click"
                 toast(f"Field copied, double-{action} any empty field to paste")
         except Exception as e:
-            RNS.log("An error occurred while handling clipboard action: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"An error occurred while handling clipboard action: {e)}", RNS.LOG_ERROR)
 
     def loader_init(self, sender=None):
         if not self.root.ids.screen_manager.has_screen("loader_screen"):
@@ -1501,7 +1501,7 @@ class SidebandApp(MDApp):
                 if not self.outbound_mode_command and not self.outbound_mode_paper:
                     if self.attach_type != None and self.attach_path != None:
                         try:
-                            RNS.log("Processing "+str(self.attach_type)+" attachment \""+str(self.attach_path)+"\"", RNS.LOG_DEBUG)
+                            RNS.log(f"Processing {self.attach_type)} attachment \"{self.attach_path)}\"", RNS.LOG_DEBUG)
                             fbn = os.path.basename(self.attach_path)
                             
                             if self.attach_type == "file":
@@ -1543,7 +1543,7 @@ class SidebandApp(MDApp):
                         except Exception as e:
                             self.messages_view.send_error_dialog = MDDialog(
                                 title="Attachment Error",
-                                text="An error occurred while processing the attachment:\n\n[i]"+str(e)+"[/i]",
+                                text=f"An error occurred while processing the attachment:\n\n[i]{e)}[/i]",
                                 buttons=[
                                     MDRectangleFlatButton(
                                         text="OK",
@@ -1649,26 +1649,26 @@ class SidebandApp(MDApp):
             self.attach_path = path
             
             if RNS.vendor.platformutils.is_android():
-                toast("Attached \""+str(fbn)+"\"")
+                toast(f"Attached \"{fbn)}\"")
             else:
                 ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                 ate_dialog = MDDialog(
                     title="File Attached",
-                    text="The file \""+str(fbn)+"\" was attached, and will be included with the next message sent.",
+                    text=f"The file \"{fbn)}\" was attached, and will be included with the next message sent.",
                     buttons=[ ok_button ],
                 )
                 ok_button.bind(on_release=ate_dialog.dismiss)
                 ate_dialog.open()
 
         except Exception as e:
-            RNS.log(f"Error while attaching \"{fbn}\": "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while attaching \"{fbn}\": {e)}", RNS.LOG_ERROR)
             if RNS.vendor.platformutils.get_platform() == "android":
-                toast("Could not attach \""+str(fbn)+"\"")
+                toast(f"Could not attach \"{fbn)}\"")
             else:
                 ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                 ate_dialog = MDDialog(
                     title="Attachment Error",
-                    text="The specified file could not be attached:\n\n[i]"+str(e)+"[/i]",
+                    text=f"The specified file could not be attached:\n\n[i]{e)}[/i]",
                     buttons=[ ok_button ],
                 )
                 ok_button.bind(on_release=ate_dialog.dismiss)
@@ -1791,12 +1791,12 @@ class SidebandApp(MDApp):
                         return
 
                     if audio_field[0] == LXMF.AM_OPUS_OGG:
-                        temp_path = self.sideband.rec_cache+"/msg.ogg"
+                        temp_path = f"{self.sideband.rec_cache}/msg.ogg"
                         with open(temp_path, "wb") as af:
                             af.write(self.last_msg_audio)
 
                     elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
-                        temp_path = self.sideband.rec_cache+"/msg.ogg"
+                        temp_path = f"{self.sideband.rec_cache}/msg.ogg"
                         from sideband.audioproc import samples_to_ogg, decode_codec2, detect_codec2
                         
                         target_rate = 8000
@@ -1805,7 +1805,7 @@ class SidebandApp(MDApp):
 
                         if detect_codec2():
                             if samples_to_ogg(decode_codec2(audio_field[1], audio_field[0]), temp_path, input_rate=8000, output_rate=target_rate):
-                                RNS.log("Wrote OGG file to: "+temp_path, RNS.LOG_DEBUG)
+                                RNS.log(f"Wrote OGG file to: {temp_path}", RNS.LOG_DEBUG)
                             else:
                                 RNS.log("OGG write failed", RNS.LOG_DEBUG)
                         else:
@@ -1839,7 +1839,7 @@ class SidebandApp(MDApp):
                         RNS.log("Playback was requested, but no audio data was loaded for playback", RNS.LOG_ERROR)
 
             except Exception as e:
-                RNS.log("Error while playing message audio:"+str(e))
+                RNS.log(f"Error while playing message audio:{e)}")
                 RNS.trace_exception(e)
 
     def message_ptt_down_action(self, sender=None):
@@ -1884,7 +1884,7 @@ class SidebandApp(MDApp):
             try:
                 self.msg_audio.stop()
             except Exception as e:
-                RNS.log("An error occurred while stopping recording: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"An error occurred while stopping recording: {e)}", RNS.LOG_ERROR)
                 RNS.trace_exception(e)
 
             self.sideband.ui_stopped_recording()
@@ -1936,9 +1936,9 @@ class SidebandApp(MDApp):
                     encoded = encode_codec2(samples, self.audio_msg_mode)
 
                     ap_duration = time.time() - ap_start
-                    RNS.log("Audio processing complete in "+RNS.prettytime(ap_duration), RNS.LOG_DEBUG)
+                    RNS.log(f"Audio processing complete in {RNS.prettytime(ap_duration)}", RNS.LOG_DEBUG)
 
-                    export_path = self.sideband.rec_cache+"/recording.enc"
+                    export_path = f"{self.sideband.rec_cache}/recording.enc"
                     with open(export_path, "wb") as export_file:
                         export_file.write(encoded)
                     self.attach_path = export_path
@@ -1958,7 +1958,7 @@ class SidebandApp(MDApp):
             from sbapp.plyer import audio
 
         self.msg_audio = audio
-        self.msg_audio._file_path = self.sideband.rec_cache+"/recording.ogg"
+        self.msg_audio._file_path = f"{self.sideband.rec_cache}/recording.ogg"
 
         def a_rec_action(sender):
             if not self.rec_dialog.recording:
@@ -1970,7 +1970,7 @@ class SidebandApp(MDApp):
                 el.theme_text_color="Custom"
                 el.text_color=mdc("Red","400")
                 el.icon = "stop-circle"
-                self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Stop Recording[/size]"
+                self.rec_dialog.rec_item.text = f"[size={ss)}]Stop Recording[/size]"
                 def cb(dt):
                     self.msg_audio.start()
                 Clock.schedule_once(cb, 0.10)
@@ -1979,7 +1979,7 @@ class SidebandApp(MDApp):
                 self.sideband.ui_stopped_recording()
                 RNS.log("Stopping recording...") # TODO: Remove
                 self.rec_dialog.recording = False
-                self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Start Recording[/size]"
+                self.rec_dialog.rec_item.text = f"[size={ss)}]Start Recording[/size]"
                 el = self.rec_dialog.rec_item.children[0].children[0]
                 el.icon = "record"
                 el.text_color = self.theme_cls._get_text_color()
@@ -1997,13 +1997,13 @@ class SidebandApp(MDApp):
                 RNS.log("Playing recording...", RNS.LOG_DEBUG)
                 self.rec_dialog.playing = True
                 self.rec_dialog.play_item.children[0].children[0].icon = "stop"
-                self.rec_dialog.play_item.text = "[size="+str(ss)+"]Stop[/size]"
+                self.rec_dialog.play_item.text = f"[size={ss)}]Stop[/size]"
                 self.msg_audio.play()
             else:
                 RNS.log("Stopping playback...", RNS.LOG_DEBUG)
                 self.rec_dialog.playing = False
                 self.rec_dialog.play_item.children[0].children[0].icon = "play"
-                self.rec_dialog.play_item.text = "[size="+str(ss)+"]Play[/size]"
+                self.rec_dialog.play_item.text = f"[size={ss)}]Play[/size]"
                 self.msg_audio.stop()
 
         self.msg_rec_a_play = a_play
@@ -2012,7 +2012,7 @@ class SidebandApp(MDApp):
             RNS.log("Playback finished", RNS.LOG_DEBUG)
             self.rec_dialog.playing = False
             self.rec_dialog.play_item.children[0].children[0].icon = "play"
-            self.rec_dialog.play_item.text = "[size="+str(ss)+"]Play[/size]"
+            self.rec_dialog.play_item.text = f"[size={ss)}]Play[/size]"
             
         self.msg_audio._finished_callback = a_finished
             
@@ -2045,9 +2045,9 @@ class SidebandApp(MDApp):
         self.msg_rec_a_save = a_save
 
         cancel_button = MDRectangleFlatButton(text="Cancel", font_size=dp(18))
-        rec_item = DialogItem(IconLeftWidget(icon="record", on_release=a_rec_action), text="[size="+str(ss)+"]Start Recording[/size]", on_release=a_rec_action)
-        play_item = DialogItem(IconLeftWidget(icon="play", on_release=a_play), text="[size="+str(ss)+"]Play[/size]", on_release=a_play, disabled=True)
-        save_item = DialogItem(IconLeftWidget(icon="content-save-move-outline", on_release=a_save), text="[size="+str(ss)+"]Save to message[/size]", on_release=a_save, disabled=True)
+        rec_item = DialogItem(IconLeftWidget(icon="record", on_release=a_rec_action), text=f"[size={ss)}]Start Recording[/size]", on_release=a_rec_action)
+        play_item = DialogItem(IconLeftWidget(icon="play", on_release=a_play), text=f"[size={ss)}]Play[/size]", on_release=a_play, disabled=True)
+        save_item = DialogItem(IconLeftWidget(icon="content-save-move-outline", on_release=a_save), text=f"[size={ss)}]Save to message[/size]", on_release=a_save, disabled=True)
         self.rec_dialog = MDDialog(
             title="Record Audio",
             type="simple",
@@ -2076,7 +2076,7 @@ class SidebandApp(MDApp):
             self.rec_dialog.play_item.disabled = True
             self.rec_dialog.save_item.disabled = True
             self.rec_dialog.recording = False
-            self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Start Recording[/size]"
+            self.rec_dialog.rec_item.text = f"[size={ss)}]Start Recording[/size]"
             self.rec_dialog.rec_item.children[0].children[0].icon = "record"
 
         self.rec_dialog.open()
@@ -2125,12 +2125,12 @@ class SidebandApp(MDApp):
                 ss = int(dp(18))
                 cancel_button = MDRectangleFlatButton(text="Cancel", font_size=dp(18))
                 ad_items = [
-                        DialogItem(IconLeftWidget(icon="message-image-outline", on_release=a_img_lb), text="[size="+str(ss)+"]Low-bandwidth Image[/size]", on_release=a_img_lb),
-                        DialogItem(IconLeftWidget(icon="file-image", on_release=a_img_def), text="[size="+str(ss)+"]Medium Image[/size]", on_release=a_img_def),
-                        DialogItem(IconLeftWidget(icon="image-outline", on_release=a_img_hq), text="[size="+str(ss)+"]High-res Image[/size]", on_release=a_img_hq),
-                        DialogItem(IconLeftWidget(icon="account-voice", on_release=a_audio_lb), text="[size="+str(ss)+"]Low-bandwidth Voice[/size]", on_release=a_audio_lb),
-                        DialogItem(IconLeftWidget(icon="microphone-message", on_release=a_audio_hq), text="[size="+str(ss)+"]High-quality Voice[/size]", on_release=a_audio_hq),
-                        DialogItem(IconLeftWidget(icon="file-outline", on_release=a_file), text="[size="+str(ss)+"]File Attachment[/size]", on_release=a_file)]
+                        DialogItem(IconLeftWidget(icon="message-image-outline", on_release=a_img_lb), text=f"[size={ss)}]Low-bandwidth Image[/size]", on_release=a_img_lb),
+                        DialogItem(IconLeftWidget(icon="file-image", on_release=a_img_def), text=f"[size={ss)}]Medium Image[/size]", on_release=a_img_def),
+                        DialogItem(IconLeftWidget(icon="image-outline", on_release=a_img_hq), text=f"[size={ss)}]High-res Image[/size]", on_release=a_img_hq),
+                        DialogItem(IconLeftWidget(icon="account-voice", on_release=a_audio_lb), text=f"[size={ss)}]Low-bandwidth Voice[/size]", on_release=a_audio_lb),
+                        DialogItem(IconLeftWidget(icon="microphone-message", on_release=a_audio_hq), text=f"[size={ss)}]High-quality Voice[/size]", on_release=a_audio_hq),
+                        DialogItem(IconLeftWidget(icon="file-outline", on_release=a_file), text=f"[size={ss)}]File Attachment[/size]", on_release=a_file)]
                 
                 if RNS.vendor.platformutils.is_windows():
                     ad_items.pop(3)
@@ -2204,7 +2204,7 @@ class SidebandApp(MDApp):
     def key_query_action(self, sender):
         context_dest = self.messages_view.ids.messages_scrollview.active_conversation
         if self.sideband.request_key(context_dest):
-            keys_str = "Public key information for "+RNS.prettyhexrep(context_dest)+" was requested from the network. Waiting for request to be answered."
+            keys_str = f"Public key information for {RNS.prettyhexrep(context_dest)} was requested from the network. Waiting for request to be answered."
             self.messages_view.ids.nokeys_text.text = keys_str
         else:
             keys_str = "Could not send request. Check your connectivity and addresses."
@@ -2299,7 +2299,7 @@ class SidebandApp(MDApp):
 
             return connectivity_status
         except Exception as e:
-            RNS.log("An error occurred while retrieving connectivity status: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"An error occurred while retrieving connectivity status: {e)}", RNS.LOG_ERROR)
             return "Could not retrieve connectivity status"
     
     def connectivity_status(self, sender):
@@ -2346,14 +2346,14 @@ class SidebandApp(MDApp):
             def dl_yes(s):
                 try:
                     lxm_uri = Clipboard.paste()
-                    if not lxm_uri.lower().startswith(LXMF.LXMessage.URI_SCHEMA+"://"):
-                        lxm_uri = LXMF.LXMessage.URI_SCHEMA+"://"+lxm_uri
+                    if not lxm_uri.lower().startswith(f"{LXMF.LXMessage.URI_SCHEMA}://"):
+                        lxm_uri = f"{LXMF.LXMessage.URI_SCHEMA}://{lxm_uri}"
 
                     self.ingest_lxm_uri(lxm_uri)
                     dialog.dismiss()
 
                 except Exception as e:
-                    response = "Error ingesting message from URI: "+str(e)
+                    response = f"Error ingesting message from URI: {e)}"
                     RNS.log(response, RNS.LOG_ERROR)
                     self.sideband.setstate("lxm_uri_ingest.result", response)
                     dialog.dismiss()
@@ -2372,7 +2372,7 @@ class SidebandApp(MDApp):
             self.dialog_open = True
 
         except Exception as e:
-            RNS.log("Error while creating ingest LXM dialog: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while creating ingest LXM dialog: {e)}", RNS.LOG_ERROR)
 
     def lxmf_sync_action(self, sender):
         def cb(dt):
@@ -2406,7 +2406,7 @@ class SidebandApp(MDApp):
 
                 dialog_content = MsgSync()
                 dialog = MDDialog(
-                    title="LXMF Sync via "+RNS.prettyhexrep(self.sideband.message_router.get_outbound_propagation_node()),
+                    title=f"LXMF Sync via {RNS.prettyhexrep(self.sideband.message_router.get_outbound_propagation_node())}",
                     type="custom",
                     content_cls=dialog_content,
                     buttons=[ stop_button, close_button ],
@@ -2443,7 +2443,7 @@ class SidebandApp(MDApp):
                 dsp = 0
 
             self.sideband.setstate("app.flags.lxmf_sync_dialog_open", True)
-            self.message_sync_dialog.title = f"LXMF Sync via "+RNS.prettyhexrep(self.sideband.message_router.get_outbound_propagation_node())
+            self.message_sync_dialog.title = f"LXMF Sync via {RNS.prettyhexrep(self.sideband.message_router.get_outbound_propagation_node())}"
             self.message_sync_dialog.d_content.ids.sync_status.text = self.sideband.get_sync_status()
             self.message_sync_dialog.d_content.ids.sync_progress.value = dsp
             self.message_sync_dialog.d_content.ids.sync_progress.start()
@@ -2484,7 +2484,7 @@ class SidebandApp(MDApp):
                     new_result = self.sideband.new_conversation(n_address, n_name, n_trusted)
 
                 except Exception as e:
-                    RNS.log("Error while creating conversation: "+str(e), RNS.LOG_ERROR)
+                    RNS.log(f"Error while creating conversation: {e)}", RNS.LOG_ERROR)
 
                 if new_result:
                     dialog.d_content.ids["n_address_field"].error = False
@@ -2509,7 +2509,7 @@ class SidebandApp(MDApp):
             self.dialog_open = True
 
         except Exception as e:
-            RNS.log("Error while creating new conversation dialog: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while creating new conversation dialog: {e)}", RNS.LOG_ERROR)
 
     ### Information/version screen
     ######################################
@@ -2537,14 +2537,14 @@ class SidebandApp(MDApp):
                 threading.Thread(target=lj, daemon=True).start()
 
             self.information_screen.ids.information_scrollview.effect_cls = ScrollEffect
-            self.information_screen.ids.information_logo.icon = self.sideband.asset_dir+"/rns_256.png"
+            self.information_screen.ids.information_logo.icon = f"{self.sideband.asset_dir}/rns_256.png"
 
             str_comps  = " - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)"
             str_comps += "\n - [b]Kivy[/b] (MIT License)\n - [b]Codec2[/b] (LGPL License)\n - [b]PyCodec2[/b] (BSD-3 License)"
             str_comps += "\n - [b]PyDub[/b] (MIT License)\n - [b]PyOgg[/b] (Public Domain)"
             str_comps += "\n - [b]GeoidHeight[/b] (LGPL License)\n - [b]Python[/b] (PSF License)"
-            str_comps += "\n\nGo to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2024 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of "+self.root.ids.app_version_info.text+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - SIDEBAND COMES WITH ABSOLUTELY NO WARRANTY - USE AT YOUR OWN RISK AND RESPONSIBILITY"
-            info = "This is "+self.root.ids.app_version_info.text+", on RNS v"+RNS.__version__+" and LXMF v"+LXMF.__version__+".\n\nHumbly build using the following open components:\n\n"+str_comps
+            str_comps += f"\n\nGo to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project.\n\nThe Sideband app is Copyright (c) 2024 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of {self.root.ids.app_version_info.text}, so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - SIDEBAND COMES WITH ABSOLUTELY NO WARRANTY - USE AT YOUR OWN RISK AND RESPONSIBILITY"
+            info = f"This is {self.root.ids.app_version_info.text}, on RNS v{RNS.__version__} and LXMF v{LXMF.__version__}.\n\nHumbly build using the following open components:\n\n{str_comps}"
             self.information_screen.ids.information_info.text = info
             self.information_screen.ids.information_info.bind(on_ref_press=link_exec)
 
@@ -2846,7 +2846,7 @@ class SidebandApp(MDApp):
 
                 interval_text = RNS.prettytime(interval)
                 pre = self.settings_screen.ids.settings_lxmf_sync_periodic.text
-                self.settings_screen.ids.settings_lxmf_sync_periodic.text = "Auto sync every "+interval_text
+                self.settings_screen.ids.settings_lxmf_sync_periodic.text = f"Auto sync every {interval_text}"
                 if save:
                     if (event == None or not hasattr(event, "button") or not event.button) or not "scroll" in event.button:
                         self.sideband.config["lxmf_sync_interval"] = interval
@@ -3201,7 +3201,7 @@ class SidebandApp(MDApp):
                     all_valid = True
                     iftypes = ["local", "tcp", "i2p", "rnode", "modem", "serial"]
                     for iftype in iftypes:
-                        element = self.connectivity_screen.ids["connectivity_"+iftype+"_ifmode"]
+                        element = self.connectivity_screen.ids[f"connectivity_{iftype}_ifmode"]
                         modes = ["full", "gateway", "access point", "roaming", "boundary"]
                         value = element.text.lower()
                         if value in ["", "f"] or value.startswith("fu"):
@@ -3356,7 +3356,7 @@ class SidebandApp(MDApp):
                 dialog.dismiss()
             yes_button.bind(on_release=dl_yes)
 
-            rpc_string = "rpc_key = "+RNS.hexrep(self.sideband.reticulum.rpc_key, delimit=False)
+            rpc_string = f"rpc_key = {RNS.hexrep(self.sideband.reticulum.rpc_key, delimit=False)}"
             Clipboard.copy(rpc_string)
             dialog.open()
         
@@ -3427,7 +3427,7 @@ class SidebandApp(MDApp):
                                         adrs.append(ha)
 
                     except Exception as e:
-                        RNS.log("Error while getting repository IP address: "+str(e), RNS.LOG_ERROR)
+                        RNS.log(f"Error while getting repository IP address: {e)}", RNS.LOG_ERROR)
                         return None
 
                     return adrs
@@ -3439,11 +3439,11 @@ class SidebandApp(MDApp):
                 else:
                     ipstr = ""
                     for ip in ips:
-                        ipstr += "http://"+str(ip)+":4444/\n"
+                        ipstr += f"http://{ip)}:4444/\n"
                         self.reposository_url = ipstr
 
                     ms = "" if len(ips) == 1 else "es"
-                    info += "The repository server is running at the following address"+ms+":\n [u][ref=link]"+ipstr+"[/ref][u]"
+                    info += f"The repository server is running at the following address{ms}:\n [u][ref=link]{ipstr}[/ref][u]"
                     self.repository_screen.ids.repository_info.bind(on_ref_press=self.repository_link_action)
 
             self.repository_screen.ids.repository_enable_button.disabled = True
@@ -3487,10 +3487,10 @@ class SidebandApp(MDApp):
                                 apk_version = release["tag_name"]
                                 RNS.log(f"Found version {apk_version} artefact {pkgname} at {apk_url}")
                 except Exception as e:
-                    self.repository_screen.ids.repository_update.text = f"Downloading release info failed with the error:\n"+str(e)
+                    self.repository_screen.ids.repository_update.text = f"Downloading release info failed with the error:\n{e)}"
                     return
 
-                self.repository_screen.ids.repository_update.text = "Downloading: "+str(apk_url)
+                self.repository_screen.ids.repository_update.text = f"Downloading: {apk_url)}"
                 with requests.get(apk_url, stream=True) as response:
                     with open("./dl_tmp", "wb") as tmp_file:
                         cs = 32*1024
@@ -3498,12 +3498,12 @@ class SidebandApp(MDApp):
                         for chunk in response.iter_content(chunk_size=cs):
                             tmp_file.write(chunk)
                             tds += cs
-                            self.repository_screen.ids.repository_update.text = "Downloaded "+RNS.prettysize(tds)+" of "+str(pkgname)
+                            self.repository_screen.ids.repository_update.text = f"Downloaded {RNS.prettysize(tds)} of {pkgname)}"
 
                     os.rename("./dl_tmp", f"./share/pkg/{pkgname}")
                     self.repository_screen.ids.repository_update.text = f"Added {pkgname} to the repository!"
             except Exception as e:
-                self.repository_screen.ids.repository_update.text = f"Downloading contents failed with the error:\n"+str(e)
+                self.repository_screen.ids.repository_update.text = f"Downloading contents failed with the error:\n{e)}"
 
         self.repository_screen.ids.repository_update.text = "Starting package download..."
         def start_update_job(sender=None):
@@ -3996,7 +3996,7 @@ class SidebandApp(MDApp):
             yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
             dialog = MDDialog(
                 title="Import Failed",
-                text="The read data did not contain a valid config mote. If any data was decoded, you may try to correct it by editing the relevant fields. The reported error was:\n\n"+str(e),
+                text=f"The read data did not contain a valid config mote. If any data was decoded, you may try to correct it by editing the relevant fields. The reported error was:\n\n{e)}",
                 buttons=[ yes_button ],
                 # elevation=0,
             )
@@ -4550,7 +4550,7 @@ class SidebandApp(MDApp):
         yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
 
         dialog = MDDialog(
-            text="Your Identity key, in base32 format is as follows:\n\n[b]"+str(base64.b32encode(self.sideband.identity.get_private_key()).decode("utf-8"))+"[/b]",
+            text=f"Your Identity key, in base32 format is as follows:\n\n[b]{base64.b32encode(self.sideband.identity.get_private_key()).decode('utf-8'))}[/b]",
             buttons=[ yes_button ],
             # elevation=0,
         )
@@ -4613,7 +4613,7 @@ class SidebandApp(MDApp):
 
             except Exception as e:
                 yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
-                dialog = MDDialog(text="[b]The provided Identity key data was not valid[/b]\n\nThe error reported by Reticulum was:\n\n[i]"+str(e)+"[/i]\n\nNo Identity was imported into Sideband.", buttons=[ yes_button ])
+                dialog = MDDialog(text=f"[b]The provided Identity key data was not valid[/b]\n\nThe error reported by Reticulum was:\n\n[i]{e)}[/i]\n\nNo Identity was imported into Sideband.", buttons=[ yes_button ])
                 def dl_yes(s):
                     dialog.dismiss()
                 yes_button.bind(on_release=dl_yes)
@@ -4697,26 +4697,26 @@ class SidebandApp(MDApp):
                 self.sideband.save_configuration()
                 
                 if RNS.vendor.platformutils.is_android():
-                    toast("Using \""+str(path)+"\" as plugin directory")
+                    toast(f"Using \"{path)}\" as plugin directory")
                 else:
                     ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                     ate_dialog = MDDialog(
                         title="Directory Set",
-                        text="Using \""+str(path)+"\" as plugin directory",
+                        text=f"Using \"{path)}\" as plugin directory",
                         buttons=[ ok_button ],
                     )
                     ok_button.bind(on_release=ate_dialog.dismiss)
                     ate_dialog.open()
         
         except Exception as e:
-            RNS.log(f"Error while setting plugins directory to \"{path}\": "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while setting plugins directory to \"{path}\": {e)}", RNS.LOG_ERROR)
             if RNS.vendor.platformutils.get_platform() == "android":
-                toast("Could not set plugins directory to \""+str(path)+"\"")
+                toast(f"Could not set plugins directory to \"{path)}\"")
             else:
                 ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                 e_dialog = MDDialog(
                     title="Error",
-                    text="Could not set plugins directory to \""+str(path)+"\"",
+                    text=f"Could not set plugins directory to \"{path)}\"",
                     buttons=[ ok_button ],
                 )
                 ok_button.bind(on_release=e_dialog.dismiss)
@@ -4875,7 +4875,7 @@ class SidebandApp(MDApp):
             info_str  = "There was no new data to send."
         else:
             title_str = "Unknown Status"
-            info_str  = "The status of the telemetry update is unknown: "+str(result)
+            info_str  = f"The status of the telemetry update is unknown: {result)}"
 
         self.telemetry_info_dialog.title = title_str
         self.telemetry_info_dialog.text  = info_str
@@ -4913,7 +4913,7 @@ class SidebandApp(MDApp):
             info_str  = "A telemetry request could not be sent."
         else:
             title_str = "Unknown Status"
-            info_str  = "The status of the telemetry request is unknown: "+str(result)
+            info_str  = f"The status of the telemetry request is unknown: {result)}"
 
         self.telemetry_info_dialog.title = title_str
         self.telemetry_info_dialog.text  = info_str
@@ -4932,21 +4932,21 @@ class SidebandApp(MDApp):
             self.sideband.save_configuration()
 
             if RNS.vendor.platformutils.is_android():
-                toast("Using \""+os.path.basename(path)+"\" as offline map")
+                toast(f"Using \"{os.path.basename(path)}\" as offline map")
             else:
                 ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                 ate_dialog = MDDialog(
                     title="Map Set",
-                    text="Using \""+os.path.basename(path)+"\" as offline map",
+                    text=f"Using \"{os.path.basename(path)}\" as offline map",
                     buttons=[ ok_button ],
                 )
                 ok_button.bind(on_release=ate_dialog.dismiss)
                 ate_dialog.open()
 
         except Exception as e:
-            RNS.log(f"Error while loading map \"{path}\": "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while loading map \"{path}\": {e)}", RNS.LOG_ERROR)
             if RNS.vendor.platformutils.get_platform() == "android":
-                toast("Could not load map \""+os.path.basename(path)+"\"")
+                toast(f"Could not load map \"{os.path.basename(path)}\"")
             else:
                 ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
                 map_dialog = MDDialog(
@@ -5041,7 +5041,7 @@ class SidebandApp(MDApp):
                 return self.offline_source
             
             except Exception as e:
-                RNS.log(f"Error while loading map from \"{current_map_path}\": "+str(e))
+                RNS.log(f"Error while loading map from \"{current_map_path}\": {e)}")
                 self.sideband.config["map_storage_file"] = None
                 self.sideband.config["map_use_offline"] = False
                 self.sideband.config["map_use_online"] = True
@@ -5114,7 +5114,7 @@ class SidebandApp(MDApp):
                 self.map_layer = ml
                 self.map_update_source(source)
         except Exception as e:
-            RNS.log("Error while switching map layer: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while switching map layer: {e)}", RNS.LOG_ERROR)
 
     map_nav_divisor = 12
     map_nav_zoom = 0.25
@@ -5479,7 +5479,7 @@ class SidebandApp(MDApp):
             return marker
 
         except Exception as e:
-            RNS.log("Could not create map marker for "+RNS.prettyhexrep(source)+": "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Could not create map marker for {RNS.prettyhexrep(source)}: {e)}", RNS.LOG_ERROR)
             return None
 
     def map_update_markers(self, sender=None):
@@ -5546,17 +5546,17 @@ class SidebandApp(MDApp):
                         stale_markers.append(marker)
 
             for marker in stale_markers:
-                RNS.log("Removing stale marker: "+str(marker), RNS.LOG_DEBUG)
+                RNS.log(f"Removing stale marker: {marker)}", RNS.LOG_DEBUG)
                 try:
                     to_remove = self.map_markers[marker]
                     self.map_screen.ids.map_layout.map.remove_marker(to_remove)
                     self.map_markers.pop(marker)
                     changes = True
                 except Exception as e:
-                    RNS.log("Error while removing map marker: "+str(e), RNS.LOG_ERROR)
+                    RNS.log(f"Error while removing map marker: {e)}", RNS.LOG_ERROR)
         
         except Exception as e:
-            RNS.log("Error while updating own map marker: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while updating own map marker: {e)}", RNS.LOG_ERROR)
 
         for telemetry_source in telemetry_entries:
             try:
@@ -5601,7 +5601,7 @@ class SidebandApp(MDApp):
                             changes = True
 
             except Exception as e:
-                RNS.log("Error while updating map entry for "+RNS.prettyhexrep(telemetry_source)+": "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"Error while updating map entry for {RNS.prettyhexrep(telemetry_source)}: {e)}", RNS.LOG_ERROR)
 
         self.last_map_update = time.time()
         if changes:
@@ -5740,16 +5740,16 @@ Thank you very much for using Free Communications Systems.
             info9 = guide_text9
 
             if self.theme_cls.theme_style == "Dark":
-                info1 = "[color=#"+dark_theme_text_color+"]"+info1+"[/color]"
-                info2 = "[color=#"+dark_theme_text_color+"]"+info2+"[/color]"
-                info3 = "[color=#"+dark_theme_text_color+"]"+info3+"[/color]"
-                info4 = "[color=#"+dark_theme_text_color+"]"+info4+"[/color]"
-                info5 = "[color=#"+dark_theme_text_color+"]"+info5+"[/color]"
-                info6 = "[color=#"+dark_theme_text_color+"]"+info6+"[/color]"
-                info7 = "[color=#"+dark_theme_text_color+"]"+info7+"[/color]"
-                info8 = "[color=#"+dark_theme_text_color+"]"+info8+"[/color]"
-                info9 = "[color=#"+dark_theme_text_color+"]"+info9+"[/color]"
-                info10 = "[color=#"+dark_theme_text_color+"]"+info10+"[/color]"
+                info1 = f"[color=#{dark_theme_text_color}]{info1}[/color]"
+                info2 = f"[color=#{dark_theme_text_color}]{info2}[/color]"
+                info3 = f"[color=#{dark_theme_text_color}]{info3}[/color]"
+                info4 = f"[color=#{dark_theme_text_color}]{info4}[/color]"
+                info5 = f"[color=#{dark_theme_text_color}]{info5}[/color]"
+                info6 = f"[color=#{dark_theme_text_color}]{info6}[/color]"
+                info7 = f"[color=#{dark_theme_text_color}]{info7}[/color]"
+                info8 = f"[color=#{dark_theme_text_color}]{info8}[/color]"
+                info9 = f"[color=#{dark_theme_text_color}]{info9}[/color]"
+                info10 = f"[color=#{dark_theme_text_color}]{info10}[/color]"
             self.guide_screen.ids.guide_info1.text = info1
             self.guide_screen.ids.guide_info2.text = info2
             self.guide_screen.ids.guide_info3.text = info3
@@ -5788,7 +5788,7 @@ Thank you very much for using Free Communications Systems.
 
         info = "The [b]Local Broadcasts[/b] feature will allow you to send and listen for local broadcast transmissions on all connected interfaces.\n\n[b]Local Broadcasts[/b] makes it easy to establish public information exchange with anyone in direct radio range, or even with large areas far away using the [i]Remote Broadcast Repeater[/i] feature.\n\nThese features are not yet implemented in Sideband.\n\nWant it faster? Go to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project."
         if self.theme_cls.theme_style == "Dark":
-            info = "[color=#"+dark_theme_text_color+"]"+info+"[/color]"
+            info = f"[color=#{dark_theme_text_color}]{info}[/color]"
         self.broadcasts_screen.ids.broadcasts_info.text = info
 
         self.root.ids.screen_manager.current = "broadcasts_screen"
@@ -5830,7 +5830,7 @@ if not args.daemon:
             if etype != SystemExit:
                 import traceback
                 exception_info = "".join(traceback.TracebackException.from_exception(e).format())
-                RNS.log(f"An unhandled {str(type(e))} exception occurred: {str(e)}", RNS.LOG_ERROR)
+                RNS.log(f"An unhandled {type(e))} exception occurred: {e)}", RNS.LOG_ERROR)
                 RNS.log(exception_info, RNS.LOG_ERROR)
                 return ExceptionManager.PASS
             else:
@@ -5847,7 +5847,7 @@ def run():
             is_daemon=True
         )
 
-        sideband.version_str = "v"+__version__+" "+__variant__
+        sideband.version_str = f"v{__version__} {__variant__}"
         sideband.start()
         while True:
             time.sleep(5)

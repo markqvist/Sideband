@@ -13,8 +13,7 @@ try:
     import wifi
 except ModuleNotFoundError as err:
     raise ModuleNotFoundError(
-            "python-wifi not installed. try:" +
-            "`pip install --user wifi`.") from err
+            f"python-wifi not installed. try:`pip install --user wifi`.") from err
 
 
 class NMCLIWifi(Wifi):
@@ -170,7 +169,7 @@ class NMCLIWifi(Wifi):
         ret_list['signal'] = self.names[name]['SIGNAL']
 
         bars = len(self.names[name]['BARS'])
-        ret_list['quality'] = '{}/100'.format(bars / 5.0 * 100)
+        ret_list['quality'] = f'{bars / 5.0 * 100}/100'
         ret_list['frequency'] = self.names[name]['FREQ']
         ret_list['bitrates'] = self.names[name]['RATE']
 

@@ -100,7 +100,7 @@ def simulate(link_speed=9600, audio_slot_ms=70, codec_rate=1200, method="msgpack
     print(f"  On-air length        : {PACKET_LEN} bytes")
     print(f"  Packet airtime       : {PACKET_AIRTIME}ms")
 
-    print( "\n===== Results for "+RNS.prettyspeed(LINK_SPEED)+" Link Speed ===\n")
+    print( f"\n===== Results for {RNS.prettyspeed(LINK_SPEED)} Link Speed ===\n")
     print(f"  Final latency        : {TOTAL_LATENCY}ms")
     print(f"    Recording latency  : contributes {TARGET_MS}ms")
     print(f"    Packet transport   : contributes {PACKET_LATENCY}ms")

@@ -12,9 +12,9 @@ class BasicServicePlugin(SidebandServicePlugin):
     def service_jobs(self):
         while self.should_run:
             time.sleep(5)
-            RNS.log("Service ping from "+str(self))
+            RNS.log(f"Service ping from {self)}")
 
-        RNS.log("Jobs stopped running for "+str(self))
+        RNS.log(f"Jobs stopped running for {self)}")
 
     def start(self):
         # Do any initialisation work here

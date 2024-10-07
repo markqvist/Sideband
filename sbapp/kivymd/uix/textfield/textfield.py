@@ -356,7 +356,7 @@ class AutoFormatTelephoneNumber:
             elif len(value) == 4:
                 start = self.text[:-1]
                 end = self.text[-1]
-                self.text = "%s) %s" % (start, end)
+                self.text = f"{start}) {end}"
                 self._check_cursor()
             elif len(value) == 8:
                 self.text += "-"
@@ -364,7 +364,7 @@ class AutoFormatTelephoneNumber:
             elif len(value) in [12, 16]:
                 start = self.text[:-1]
                 end = self.text[-1]
-                self.text = "%s-%s" % (start, end)
+                self.text = f"{start}-{end}"
                 self._check_cursor()
 
     def _check_cursor(self):

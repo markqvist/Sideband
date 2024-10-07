@@ -23,7 +23,7 @@ class NotifyDesktopPortals(Notification):
             "org.freedesktop.portal.Desktop",
             "--object-path", "/org/freedesktop/portal/desktop", "--method",
             "org.freedesktop.portal.Notification.AddNotification", "",
-            "{'title': <'" + title + "'>, 'body': <'" + body + "'>}"
+            f"{{'title': <'{title}'>, 'body': <'{body}'>}}"
         ], stdout=subprocess.DEVNULL)
 
 

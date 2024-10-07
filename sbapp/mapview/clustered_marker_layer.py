@@ -1,4 +1,3 @@
-# coding=utf-8
 """
 Layer that support point clustering
 ===================================
@@ -265,9 +264,7 @@ class Marker:
         self.widget = None
 
     def __repr__(self):
-        return "<Marker lon={} lat={} source={}>".format(
-            self.lon, self.lat, self.source
-        )
+        return f"<Marker lon={self.lon} lat={self.lat} source={self.source}>"
 
 
 class SuperCluster:

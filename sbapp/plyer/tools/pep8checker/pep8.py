@@ -308,14 +308,14 @@ def blank_lines(logical_line, blank_lines, indent_level, line_number,
         if blank_lines:
             yield 0, "E304 blank lines found after function decorator"
     elif blank_lines > 2 or (indent_level and blank_lines == 2):
-        yield 0, "E303 too many blank lines (%d)" % blank_lines
+        yield 0, f"E303 too many blank lines ({int(blank_lines)})"
     elif logical_line.startswith(('def ', 'class ', '@')):
         if indent_level:
             if not (blank_lines or previous_indent_level < indent_level or
                     DOCSTRING_REGEX.match(previous_logical)):
                 yield 0, "E301 expected 1 blank line, found 0"
         elif blank_lines != 2:
-            yield 0, "E302 expected 2 blank lines, found %d" % blank_lines
+            yield 0, f"E302 expected 2 blank lines, found {int(blank_lines)}"
 
 
 def extraneous_whitespace(logical_line):
@@ -343,12 +343,12 @@ def extraneous_whitespace(logical_line):
         text = match.group()
         char = text.strip()
         found = match.start()
-        if text == char + ' ':
+        if text == f"{char} ":
             # assert char in '([{'
-            yield found + 1, "E201 whitespace after '%s'" % char
+            yield found + 1, f"E201 whitespace after '{char}'"
         elif line[found - 1] != ',':
             code = ('E202' if char in '}])' else 'E203')  # if char in ',;:'
-            yield found, "%s whitespace before '%s'" % (code, char)
+            yield found, f"{code} whitespace before '{char}'"
 
 
 def whitespace_around_keywords(logical_line):
@@ -397,7 +397,7 @@ def missing_whitespace(logical_line):
                 continue  # Slice syntax, no space required
             if char == ',' and line[index + 1] == ')':
                 continue  # Allow tuple with only one element: (3,)
-            yield index, "E231 missing whitespace after '%s'" % char
+            yield index, f"E231 missing whitespace after '{char}'"
 
 
 def indentation(logical_line, previous_logical, indent_char,
@@ -474,7 +474,7 @@ def continuation_line_indentation(logical_line, tokens, indent_level, verbose):
     indent_chances = {}
     last_indent = (0, 0)
     if verbose >= 3:
-        print((">>> " + tokens[0][4].rstrip()))
+        print(f">>> {tokens[0][4].rstrip()}")
 
     for token_type, text, start, end, line in tokens:
         newline = row < start[0] - first_row
@@ -487,7 +487,7 @@ def continuation_line_indentation(logical_line, tokens, indent_level, verbose):
             # this is the beginning of a continuation line.
             last_indent = start
             if verbose >= 3:
-                print(("... " + line.rstrip()))
+                print(f"... {line.rstrip()}")
 
             # record the initial indent.
             rel_indent[row] = start[1] - indent_level
@@ -544,7 +544,7 @@ def continuation_line_indentation(logical_line, tokens, indent_level, verbose):
             indent[depth] = start[1]
             indent_chances[start[1]] = True
             if verbose >= 4:
-                print(("bracket depth %s indent to %s" % (depth, start[1])))
+                print(f"bracket depth {depth} indent to {start[1]}")
         # deal with implicit string concatenation
         elif token_type == tokenize.STRING or text in ('u', 'ur', 'b', 'br'):
             indent_chances[start[1]] = str
@@ -556,8 +556,8 @@ def continuation_line_indentation(logical_line, tokens, indent_level, verbose):
                 indent.append(0)
                 parens[row] += 1
                 if verbose >= 4:
-                    print(("bracket depth %s seen, col %s, visual min = %s" %
-                          (depth, start[1], indent[depth])))
+                    print("bracket depth %s seen, col %s, visual min = %s" %
+                          (depth, start[1], indent[depth]))
             elif text in ')]}' and depth > 0:
                 # parent indents should not be more than this one
                 prev_indent = indent.pop() or last_indent[1]
@@ -616,7 +616,7 @@ def whitespace_before_parameters(logical_line, tokens):
             (index < 2 or tokens[index - 2][1] != 'class') and
                 # Allow "return (a.foo for a in range(5))"
                 not keyword.iskeyword(prev_text)):
-            yield prev_end, "E211 whitespace before '%s'" % text
+            yield prev_end, f"E211 whitespace before '{text}'"
         prev_type = token_type
         prev_text = text
         prev_end = end
@@ -743,9 +743,9 @@ def whitespace_around_comma(logical_line):
     for m in WHITESPACE_AFTER_COMMA_REGEX.finditer(line):
         found = m.start() + 1
         if '\t' in m.group():
-            yield found, "E242 tab after '%s'" % m.group()[0]
+            yield found, f"E242 tab after '{m.group()[0]}'"
         else:
-            yield found, "E241 multiple spaces after '%s'" % m.group()[0]
+            yield found, f"E241 multiple spaces after '{m.group()[0]}'"
 
 
 def whitespace_around_named_parameter_equals(logical_line, tokens):
@@ -925,16 +925,15 @@ def comparison_to_singleton(logical_line):
     if match:
         same = (match.group(1) == '==')
         singleton = match.group(2)
-        msg = "'if cond is %s:'" % (('' if same else 'not ') + singleton)
+        msg = f"'if cond is {('' if same else 'not ') + singleton}:'"
         if singleton in ('None',):
             code = 'E711'
         else:
             code = 'E712'
             nonzero = ((singleton == 'True' and same) or
                        (singleton == 'False' and not same))
-            msg += " or 'if %scond:'" % ('' if nonzero else 'not ')
-        yield match.start(1), ("%s comparison to %s should be %s" %
-                               (code, singleton, msg))
+            msg += f" or 'if {'' if nonzero else 'not '}cond:'"
+        yield match.start(1), (f"{code} comparison to {singleton} should be {msg}")
 
 
 def comparison_type(logical_line):
@@ -1023,7 +1022,7 @@ def python_3000_backticks(logical_line):
 ##############################################################################
 
 
-if '' == ''.encode():
+if '' == b'':
     # Python 2: implicit encoding.
     def readlines(filename):
         f = open(filename)
@@ -1114,16 +1113,16 @@ def parse_udiff(diff, patterns=None, parent='.'):
                 nrows -= 1
             continue
         if line[:3] == '@@ ':
-            row, nrows = [int(g) for g in HUNK_REGEX.match(line).groups()]
+            row, nrows = (int(g) for g in HUNK_REGEX.match(line).groups())
             rv[path].update(list(range(row, row + nrows)))
         elif line[:3] == '+++':
             path = line[4:].split('\t', 1)[0]
             if path[:2] == 'b/':
                 path = path[2:]
             rv[path] = set()
-    return dict([(os.path.join(parent, path), rows)
+    return {os.path.join(parent, path): rows
                  for (path, rows) in list(rv.items())
-                 if rows and filename_match(path, patterns)])
+                 if rows and filename_match(path, patterns)}
 
 
 def filename_match(filename, patterns, default=True):
@@ -1178,9 +1177,9 @@ class Checker:
         elif lines is None:
             try:
                 self.lines = readlines(filename)
-            except IOError:
+            except OSError:
                 exc_type, exc = sys.exc_info()[:2]
-                self._io_error = '%s: %s' % (exc_type.__name__, exc)
+                self._io_error = f'{exc_type.__name__}: {exc}'
                 self.lines = []
         else:
             self.lines = lines
@@ -1273,10 +1272,10 @@ class Checker:
         self.previous_indent_level = self.indent_level
         self.indent_level = expand_indent(indent)
         if self.verbose >= 2:
-            print((self.logical_line[:80].rstrip()))
+            print(self.logical_line[:80].rstrip())
         for name, check, argument_names in self._logical_checks:
             if self.verbose >= 4:
-                print(('   ' + name))
+                print(f"   {name}")
             for result in self.run_check(check, argument_names):
                 offset, text = result
                 if isinstance(offset, tuple):
@@ -1291,18 +1290,17 @@ class Checker:
 
     def generate_tokens(self):
         if self._io_error:
-            self.report_error(1, 0, 'E902 %s' % self._io_error, readlines)
+            self.report_error(1, 0, f'E902 {self._io_error}', readlines)
         tokengen = tokenize.generate_tokens(self.readline_check_physical)
         try:
-            for token in tokengen:
-                yield token
+            yield from tokengen
         except (SyntaxError, tokenize.TokenError):
             exc_type, exc = sys.exc_info()[:2]
             offset = exc.args[1]
             if len(offset) > 2:
                 offset = offset[1:3]
             self.report_error(offset[0], offset[1],
-                              'E901 %s: %s' % (exc_type.__name__, exc.args[0]),
+                              f'E901 {exc_type.__name__}: {exc.args[0]}',
                               self.generate_tokens)
     generate_tokens.__doc__ = "    Check if the syntax is valid."
 
@@ -1323,11 +1321,11 @@ class Checker:
             token_type, text = token[0:2]
             if self.verbose >= 3:
                 if token[2][0] == token[3][0]:
-                    pos = '[%s:%s]' % (token[2][1] or '', token[3][1])
+                    pos = f"[{token[2][1] or ''}:{token[3][1]}]"
                 else:
-                    pos = 'l.%s' % token[3][0]
-                print(('l.%s\t%s\t%s\t%r' %
-                      (token[2][0], pos, tokenize.tok_name[token[0]], text)))
+                    pos = f'l.{token[3][0]}'
+                print('l.%s\t%s\t%s\t%r' %
+                      (token[2][0], pos, tokenize.tok_name[token[0]], text))
             if token_type == tokenize.COMMENT or token_type == tokenize.STRING:
                 for sre in re.finditer(r"[:.;,]   ?[A-Za-z]", text):
                     pos = sre.span()[0]
@@ -1426,7 +1424,7 @@ class BaseReport:
         if code in self.expected:
             return
         if self.print_filename and not self.file_errors:
-            print((self.filename))
+            print(self.filename)
         self.file_errors += 1
         self.total_errors += 1
         return code
@@ -1459,12 +1457,12 @@ class BaseReport:
 
     def print_benchmark(self):
         """Print benchmark numbers."""
-        print(('%-7.2f %s' % (self.elapsed, 'seconds elapsed')))
+        print(f'{self.elapsed:<7.2f} seconds elapsed')
         if self.elapsed:
             for key in self._benchmark_keys:
-                print(('%-7d %s per second (%d total)' %
+                print('%-7d %s per second (%d total)' %
                       (self.counters[key] / self.elapsed, key,
-                       self.counters[key])))
+                       self.counters[key]))
 
 
 class FileReport(BaseReport):
@@ -1489,20 +1487,20 @@ class StandardReport(BaseReport):
         code = super().error(line_number, offset,
                                                  text, check)
         if code and (self.counters[code] == 1 or self._repeat):
-            print((self._fmt % {
+            print(self._fmt % {
                 'path': self.filename,
                 'row': self.line_offset + line_number, 'col': offset + 1,
                 'code': code, 'text': text[5:],
-            }))
+            })
             if self._show_source:
                 if line_number > len(self.lines):
                     line = ''
                 else:
                     line = self.lines[line_number - 1]
-                print((line.rstrip()))
-                print((' ' * offset + '^'))
+                print(line.rstrip())
+                print(f"{' ' * offset}^")
             if self._show_pep8 and check is not None:
-                print((check.__doc__.lstrip('\n').rstrip()))
+                print(check.__doc__.lstrip('\n').rstrip())
         return code
 
 
@@ -1529,16 +1527,15 @@ class TestReport(StandardReport):
 
     def get_file_results(self):
         # Check if the expected errors were found
-        label = '%s:%s:1' % (self.filename, self.line_offset)
+        label = f'{self.filename}:{self.line_offset}:1'
         codes = sorted(self.expected)
         for code in codes:
             if not self.counters.get(code):
                 self.file_errors += 1
                 self.total_errors += 1
-                print(('%s: error %s not found' % (label, code)))
+                print(f'{label}: error {code} not found')
         if self._verbose and not self.file_errors:
-            print(('%s: passed (%s)' %
-                  (label, ' '.join(codes) or 'Okay')))
+            print(f"{label}: passed ({' '.join(codes) or 'Okay'})")
         self.counters['test cases'] += 1
         if self.file_errors:
             self.counters['failed tests'] += 1
@@ -1552,10 +1549,10 @@ class TestReport(StandardReport):
         results = ("%(physical lines)d lines tested: %(files)d files, "
                    "%(test cases)d test cases%%s." % self.counters)
         if self.total_errors:
-            print((results % ", %s failures" % self.total_errors))
+            print(results % ", %s failures" % self.total_errors)
         else:
-            print((results % ""))
-        print(("Test failed." if self.total_errors else "Test passed."))
+            print(results % "")
+        print("Test failed." if self.total_errors else "Test passed.")
 
 
 class StyleGuide:
@@ -1614,7 +1611,7 @@ class StyleGuide:
     def input_file(self, filename, lines=None, expected=None, line_offset=0):
         """Run all checks on a Python source file."""
         if self.options.verbose:
-            print(('checking %s' % filename))
+            print(f'checking {filename}')
         fchecker = Checker(filename, lines=lines, options=self.options)
         return fchecker.check_all(expected=expected, line_offset=line_offset)
 
@@ -1629,15 +1626,15 @@ class StyleGuide:
         runner = self.runner
         for root, dirs, files in os.walk(dirname):
             if verbose:
-                print(('directory ' + root))
+                print(f"directory {root}")
             counters['directories'] += 1
             for subdir in sorted(dirs):
                 if self.excluded(subdir):
                     dirs.remove(subdir)
             for filename in sorted(files):
                 # contain a pattern that matches?
-                if ((filename_match(filename, filepatterns) and
-                     not self.excluded(filename))):
+                if (filename_match(filename, filepatterns) and
+                     not self.excluded(filename)):
                     runner(os.path.join(root, filename))
 
     def excluded(self, filename):
@@ -1740,16 +1737,16 @@ def selftest(options):
             for part in source.split(r'\n'):
                 part = part.replace(r'\t', '\t')
                 part = part.replace(r'\s', ' ')
-                checker.lines.append(part + '\n')
+                checker.lines.append(f"{part}\n")
             checker.check_all()
             error = None
             if code == 'Okay':
                 if len(counters) > len(options.benchmark_keys):
                     codes = [key for key in counters
                              if key not in options.benchmark_keys]
-                    error = "incorrectly found %s" % ', '.join(codes)
+                    error = f"incorrectly found {', '.join(codes)}"
             elif not counters.get(code):
-                error = "failed to find %s" % code
+                error = f"failed to find {code}"
             # Keep showing errors for multiple tests
             for key in set(counters) - set(options.benchmark_keys):
                 del counters[key]
@@ -1757,12 +1754,12 @@ def selftest(options):
             count_all += 1
             if not error:
                 if options.verbose:
-                    print(("%s: %s" % (code, source)))
+                    print(f"{code}: {source}")
             else:
                 count_failed += 1
-                print(("%s: %s:" % (__file__, error)))
+                print(f"{__file__}: {error}:")
                 for line in checker.lines:
-                    print((line.rstrip()))
+                    print(line.rstrip())
     return count_failed, count_all
 
 
@@ -1773,7 +1770,7 @@ def read_config(options, args, arglist, parser):
     user_conf = options.config
     if user_conf and os.path.isfile(user_conf):
         if options.verbose:
-            print(('user configuration: %s' % user_conf))
+            print(f'user configuration: {user_conf}')
         config.read(user_conf)
 
     parent = tail = args and os.path.abspath(os.path.commonprefix(args))
@@ -1781,14 +1778,14 @@ def read_config(options, args, arglist, parser):
         local_conf = os.path.join(parent, '.pep8')
         if os.path.isfile(local_conf):
             if options.verbose:
-                print(('local configuration: %s' % local_conf))
+                print(f'local configuration: {local_conf}')
             config.read(local_conf)
             break
         parent, tail = os.path.split(parent)
 
     if config.has_section('pep8'):
-        option_list = dict([(o.dest, o.type or o.action)
-                            for o in parser.option_list])
+        option_list = {o.dest: o.type or o.action
+                            for o in parser.option_list}
 
         # First, read the default values
         new_options, _ = parser.parse_args([])
@@ -1796,10 +1793,10 @@ def read_config(options, args, arglist, parser):
         # Second, parse the configuration
         for opt in config.options('pep8'):
             if options.verbose > 1:
-                print(('  %s = %s' % (opt, config.get('pep8', opt))))
+                print(f"  {opt} = {config.get('pep8', opt)}")
             if opt.replace('_', '-') not in parser.config_options:
-                print(('Unknown option: \'%s\'\n  not in [%s]' %
-                      (opt, ' '.join(parser.config_options))))
+                print('Unknown option: \'%s\'\n  not in [%s]' %
+                      (opt, ' '.join(parser.config_options)))
                 sys.exit(1)
             normalized_opt = opt.replace('-', '_')
             opt_type = option_list[normalized_opt]
@@ -1930,8 +1927,8 @@ def _main():
         count_failed = fail_s + fail_d
         if not options.quiet:
             count_passed = done_d + done_s - count_failed
-            print(("%d passed and %d failed." % (count_passed, count_failed)))
-            print(("Test failed." if count_failed else "Test passed."))
+            print(f"{int(count_passed)} passed and {int(count_failed)} failed.")
+            print("Test failed." if count_failed else "Test passed.")
         if count_failed:
             sys.exit(1)
     if options.testsuite:
@@ -1945,7 +1942,7 @@ def _main():
         report.print_results()
     if report.total_errors:
         if options.count:
-            sys.stderr.write(str(report.total_errors) + '\n')
+            sys.stderr.write(f"{report.total_errors)}\n")
         sys.exit(1)
 
 

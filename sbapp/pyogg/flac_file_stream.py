@@ -41,7 +41,7 @@ class FlacFileStream:
         self.frequency = metadata.contents.data.stream_info.sample_rate
 
     def error_callback(self,decoder, status, client_data):
-        raise PyOggError("An error occured during the process of decoding. Status enum: {}".format(flac.FLAC__StreamDecoderErrorStatusEnum[status]))
+        raise PyOggError(f"An error occured during the process of decoding. Status enum: {flac.FLAC__StreamDecoderErrorStatusEnum[status]}")
 
     def __init__(self, path):
         self.decoder = flac.FLAC__stream_decoder_new()
@@ -75,11 +75,11 @@ class FlacFileStream:
                                       self.client_data)
 
         if init_status: # error
-            raise PyOggError("An error occured when trying to open '{}': {}".format(path, flac.FLAC__StreamDecoderInitStatusEnum[init_status]))
+            raise PyOggError(f"An error occured when trying to open '{path}': {flac.FLAC__StreamDecoderInitStatusEnum[init_status]}")
 
         metadata_status = (flac.FLAC__stream_decoder_process_until_end_of_metadata(self.decoder))
         if not metadata_status: # error
-            raise PyOggError("An error occured when trying to decode the metadata of {}".format(path))
+            raise PyOggError(f"An error occured when trying to decode the metadata of {path}")
 
         #: Bytes per sample
         self.bytes_per_sample = 2
@@ -94,7 +94,7 @@ class FlacFileStream:
         # Attempt to read a single frame of audio
         stream_status = (flac.FLAC__stream_decoder_process_single(self.decoder))
         if not stream_status: # error
-            raise PyOggError("An error occured when trying to decode the audio stream of {}".format(path))
+            raise PyOggError(f"An error occured when trying to decode the audio stream of {path}")
 
         # Check if we encountered the end of the stream
         if (flac.FLAC__stream_decoder_get_state(self.decoder) == 4): # end of stream

@@ -12,8 +12,7 @@ from .utils import (
 from .silence import split_on_silence
 from .exceptions import TooManyMissingFrames, InvalidDuration
 
-if sys.version_info >= (3, 0):
-    xrange = range
+xrange = range
 
 
 @register_pydub_effect
@@ -204,7 +203,7 @@ def invert_phase(seg, channels=(1, 1)):
         if seg.channels == 2:
             left, right = seg.split_to_mono()
         else:
-            raise Exception("Can't implicitly convert an AudioSegment with " + str(seg.channels) + " channels to stereo.")
+            raise Exception(f"Can't implicitly convert an AudioSegment with {seg.channels)} channels to stereo.")
             
         if channels == (1, 0):    
             left = left.invert_phase()

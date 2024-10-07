@@ -339,7 +339,6 @@ class TableHeader(ThemableBehavior, ScrollView):
             self._col_headings.append(col_heading[0])
             if i:
                 self.ids.header.add_widget(
-                    (
                         CellHeader(
                             text=col_heading[0],
                             sort_action=col_heading[2],
@@ -362,7 +361,6 @@ class TableHeader(ThemableBehavior, ScrollView):
                             width=self.cols_minimum[i],
                             table_data=self.table_data,
                         )
-                    )
                 )
             else:
                 # Sets the text in the first cell.

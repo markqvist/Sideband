@@ -72,7 +72,7 @@ class AndroidAudio(Audio):
                 self._recorder.stop()
                 self._recorder.release()
             except Exception as e:
-                print("Could not stop recording: "+str(e))
+                print(f"Could not stop recording: {e)}")
 
             self._recorder = None
 
@@ -81,7 +81,7 @@ class AndroidAudio(Audio):
                 self._player.stop()
                 self._player.release()
             except Exception as e:
-                print("Could not stop playback: "+str(e))
+                print(f"Could not stop playback: {e)}")
 
             self._player = None
 

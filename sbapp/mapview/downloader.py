@@ -1,5 +1,3 @@
-# coding=utf-8
-
 __all__ = ["Downloader"]
 
 import logging
@@ -52,7 +50,7 @@ class Downloader:
         self._futures = []
         Clock.schedule_interval(self._check_executor, 1 / 60.0)
         if not exists(self.cache_dir):
-            RNS.log("Creating cache dir "+str(self.cache_dir), RNS.LOG_WARNING)
+            RNS.log(f"Creating cache dir {self.cache_dir)}", RNS.LOG_WARNING)
             makedirs(self.cache_dir)
 
         logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -134,7 +132,7 @@ class Downloader:
             # Logger.debug("Downloaded {} bytes: {}".format(len(data), uri))
             return tile.set_source, (cache_fn,)
         except Exception as e:
-            print("Downloader error: {!r}".format(e))
+            print(f"Downloader error: {e!r}")
 
     def _check_executor(self, dt):
         start = time()

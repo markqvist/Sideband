@@ -13,13 +13,13 @@ class Codec2Recipe(Recipe):
     def include_flags(self, arch):
         '''Returns a string with the include folders'''
         codec2_includes = join(self.get_build_dir(arch.arch), 'build_android')
-        return (' -I' + codec2_includes)
+        return (f" -I{codec2_includes}")
 
     def link_dirs_flags(self, arch):
         '''Returns a string with the appropriate `-L<lib directory>` to link
         with the libs. This string is usually added to the environment
         variable `LDFLAGS`'''
-        return ' -L' + self.get_build_dir(arch.arch)
+        return f" -L{self.get_build_dir(arch.arch)}"
 
     # def link_libs_flags(self):
     #     '''Returns a string with the appropriate `-l<lib>` flags to link with

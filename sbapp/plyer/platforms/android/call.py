@@ -17,7 +17,7 @@ class AndroidCall(Call):
 
         intent = Intent(Intent.ACTION_CALL)
         tel = kwargs.get('tel')
-        intent.setData(uri.parse("tel:{}".format(tel)))
+        intent.setData(uri.parse(f"tel:{tel}"))
         activity.startActivity(intent)
 
     def _dialcall(self, **kwargs):

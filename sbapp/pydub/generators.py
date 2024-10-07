@@ -21,7 +21,7 @@ from .utils import (
 
 
 
-class SignalGenerator(object):
+class SignalGenerator:
     def __init__(self, sample_rate=44100, bit_depth=16):
         self.sample_rate = sample_rate
         self.bit_depth = bit_depth
@@ -64,7 +64,7 @@ class SignalGenerator(object):
 
 class Sine(SignalGenerator):
     def __init__(self, freq, **kwargs):
-        super(Sine, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.freq = freq
 
     def generate(self):
@@ -78,7 +78,7 @@ class Sine(SignalGenerator):
 
 class Pulse(SignalGenerator):
     def __init__(self, freq, duty_cycle=0.5, **kwargs):
-        super(Pulse, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.freq = freq
         self.duty_cycle = duty_cycle
 
@@ -101,13 +101,13 @@ class Pulse(SignalGenerator):
 class Square(Pulse):
     def __init__(self, freq, **kwargs):
         kwargs['duty_cycle'] = 0.5
-        super(Square, self).__init__(freq, **kwargs)
+        super().__init__(freq, **kwargs)
 
 
 
 class Sawtooth(SignalGenerator):
     def __init__(self, freq, duty_cycle=1.0, **kwargs):
-        super(Sawtooth, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.freq = freq
         self.duty_cycle = duty_cycle
 
@@ -133,7 +133,7 @@ class Sawtooth(SignalGenerator):
 class Triangle(Sawtooth):
     def __init__(self, freq, **kwargs):
         kwargs['duty_cycle'] = 0.5
-        super(Triangle, self).__init__(freq, **kwargs)
+        super().__init__(freq, **kwargs)
 
 
 class WhiteNoise(SignalGenerator):

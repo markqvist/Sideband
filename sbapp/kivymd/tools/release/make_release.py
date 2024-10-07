@@ -53,9 +53,9 @@ def run_pre_commit():
 def replace_in_file(pattern, repl, file):
     """Replace one `pattern` match to `repl` in file `file`."""
 
-    file_content = open(file, "rt", encoding="utf-8").read()
+    file_content = open(file, encoding="utf-8").read()
     new_file_content = re.sub(pattern, repl, file_content, 1, re.M)
-    open(file, "wt", encoding="utf-8").write(new_file_content)
+    open(file, "w", encoding="utf-8").write(new_file_content)
     return not file_content == new_file_content
 
 
@@ -116,7 +116,7 @@ def move_changelog(
     """Edit unreleased.rst and rename to <version>.rst."""
 
     # Read unreleased changelog
-    changelog = open(unreleased_file, "rt", encoding="utf-8").read()
+    changelog = open(unreleased_file, encoding="utf-8").read()
 
     # Edit changelog
     changelog = re.sub(
@@ -157,7 +157,7 @@ def move_changelog(
     )
 
     # Write changelog
-    open(version_file, "wt", encoding="utf-8").write(changelog)
+    open(version_file, "w", encoding="utf-8").write(changelog)
     # Remove unreleased changelog
     os.remove(unreleased_file)
     # Update index file
@@ -200,7 +200,7 @@ def create_unreleased_changelog(
 * Bug fixes and other minor improvements.
 """
     # Create unreleased file
-    open(unreleased_file, "wt", encoding="utf-8").write(changelog)
+    open(unreleased_file, "w", encoding="utf-8").write(changelog)
     # Update index file
     success = replace_in_file(
         r"(?<=Changelog\n=========\n\n)",
@@ -218,7 +218,7 @@ def main():
     release = args.command == "release"
     version = args.version or "0.0.0"
     next_version = args.next_version or (
-        (version[:-1] + str(int(version[-1]) + 1) + ".dev0")
+        f"{version[:-1] + str(int(version[-1]) + 1)}.dev0"
         if "rc" not in version
         else version
     )

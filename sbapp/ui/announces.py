@@ -63,7 +63,7 @@ class Announces():
         self.fetch_announces()
         self.update_widget()
         self.app.sideband.setstate("app.flags.new_announces", False)
-        RNS.log("Updated announce stream widgets in "+RNS.prettytime(time.time()-us), RNS.LOG_DEBUG)
+        RNS.log(f"Updated announce stream widgets in {RNS.prettytime(time.time() - us)}", RNS.LOG_DEBUG)
 
     def update_widget(self):
         if self.list == None:
@@ -105,10 +105,10 @@ class Announces():
                     def x(sender):
                         yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))    
                         if dtype == "lxmf.delivery":
-                            ad_text = "[size=22dp]LXMF Peer[/size]\n\n[b]Received[/b] "+ts+"\n[b]Address[/b] "+RNS.prettyhexrep(dest)+"\n[b]Name[/b] "+name+"\n[b]Stamp Cost[/b] "+cost
+                            ad_text = f"[size=22dp]LXMF Peer[/size]\n\n[b]Received[/b] {ts}\n[b]Address[/b] {RNS.prettyhexrep(dest)}\n[b]Name[/b] {name}\n[b]Stamp Cost[/b] {cost}"
 
                         if dtype == "lxmf.propagation":
-                            ad_text = "[size=22dp]LXMF Propagation Node[/size]\n\n[b]Received[/b] "+ts+"\n[b]Address[/b] "+RNS.prettyhexrep(dest)
+                            ad_text = f"[size=22dp]LXMF Propagation Node[/size]\n\n[b]Received[/b] {ts}\n[b]Address[/b] {RNS.prettyhexrep(dest)}"
 
                         dialog = MDDialog(
                             text=ad_text,
@@ -130,7 +130,7 @@ class Announces():
                     iconl = IconLeftWidget(icon=trust_icon)
 
                 elif dest_type == "lxmf.propagation":
-                    disp_name = "Propagation Node "+RNS.prettyhexrep(context_dest)
+                    disp_name = f"Propagation Node {RNS.prettyhexrep(context_dest)}"
                     iconl = IconLeftWidget(icon="upload-network")
 
                 else:

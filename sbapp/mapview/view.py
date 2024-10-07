@@ -1,5 +1,3 @@
-# coding=utf-8
-
 __all__ = ["MapView", "MapMarker", "MapMarkerPopup", "MapLayer", "MarkerMapLayer"]
 
 import webbrowser
@@ -174,7 +172,7 @@ class CustomMapMarker(ButtonBehavior, Image):
                 else:
                     self.source = join(dirname(__file__), "icons", "marker_dark.png")
 
-        super(CustomMapMarker, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.texture_update()
 
     def detach(self):
@@ -212,7 +210,7 @@ class MapMarker(ButtonBehavior, Image):
     _layer = None
 
     def __init__(self, **kwargs):
-        super(MapMarker, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.texture_update()
 
     def detach(self):
@@ -312,7 +310,7 @@ class MarkerMapLayer(MapLayer):
         bbox = None
         # reposition the markers depending the latitude
         markers = sorted(self.markers, key=lambda x: -x.lat)
-        margin = max((max(marker.size) for marker in markers))
+        margin = max(max(marker.size) for marker in markers)
         bbox = mapview.get_bbox(margin)
         for marker in markers:
             if bbox.collide(marker.lat, marker.lon):
@@ -783,7 +781,7 @@ class MapView(Widget):
                 #     self.animated_diff_scale_at(2.0 - cur_scale, *touch.pos)
                 self._pause = False
             return True
-        return super(MapView, self).on_touch_up(touch)
+        return super().on_touch_up(touch)
 
     def on_transform(self, *args):
         self._invalid_scale = True

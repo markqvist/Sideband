@@ -650,7 +650,7 @@ class MDFileManager(MDRelativeLayout):
             return dirs, files
 
         except OSError as e:
-            print("Filemanager OSError: "+str(e))
+            print(f"Filemanager OSError: {e)}")
             return None, None
 
     def close(self) -> None:

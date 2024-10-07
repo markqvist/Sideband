@@ -1371,7 +1371,7 @@ class MDTopAppBar(DeclarativeBehavior, NotchedBox, WindowController):
         Clock.schedule_once(self.update_floating_radius)
         Clock.schedule_once(self.check_overflow_cls)
 
-    def set_headline_font_style(self, interval: Union[int, float]) -> None:
+    def set_headline_font_style(self, interval: int | float) -> None:
         if self.type_height in ("medium", "large"):
             self.ids.label_headline.font_style = {
                 "medium": "H6",
@@ -1470,7 +1470,7 @@ class MDTopAppBar(DeclarativeBehavior, NotchedBox, WindowController):
             self.overflow_cls.items = self._overflow_menu_items
             self.overflow_cls.caller = self.ids.right_actions.children[0]
 
-    def check_overflow_cls(self, interval: Union[int, float]) -> None:
+    def check_overflow_cls(self, interval: int | float) -> None:
         """
         If the user does not set the :attr:`overflow_cls` attribute but uses
         overflows, the :attr:`overflow_cls` attribute will use the default
@@ -1537,7 +1537,7 @@ class MDTopAppBar(DeclarativeBehavior, NotchedBox, WindowController):
         Called when the value of the  :attr:`md_bg_color` attribute changes.
         """
 
-        def on_md_bg_color(interval: Union[int, float]):
+        def on_md_bg_color(interval: int | float):
             if self.type == "bottom":
                 self.md_bg_color = [0, 0, 0, 0]
             else:
@@ -1554,7 +1554,7 @@ class MDTopAppBar(DeclarativeBehavior, NotchedBox, WindowController):
         changes.
         """
 
-        def on_left_action_items(interval: Union[int, float]):
+        def on_left_action_items(interval: int | float):
             self.update_action_bar(self.ids.left_actions, items_value)
 
         Clock.schedule_once(on_left_action_items)
@@ -1567,7 +1567,7 @@ class MDTopAppBar(DeclarativeBehavior, NotchedBox, WindowController):
         changes.
         """
 
-        def on_right_actions(interval: Union[int, float]):
+        def on_right_actions(interval: int | float):
             self.update_action_bar(self.ids.right_actions, items_value)
 
         Clock.schedule_once(on_right_actions)
@@ -1599,7 +1599,7 @@ class MDTopAppBar(DeclarativeBehavior, NotchedBox, WindowController):
         Called when the value of the  :attr:`anchor_title` attribute changes.
         """
 
-        def on_anchor_title(interval: Union[int, float]):
+        def on_anchor_title(interval: int | float):
             self.ids.label_title.halign = anchor_value
 
         Clock.schedule_once(on_anchor_title)
@@ -1610,7 +1610,7 @@ class MDTopAppBar(DeclarativeBehavior, NotchedBox, WindowController):
         if self.type == "top":
             return
 
-        def on_mode(interval: Union[int, float]):
+        def on_mode(interval: int | float):
             def set_button_pos(*args):
                 self.action_button.x = x
                 self.action_button.y = y - self._rounded_rectangle_height / 2
@@ -1685,7 +1685,7 @@ class MDTopAppBar(DeclarativeBehavior, NotchedBox, WindowController):
         self.on_type_height(self, self.type_height)
         self.update_anchor_title(material_style_value)
 
-    def update_floating_radius(self, interval: Union[int, float]) -> None:
+    def update_floating_radius(self, interval: int | float) -> None:
         self.action_button.radius = self.action_button.width / 2
 
     def update_anchor_title(self, material_style_value: str) -> str:
