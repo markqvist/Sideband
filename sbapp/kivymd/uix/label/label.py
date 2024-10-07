@@ -711,7 +711,7 @@ class MDLabel(
         self.on_opposite_colors(None, self.opposite_colors)
         Clock.schedule_once(self.check_font_styles)
 
-    def check_font_styles(self, interval: Union[int, float] = 0) -> bool:
+    def check_font_styles(self, interval: int | float = 0) -> bool:
         if self.font_style not in list(self.theme_cls.font_styles.keys()):
             raise ValueError(
                 f"MDLabel.font_style is set to an invalid option '{self.font_style}'."
@@ -828,7 +828,7 @@ class MDLabel(
             else:
                 self.color = color
 
-    def on_text_color(self, instance_label, color: Union[list, str]) -> None:
+    def on_text_color(self, instance_label, color: list | str) -> None:
         if self.theme_text_color == "Custom":
             if self.theme_cls.theme_style_switch_animation:
                 Animation(
@@ -842,7 +842,7 @@ class MDLabel(
     def on_opposite_colors(self, *args) -> None:
         self.on_theme_text_color(self, self.theme_text_color)
 
-    def on_md_bg_color(self, instance_label, color: Union[list, str]) -> None:
+    def on_md_bg_color(self, instance_label, color: list | str) -> None:
         self.canvas.remove_group("Background_instruction")
         self.canvas.before.clear()
         with self.canvas.before:

@@ -22,7 +22,7 @@ class LinuxAccelerometer(Accelerometer):
         except IndexError:
             raise Exception('Could not enable accelerometer!')
 
-        with open(pos, "r") as p:
+        with open(pos) as p:
             t = p.read()
             coords = re.findall(r"[-]?\d+\.?\d*", t)
             # Apparently the acceleration on sysfs goes from -1000 to 1000.

@@ -678,7 +678,7 @@ class DatePickerInputField(MDTextField):
 
         self.error = True
 
-    def input_filter(self, value: str, boolean: bool) -> Union[str, None]:
+    def input_filter(self, value: str, boolean: bool) -> str | None:
         """Filters the input according to the specified mode."""
 
         if self.is_numeric(value):
@@ -1077,7 +1077,7 @@ class MDDatePicker(BaseDialogPicker):
         self._update_date_label_text()
 
     def transformation_from_dialog_input_date(
-        self, interval: Union[int, float]
+        self, interval: int | float
     ) -> None:
         if not self._try_apply_input():
             return
@@ -1299,7 +1299,7 @@ class MDDatePicker(BaseDialogPicker):
         horizontal = orientation == "portrait" or self._input_date_dialog_open
 
         def date_repr(date):
-            return date.strftime("%b").capitalize() + " " + str(date.day)
+            return f"{date.strftime('%b').capitalize()} {date.day)}"
 
         input_dates = self._get_dates_from_fields()
         if self.mode == "picker":

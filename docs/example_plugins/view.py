@@ -71,7 +71,7 @@ class ViewSource():
         try:
             if self.is_stale():
                 self.update()
-            
+
             if self.source_data != None:
                 max_dimension = quality_presets[preset]["max"]
                 quality = quality_presets[preset]["quality"]
@@ -121,17 +121,17 @@ class CameraSource(ViewSource):
                 if not ret:
                     self.camera_ready = False
                     break
-                
+
                 if not self.frame_queue.empty():
                     try:
                         self.frame_queue.get_nowait()
                     except queue.Empty:
                         pass
-                
+
                 self.frame_queue.put(frame)
 
         except Exception as e:
-            RNS.log("An error occurred while reading frames from the camera: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"An error occurred while reading frames from the camera: {e)}", RNS.LOG_ERROR)
 
         self.release_camera()
 
@@ -140,9 +140,9 @@ class CameraSource(ViewSource):
             self.start_reading()
             while not self.camera_ready:
               time.sleep(0.2)
-        
+
         retval, frame = self.camera.read()
-      
+
         if not retval:
             self.source_data = None
         else:
@@ -154,8 +154,8 @@ class CameraSource(ViewSource):
         try:
             self.camera.release()
         except:
-            pass  
-        
+            pass
+
         self.camera = None
         self.camera_ready = False
 
@@ -185,20 +185,20 @@ class StreamSource(ViewSource):
                 if not ret:
                     self.stream_ready = False
                 else:
-                    self.stream_ready = True            
+                    self.stream_ready = True
                     if not self.frame_queue.empty():
                         if self.frame_queue.qsize() > 1:
                             try:
                                 self.frame_queue.get_nowait()
                             except queue.Empty:
                                 pass
-                    
+
                     self.frame_queue.put(frame)
 
-            RNS.log(str(self)+" idled", RNS.LOG_DEBUG)
+            RNS.log(f"{self)} idled", RNS.LOG_DEBUG)
 
         except Exception as e:
-            RNS.log("An error occurred while reading frames from the stream: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"An error occurred while reading frames from the stream: {e)}", RNS.LOG_ERROR)
 
         self.release_stream()
 
@@ -220,8 +220,8 @@ class StreamSource(ViewSource):
         try:
             self.stream.release()
         except:
-            pass  
-        
+            pass
+
         self.stream = None
         self.stream_ready = False
 
@@ -236,7 +236,7 @@ class FileSource(ViewSource):
                 self.source_data = image_file.read()
 
         except Exception as e:
-            RNS.log("Could not read image at \"{self.path}\": "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Could not read image at \"{self.path}\": {e)}", RNS.LOG_ERROR)
             self.source_data = None
 
 class ViewCommandPlugin(SidebandCommandPlugin):
@@ -292,7 +292,7 @@ class ViewCommandPlugin(SidebandCommandPlugin):
             else:
                 response = "Available Sources:\n"
                 for source in self.sources:
-                    response += "\n - "+str(source)
+                    response += f"\n - {source)}"
 
             self.message_response(response, requestor)
             return
@@ -306,7 +306,7 @@ class ViewCommandPlugin(SidebandCommandPlugin):
 
             if not source in self.sources:
                 self.message_response("The specified view source does not exist on this system", requestor)
-            
+
             else:
                 image_field     = self.sources[source].get_image_field(quality_preset)
                 image_timestamp = self.timestamp_str(self.sources[source].last_update)

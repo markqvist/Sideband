@@ -146,12 +146,12 @@ class Recipe(metaclass=RecipeMeta):
     def get_stl_library(self, arch):
         return join(
             arch.ndk_lib_dir,
-            'lib{name}.so'.format(name=self.stl_lib_name),
+            f'lib{self.stl_lib_name}.so',
         )
 
     def install_stl_lib(self, arch):
         if not self.ctx.has_lib(
-            arch.arch, 'lib{name}.so'.format(name=self.stl_lib_name)
+            arch.arch, f'lib{self.stl_lib_name}.so'
         ):
             self.install_libs(arch, self.get_stl_library(arch))
 
@@ -181,7 +181,7 @@ class Recipe(metaclass=RecipeMeta):
         if not url:
             return
 
-        info('Downloading {} from {}'.format(self.name, url))
+        info(f'Downloading {self.name} from {url}')
 
         if cwd:
             target = join(cwd, target)
@@ -190,12 +190,11 @@ class Recipe(metaclass=RecipeMeta):
         if parsed_url.scheme in ('http', 'https'):
             def report_hook(index, blksize, size):
                 if size <= 0:
-                    progression = '{0} bytes'.format(index * blksize)
+                    progression = f'{index * blksize} bytes'
                 else:
-                    progression = '{0:.2f}%'.format(
-                        index * blksize * 100. / float(size))
+                    progression = f'{index * blksize * 100.0 / float(size):.2f}%'
                 if "CI" not in environ:
-                    stdout.write('- Download {}\r'.format(progression))
+                    stdout.write(f'- Download {progression}\r')
                     stdout.flush()
 
             if exists(target):
@@ -214,7 +213,7 @@ class Recipe(metaclass=RecipeMeta):
                     attempts += 1
                     if attempts >= 5:
                         raise
-                    stdout.write('Download failed: {}; retrying in {} second(s)...'.format(e, seconds))
+                    stdout.write(f'Download failed: {e}; retrying in {seconds} second(s)...')
                     time.sleep(seconds)
                     seconds *= 2
                     continue
@@ -253,20 +252,20 @@ class Recipe(metaclass=RecipeMeta):
         .. versionchanged:: 0.6.0
             Add ability to apply patch from any dir via kwarg `build_dir`'''
         """
-        info("Applying patch {}".format(filename))
+        info(f"Applying patch {filename}")
         build_dir = build_dir if build_dir else self.get_build_dir(arch)
         filename = join(self.get_recipe_dir(), filename)
         shprint(sh.patch, "-t", "-d", build_dir, "-p1",
                 "-i", filename, _tail=10)
 
     def copy_file(self, filename, dest):
-        info("Copy {} to {}".format(filename, dest))
+        info(f"Copy {filename} to {dest}")
         filename = join(self.get_recipe_dir(), filename)
         dest = join(self.build_dir, dest)
         shutil.copy(filename, dest)
 
     def append_file(self, filename, dest):
-        info("Append {} to {}".format(filename, dest))
+        info(f"Append {filename} to {dest}")
         filename = join(self.get_recipe_dir(), filename)
         dest = join(self.build_dir, dest)
         with open(filename, "rb") as fd:
@@ -322,7 +321,7 @@ class Recipe(metaclass=RecipeMeta):
         '''
         dir_name = self.get_dir_name()
         return join(self.ctx.build_dir, 'other_builds',
-                    dir_name, '{}__ndk_target_{}'.format(arch, self.ctx.ndk_api))
+                    dir_name, f'{arch}__ndk_target_{self.ctx.ndk_api}')
 
     def get_dir_name(self):
         choices = self.check_recipe_choices()
@@ -349,24 +348,23 @@ class Recipe(metaclass=RecipeMeta):
     # Public Recipe API to be subclassed if needed
 
     def download_if_necessary(self):
-        info_main('Downloading {}'.format(self.name))
-        user_dir = environ.get('P4A_{}_DIR'.format(self.name.lower()))
+        info_main(f'Downloading {self.name}')
+        user_dir = environ.get(f'P4A_{self.name.lower()}_DIR')
         if user_dir is not None:
-            info('P4A_{}_DIR is set, skipping download for {}'.format(
-                self.name, self.name))
+            info(f'P4A_{self.name}_DIR is set, skipping download for {self.name}')
             return
         self.download()
 
     def download(self):
         if self.url is None:
-            info('Skipping {} download as no URL is set'.format(self.name))
+            info(f'Skipping {self.name} download as no URL is set')
             return
 
         url = self.versioned_url
         expected_digests = {}
-        for alg in set(hashlib.algorithms_guaranteed) | set(('md5', 'sha512', 'blake2b')):
+        for alg in set(hashlib.algorithms_guaranteed) | {'md5', 'sha512', 'blake2b'}:
             expected_digest = getattr(self, alg + 'sum') if hasattr(self, alg + 'sum') else None
-            ma = match(u'^(.+)#' + alg + u'=([0-9a-f]{32,})$', url)
+            ma = match('^(.+)#' + alg + '=([0-9a-f]{32,})$', url)
             if ma:                # fragmented URL?
                 if expected_digest:
                     raise ValueError(
@@ -383,7 +381,7 @@ class Recipe(metaclass=RecipeMeta):
             filename = shprint(sh.basename, url).stdout[:-1].decode('utf-8')
 
             do_download = True
-            marker_filename = '.mark-{}'.format(filename)
+            marker_filename = f'.mark-{filename}'
             if exists(filename) and isfile(filename):
                 if not exists(marker_filename):
                     shprint(sh.rm, filename)
@@ -391,10 +389,8 @@ class Recipe(metaclass=RecipeMeta):
                     for alg, expected_digest in expected_digests.items():
                         current_digest = algsum(alg, filename)
                         if current_digest != expected_digest:
-                            debug('* Generated {}sum: {}'.format(alg,
-                                                                 current_digest))
-                            debug('* Expected {}sum: {}'.format(alg,
-                                                                expected_digest))
+                            debug(f'* Generated {alg}sum: {current_digest}')
+                            debug(f'* Expected {alg}sum: {expected_digest}')
                             raise ValueError(
                                 ('Generated {0}sum does not match expected {0}sum '
                                  'for {1} recipe').format(alg, self.name))
@@ -402,7 +398,7 @@ class Recipe(metaclass=RecipeMeta):
 
             # If we got this far, we will download
             if do_download:
-                debug('Downloading {} from {}'.format(self.name, url))
+                debug(f'Downloading {self.name} from {url}')
 
                 shprint(sh.rm, '-f', marker_filename)
                 self.download_file(self.versioned_url, filename)
@@ -412,25 +408,22 @@ class Recipe(metaclass=RecipeMeta):
                     for alg, expected_digest in expected_digests.items():
                         current_digest = algsum(alg, filename)
                         if current_digest != expected_digest:
-                            debug('* Generated {}sum: {}'.format(alg,
-                                                                 current_digest))
-                            debug('* Expected {}sum: {}'.format(alg,
-                                                                expected_digest))
+                            debug(f'* Generated {alg}sum: {current_digest}')
+                            debug(f'* Expected {alg}sum: {expected_digest}')
                             raise ValueError(
                                 ('Generated {0}sum does not match expected {0}sum '
                                  'for {1} recipe').format(alg, self.name))
             else:
-                info('{} download already cached, skipping'.format(self.name))
+                info(f'{self.name} download already cached, skipping')
 
     def unpack(self, arch):
-        info_main('Unpacking {} for {}'.format(self.name, arch))
+        info_main(f'Unpacking {self.name} for {arch}')
 
         build_dir = self.get_build_container_dir(arch)
 
-        user_dir = environ.get('P4A_{}_DIR'.format(self.name.lower()))
+        user_dir = environ.get(f'P4A_{self.name.lower()}_DIR')
         if user_dir is not None:
-            info('P4A_{}_DIR exists, symlinking instead'.format(
-                self.name.lower()))
+            info(f'P4A_{self.name.lower()}_DIR exists, symlinking instead')
             if exists(self.get_build_dir(arch)):
                 return
             rmdir(build_dir)
@@ -439,12 +432,12 @@ class Recipe(metaclass=RecipeMeta):
             return
 
         if self.url is None:
-            info('Skipping {} unpack as no URL is set'.format(self.name))
+            info(f'Skipping {self.name} unpack as no URL is set')
             return
 
         filename = shprint(
             sh.basename, self.versioned_url).stdout[:-1].decode('utf-8')
-        ma = match(u'^(.+)#[a-z0-9_]{3,}=([0-9a-f]{32,})$', filename)
+        ma = match('^(.+)#[a-z0-9_]{3,}=([0-9a-f]{32,})$', filename)
         if ma:                  # fragmented URL?
             filename = ma.group(1)
 
@@ -493,7 +486,7 @@ class Recipe(metaclass=RecipeMeta):
                         .format(extraction_filename))
 
             else:
-                info('{} is already unpacked, skipping'.format(self.name))
+                info(f'{self.name} is already unpacked, skipping')
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         """Return the env specialized for the recipe
@@ -507,11 +500,11 @@ class Recipe(metaclass=RecipeMeta):
         '''Run any pre-build tasks for the Recipe. By default, this checks if
         any prebuild_archname methods exist for the archname of the current
         architecture, and runs them if so.'''
-        prebuild = "prebuild_{}".format(arch.arch.replace('-', '_'))
+        prebuild = f"prebuild_{arch.arch.replace('-', '_')}"
         if hasattr(self, prebuild):
             getattr(self, prebuild)()
         else:
-            info('{} has no {}, skipping'.format(self.name, prebuild))
+            info(f'{self.name} has no {prebuild}, skipping')
 
     def is_patched(self, arch):
         build_dir = self.get_build_dir(arch.arch)
@@ -523,11 +516,10 @@ class Recipe(metaclass=RecipeMeta):
         .. versionchanged:: 0.6.0
             Add ability to apply patches from any dir via kwarg `build_dir`'''
         if self.patches:
-            info_main('Applying patches for {}[{}]'
-                      .format(self.name, arch.arch))
+            info_main(f'Applying patches for {self.name}[{arch.arch}]')
 
             if self.is_patched(arch):
-                info_main('{} already patched, skipping'.format(self.name))
+                info_main(f'{self.name} already patched, skipping')
                 return
 
             build_dir = build_dir if build_dir else self.get_build_dir(arch.arch)
@@ -559,7 +551,7 @@ class Recipe(metaclass=RecipeMeta):
         '''Run any build tasks for the Recipe. By default, this checks if
         any build_archname methods exist for the archname of the current
         architecture, and runs them if so.'''
-        build = "build_{}".format(arch.arch)
+        build = f"build_{arch.arch}"
         if hasattr(self, build):
             getattr(self, build)()
 
@@ -581,7 +573,7 @@ class Recipe(metaclass=RecipeMeta):
         any postbuild_archname methods exist for the archname of the
         current architecture, and runs them if so.
         '''
-        postbuild = "postbuild_{}".format(arch.arch)
+        postbuild = f"postbuild_{arch.arch}"
         if hasattr(self, postbuild):
             getattr(self, postbuild)()
 
@@ -707,9 +699,9 @@ class Recipe(metaclass=RecipeMeta):
                 break
 
         else:
-            raise ValueError('Recipe does not exist: {}'.format(name))
+            raise ValueError(f'Recipe does not exist: {name}')
 
-        mod = import_recipe('pythonforandroid.recipes.{}'.format(name), recipe_file)
+        mod = import_recipe(f'pythonforandroid.recipes.{name}', recipe_file)
         if len(logger.handlers) > 1:
             logger.removeHandler(logger.handlers[1])
         recipe = mod.recipe
@@ -718,7 +710,7 @@ class Recipe(metaclass=RecipeMeta):
         return recipe
 
 
-class IncludedFilesBehaviour(object):
+class IncludedFilesBehaviour:
     '''Recipe mixin class that will automatically unpack files included in
     the recipe directory.'''
     src_filename = None
@@ -765,8 +757,7 @@ class BootstrapNDKRecipe(Recipe):
 
         env['PYTHON_INCLUDE_ROOT'] = self.ctx.python_recipe.include_root(arch.arch)
         env['PYTHON_LINK_ROOT'] = self.ctx.python_recipe.link_root(arch.arch)
-        env['EXTRA_LDLIBS'] = ' -lpython{}'.format(
-            self.ctx.python_recipe.link_version)
+        env['EXTRA_LDLIBS'] = f' -lpython{self.ctx.python_recipe.link_version}'
         return env
 
 
@@ -868,18 +859,18 @@ class PythonRecipe(Recipe):
             if site_packages_dir:
                 build_dir = join(site_packages_dir[0], name)
                 if exists(build_dir):
-                    info('Deleted {}'.format(build_dir))
+                    info(f'Deleted {build_dir}')
                     rmdir(build_dir)
 
     @property
     def real_hostpython_location(self):
-        host_name = 'host{}'.format(self.ctx.python_recipe.name)
+        host_name = f'host{self.ctx.python_recipe.name}'
         if host_name == 'hostpython3':
             python_recipe = Recipe.get_recipe(host_name, self.ctx)
             return python_recipe.python_exe
         else:
             python_recipe = self.ctx.python_recipe
-            return 'python{}'.format(python_recipe.version)
+            return f'python{python_recipe.version}'
 
     @property
     def hostpython_location(self):
@@ -905,9 +896,7 @@ class PythonRecipe(Recipe):
         env["PATH"] = join(self.hostpython_site_dir, "bin") + ":" + env["PATH"]
 
         if not self.call_hostpython_via_targetpython:
-            env['CFLAGS'] += ' -I{}'.format(
-                self.ctx.python_recipe.include_root(arch.arch)
-            )
+            env['CFLAGS'] += f' -I{self.ctx.python_recipe.include_root(arch.arch)}'
             env['LDFLAGS'] += ' -L{} -lpython{}'.format(
                 self.ctx.python_recipe.link_root(arch.arch),
                 self.ctx.python_recipe.link_version,
@@ -932,7 +921,7 @@ class PythonRecipe(Recipe):
         if self.ctx.has_package(name, arch):
             info('Python package already exists in site-packages')
             return False
-        info('{} apparently isn\'t already in site-packages'.format(name))
+        info(f'{name} apparently isn\'t already in site-packages')
         return True
 
     def build_arch(self, arch):
@@ -951,13 +940,13 @@ class PythonRecipe(Recipe):
         if env is None:
             env = self.get_recipe_env(arch)
 
-        info('Installing {} into site-packages'.format(self.name))
+        info(f'Installing {self.name} into site-packages')
 
         hostpython = sh.Command(self.hostpython_location)
         hpenv = env.copy()
         with current_directory(self.get_build_dir(arch.arch)):
             shprint(hostpython, 'setup.py', 'install', '-O2',
-                    '--root={}'.format(self.ctx.get_python_install_dir(arch.arch)),
+                    f'--root={self.ctx.get_python_install_dir(arch.arch)}',
                     '--install-lib=.',
                     _env=hpenv, *self.setup_extra_args)
 
@@ -978,7 +967,7 @@ class PythonRecipe(Recipe):
         env = self.get_hostrecipe_env(arch)
         real_hostpython = sh.Command(self.real_hostpython_location)
         shprint(real_hostpython, 'setup.py', 'install', '-O2',
-                '--root={}'.format(dirname(self.real_hostpython_location)),
+                f'--root={dirname(self.real_hostpython_location)}',
                 '--install-lib=Lib/site-packages',
                 _env=env, *self.setup_extra_args)
 
@@ -1030,7 +1019,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         self.install_python_package(arch)
 
     def build_compiled_components(self, arch):
-        info('Building compiled components in {}'.format(self.name))
+        info(f'Building compiled components in {self.name}')
 
         env = self.get_recipe_env(arch)
         hostpython = sh.Command(self.hostpython_location)
@@ -1049,7 +1038,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         super().install_hostpython_package(arch)
 
     def rebuild_compiled_components(self, arch, env):
-        info('Rebuilding compiled components in {}'.format(self.name))
+        info(f'Rebuilding compiled components in {self.name}')
 
         hostpython = sh.Command(self.real_hostpython_location)
         shprint(hostpython, 'setup.py', 'clean', '--all', _env=env)
@@ -1078,14 +1067,14 @@ class CythonRecipe(PythonRecipe):
         self.install_python_package(arch)
 
     def build_cython_components(self, arch):
-        info('Cythonizing anything necessary in {}'.format(self.name))
+        info(f'Cythonizing anything necessary in {self.name}')
 
         env = self.get_recipe_env(arch)
 
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.ctx.hostpython)
             shprint(hostpython, '-c', 'import sys; print(sys.path)', _env=env)
-            debug('cwd is {}'.format(realpath(curdir)))
+            debug(f'cwd is {realpath(curdir)}')
             info('Trying first build of {} to get cython files: this is '
                  'expected to fail'.format(self.name))
 
@@ -1095,7 +1084,7 @@ class CythonRecipe(PythonRecipe):
                         *self.setup_extra_args)
             except sh.ErrorReturnCode_1:
                 print()
-                info('{} first build failed (as expected)'.format(self.name))
+                info(f'{self.name} first build failed (as expected)')
                 manually_cythonise = True
 
             if manually_cythonise:
@@ -1125,7 +1114,7 @@ class CythonRecipe(PythonRecipe):
         short_filename = filename
         if filename.startswith(build_dir):
             short_filename = filename[len(build_dir) + 1:]
-        info(u"Cythonize {}".format(short_filename))
+        info(f"Cythonize {short_filename}")
         cyenv = env.copy()
         if 'CYTHONPATH' in cyenv:
             cyenv['PYTHONPATH'] = cyenv['CYTHONPATH']
@@ -1166,7 +1155,7 @@ class CythonRecipe(PythonRecipe):
         # Every recipe uses its own liblink path, object files are
         # collected and biglinked later
         liblink_path = join(self.get_build_container_dir(arch.arch),
-                            'objects_{}'.format(self.name))
+                            f'objects_{self.name}')
         env['LIBLINK_PATH'] = liblink_path
         ensure_dir(liblink_path)
 
@@ -1190,9 +1179,7 @@ class PyProjectRecipe(PythonRecipe):
         build_opts = join(build_dir, "build-opts.cfg")
 
         with open(build_opts, "w") as file:
-            file.write("[bdist_wheel]\nplat-name={}".format(
-                self.get_wheel_platform_tag(arch)
-            ))
+            file.write(f"[bdist_wheel]\nplat-name={self.get_wheel_platform_tag(arch)}")
             file.close()
 
         env["DIST_EXTRA_CONFIG"] = build_opts
@@ -1246,7 +1233,7 @@ class PyProjectRecipe(PythonRecipe):
             "build",
             "--wheel",
             "--config-setting",
-            "builddir={}".format(sub_build_dir),
+            f"builddir={sub_build_dir}",
         ] + self.extra_build_args
 
         built_wheels = []
@@ -1309,13 +1296,13 @@ class MesonRecipe(PyProjectRecipe):
         option_data = ""
         build_options = self.get_recipe_meson_options(arch)
         for key in build_options.keys():
-            data_chunk = "[{}]".format(key)
+            data_chunk = f"[{key}]"
             for subkey in build_options[key].keys():
                 value = build_options[key][subkey]
                 if isinstance(value, int):
                     value = str(value)
                 elif isinstance(value, str):
-                    value = "'{}'".format(value)
+                    value = f"'{value}'"
                 elif isinstance(value, bool):
                     value = "true" if value else "false"
                 elif isinstance(value, list):
@@ -1331,17 +1318,17 @@ class MesonRecipe(PyProjectRecipe):
 
     def build_arch(self, arch):
         cross_file = join("/tmp", "android.meson.cross")
-        info("Writing cross file at: {}".format(cross_file))
+        info(f"Writing cross file at: {cross_file}")
         # write cross config file
         with open(cross_file, "w") as file:
             file.write(self.write_build_options(arch))
             file.close()
         # set cross file
-        self.ensure_args('-Csetup-args=--cross-file', '-Csetup-args={}'.format(cross_file))
+        self.ensure_args('-Csetup-args=--cross-file', f'-Csetup-args={cross_file}')
         # ensure ninja and meson
         for dep in [
-            "ninja=={}".format(self.ninja_version),
-            "meson=={}".format(self.meson_version),
+            f"ninja=={self.ninja_version}",
+            f"meson=={self.meson_version}",
         ]:
             if dep not in self.hostpython_prerequisites:
                 self.hostpython_prerequisites.append(dep)
@@ -1388,7 +1375,7 @@ class RustCompiledComponentsRecipe(PyProjectRecipe):
 
         env["PYO3_CROSS_LIB_DIR"] = realpath(glob.glob(join(
             realpython_dir, "android-build", "build",
-            "lib.linux-*-{}/".format(self.python_major_minor_version),
+            f"lib.linux-*-{self.python_major_minor_version}/",
         ))[0])
 
         info_main("Ensuring rust build toolchain")
@@ -1447,7 +1434,7 @@ class TargetPythonRecipe(Recipe):
         copying all the modules and standard library to the right
         place.
         """
-        raise NotImplementedError('{} does not implement create_python_bundle'.format(self))
+        raise NotImplementedError(f'{self} does not implement create_python_bundle')
 
     def reduce_object_file_names(self, dirn):
         """Recursively renames all files named XXX.cpython-...-linux-gnu.so"

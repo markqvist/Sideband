@@ -1,4 +1,3 @@
-# coding=utf-8
 """
 MBTiles provider for MapView
 ============================
@@ -87,7 +86,7 @@ class MBTilesMapSource(MapSource):
         im = CoreImage(
             data,
             ext='png',
-            filename="{}.{}.{}.png".format(tile.zoom, tile.tile_x, tile.tile_y),
+            filename=f"{tile.zoom}.{tile.tile_x}.{tile.tile_y}.png",
         )
 
         if im is None:

@@ -20,7 +20,7 @@ class AndroidCamera(Camera):
         android.activity.unbind(on_activity_result=self._on_activity_result)
         android.activity.bind(on_activity_result=self._on_activity_result)
         intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        uri = Uri.parse('file://' + filename)
+        uri = Uri.parse(f"file://{filename}")
         parcelable = cast('android.os.Parcelable', uri)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, parcelable)
         activity.startActivityForResult(intent, 0x123)
@@ -32,7 +32,7 @@ class AndroidCamera(Camera):
         android.activity.unbind(on_activity_result=self._on_activity_result)
         android.activity.bind(on_activity_result=self._on_activity_result)
         intent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
-        uri = Uri.parse('file://' + filename)
+        uri = Uri.parse(f"file://{filename}")
         parcelable = cast('android.os.Parcelable', uri)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, parcelable)
 

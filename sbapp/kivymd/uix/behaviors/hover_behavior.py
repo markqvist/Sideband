@@ -88,7 +88,7 @@ from kivy.properties import BooleanProperty, ObjectProperty
 from kivy.uix.widget import Widget
 
 
-class HoverBehavior(object):
+class HoverBehavior:
     """
     :Events:
         :attr:`on_enter`
@@ -136,7 +136,7 @@ class HoverBehavior(object):
         self.register_event_type("on_enter")
         self.register_event_type("on_leave")
         Window.bind(mouse_pos=self.on_mouse_update)
-        super(HoverBehavior, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def on_mouse_update(self, *args):
         #  If the Widget currently has no parent, do nothing

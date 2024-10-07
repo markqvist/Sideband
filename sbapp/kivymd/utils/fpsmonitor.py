@@ -45,4 +45,4 @@ class FpsMonitor(Label):
         Clock.schedule_interval(self.update_fps, self.updated_interval)
 
     def update_fps(self, *args):
-        self._fsp_value = "FPS: %f" % Clock.get_fps()
+        self._fsp_value = f"FPS: {Clock.get_fps():f}"

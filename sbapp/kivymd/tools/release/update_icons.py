@@ -74,7 +74,7 @@ def unzip_archive(archive_path, dir_path):
 
 def get_icons_list():
     # There is js array with icons in file preview.html
-    with open(temp_preview_path, "r") as f:
+    with open(temp_preview_path) as f:
         preview_file = f.read()
     # Find version
     version = re_version.findall(preview_file)[0]
@@ -101,13 +101,13 @@ def make_icon_definitions(icons):
             icon_definitions += f'"{i["name"]}": "\\U{i["hex"].upper()}",\n'
         else:
             icon_definitions += f'"{i["name"]}": "\\u{i["hex"].upper()}",\n'
-    icon_definitions += " " * 4 + '"blank": " ",\n'  # Add blank icon (space)
+    icon_definitions += f"{' ' * 4}\"blank\": \" \",\n"  # Add blank icon (space)
     icon_definitions += "}"
     return icon_definitions
 
 
 def export_icon_definitions(icon_definitions, version):
-    with open(icon_definitions_path, "r") as f:
+    with open(icon_definitions_path) as f:
         icon_definitions_file = f.read()
     # Change md_icons list
     new_icon_definitions = re_icon_definitions.sub(

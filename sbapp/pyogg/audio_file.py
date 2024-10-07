@@ -9,8 +9,8 @@ class AudioFile:
 
     def __init__(self):
         raise PyOggError("AudioFile is an Abstract Base Class "+
-                         "and should not be instantiated") 
-    
+                         "and should not be instantiated")
+
     def as_array(self):
         """Returns the buffer as a NumPy array.
 
@@ -26,9 +26,9 @@ class AudioFile:
         """
         # Assumes that self.buffer is a one-dimensional array of
         # bytes and that channels are interleaved.
-        
+
         import numpy # type: ignore
-        
+
         assert self.buffer is not None
         assert self.channels is not None
 
@@ -43,7 +43,7 @@ class AudioFile:
             1: numpy.int8,
             2: numpy.int16
         }
-        
+
         # Convert the ctypes buffer to a NumPy array
         array = numpy.frombuffer(
             self.buffer,

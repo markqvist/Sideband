@@ -85,9 +85,9 @@ class Win32FileChooser:
                 filters = ""
                 for f in self.filters:
                     if isinstance(f, str):
-                        filters += (f + "\x00") * 2
+                        filters += f'{f}\x00' * 2
                     else:
-                        filters += f[0] + "\x00" + ";".join(f[1:]) + "\x00"
+                        filters += f"{f[0]}\x00{';'.join(f[1:])}\x00"
                 args["Filter"] = filters
 
                 flags = win32con.OFN_OVERWRITEPROMPT

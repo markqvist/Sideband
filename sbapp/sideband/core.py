@@ -61,7 +61,7 @@ class PropagationNodeDetector():
                     # age = 0
                     pass
 
-                RNS.log("Detected active propagation node "+RNS.prettyhexrep(destination_hash)+" emission "+str(age)+" seconds ago, "+str(hops)+" hops away")
+                RNS.log(f"Detected active propagation node {RNS.prettyhexrep(destination_hash)} emission {age)} seconds ago, {hops)} hops away")
                 self.owner.log_announce(destination_hash, RNS.prettyhexrep(destination_hash).encode("utf-8"), dest_type=PropagationNodeDetector.aspect_filter)
 
                 if self.owner.config["lxmf_propagation_node"] == None:
@@ -77,7 +77,7 @@ class PropagationNodeDetector():
                     pass
 
         except Exception as e:
-            RNS.log("Error while processing received propagation node announce: "+str(e))
+            RNS.log(f"Error while processing received propagation node announce: {e)}")
 
     def __init__(self, owner):
         self.owner = owner
@@ -161,20 +161,20 @@ class SidebandCore():
         self.version_str = ""
 
         if config_path == None:
-            self.app_dir     = plyer.storagepath.get_home_dir()+"/.config/sideband"
+            self.app_dir     = f"{plyer.storagepath.get_home_dir()}/.config/sideband"
             if self.app_dir.startswith("file://"):
                 self.app_dir = self.app_dir.replace("file://", "")
         else:
             self.app_dir     = config_path
 
-        self.cache_dir       = self.app_dir+"/cache"
-        
+        self.cache_dir       = f"{self.app_dir}/cache"
+
         self.rns_configdir = None
         if RNS.vendor.platformutils.is_android():
-            self.app_dir = android_app_dir+"/io.unsigned.sideband/files/"
-            self.cache_dir = self.app_dir+"/cache"
-            self.rns_configdir = self.app_dir+"/app_storage/reticulum"
-            self.asset_dir     = self.app_dir+"/app/assets"
+            self.app_dir = f"{android_app_dir}/io.unsigned.sideband/files/"
+            self.cache_dir = f"{self.app_dir}/cache"
+            self.rns_configdir = f"{self.app_dir}/app_storage/reticulum"
+            self.asset_dir     = f"{self.app_dir}/app/assets"
         elif RNS.vendor.platformutils.is_darwin():
             core_path          = os.path.abspath(__file__)
             self.asset_dir     = core_path.replace("/sideband/core.py", "/assets")
@@ -185,37 +185,37 @@ class SidebandCore():
             core_path          = os.path.abspath(__file__)
             self.asset_dir     = core_path.replace("\\sideband\\core.py", "\\assets")
         else:
-            self.asset_dir     = plyer.storagepath.get_application_dir()+"/sbapp/assets"
+            self.asset_dir     = f"{plyer.storagepath.get_application_dir()}/sbapp/assets"
 
-        self.map_cache         = self.cache_dir+"/maps"
+        self.map_cache         = f"{self.cache_dir}/maps"
         if not os.path.isdir(self.map_cache):
             os.makedirs(self.map_cache)
 
-        self.rec_cache         = self.cache_dir+"/rec"
+        self.rec_cache         = f"{self.cache_dir}/rec"
         if not os.path.isdir(self.rec_cache):
             os.makedirs(self.rec_cache)
 
-        self.icon              = self.asset_dir+"/icon.png"
-        self.icon_48           = self.asset_dir+"/icon_48.png"
-        self.icon_32           = self.asset_dir+"/icon_32.png"
-        self.icon_macos        = self.asset_dir+"/icon_macos.png"
-        self.notification_icon = self.asset_dir+"/notification_icon.png"
-        self.notif_icon_black  = self.asset_dir+"/notification_icon_black.png"
+        self.icon              = f"{self.asset_dir}/icon.png"
+        self.icon_48           = f"{self.asset_dir}/icon_48.png"
+        self.icon_32           = f"{self.asset_dir}/icon_32.png"
+        self.icon_macos        = f"{self.asset_dir}/icon_macos.png"
+        self.notification_icon = f"{self.asset_dir}/notification_icon.png"
+        self.notif_icon_black  = f"{self.asset_dir}/notification_icon_black.png"
 
         os.environ["TELEMETER_GEOID_PATH"] = os.path.join(self.asset_dir, "geoids")
 
-        if not os.path.isdir(self.app_dir+"/app_storage"):
-            os.makedirs(self.app_dir+"/app_storage")
+        if not os.path.isdir(f"{self.app_dir}/app_storage"):
+            os.makedirs(f"{self.app_dir}/app_storage")
 
-        self.config_path   = self.app_dir+"/app_storage/sideband_config"
-        self.identity_path = self.app_dir+"/app_storage/primary_identity"
-        self.db_path       = self.app_dir+"/app_storage/sideband.db"
-        self.lxmf_storage  = self.app_dir+"/app_storage/"
-        self.log_dir       = self.app_dir+"/app_storage/"
-        self.tmp_dir       = self.app_dir+"/app_storage/tmp"
-        self.exports_dir   = self.app_dir+"/exports"
+        self.config_path   = f"{self.app_dir}/app_storage/sideband_config"
+        self.identity_path = f"{self.app_dir}/app_storage/primary_identity"
+        self.db_path       = f"{self.app_dir}/app_storage/sideband.db"
+        self.lxmf_storage  = f"{self.app_dir}/app_storage/"
+        self.log_dir       = f"{self.app_dir}/app_storage/"
+        self.tmp_dir       = f"{self.app_dir}/app_storage/tmp"
+        self.exports_dir   = f"{self.app_dir}/exports"
         self.webshare_dir  = "./share/"
-        
+
         self.first_run     = True
         self.saving_configuration = False
         self.last_lxmf_announce = 0
@@ -246,9 +246,9 @@ class SidebandCore():
 
             if os.path.isdir(self.exports_dir):
                 self.clear_exports_dir()
-                
+
         except Exception as e:
-            RNS.log("Error while configuring Sideband: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while configuring Sideband: {e)}", RNS.LOG_ERROR)
 
         if load_config_only:
             return
@@ -256,7 +256,7 @@ class SidebandCore():
         # Initialise Reticulum configuration
         if RNS.vendor.platformutils.get_platform() == "android":
             try:
-                self.rns_configdir = self.app_dir+"/app_storage/reticulum"
+                self.rns_configdir = f"{self.app_dir}/app_storage/reticulum"
                 if not os.path.isdir(self.rns_configdir):
                     os.makedirs(self.rns_configdir)
 
@@ -269,13 +269,13 @@ class SidebandCore():
                     generated_config = rns_config.replace("TRANSPORT_IS_ENABLED", "No")
 
 
-                config_file = open(self.rns_configdir+"/config", "wb")
+                config_file = open(f"{self.rns_configdir}/config", "wb")
                 config_file.write(generated_config.encode("utf-8"))
                 config_file.close()
 
             except Exception as e:
-                RNS.log("Error while configuring Reticulum instance: "+str(e), RNS.LOG_ERROR)
-        
+                RNS.log(f"Error while configuring Reticulum instance: {e)}", RNS.LOG_ERROR)
+
         else:
             pass
 
@@ -304,10 +304,10 @@ class SidebandCore():
                         app_entry_dir = os.path.expanduser("~/.local/share/applications")
                         icon_dir = os.path.expanduser("~/.local/share/icons/hicolor/512x512/apps")
                         de_filename = "io.unsigned.sideband.desktop"
-                        de_source = self.asset_dir+"/"+de_filename
-                        de_target = app_entry_dir+"/"+de_filename
-                        icn_source = self.asset_dir+"/icon.png"
-                        icn_target = icon_dir+"/io.unsigned.sideband.png"
+                        de_source = f"{self.asset_dir}/{de_filename}"
+                        de_target = f"{app_entry_dir}/{de_filename}"
+                        icn_source = f"{self.asset_dir}/icon.png"
+                        icn_target = f"{icon_dir}/io.unsigned.sideband.png"
                         if os.path.isdir(local_share_dir):
                             if not os.path.exists(app_entry_dir):
                                 os.makedirs(app_entry_dir)
@@ -333,31 +333,31 @@ class SidebandCore():
                             if update_de:
                                 RNS.log("Setting up desktop integration...", lde_level)
                                 import shutil
-                                RNS.log("Installing menu entry to \""+str(de_target)+"\"...", lde_level)
+                                RNS.log(f"Installing menu entry to \"{de_target)}\"...", lde_level)
                                 shutil.copy(de_source, de_target)
                                 if not os.path.exists(icon_dir):
                                     os.makedirs(icon_dir)
-                                RNS.log("Installing icon to \""+str(icn_target)+"\"...", lde_level)
+                                RNS.log(f"Installing icon to \"{icn_target)}\"...", lde_level)
                                 shutil.copy(icn_source, icn_target)
                             else:
                                 RNS.log("Desktop integration is already set up", lde_level)
 
                 except Exception as e:
-                    RNS.log("An error occurred while setting up desktop integration: "+str(e), RNS.LOG_ERROR)
+                    RNS.log(f"An error occurred while setting up desktop integration: {e)}", RNS.LOG_ERROR)
                     RNS.trace_exception(e)
 
 
     def clear_tmp_dir(self):
         if os.path.isdir(self.tmp_dir):
             for file in os.listdir(self.tmp_dir):
-                fpath = self.tmp_dir+"/"+file
+                fpath = f"{self.tmp_dir}/{file}"
                 os.unlink(fpath)
 
     def clear_exports_dir(self):
         if os.path.isdir(self.exports_dir):
             for file in os.listdir(self.exports_dir):
-                fpath = self.exports_dir+"/"+file
-                RNS.log("Clearing "+str(fpath))
+                fpath = f"{self.exports_dir}/{file}"
+                RNS.log(f"Clearing {fpath)}")
                 os.unlink(fpath)
 
     def __init_config(self):
@@ -423,7 +423,7 @@ class SidebandCore():
         self.config["connect_ifmode_modem"] = "full"
         self.config["connect_ifmode_serial"] = "full"
         self.config["connect_ifmode_bluetooth"] = "full"
-        
+
         # Hardware
         self.config["hw_rnode_frequency"] = None
         self.config["hw_rnode_modulation"] = "LoRa"
@@ -470,7 +470,7 @@ class SidebandCore():
     def clear_map_cache(self):
         for entry in os.scandir(self.map_cache):
             os.unlink(entry.path)
-            
+
     def get_map_cache_size(self):
         total = 0
         for entry in os.scandir(self.map_cache):
@@ -493,7 +493,7 @@ class SidebandCore():
         self.rpc_addr = ("127.0.0.1", 48165)
         self.rpc_key  = RNS.Identity.full_hash(self.identity.get_private_key())
 
-        RNS.log("Loading Sideband configuration... "+str(self.config_path), RNS.LOG_DEBUG)
+        RNS.log(f"Loading Sideband configuration... {self.config_path)}", RNS.LOG_DEBUG)
         config_file = open(self.config_path, "rb")
         self.config = msgpack.unpackb(config_file.read())
         config_file.close()
@@ -624,7 +624,7 @@ class SidebandCore():
             self.config["hw_modem_beaconinterval"] = None
         if not "hw_modem_beacondata" in self.config:
             self.config["hw_modem_beacondata"] = None
-        
+
         if not "hw_serial_baudrate" in self.config:
             self.config["hw_serial_baudrate"] = 57600
         if not "hw_serial_databits" in self.config:
@@ -735,7 +735,7 @@ class SidebandCore():
             self.config["map_use_online"] = True
         if not "map_layer" in self.config:
             self.config["map_layer"] = None
-        
+
         if not "map_storage_path" in self.config:
             self.config["map_storage_path"] = None
         if not "map_storage_file" in self.config:
@@ -763,7 +763,7 @@ class SidebandCore():
                 self.update_active_lxmf_propagation_node()
                 self.update_ignore_invalid_stamps()
         except Exception as e:
-            RNS.log("Error while reloading configuration: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while reloading configuration: {e)}", RNS.LOG_ERROR)
             RNS.trace_exception(e)
 
     def __save_config(self):
@@ -779,7 +779,7 @@ class SidebandCore():
                 self.saving_configuration = False
             except Exception as e:
                 self.saving_configuration = False
-                RNS.log("Error while saving Sideband configuration: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"Error while saving Sideband configuration: {e)}", RNS.LOG_ERROR)
 
         threading.Thread(target=save_function, daemon=True).start()
 
@@ -791,7 +791,7 @@ class SidebandCore():
         command_plugins_enabled = self.config["command_plugins_enabled"] == True
         service_plugins_enabled = self.config["service_plugins_enabled"] == True
         plugins_enabled = service_plugins_enabled
-        
+
         if plugins_enabled:
             if plugins_path != None:
                 RNS.log("Loading Sideband plugins...", RNS.LOG_DEBUG)
@@ -802,11 +802,11 @@ class SidebandCore():
                             plugin_globals["SidebandServicePlugin"] = SidebandServicePlugin
                             plugin_globals["SidebandCommandPlugin"] = SidebandCommandPlugin
                             plugin_globals["SidebandTelemetryPlugin"] = SidebandTelemetryPlugin
-                            RNS.log("Loading plugin \""+str(file)+"\"", RNS.LOG_NOTICE)
+                            RNS.log(f"Loading plugin \"{file)}\"", RNS.LOG_NOTICE)
                             plugin_path = os.path.join(plugins_path, file)
                             exec(open(plugin_path).read(), plugin_globals)
                             plugin_class = plugin_globals["plugin_class"]
-                            
+
                             if plugin_class != None:
                                 plugin = plugin_class(self)
                                 plugin.start()
@@ -816,17 +816,17 @@ class SidebandCore():
                                         command_name = plugin.command_name
                                         if not command_name in self.active_command_plugins:
                                             self.active_command_plugins[command_name] = plugin
-                                            RNS.log("Registered "+str(plugin)+" as handler for command \""+str(command_name)+"\"", RNS.LOG_NOTICE)
+                                            RNS.log(f"Registered {plugin)} as handler for command \"{command_name)}\"", RNS.LOG_NOTICE)
                                         else:
-                                            RNS.log("Could not register "+str(plugin)+" as handler for command \""+str(command_name)+"\". Command name was already registered", RNS.LOG_ERROR)
-                                    
+                                            RNS.log(f"Could not register {plugin)} as handler for command \"{command_name)}\". Command name was already registered", RNS.LOG_ERROR)
+
                                     elif issubclass(type(plugin), SidebandServicePlugin):
                                         service_name = plugin.service_name
                                         if not service_name in self.active_service_plugins:
                                             self.active_service_plugins[service_name] = plugin
-                                            RNS.log("Registered "+str(plugin)+" for service \""+str(service_name)+"\"", RNS.LOG_NOTICE)
+                                            RNS.log(f"Registered {plugin)} for service \"{service_name)}\"", RNS.LOG_NOTICE)
                                         else:
-                                            RNS.log("Could not register "+str(plugin)+" for service \""+str(service_name)+"\". Service name was already registered", RNS.LOG_ERROR)
+                                            RNS.log(f"Could not register {plugin)} for service \"{service_name)}\". Service name was already registered", RNS.LOG_ERROR)
                                             try:
                                                 plugin.stop()
                                             except Exception as e:
@@ -837,9 +837,9 @@ class SidebandCore():
                                         plugin_name = plugin.plugin_name
                                         if not plugin_name in self.active_telemetry_plugins:
                                             self.active_telemetry_plugins[plugin_name] = plugin
-                                            RNS.log("Registered "+str(plugin)+" as telemetry plugin \""+str(plugin_name)+"\"", RNS.LOG_NOTICE)
+                                            RNS.log(f"Registered {plugin)} as telemetry plugin \"{plugin_name)}\"", RNS.LOG_NOTICE)
                                         else:
-                                            RNS.log("Could not register "+str(plugin)+" as telemetry plugin \""+str(plugin_name)+"\". Telemetry type was already registered", RNS.LOG_ERROR)
+                                            RNS.log(f"Could not register {plugin)} as telemetry plugin \"{plugin_name)}\". Telemetry type was already registered", RNS.LOG_ERROR)
                                             try:
                                                 plugin.stop()
                                             except Exception as e:
@@ -855,7 +855,7 @@ class SidebandCore():
                                         del plugin
 
                                 else:
-                                    RNS.log("Plugin "+str(plugin)+" failed to start, ignoring it.", RNS.LOG_ERROR)
+                                    RNS.log(f"Plugin {plugin)} failed to start, ignoring it.", RNS.LOG_ERROR)
                                     del plugin
 
 
@@ -874,11 +874,11 @@ class SidebandCore():
                     self.active_propagation_node = dest
                     self.config["last_lxmf_propagation_node"] = dest
                     self.message_router.set_outbound_propagation_node(dest)
-                    
-                    RNS.log("Active propagation node set to: "+RNS.prettyhexrep(dest))
+
+                    RNS.log(f"Active propagation node set to: {RNS.prettyhexrep(dest)}")
                     self.__save_config()
             except Exception as e:
-                RNS.log("Error while setting LXMF propagation node: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"Error while setting LXMF propagation node: {e)}", RNS.LOG_ERROR)
 
     def notify(self, title, content, group=None, context_id=None):
         if not self.is_daemon:
@@ -887,7 +887,7 @@ class SidebandCore():
                 title = strip_emojis(title)
                 content = strip_emojis(content)
 
-        
+
             if self.config["notifications_on"]:
                 if RNS.vendor.platformutils.is_android():
                     if self.getpersistent("permissions.notifications"):
@@ -911,12 +911,12 @@ class SidebandCore():
             if app_data == None:
                 app_data = b""
             app_data = msgpack.packb([app_data, stamp_cost])
-            RNS.log("Received "+str(dest_type)+" announce for "+RNS.prettyhexrep(dest)+" with data: "+str(app_data), RNS.LOG_DEBUG)
+            RNS.log(f"Received {dest_type)} announce for {RNS.prettyhexrep(dest)} with data: {app_data)}", RNS.LOG_DEBUG)
             self._db_save_announce(dest, app_data, dest_type)
             self.setstate("app.flags.new_announces", True)
 
         except Exception as e:
-            RNS.log("Exception while decoding LXMF destination announce data:"+str(e))
+            RNS.log(f"Exception while decoding LXMF destination announce data:{e)}")
 
     def list_conversations(self, conversations=True, objects=False):
         result = self._db_conversations(conversations, objects)
@@ -955,7 +955,7 @@ class SidebandCore():
                 return False
 
         except Exception as e:
-            RNS.log("Error while checking trust for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while checking trust for {RNS.prettyhexrep(context_dest)}: {e)}", RNS.LOG_ERROR)
             return False
 
     def is_object(self, context_dest, conv_data = None):
@@ -974,7 +974,7 @@ class SidebandCore():
             return False
 
         except Exception as e:
-            RNS.log("Error while checking trust for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while checking trust for {RNS.prettyhexrep(context_dest)}: {e)}", RNS.LOG_ERROR)
             return False
 
     def ptt_enabled(self, context_dest, conv_data = None):
@@ -993,7 +993,7 @@ class SidebandCore():
             return False
 
         except Exception as e:
-            RNS.log("Error while checking PTT-enabled for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while checking PTT-enabled for {RNS.prettyhexrep(context_dest)}: {e)}", RNS.LOG_ERROR)
             return False
 
     def should_send_telemetry(self, context_dest, conv_data=None):
@@ -1020,7 +1020,7 @@ class SidebandCore():
                 return False
 
         except Exception as e:
-            RNS.log("Error while checking telemetry sending for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while checking telemetry sending for {RNS.prettyhexrep(context_dest)}: {e)}", RNS.LOG_ERROR)
             return False
 
     def allow_request_from(self, context_dest):
@@ -1033,9 +1033,9 @@ class SidebandCore():
                 return existing_conv["trust"] == 1
 
             return self.requests_allowed_from(context_dest)
-        
+
         except Exception as e:
-            RNS.log("Error while checking request permissions for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while checking request permissions for {RNS.prettyhexrep(context_dest)}: {e)}", RNS.LOG_ERROR)
             return False
 
     def requests_allowed_from(self, context_dest, conv_data=None):
@@ -1055,7 +1055,7 @@ class SidebandCore():
                 return False
 
         except Exception as e:
-            RNS.log("Error while checking request permissions for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while checking request permissions for {RNS.prettyhexrep(context_dest)}: {e)}", RNS.LOG_ERROR)
             return False
 
     def raw_display_name(self, context_dest):
@@ -1070,7 +1070,7 @@ class SidebandCore():
                 return ""
 
         except Exception as e:
-            RNS.log("Error while getting peer name: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while getting peer name: {e)}", RNS.LOG_ERROR)
             return ""
 
     def peer_appearance(self, context_dest, conv=None):
@@ -1092,7 +1092,7 @@ class SidebandCore():
                     if existing_conv["trust"] == 1:
                         return existing_conv["name"]
                     else:
-                        return existing_conv["name"]+" "+RNS.prettyhexrep(context_dest)
+                        return f"{existing_conv['name']} {RNS.prettyhexrep(context_dest)}"
 
                 else:
                     app_data = RNS.Identity.recall_app_data(context_dest)
@@ -1100,7 +1100,7 @@ class SidebandCore():
                         if existing_conv["trust"] == 1:
                             return LXMF.display_name_from_app_data(app_data)
                         else:
-                            return LXMF.display_name_from_app_data(app_data)+" "+RNS.prettyhexrep(context_dest)
+                            return f"{LXMF.display_name_from_app_data(app_data)} {RNS.prettyhexrep(context_dest)}"
                     else:
                         return RNS.prettyhexrep(context_dest)
             else:
@@ -1108,13 +1108,13 @@ class SidebandCore():
                 if app_data != None:
                     name_str = LXMF.display_name_from_app_data(app_data)
                     addr_str = RNS.prettyhexrep(context_dest)
-                    return name_str+" "+addr_str
+                    return f"{name_str} {addr_str}"
                 else:
-                    return "Anonymous Peer "+RNS.prettyhexrep(context_dest)
+                    return f"Anonymous Peer {RNS.prettyhexrep(context_dest)}"
 
 
         except Exception as e:
-            RNS.log("Could not decode a valid peer name from data: "+str(e), RNS.LOG_DEBUG)
+            RNS.log(f"Could not decode a valid peer name from data: {e)}", RNS.LOG_DEBUG)
             return RNS.prettyhexrep(context_dest)
 
     def clear_conversation(self, context_dest):
@@ -1179,7 +1179,7 @@ class SidebandCore():
 
     def outbound_telemetry_finished(self, message):
         if message.state == LXMF.LXMessage.FAILED and hasattr(message, "try_propagation_on_fail") and message.try_propagation_on_fail:
-            RNS.log("Direct delivery of telemetry update "+str(message)+" failed. Retrying as propagated message.", RNS.LOG_VERBOSE)
+            RNS.log(f"Direct delivery of telemetry update {message)} failed. Retrying as propagated message.", RNS.LOG_VERBOSE)
             message.try_propagation_on_fail = None
             message.delivery_attempts = 0
             del message.next_delivery_attempt
@@ -1200,7 +1200,7 @@ class SidebandCore():
 
     def telemetry_request_finished(self, message):
         if message.state == LXMF.LXMessage.FAILED and hasattr(message, "try_propagation_on_fail") and message.try_propagation_on_fail:
-            RNS.log("Direct delivery of telemetry request "+str(message)+" failed. Retrying as propagated message.", RNS.LOG_VERBOSE)
+            RNS.log(f"Direct delivery of telemetry request {message)} failed. Retrying as propagated message.", RNS.LOG_VERBOSE)
             message.try_propagation_on_fail = None
             message.delivery_attempts = 0
             del message.next_delivery_attempt
@@ -1226,9 +1226,9 @@ class SidebandCore():
             if self.is_client:
                 try:
                     return self.service_rpc_request({"request_latest_telemetry": {"from_addr": from_addr}})
-                    
+
                 except Exception as e:
-                    RNS.log("Error while requesting latest telemetry over RPC: "+str(e), RNS.LOG_DEBUG)
+                    RNS.log(f"Error while requesting latest telemetry over RPC: {e)}", RNS.LOG_DEBUG)
                     RNS.trace_exception(e)
                     return False
             else:
@@ -1240,11 +1240,11 @@ class SidebandCore():
                 return self._service_request_latest_telemetry(from_addr)
 
             except Exception as e:
-                RNS.log("Error requesting latest telemetry: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"Error requesting latest telemetry: {e)}", RNS.LOG_ERROR)
                 RNS.trace_exception(e)
                 return "not_sent"
 
-        else:            
+        else:
             if from_addr == None or from_addr == self.lxmf_destination.hash:
                 return "no_address"
             else:
@@ -1254,9 +1254,9 @@ class SidebandCore():
 
                 if from_addr != None:
                     dest_identity = RNS.Identity.recall(from_addr)
-                    
+
                     if dest_identity == None:
-                        RNS.log("The identity for "+RNS.prettyhexrep(from_addr)+" could not be recalled. Requesting identity from network...", RNS.LOG_DEBUG)
+                        RNS.log(f"The identity for {RNS.prettyhexrep(from_addr)} could not be recalled. Requesting identity from network...", RNS.LOG_DEBUG)
                         RNS.Transport.request_path(from_addr)
                         return "destination_unknown"
 
@@ -1264,7 +1264,7 @@ class SidebandCore():
                         now = time.time()
                         dest = RNS.Destination(dest_identity, RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
                         source = self.lxmf_destination
-                        
+
                         if self.config["telemetry_use_propagation_only"] == True:
                             desired_method = LXMF.LXMessage.PROPAGATED
                         else:
@@ -1306,7 +1306,7 @@ class SidebandCore():
                     })
 
                 except Exception as e:
-                    RNS.log("Error while sending latest telemetry over RPC: "+str(e), RNS.LOG_DEBUG)
+                    RNS.log(f"Error while sending latest telemetry over RPC: {e)}", RNS.LOG_DEBUG)
                     RNS.trace_exception(e)
                     return False
             else:
@@ -1318,7 +1318,7 @@ class SidebandCore():
                 return self._service_send_latest_telemetry(to_addr, stream, is_authorized_telemetry_request)
 
             except Exception as e:
-                RNS.log("Error requesting latest telemetry: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"Error requesting latest telemetry: {e)}", RNS.LOG_ERROR)
                 RNS.trace_exception(e)
                 return "not_sent"
 
@@ -1335,16 +1335,16 @@ class SidebandCore():
 
                 if (self.latest_packed_telemetry != None and self.latest_telemetry != None) or stream != None:
                     dest_identity = RNS.Identity.recall(to_addr)
-                    
+
                     if dest_identity == None:
-                        RNS.log("The identity for "+RNS.prettyhexrep(to_addr)+" could not be recalled. Requesting identity from network...", RNS.LOG_DEBUG)
+                        RNS.log(f"The identity for {RNS.prettyhexrep(to_addr)} could not be recalled. Requesting identity from network...", RNS.LOG_DEBUG)
                         RNS.Transport.request_path(to_addr)
                         return "destination_unknown"
 
                     else:
                         dest = RNS.Destination(dest_identity, RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
                         source = self.lxmf_destination
-                        
+
                         if self.config["telemetry_use_propagation_only"] == True:
                             desired_method = LXMF.LXMessage.PROPAGATED
                         else:
@@ -1385,7 +1385,7 @@ class SidebandCore():
                                 self.setstate(f"telemetry.{RNS.hexrep(to_addr, delimit=False)}.update_sending", True)
                                 self.message_router.handle_outbound(lxm)
                                 return "sent"
-                            
+
                             else:
                                 RNS.log(f"Telemetry update with timebase {telemetry_timebase} was already successfully sent", RNS.LOG_DEBUG)
                                 return "already_sent"
@@ -1409,7 +1409,7 @@ class SidebandCore():
                     return []
 
             except Exception as e:
-                RNS.log("An error occurred while retrieving telemetry from the database: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"An error occurred while retrieving telemetry from the database: {e)}", RNS.LOG_ERROR)
                 return []
 
         try:
@@ -1418,7 +1418,7 @@ class SidebandCore():
                 if context_dest in pts:
                     return pts[context_dest]
         except Exception as e:
-            RNS.log("An error occurred while retrieving telemetry from the database: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"An error occurred while retrieving telemetry from the database: {e)}", RNS.LOG_ERROR)
 
         return []
 
@@ -1441,7 +1441,7 @@ class SidebandCore():
                 return None
 
             except Exception as e:
-                RNS.log("Error while getting own location: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"Error while getting own location: {e)}", RNS.LOG_ERROR)
 
         after_time = time.time()-3*30*24*60*60
         pts = self.peer_telemetry(context_dest, after=after_time)
@@ -1470,25 +1470,25 @@ class SidebandCore():
         now = time.time()
         service_heartbeat = self.getstate("service.heartbeat")
         if not service_heartbeat:
-            RNS.log("No service heartbeat available at "+str(now), RNS.LOG_DEBUG)
+            RNS.log(f"No service heartbeat available at {now)}", RNS.LOG_DEBUG)
             return False
         else:
             try:
                 if now - service_heartbeat > heartbeat_stale_time:
-                    RNS.log("Stale service heartbeat at "+str(now)+", retrying...", RNS.LOG_DEBUG)
+                    RNS.log(f"Stale service heartbeat at {now)}, retrying...", RNS.LOG_DEBUG)
                     now = time.time()
                     service_heartbeat = self.getstate("service.heartbeat")
                     if now - service_heartbeat > heartbeat_stale_time:
                         RNS.log("Service heartbeat did not recover after retry", RNS.LOG_DEBUG)
                         return False
                     else:
-                        RNS.log("Service heartbeat recovered at"+str(now), RNS.LOG_DEBUG)
+                        RNS.log(f"Service heartbeat recovered at{now)}", RNS.LOG_DEBUG)
                         return True
                 else:
                     return True
             except Exception as e:
-                RNS.log("Error while getting service heartbeat: "+str(e), RNS.LOG_ERROR)
-                RNS.log("Response was: "+str(service_heartbeat), RNS.LOG_ERROR)
+                RNS.log(f"Error while getting service heartbeat: {e)}", RNS.LOG_ERROR)
+                RNS.log(f"Response was: {service_heartbeat)}", RNS.LOG_ERROR)
                 return False
 
     def gui_foreground(self):
@@ -1517,11 +1517,11 @@ class SidebandCore():
                         try:
                             set()
                         except Exception as e:
-                            RNS.log("Error while setting state over RPC: "+str(e)+". Retrying once.", RNS.LOG_DEBUG)
+                            RNS.log(f"Error while setting state over RPC: {e)}. Retrying once.", RNS.LOG_DEBUG)
                             try:
                                 set()
                             except Exception as e:
-                                RNS.log("Error on retry as well: "+str(e)+". Giving up.", RNS.LOG_DEBUG)
+                                RNS.log(f"Error on retry as well: {e)}. Giving up.", RNS.LOG_DEBUG)
                                 return False
 
     def service_set_latest_telemetry(self, latest_telemetry, latest_packed_telemetry):
@@ -1536,7 +1536,7 @@ class SidebandCore():
                 try:
                     return self.service_rpc_request({"latest_telemetry": (latest_telemetry, latest_packed_telemetry)})
                 except Exception as e:
-                    RNS.log("Error while setting telemetry over RPC: "+str(e), RNS.LOG_DEBUG)
+                    RNS.log(f"Error while setting telemetry over RPC: {e)}", RNS.LOG_DEBUG)
                     return False
 
     def service_rpc_set_debug(self, debug):
@@ -1553,7 +1553,7 @@ class SidebandCore():
                 try:
                     return self.service_rpc_request({"set_debug": debug})
                 except Exception as e:
-                    RNS.log("Error while setting log level over RPC: "+str(e), RNS.LOG_DEBUG)
+                    RNS.log(f"Error while setting log level over RPC: {e)}", RNS.LOG_DEBUG)
                     return False
 
     def service_rpc_set_ui_recording(self, recording):
@@ -1567,7 +1567,7 @@ class SidebandCore():
                 try:
                     return self.service_rpc_request({"set_ui_recording": recording})
                 except Exception as e:
-                    RNS.log("Error while setting UI recording status over RPC: "+str(e), RNS.LOG_DEBUG)
+                    RNS.log(f"Error while setting UI recording status over RPC: {e)}", RNS.LOG_DEBUG)
                     return False
 
     def service_rpc_request(self, request):
@@ -1605,7 +1605,7 @@ class SidebandCore():
                             return self.service_rpc_request({"getstate": prop})
 
                         except Exception as e:
-                            RNS.log("Error while retrieving state "+str(prop)+" over RPC: "+str(e), RNS.LOG_DEBUG)
+                            RNS.log(f"Error while retrieving state {prop)} over RPC: {e)}", RNS.LOG_DEBUG)
                             self.rpc_connection = None
                             return None
 
@@ -1624,9 +1624,9 @@ class SidebandCore():
         if np == 0:
             plugins_info_text = "[i]No plugins are currently loaded[/i]"
         elif np == 1:
-            plugins_info_text = "Currently, 1 plugin is loaded and active:\n" + plugins_info_text
+            plugins_info_text = f"Currently, 1 plugin is loaded and active:\n{plugins_info_text}"
         else:
-            plugins_info_text = f"Currently, {np} plugins are loaded and active:\n" + plugins_info_text
+            plugins_info_text = f"Currently, {np} plugins are loaded and active:\n{plugins_info_text}"
         return plugins_info_text
 
     def get_plugins_info(self):
@@ -1639,7 +1639,7 @@ class SidebandCore():
                 try:
                     return self.service_rpc_request({"get_plugins_info": True})
                 except Exception as e:
-                    ed = "Error while getting plugins info over RPC: "+str(e)
+                    ed = f"Error while getting plugins info over RPC: {e)}"
                     RNS.log(ed, RNS.LOG_DEBUG)
                     return ed
 
@@ -1674,7 +1674,7 @@ class SidebandCore():
                 try:
                     return self.service_rpc_request({"get_destination_establishment_rate": destination_hash})
                 except Exception as e:
-                    ed = "Error while getting destination link etablishment rate over RPC: "+str(e)
+                    ed = f"Error while getting destination link etablishment rate over RPC: {e)}"
                     RNS.log(ed, RNS.LOG_DEBUG)
                     return None
 
@@ -1686,7 +1686,7 @@ class SidebandCore():
             thread.daemon = True
             thread.start()
         except Exception as e:
-            RNS.log("Could not start RPC listener on "+str(self.rpc_addr)+". Terminating now. Clear up anything using the port and try again.", RNS.LOG_ERROR)
+            RNS.log(f"Could not start RPC listener on {self.rpc_addr)}. Terminating now. Clear up anything using the port and try again.", RNS.LOG_ERROR)
             RNS.panic()
 
     def __rpc_loop(self):
@@ -1695,7 +1695,7 @@ class SidebandCore():
                 RNS.log("Ready for next RPC client", RNS.LOG_DEBUG)
                 rpc_connection = self.rpc_listener.accept()
                 RNS.log("Accepted RPC client", RNS.LOG_DEBUG)
-                
+
                 def job_factory(connection):
                     def rpc_client_job():
                         try:
@@ -1760,7 +1760,7 @@ class SidebandCore():
                                     connection.send(None)
 
                         except Exception as e:
-                            RNS.log("Error on client RPC connection: "+str(e), RNS.LOG_ERROR)
+                            RNS.log(f"Error on client RPC connection: {e)}", RNS.LOG_ERROR)
                             RNS.trace_exception(e)
                             try:
                                 connection.close()
@@ -1772,7 +1772,7 @@ class SidebandCore():
                 threading.Thread(target=job_factory(rpc_connection), daemon=True).start()
 
             except Exception as e:
-                RNS.log("An error ocurred while handling RPC call from local client: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"An error ocurred while handling RPC call from local client: {e)}", RNS.LOG_ERROR)
 
 
     def setpersistent(self, prop, val):
@@ -1876,7 +1876,7 @@ class SidebandCore():
             try:
                 db = self.__db_connect()
                 dbc = db.cursor()
-                
+
                 query = "select * from persistent where property=:uprop"
                 dbc.execute(query, {"uprop": prop.encode("utf-8")})
                 result = dbc.fetchall()
@@ -1894,11 +1894,11 @@ class SidebandCore():
 
                         return val
                     except Exception as e:
-                        RNS.log("Could not unpack persistent value from database for property \""+str(prop)+"\". The contained exception was: "+str(e), RNS.LOG_ERROR)
+                        RNS.log(f"Could not unpack persistent value from database for property \"{prop)}\". The contained exception was: {e)}", RNS.LOG_ERROR)
                         return None
-            
+
             except Exception as e:
-                RNS.log("An error occurred during persistent getstate database operation: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"An error occurred during persistent getstate database operation: {e)}", RNS.LOG_ERROR)
                 self.db = None
 
     def _db_setpersistent(self, prop, val):
@@ -1917,9 +1917,9 @@ class SidebandCore():
                         data = (uprop, bval)
                         dbc.execute(query, data)
                         db.commit()
-            
+
                     except Exception as e:
-                        RNS.log("Error while setting persistent state property "+str(prop)+" in DB: "+str(e), RNS.LOG_ERROR)
+                        RNS.log(f"Error while setting persistent state property {prop)} in DB: {e)}", RNS.LOG_ERROR)
                         RNS.log("Retrying as update query...")
                         query = "UPDATE state set value=:bval where property=:uprop;"
                         dbc.execute(query, {"bval": bval, "uprop": uprop})
@@ -1929,9 +1929,9 @@ class SidebandCore():
                     query = "UPDATE persistent set value=:bval where property=:uprop;"
                     dbc.execute(query, {"bval": bval, "uprop": uprop})
                     db.commit()
-            
+
             except Exception as e:
-                RNS.log("An error occurred during persistent setstate database operation: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"An error occurred during persistent setstate database operation: {e)}", RNS.LOG_ERROR)
                 self.db = None
 
     def _db_conversation_update_txtime(self, context_dest, is_retry = False):
@@ -1947,7 +1947,7 @@ class SidebandCore():
                 result = dbc.fetchall()
                 db.commit()
             except Exception as e:
-                RNS.log("An error occurred while updating conversation TX time: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"An error occurred while updating conversation TX time: {e)}", RNS.LOG_ERROR)
                 self.__db_reconnect()
                 # if not is_retry:
                 #     RNS.log("Retrying operation...", RNS.LOG_ERROR)
@@ -1958,7 +1958,7 @@ class SidebandCore():
             try:
                 db = self.__db_connect()
                 dbc = db.cursor()
-                
+
                 if unread:
                     if tx:
                         query = "UPDATE conv set unread = ?, last_tx = ? where dest_context = ?"
@@ -1974,7 +1974,7 @@ class SidebandCore():
                 result = dbc.fetchall()
                 db.commit()
             except Exception as e:
-                RNS.log("An error occurred while updating conversation unread flag: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"An error occurred while updating conversation unread flag: {e)}", RNS.LOG_ERROR)
                 self.__db_reconnect()
                 # if not is_retry:
                 #     RNS.log("Retrying operation...", RNS.LOG_ERROR)
@@ -1987,34 +1987,34 @@ class SidebandCore():
 
             limit_part = ""
             if limit:
-                limit_part = " LIMIT "+str(int(limit))
-            order_part = " order by ts DESC"+limit_part
+                limit_part = f" LIMIT {int(limit))}"
+            order_part = f" order by ts DESC{limit_part}"
             if context_dest == None:
                 if after != None and before == None:
-                    query = "select * from telemetry where ts>:after_ts"+order_part
+                    query = f"select * from telemetry where ts>:after_ts{order_part}"
                     dbc.execute(query, {"after_ts": after})
                 elif after == None and before != None:
-                    query = "select * from telemetry where ts<:before_ts"+order_part
+                    query = f"select * from telemetry where ts<:before_ts{order_part}"
                     dbc.execute(query, {"before_ts": before})
                 elif after != None and before != None:
-                    query = "select * from telemetry where ts<:before_ts and ts>:after_ts"+order_part
+                    query = f"select * from telemetry where ts<:before_ts and ts>:after_ts{order_part}"
                     dbc.execute(query, {"before_ts": before, "after_ts": after})
                 else:
                     query = query = "select * from telemetry"
                     dbc.execute(query, {})
 
-            else:        
+            else:
                 if after != None and before == None:
-                    query = "select * from telemetry where dest_context=:context_dest and ts>:after_ts"+order_part
+                    query = f"select * from telemetry where dest_context=:context_dest and ts>:after_ts{order_part}"
                     dbc.execute(query, {"context_dest": context_dest, "after_ts": after})
                 elif after == None and before != None:
-                    query = "select * from telemetry where dest_context=:context_dest and ts<:before_ts"+order_part
+                    query = f"select * from telemetry where dest_context=:context_dest and ts<:before_ts{order_part}"
                     dbc.execute(query, {"context_dest": context_dest, "before_ts": before})
                 elif after != None and before != None:
-                    query = "select * from telemetry where dest_context=:context_dest and ts<:before_ts and ts>:after_ts"+order_part
+                    query = f"select * from telemetry where dest_context=:context_dest and ts<:before_ts and ts>:after_ts{order_part}"
                     dbc.execute(query, {"context_dest": context_dest, "before_ts": before, "after_ts": after})
                 else:
-                    query = query = "select * from telemetry where dest_context=:context_dest"+order_part
+                    query = query = f"select * from telemetry where dest_context=:context_dest{order_part}"
                     dbc.execute(query, {"context_dest": context_dest})
 
             result = dbc.fetchall()
@@ -2027,12 +2027,12 @@ class SidebandCore():
                     telemetry_source = entry[1]
                     telemetry_timestamp = entry[2]
                     telemetry_data = entry[3]
-                    
+
                     if not telemetry_source in results:
                         results[telemetry_source] = []
 
                     results[telemetry_source].append([telemetry_timestamp, telemetry_data])
-                
+
                 return results
 
     def _db_save_telemetry(self, context_dest, telemetry, physical_link = None, source_dest = None, via = None, is_retry = False):
@@ -2050,7 +2050,7 @@ class SidebandCore():
                 result = dbc.fetchall()
 
                 if len(result) != 0:
-                    RNS.log("Telemetry entry with source "+RNS.prettyhexrep(context_dest)+" and timestamp "+str(telemetry_timestamp)+" already exists, skipping save", RNS.LOG_DEBUG)
+                    RNS.log(f"Telemetry entry with source {RNS.prettyhexrep(context_dest)} and timestamp {telemetry_timestamp)} already exists, skipping save", RNS.LOG_DEBUG)
                     return None
 
                 if physical_link != None and len(physical_link) != 0:
@@ -2096,7 +2096,7 @@ class SidebandCore():
                     remote_telemeter.sensors["received"].via = via
                     remote_telemeter.sensors["received"].update_data()
                     telemetry = remote_telemeter.packed()
-                    
+
                 query = "INSERT INTO telemetry (dest_context, ts, data) values (?, ?, ?)"
                 data = (context_dest, telemetry_timestamp, telemetry)
                 dbc.execute(query, data)
@@ -2104,7 +2104,7 @@ class SidebandCore():
                 try:
                     db.commit()
                 except Exception as e:
-                    RNS.log("An error occurred while commiting telemetry to database: "+str(e), RNS.LOG_ERROR)
+                    RNS.log(f"An error occurred while commiting telemetry to database: {e)}", RNS.LOG_ERROR)
                     self.__db_reconnect()
                     # if not is_retry:
                     #     RNS.log("Retrying operation...", RNS.LOG_ERROR)
@@ -2118,7 +2118,7 @@ class SidebandCore():
             except Exception as e:
                 import traceback
                 exception_info = "".join(traceback.TracebackException.from_exception(e).format())
-                RNS.log(f"A {str(type(e))} occurred while saving telemetry to database: {str(e)}", RNS.LOG_ERROR)
+                RNS.log(f"A {type(e))} occurred while saving telemetry to database: {e)}", RNS.LOG_ERROR)
                 RNS.log(exception_info, RNS.LOG_ERROR)
                 self.db = None
 
@@ -2129,8 +2129,8 @@ class SidebandCore():
             ae = [appearance, int(time.time())]
             # TODO: Clean out these temporary values at some interval.
             # Probably expire after 14 days or so.
-            self.setpersistent("temp.peer_appearance."+RNS.hexrep(context_dest, delimit=False), ae)
-        
+            self.setpersistent(f"temp.peer_appearance.{RNS.hexrep(context_dest, delimit=False)}", ae)
+
         else:
             with self.db_lock:
                 data_dict = conv["data"]
@@ -2141,16 +2141,16 @@ class SidebandCore():
                     data_dict["appearance"] = None
 
                 if from_bulk_telemetry and data_dict["appearance"] != SidebandCore.DEFAULT_APPEARANCE:
-                    RNS.log("Aborting appearance update from bulk transfer, since conversation already has appearance set: "+str(appearance)+" / "+str(data_dict["appearance"]), RNS.LOG_DEBUG)
+                    RNS.log(f"Aborting appearance update from bulk transfer, since conversation already has appearance set: {appearance)} / {data_dict['appearance'])}", RNS.LOG_DEBUG)
                     return
 
                 if data_dict["appearance"] != appearance:
                     data_dict["appearance"] = appearance
                     packed_dict = msgpack.packb(data_dict)
-                
+
                     db = self.__db_connect()
                     dbc = db.cursor()
-                
+
                     query = "UPDATE conv set data = ? where dest_context = ?"
                     data = (packed_dict, context_dest)
                     dbc.execute(query, data)
@@ -2174,12 +2174,12 @@ class SidebandCore():
 
             if data_dict != None:
                 if not "appearance" in data_dict or data_dict["appearance"] == None:
-                    apd = self.getpersistent("temp.peer_appearance."+RNS.hexrep(context_dest, delimit=False))
+                    apd = self.getpersistent(f"temp.peer_appearance.{RNS.hexrep(context_dest, delimit=False)}")
                     if apd != None:
                         try:
                             data_dict["appearance"] = apd[0]
                         except Exception as e:
-                            RNS.log("Could not get appearance data from database: "+str(e),RNS.LOG_ERROR)
+                            RNS.log(f"Could not get appearance data from database: {e)}",RNS.LOG_ERROR)
                             data_dict = None
 
                 try:
@@ -2195,10 +2195,10 @@ class SidebandCore():
                             appearance = data_dict["appearance"]
                         else:
                             appearance = [data_dict["appearance"][0], htf(data_dict["appearance"][1]), htf(data_dict["appearance"][2])]
-                        
+
                         return appearance
                 except Exception as e:
-                    RNS.log("Could not retrieve appearance for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
+                    RNS.log(f"Could not retrieve appearance for {RNS.prettyhexrep(context_dest)}: {e)}", RNS.LOG_ERROR)
 
         return None
 
@@ -2211,11 +2211,11 @@ class SidebandCore():
 
         data_dict["telemetry"] = send_telemetry
         packed_dict = msgpack.packb(data_dict)
-        
+
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
-            
+
             query = "UPDATE conv set data = ? where dest_context = ?"
             data = (packed_dict, context_dest)
             dbc.execute(query, data)
@@ -2224,7 +2224,7 @@ class SidebandCore():
             try:
                 db.commit()
             except Exception as e:
-                RNS.log("An error occurred while updating conversation telemetry options: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"An error occurred while updating conversation telemetry options: {e)}", RNS.LOG_ERROR)
                 self.__db_reconnect()
                 # if not is_retry:
                 #     RNS.log("Retrying operation...", RNS.LOG_ERROR)
@@ -2238,11 +2238,11 @@ class SidebandCore():
 
         data_dict["allow_requests"] = allow_requests
         packed_dict = msgpack.packb(data_dict)
-        
+
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
-            
+
             query = "UPDATE conv set data = ? where dest_context = ?"
             data = (packed_dict, context_dest)
             dbc.execute(query, data)
@@ -2251,7 +2251,7 @@ class SidebandCore():
             try:
                 db.commit()
             except Exception as e:
-                RNS.log("An error occurred while updating conversation request options: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"An error occurred while updating conversation request options: {e)}", RNS.LOG_ERROR)
                 self.__db_reconnect()
                 if not is_retry:
                     RNS.log("Retrying operation...", RNS.LOG_ERROR)
@@ -2265,11 +2265,11 @@ class SidebandCore():
 
         data_dict["is_object"] = is_object
         packed_dict = msgpack.packb(data_dict)
-        
+
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
-            
+
             query = "UPDATE conv set data = ? where dest_context = ?"
             data = (packed_dict, context_dest)
             dbc.execute(query, data)
@@ -2278,7 +2278,7 @@ class SidebandCore():
             try:
                 db.commit()
             except Exception as e:
-                RNS.log("An error occurred while updating conversation object option: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"An error occurred while updating conversation object option: {e)}", RNS.LOG_ERROR)
                 self.__db_reconnect()
                 # if not is_retry:
                 #     RNS.log("Retrying operation...", RNS.LOG_ERROR)
@@ -2292,11 +2292,11 @@ class SidebandCore():
 
         data_dict["ptt_enabled"] = ptt_enabled
         packed_dict = msgpack.packb(data_dict)
-        
+
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
-            
+
             query = "UPDATE conv set data = ? where dest_context = ?"
             data = (packed_dict, context_dest)
             dbc.execute(query, data)
@@ -2305,7 +2305,7 @@ class SidebandCore():
             try:
                 db.commit()
             except Exception as e:
-                RNS.log("An error occurred while updating conversation PTT option: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"An error occurred while updating conversation PTT option: {e)}", RNS.LOG_ERROR)
                 self.__db_reconnect()
                 # if not is_retry:
                 #     RNS.log("Retrying operation...", RNS.LOG_ERROR)
@@ -2315,7 +2315,7 @@ class SidebandCore():
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
-            
+
             query = "UPDATE conv set trust = ? where dest_context = ?"
             data = (trusted, context_dest)
             dbc.execute(query, data)
@@ -2324,7 +2324,7 @@ class SidebandCore():
             try:
                 db.commit()
             except Exception as e:
-                RNS.log("An error occurred while updating conversation trusted option: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"An error occurred while updating conversation trusted option: {e)}", RNS.LOG_ERROR)
                 self.__db_reconnect()
                 # if not is_retry:
                 #     RNS.log("Retrying operation...", RNS.LOG_ERROR)
@@ -2334,15 +2334,15 @@ class SidebandCore():
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
-            
+
             query = "UPDATE conv set name=:name_data where dest_context=:ctx;"
             dbc.execute(query, {"ctx": context_dest, "name_data": name.encode("utf-8")})
             result = dbc.fetchall()
-            
+
             try:
                 db.commit()
             except Exception as e:
-                RNS.log("An error occurred while updating conversation name option: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"An error occurred while updating conversation name option: {e)}", RNS.LOG_ERROR)
                 self.__db_reconnect()
                 # if not is_retry:
                 #     RNS.log("Retrying operation...", RNS.LOG_ERROR)
@@ -2352,7 +2352,7 @@ class SidebandCore():
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
-            
+
             dbc.execute("select * from conv")
             result = dbc.fetchall()
 
@@ -2397,7 +2397,7 @@ class SidebandCore():
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
-            
+
             dbc.execute("select * from announce order by received desc")
             result = dbc.fetchall()
 
@@ -2420,7 +2420,7 @@ class SidebandCore():
                             added_dests.append(entry[2])
                             announces.append(announce)
                     except Exception as e:
-                        RNS.log("Exception while fetching announce from DB: "+str(e), RNS.LOG_ERROR)
+                        RNS.log(f"Exception while fetching announce from DB: {e)}", RNS.LOG_ERROR)
 
                 announces.reverse()
                 return announces
@@ -2429,7 +2429,7 @@ class SidebandCore():
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
-            
+
             query = "select * from conv where dest_context=:ctx"
             dbc.execute(query, {"ctx": context_dest})
             result = dbc.fetchall()
@@ -2451,7 +2451,7 @@ class SidebandCore():
                 return conv
 
     def _db_clear_conversation(self, context_dest):
-        RNS.log("Clearing conversation with "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
+        RNS.log(f"Clearing conversation with {RNS.prettyhexrep(context_dest)}", RNS.LOG_DEBUG)
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
@@ -2461,7 +2461,7 @@ class SidebandCore():
             db.commit()
 
     def _db_clear_telemetry(self, context_dest):
-        RNS.log("Clearing telemetry for "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
+        RNS.log(f"Clearing telemetry for {RNS.prettyhexrep(context_dest)}", RNS.LOG_DEBUG)
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
@@ -2473,7 +2473,7 @@ class SidebandCore():
         self.setstate("app.flags.last_telemetry", time.time())
 
     def _db_delete_conversation(self, context_dest):
-        RNS.log("Deleting conversation with "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
+        RNS.log(f"Deleting conversation with {RNS.prettyhexrep(context_dest)}", RNS.LOG_DEBUG)
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
@@ -2484,7 +2484,7 @@ class SidebandCore():
 
 
     def _db_delete_announce(self, context_dest):
-        RNS.log("Deleting announce with "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
+        RNS.log(f"Deleting announce with {RNS.prettyhexrep(context_dest)}", RNS.LOG_DEBUG)
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
@@ -2494,12 +2494,12 @@ class SidebandCore():
             db.commit()
 
     def _db_create_conversation(self, context_dest, name = None, trust = False):
-        RNS.log("Creating conversation for "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
+        RNS.log(f"Creating conversation for {RNS.prettyhexrep(context_dest)}", RNS.LOG_DEBUG)
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
 
-            def_name = "".encode("utf-8")
+            def_name = b""
             query = "INSERT INTO conv (dest_context, last_tx, last_rx, unread, type, trust, name, data) values (?, ?, ?, ?, ?, ?, ?, ?)"
             data = (context_dest, 0, time.time(), 0, SidebandCore.CONV_P2P, 0, def_name, msgpack.packb(None))
 
@@ -2515,7 +2515,7 @@ class SidebandCore():
         self.__event_conversations_changed()
 
     def _db_delete_message(self, msg_hash):
-        RNS.log("Deleting message "+RNS.prettyhexrep(msg_hash))
+        RNS.log(f"Deleting message {RNS.prettyhexrep(msg_hash)}")
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
@@ -2525,7 +2525,7 @@ class SidebandCore():
             db.commit()
 
     def _db_clean_messages(self):
-        RNS.log("Purging stale messages... "+str(self.db_path))
+        RNS.log(f"Purging stale messages... {self.db_path)}")
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
@@ -2552,7 +2552,7 @@ class SidebandCore():
                     msg_extras["stamp_value"] = originator_stamp[2]
 
             except Exception as e:
-                RNS.log("An error occurred while getting message extras: "+str(e))
+                RNS.log(f"An error occurred while getting message extras: {e)}")
 
         with self.db_lock:
             db = self.__db_connect()
@@ -2562,7 +2562,7 @@ class SidebandCore():
                 extras = msgpack.packb(msg_extras)
                 query = "UPDATE lxm set state = ?, extra = ? where lxm_hash = ?"
                 data = (state, extras, lxm_hash)
-                
+
             else:
                 query = "UPDATE lxm set state = ? where lxm_hash = ?"
                 data = (state, lxm_hash)
@@ -2573,7 +2573,7 @@ class SidebandCore():
                 db.commit()
                 result = dbc.fetchall()
             except Exception as e:
-                RNS.log("An error occurred while updating message state: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"An error occurred while updating message state: {e)}", RNS.LOG_ERROR)
                 self.__db_reconnect()
                 # if not is_retry:
                 #     RNS.log("Retrying operation...", RNS.LOG_ERROR)
@@ -2583,7 +2583,7 @@ class SidebandCore():
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
-            
+
             query = "UPDATE lxm set method = ? where lxm_hash = ?"
             data = (method, lxm_hash)
             dbc.execute(query, data)
@@ -2592,7 +2592,7 @@ class SidebandCore():
                 db.commit()
                 result = dbc.fetchall()
             except Exception as e:
-                RNS.log("An error occurred while updating message method: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"An error occurred while updating message method: {e)}", RNS.LOG_ERROR)
                 self.__db_reconnect()
                 # if not is_retry:
                 #     RNS.log("Retrying operation...", RNS.LOG_ERROR)
@@ -2605,7 +2605,7 @@ class SidebandCore():
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
-            
+
             query = "select * from lxm where lxm_hash=:mhash"
             dbc.execute(query, {"mhash": msg_hash})
             result = dbc.fetchall()
@@ -2653,7 +2653,7 @@ class SidebandCore():
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
-            
+
             query = "select count(*) from lxm where dest=:context_dest or source=:context_dest"
             dbc.execute(query, {"context_dest": context_dest})
 
@@ -2668,7 +2668,7 @@ class SidebandCore():
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
-            
+
             if after != None and before == None:
                 query = "select * from lxm where (dest=:context_dest or source=:context_dest) and rx_ts>:after_ts"
                 dbc.execute(query, {"context_dest": context_dest, "after_ts": after})
@@ -2698,7 +2698,7 @@ class SidebandCore():
                         packed_lxm = entry[10]
 
                     lxm = LXMF.LXMessage.unpack_from_bytes(packed_lxm, original_method = lxm_method)
-                    
+
                     if lxm.desired_method == LXMF.LXMessage.PAPER:
                         lxm.paper_packed = paper_packed_lxm
 
@@ -2707,7 +2707,7 @@ class SidebandCore():
                         extras = msgpack.unpackb(entry[11])
                     except:
                         pass
-                    
+
                     message = {
                         "hash": lxm.hash,
                         "dest": lxm.destination_hash,
@@ -2756,15 +2756,15 @@ class SidebandCore():
                             appearance = telemetry_entry[3]
                             max_timebase = max(max_timebase, ttstamp)
                             if self._db_save_telemetry(tsource, tpacked, via = context_dest):
-                                RNS.log("Saved telemetry stream entry from "+RNS.prettyhexrep(tsource), RNS.LOG_DEBUG)
+                                RNS.log(f"Saved telemetry stream entry from {RNS.prettyhexrep(tsource)}", RNS.LOG_DEBUG)
                                 if appearance != None:
                                     self._db_update_appearance(tsource, ttstamp, appearance, from_bulk_telemetry=True)
-                                    RNS.log("Updated appearance entry from "+RNS.prettyhexrep(tsource), RNS.LOG_DEBUG)
+                                    RNS.log(f"Updated appearance entry from {RNS.prettyhexrep(tsource)}", RNS.LOG_DEBUG)
 
                         self.setpersistent(f"telemetry.{RNS.hexrep(context_dest, delimit=False)}.timebase", max_timebase)
 
                     else:
-                        RNS.log("Received telemetry stream field with no data: "+str(lxm.fields[LXMF.FIELD_TELEMETRY_STREAM]), RNS.LOG_DEBUG)
+                        RNS.log(f"Received telemetry stream field with no data: {lxm.fields[LXMF.FIELD_TELEMETRY_STREAM])}", RNS.LOG_DEBUG)
 
         if own_command or len(lxm.content) != 0 or len(lxm.title) != 0:
             with self.db_lock:
@@ -2820,7 +2820,7 @@ class SidebandCore():
                 try:
                     db.commit()
                 except Exception as e:
-                    RNS.log("An error occurred while saving message to database: "+str(e), RNS.LOG_ERROR)
+                    RNS.log(f"An error occurred while saving message to database: {e)}", RNS.LOG_ERROR)
                     self.__db_reconnect()
                     # if not is_retry:
                     #     RNS.log("Retrying operation...", RNS.LOG_ERROR)
@@ -2834,7 +2834,7 @@ class SidebandCore():
             db = self.__db_connect()
             dbc = db.cursor()
 
-            query = "delete from announce where id is NULL or id not in (select id from announce order by received desc limit "+str(self.MAX_ANNOUNCES)+")"
+            query = f"delete from announce where id is NULL or id not in (select id from announce order by received desc limit {self.MAX_ANNOUNCES)})"
             dbc.execute(query)
 
             query = "delete from announce where (source=:source);"
@@ -2866,15 +2866,15 @@ class SidebandCore():
                 self.lxmf_destination.announce(attached_interface=attached_interface)
             self.last_lxmf_announce = time.time()
             self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)+SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)
-            RNS.log("Next auto announce in "+RNS.prettytime(self.next_auto_announce-time.time()), RNS.LOG_DEBUG)
+            RNS.log(f"Next auto announce in {RNS.prettytime(self.next_auto_announce - time.time())}", RNS.LOG_DEBUG)
             self.setstate("wants.announce", False)
-        
+
         else:
             if self.config["lxmf_require_stamps"]:
                 self.message_router.set_inbound_stamp_cost(self.lxmf_destination.hash, self.config["lxmf_inbound_stamp_cost"])
             else:
                 self.message_router.set_inbound_stamp_cost(self.lxmf_destination.hash, None)
-            
+
             self.setstate("wants.announce", True)
 
     def run_telemetry(self):
@@ -2898,7 +2898,7 @@ class SidebandCore():
                     except Exception as e:
                         import traceback
                         exception_info = "".join(traceback.TracebackException.from_exception(e).format())
-                        RNS.log(f"An {str(type(e))} occurred while updating service telemetry: {str(e)}", RNS.LOG_ERROR)
+                        RNS.log(f"An {type(e))} occurred while updating service telemetry: {e)}", RNS.LOG_ERROR)
                         RNS.log(exception_info, RNS.LOG_ERROR)
 
                     time.sleep(SidebandCore.SERVICE_TELEMETRY_INTERVAL)
@@ -2960,12 +2960,12 @@ class SidebandCore():
                         try:
                             self.service_set_latest_telemetry(self.latest_telemetry, self.latest_packed_telemetry)
                         except Exception as e:
-                            RNS.log("Error while sending latest telemetry to service: "+str(e), RNS.LOG_ERROR)
+                            RNS.log(f"Error while sending latest telemetry to service: {e)}", RNS.LOG_ERROR)
 
         except Exception as e:
             import traceback
             exception_info = "".join(traceback.TracebackException.from_exception(e).format())
-            RNS.log(f"An {str(type(e))} occurred while updating telemetry: {str(e)}", RNS.LOG_ERROR)
+            RNS.log(f"An {type(e))} occurred while updating telemetry: {e)}", RNS.LOG_ERROR)
             RNS.log(exception_info, RNS.LOG_ERROR)
 
     def update_telemeter_config(self):
@@ -2978,7 +2978,7 @@ class SidebandCore():
 
             sensors = ["location", "information", "battery", "pressure", "temperature", "humidity", "magnetic_field", "ambient_light", "gravity", "angular_velocity", "acceleration", "proximity"]
             for sensor in sensors:
-                if self.config["telemetry_s_"+sensor]:
+                if self.config[f"telemetry_s_{sensor}"]:
                     self.telemeter.enable(sensor)
                 else:
                     if sensor == "location":
@@ -2998,9 +2998,9 @@ class SidebandCore():
                     plugin.update_telemetry(self.telemeter)
 
                 except Exception as e:
-                    RNS.log("An error occurred while "+str(telemetry_plugin)+" was handling telemetry. The contained exception was: "+str(e), RNS.LOG_ERROR)
+                    RNS.log(f"An error occurred while {telemetry_plugin)} was handling telemetry. The contained exception was: {e)}", RNS.LOG_ERROR)
                     RNS.trace_exception(e)
-            
+
             if self.config["telemetry_s_fixed_location"]:
                 self.telemeter.synthesize("location")
                 self.telemeter.sensors["location"].latitude = self.config["telemetry_s_fixed_latlon"][0]
@@ -3059,7 +3059,7 @@ class SidebandCore():
             return True
 
         except Exception as e:
-            RNS.log("Error while querying for key: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while querying for key: {e)}", RNS.LOG_ERROR)
             return False
 
     def _update_delivery_limits(self):
@@ -3070,10 +3070,10 @@ class SidebandCore():
                 lxm_limit = self.default_lxm_limit
             if self.message_router.delivery_per_transfer_limit != lxm_limit:
                 self.message_router.delivery_per_transfer_limit = lxm_limit
-                RNS.log("Updated delivery limit to "+RNS.prettysize(self.message_router.delivery_per_transfer_limit*1000), RNS.LOG_DEBUG)
-                
+                RNS.log(f"Updated delivery limit to {RNS.prettysize(self.message_router.delivery_per_transfer_limit * 1000)}", RNS.LOG_DEBUG)
+
         except Exception as e:
-            RNS.log("Error while updating LXMF router delivery limit: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while updating LXMF router delivery limit: {e)}", RNS.LOG_ERROR)
 
     def _service_jobs(self):
         if self.is_service:
@@ -3137,7 +3137,7 @@ class SidebandCore():
                 except Exception as e:
                     import traceback
                     exception_info = "".join(traceback.TracebackException.from_exception(e).format())
-                    RNS.log(f"An {str(type(e))} occurred while running interface checks: {str(e)}", RNS.LOG_ERROR)
+                    RNS.log(f"An {type(e))} occurred while running interface checks: {e)}", RNS.LOG_ERROR)
                     RNS.log(exception_info, RNS.LOG_ERROR)
 
                 announce_wanted = self.getstate("wants.announce")
@@ -3152,13 +3152,13 @@ class SidebandCore():
 
                         if hasattr(self.interface_local, "had_peers"):
                             if not self.interface_local.had_peers and have_peers:
-                                RNS.log("Peers became reachable on the interface "+str(self.interface_local), RNS.LOG_DEBUG)
+                                RNS.log(f"Peers became reachable on the interface {self.interface_local)}", RNS.LOG_DEBUG)
                                 needs_if_change_announce = True
                                 announce_attached_interface = self.interface_local
                                 announce_delay = 10
 
                             if self.interface_local.had_peers and not have_peers:
-                                RNS.log("No peers reachable on the interface "+str(self.interface_local), RNS.LOG_DEBUG)
+                                RNS.log(f"No peers reachable on the interface {self.interface_local)}", RNS.LOG_DEBUG)
                                 needs_if_change_announce = True
 
                         self.interface_local.had_peers = have_peers
@@ -3167,11 +3167,11 @@ class SidebandCore():
                         if not hasattr(self, "interface_local") or interface != self.interface_local:
                             if hasattr(interface, "was_online"):
                                 if not interface.was_online and interface.online:
-                                    RNS.log("The interface "+str(interface)+" became available", RNS.LOG_DEBUG)
+                                    RNS.log(f"The interface {interface)} became available", RNS.LOG_DEBUG)
                                     needs_if_change_announce = True
 
                                 if interface.was_online and not interface.online:
-                                    RNS.log("The interface "+str(interface)+" became unavailable", RNS.LOG_DEBUG)
+                                    RNS.log(f"The interface {interface)} became unavailable", RNS.LOG_DEBUG)
                                     needs_if_change_announce = True
 
                             interface.was_online = interface.online
@@ -3213,7 +3213,7 @@ class SidebandCore():
                             else:
                                 RNS.log("Could not execute RNode Bluetooth control command, no USB devices available", RNS.LOG_ERROR)
                     self.setstate("executing.bt_on", False)
-                
+
                 if self.getstate("wants.bt_off"):
                     self.setstate("wants.bt_off", False)
                     self.owner_app.discover_usb_devices()
@@ -3228,7 +3228,7 @@ class SidebandCore():
                             else:
                                 RNS.log("Could not execute RNode Bluetooth control command, no USB devices available", RNS.LOG_ERROR)
                     self.setstate("executing.bt_off", False)
-                
+
                 if self.getstate("wants.bt_pair"):
                     self.setstate("wants.bt_pair", False)
                     self.owner_app.discover_usb_devices()
@@ -3242,7 +3242,7 @@ class SidebandCore():
                                     target_port = self.owner_app.usb_devices[0]["port"]
                                     RNS.Interfaces.Android.RNodeInterface.RNodeInterface.bluetooth_control(port=target_port, pairing_mode = True)
                                 except Exception as e:
-                                    self.setstate("hardware_operation.error", "An error occurred while trying to communicate with the device. Please make sure that Sideband has been granted permissions to access the device.\n\nThe reported error was:\n\n[i]"+str(e)+"[/i]")
+                                    self.setstate("hardware_operation.error", f"An error occurred while trying to communicate with the device. Please make sure that Sideband has been granted permissions to access the device.\n\nThe reported error was:\n\n[i]{e)}[/i]")
                             else:
                                 RNS.log("Could not execute RNode Bluetooth control command, no USB devices available", RNS.LOG_ERROR)
                     self.setstate("executing.bt_pair", False)
@@ -3256,7 +3256,7 @@ class SidebandCore():
                             if len(self.owner_app.usb_devices) > 0:
                                 target_device = self.owner_app.usb_devices[0]
                                 if self.interface_rnode.port != target_device["port"]:
-                                    RNS.log("Updating RNode device to "+str(target_device))
+                                    RNS.log(f"Updating RNode device to {target_device)}")
                                     self.interface_rnode.port = target_device["port"]
 
                     if self.interface_serial != None and not self.interface_serial.online:
@@ -3267,7 +3267,7 @@ class SidebandCore():
                             if len(self.owner_app.usb_devices) > 0:
                                 target_device = self.owner_app.usb_devices[0]
                                 if self.interface_serial.port != target_device["port"]:
-                                    RNS.log("Updating serial device to "+str(target_device))
+                                    RNS.log(f"Updating serial device to {target_device)}")
                                     self.interface_serial.port = target_device["port"]
 
                     if self.interface_modem != None and not self.interface_modem.online:
@@ -3278,7 +3278,7 @@ class SidebandCore():
                             if len(self.owner_app.usb_devices) > 0:
                                 target_device = self.owner_app.usb_devices[0]
                                 if self.interface_modem.port != target_device["port"]:
-                                    RNS.log("Updating modem device to "+str(target_device))
+                                    RNS.log(f"Updating modem device to {target_device)}")
                                     self.interface_modem.port = target_device["port"]
 
     def _periodic_jobs(self):
@@ -3299,8 +3299,8 @@ class SidebandCore():
                         lastsync = self.getpersistent("lxmf.lastsync")
                         nextsync = lastsync+syncinterval
 
-                        RNS.log("Last LXMF sync was "+RNS.prettytime(now-lastsync)+" ago", RNS.LOG_EXTREME)
-                        RNS.log("Next LXMF sync is "+("in "+RNS.prettytime(nextsync-now) if nextsync-now > 0 else "now"), RNS.LOG_EXTREME)
+                        RNS.log(f"Last LXMF sync was {RNS.prettytime(now - lastsync)} ago", RNS.LOG_EXTREME)
+                        RNS.log(f"Next LXMF sync is {f'in {RNS.prettytime(nextsync - now)}' if nextsync - now > 0 else 'now'}", RNS.LOG_EXTREME)
                         if now > nextsync:
                             if self.request_lxmf_sync():
                                 RNS.log("Scheduled LXMF sync succeeded", RNS.LOG_DEBUG)
@@ -3308,7 +3308,7 @@ class SidebandCore():
                                 self.setpersistent("lxmf.syncretrying", False)
                             else:
                                 if not self.getpersistent("lxmf.syncretrying"):
-                                    RNS.log("Scheduled LXMF sync failed, retrying in "+RNS.prettytime(SidebandCore.PERIODIC_SYNC_RETRY), RNS.LOG_DEBUG)
+                                    RNS.log(f"Scheduled LXMF sync failed, retrying in {RNS.prettytime(SidebandCore.PERIODIC_SYNC_RETRY)}", RNS.LOG_DEBUG)
                                     self.setpersistent("lxmf.lastsync", lastsync+SidebandCore.PERIODIC_SYNC_RETRY)
                                     self.setpersistent("lxmf.syncretrying", True)
                                 else:
@@ -3328,8 +3328,8 @@ class SidebandCore():
 
                                 scheduled = next_send-now; blocked = self.telemetry_send_blocked_until-now
                                 next_send_in = max(scheduled, blocked)
-                                RNS.log("Last telemetry send was "+RNS.prettytime(now-last_send_timebase)+" ago", RNS.LOG_EXTREME)
-                                RNS.log("Next telemetry send is "+("in "+RNS.prettytime(next_send_in) if next_send_in > 0 else "now"), RNS.LOG_EXTREME)
+                                RNS.log(f"Last telemetry send was {RNS.prettytime(now - last_send_timebase)} ago", RNS.LOG_EXTREME)
+                                RNS.log(f"Next telemetry send is {f'in {RNS.prettytime(next_send_in)}' if next_send_in > 0 else 'now'}", RNS.LOG_EXTREME)
 
                                 if now > last_send_timebase+send_interval and now > self.telemetry_send_blocked_until:
                                     RNS.log("Initiating telemetry send to collector", RNS.LOG_DEBUG)
@@ -3350,7 +3350,7 @@ class SidebandCore():
                                             self.pending_telemetry_send_try = 0
 
                             except Exception as e:
-                                RNS.log("An error occurred while sending scheduled telemetry to collector: "+str(e), RNS.LOG_ERROR)
+                                RNS.log(f"An error occurred while sending scheduled telemetry to collector: {e)}", RNS.LOG_ERROR)
 
                     if self.config["telemetry_request_from_collector"]:
                         if self.config["telemetry_collector"] != None and self.config["telemetry_collector"] != self.lxmf_destination.hash:
@@ -3361,25 +3361,25 @@ class SidebandCore():
                                 request_interval = self.config["telemetry_request_interval"]
                                 next_request = last_request_timebase+request_interval
 
-                                RNS.log("Last telemetry request was "+RNS.prettytime(now-last_request_timebase)+" ago", RNS.LOG_EXTREME)
-                                RNS.log("Next telemetry request is "+("in "+RNS.prettytime(next_request-now) if next_request-now > 0 else "now"), RNS.LOG_EXTREME)
+                                RNS.log(f"Last telemetry request was {RNS.prettytime(now - last_request_timebase)} ago", RNS.LOG_EXTREME)
+                                RNS.log(f"Next telemetry request is {f'in {RNS.prettytime(next_request - now)}' if next_request - now > 0 else 'now'}", RNS.LOG_EXTREME)
 
                                 if now > last_request_timebase+request_interval:
                                     try:
                                         RNS.log("Initiating telemetry request to collector", RNS.LOG_DEBUG)
                                         self.request_latest_telemetry(from_addr=self.config["telemetry_collector"])
                                     except Exception as e:
-                                        RNS.log("An error occurred while requesting a telemetry update from collector. The contained exception was: "+str(e), RNS.LOG_ERROR)
+                                        RNS.log(f"An error occurred while requesting a telemetry update from collector. The contained exception was: {e)}", RNS.LOG_ERROR)
 
                             except Exception as e:
-                                RNS.log("An error occurred while requesting scheduled telemetry from collector: "+str(e), RNS.LOG_ERROR)
+                                RNS.log(f"An error occurred while requesting scheduled telemetry from collector: {e)}", RNS.LOG_ERROR)
 
     def __start_jobs_deferred(self):
         if self.is_service:
             self.service_thread = threading.Thread(target=self._service_jobs, daemon=True)
             self.service_thread.start()
 
-        if self.is_standalone or self.is_service:            
+        if self.is_standalone or self.is_service:
             if self.config["start_announce"]:
                 def da():
                     time.sleep(8)
@@ -3437,13 +3437,13 @@ class SidebandCore():
                     if_mode = Interface.Interface.MODE_BOUNDARY
             else:
                 if_mode = None
-                
+
             self.reticulum._add_interface(autointerface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
             self.interface_local = autointerface
             self.interface_local_adding = False
 
         except Exception as e:
-            RNS.log("Error while adding AutoInterface. The contained exception was: "+str(e))
+            RNS.log(f"Error while adding AutoInterface. The contained exception was: {e)}")
             self.interface_local = None
             self.interface_local_adding = False
 
@@ -3464,7 +3464,7 @@ class SidebandCore():
                 target_port = target_device["port"]
             else:
                 target_port = None
-        
+
             bt_device_name = None
             rnode_allow_bluetooth = False
             rnode_allow_ble = False
@@ -3563,7 +3563,7 @@ class SidebandCore():
                     if_mode = Interface.Interface.MODE_BOUNDARY
             else:
                 if_mode = None
-                
+
             self.reticulum._add_interface(rnodeinterface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
             self.interface_rnode = rnodeinterface
             self.interface_rnode_adding = False
@@ -3583,7 +3583,7 @@ class SidebandCore():
                     self.interface_rnode.disable_external_framebuffer()
 
         except Exception as e:
-            RNS.log("Error while adding RNode Interface. The contained exception was: "+str(e))
+            RNS.log(f"Error while adding RNode Interface. The contained exception was: {e)}")
             self.interface_rnode = None
             self.interface_rnode_adding = False
 
@@ -3622,7 +3622,7 @@ class SidebandCore():
 
             if not self.reticulum.is_connected_to_shared_instance:
                 RNS.log("Running as master or standalone instance, adding interfaces")
-                
+
                 self.interface_local  = None
                 self.interface_tcp    = None
                 self.interface_i2p    = None
@@ -3682,12 +3682,12 @@ class SidebandCore():
                                         if_mode = Interface.Interface.MODE_BOUNDARY
                                 else:
                                     if_mode = None
-                                    
+
                                 self.reticulum._add_interface(tcpinterface, mode=if_mode, ifac_netname=ifac_netname, ifac_netkey=ifac_netkey, ifac_size=ifac_size)
                                 self.interface_tcp = tcpinterface
 
                     except Exception as e:
-                        RNS.log("Error while adding TCP Interface. The contained exception was: "+str(e))
+                        RNS.log(f"Error while adding TCP Interface. The contained exception was: {e)}")
                         self.interface_tcp = None
 
                 if self.config["connect_i2p"]:
@@ -3733,16 +3733,16 @@ class SidebandCore():
                                     if_mode = Interface.Interface.MODE_BOUNDARY
                             else:
                                 if_mode = None
-                                
+
                             self.reticulum._add_interface(i2pinterface, mode = if_mode, ifac_netname=ifac_netname, ifac_netkey=ifac_netkey, ifac_size=ifac_size)
-                            
+
                             for si in RNS.Transport.interfaces:
                                 if type(si) == RNS.Interfaces.I2PInterface.I2PInterfacePeer:
                                     self.interface_i2p = si
 
 
                     except Exception as e:
-                        RNS.log("Error while adding I2P Interface. The contained exception was: "+str(e))
+                        RNS.log(f"Error while adding I2P Interface. The contained exception was: {e)}")
                         self.interface_i2p = None
 
                 if self.config["connect_rnode"]:
@@ -3794,12 +3794,12 @@ class SidebandCore():
                                     if_mode = Interface.Interface.MODE_BOUNDARY
                             else:
                                 if_mode = None
-                                
+
                             self.reticulum._add_interface(serialinterface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
                             self.interface_serial = serialinterface
 
                     except Exception as e:
-                        RNS.log("Error while adding Serial Interface. The contained exception was: "+str(e))
+                        RNS.log(f"Error while adding Serial Interface. The contained exception was: {e)}")
                         self.interface_serial = None
 
                 elif self.config["connect_modem"]:
@@ -3854,17 +3854,17 @@ class SidebandCore():
                                     if_mode = Interface.Interface.MODE_BOUNDARY
                             else:
                                 if_mode = None
-                                
+
                             self.reticulum._add_interface(modeminterface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
                             self.interface_modem = modeminterface
 
                     except Exception as e:
-                        RNS.log("Error while adding Modem Interface. The contained exception was: "+str(e))
+                        RNS.log(f"Error while adding Modem Interface. The contained exception was: {e)}")
                         self.interface_modem = None
 
         RNS.log("Reticulum started, activating LXMF...")
         self.setstate("init.loadingstate", "Activating LXMF Router")
-        
+
         if self.config["lxm_limit_1mb"]:
             lxm_limit = 1000
         else:
@@ -3882,7 +3882,7 @@ class SidebandCore():
             self.message_router.enforce_stamps()
         else:
             self.message_router.ignore_stamps()
-        
+
         # TODO: Update to announce call in LXMF when full 0.5.0 support is added (get app data from LXMRouter instead)
         # Currently overrides the LXMF routers auto-generated announce data so that Sideband will announce old-format
         # LXMF announces if require_stamps is disabled.
@@ -3918,7 +3918,7 @@ class SidebandCore():
                 if not no_display:
                     self.lxm_ingest(message, originator=True)
             else:
-                RNS.log("Direct delivery of "+str(message)+" failed. Retrying as propagated message.", RNS.LOG_VERBOSE)
+                RNS.log(f"Direct delivery of {message)} failed. Retrying as propagated message.", RNS.LOG_VERBOSE)
                 message.try_propagation_on_fail = None
                 message.delivery_attempts = 0
                 if hasattr(message, "next_delivery_attempt"):
@@ -3936,10 +3936,10 @@ class SidebandCore():
                     try:
                         telemeter = Telemeter.from_packed(message.fields[LXMF.FIELD_TELEMETRY])
                         telemetry_timebase = telemeter.read_all()["time"]["utc"]
-                        RNS.log("Setting last successul telemetry timebase for "+RNS.prettyhexrep(message.destination_hash)+" to "+str(telemetry_timebase), RNS.LOG_DEBUG)
+                        RNS.log(f"Setting last successul telemetry timebase for {RNS.prettyhexrep(message.destination_hash)} to {telemetry_timebase)}", RNS.LOG_DEBUG)
                         self.setpersistent(f"telemetry.{RNS.hexrep(message.destination_hash, delimit=False)}.last_send_success_timebase", telemetry_timebase)
                     except Exception as e:
-                        RNS.log("Error while setting last successul telemetry timebase for "+RNS.prettyhexrep(message.destination_hash), RNS.LOG_DEBUG)
+                        RNS.log(f"Error while setting last successul telemetry timebase for {RNS.prettyhexrep(message.destination_hash)}", RNS.LOG_DEBUG)
 
     def get_message_fields(self, context_dest, telemetry_update=False, is_authorized_telemetry_request=False, signal_already_sent=False):
         fields = {}
@@ -3953,7 +3953,7 @@ class SidebandCore():
             if telemetry_timebase > last_success_tb:
                 RNS.log("Embedding own telemetry in message since current telemetry is newer than latest successful timebase", RNS.LOG_DEBUG)
             else:
-                RNS.log("Not embedding own telemetry in message since current telemetry timebase ("+str(telemetry_timebase)+") is not newer than latest successful timebase ("+str(last_success_tb)+")", RNS.LOG_DEBUG)
+                RNS.log(f"Not embedding own telemetry in message since current telemetry timebase ({telemetry_timebase)}) is not newer than latest successful timebase ({last_success_tb)})", RNS.LOG_DEBUG)
                 send_telemetry = False
                 send_appearance = False
                 if signal_already_sent:
@@ -3990,7 +3990,7 @@ class SidebandCore():
             dest_identity = RNS.Identity.recall(destination_hash)
             dest = RNS.Destination(dest_identity, RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
             source = self.lxmf_destination
-            
+
             desired_method = LXMF.LXMessage.PAPER
             # TODO: Should paper messages also include a ticket to trusted peers?
             lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = self.get_message_fields(destination_hash), include_ticket=self.is_trusted(destination_hash))
@@ -4000,7 +4000,7 @@ class SidebandCore():
             return True
 
         except Exception as e:
-            RNS.log("Error while creating paper message: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while creating paper message: {e)}", RNS.LOG_ERROR)
             return False
 
     def _service_get_lxm_progress(self, lxm_hash):
@@ -4010,9 +4010,9 @@ class SidebandCore():
             if self.is_client:
                 try:
                     return self.service_rpc_request({"get_lxm_progress": {"lxm_hash": lxm_hash}})
-                
+
                 except Exception as e:
-                    RNS.log("Error while getting LXM progress over RPC: "+str(e), RNS.LOG_DEBUG)
+                    RNS.log(f"Error while getting LXM progress over RPC: {e)}", RNS.LOG_DEBUG)
                     RNS.trace_exception(e)
                     return False
             else:
@@ -4027,14 +4027,14 @@ class SidebandCore():
 
             return prg
         except Exception as e:
-            RNS.log("An error occurred while getting message transfer progress: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"An error occurred while getting message transfer progress: {e)}", RNS.LOG_ERROR)
             return None
 
     def get_lxm_stamp_cost(self, lxm_hash):
         try:
             return self.message_router.get_outbound_lxm_stamp_cost(lxm_hash)
         except Exception as e:
-            RNS.log("An error occurred while getting message transfer stamp cost: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"An error occurred while getting message transfer stamp cost: {e)}", RNS.LOG_ERROR)
             return None
 
     def _service_send_message(self, content, destination_hash, propagation, skip_fields=False, no_display=False, attachment = None, image = None, audio = None):
@@ -4053,9 +4053,9 @@ class SidebandCore():
                         "image": image,
                         "audio": audio}
                     })
-                
+
                 except Exception as e:
-                    RNS.log("Error while sending message over RPC: "+str(e), RNS.LOG_DEBUG)
+                    RNS.log(f"Error while sending message over RPC: {e)}", RNS.LOG_DEBUG)
                     RNS.trace_exception(e)
                     return False
             else:
@@ -4074,7 +4074,7 @@ class SidebandCore():
                     })
 
                 except Exception as e:
-                    RNS.log("Error while sending command over RPC: "+str(e), RNS.LOG_DEBUG)
+                    RNS.log(f"Error while sending command over RPC: {e)}", RNS.LOG_DEBUG)
                     RNS.trace_exception(e)
                     return False
             else:
@@ -4086,7 +4086,7 @@ class SidebandCore():
                 return self._service_send_message(content, destination_hash, propagation, skip_fields, no_display, attachment, image, audio)
 
             except Exception as e:
-                RNS.log("Error while sending message: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"Error while sending message: {e)}", RNS.LOG_ERROR)
                 RNS.trace_exception(e)
                 return False
 
@@ -4098,7 +4098,7 @@ class SidebandCore():
                 dest_identity = RNS.Identity.recall(destination_hash)
                 dest = RNS.Destination(dest_identity, RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
                 source = self.lxmf_destination
-                
+
                 if propagation:
                     desired_method = LXMF.LXMessage.PROPAGATED
                 else:
@@ -4121,7 +4121,7 @@ class SidebandCore():
                     fields[LXMF.FIELD_AUDIO] = audio
 
                 lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = fields, include_ticket=self.is_trusted(destination_hash))
-                
+
                 if not no_display:
                     lxm.register_delivery_callback(self.message_notification)
                     lxm.register_failed_callback(self.message_notification)
@@ -4141,7 +4141,7 @@ class SidebandCore():
                 return True
 
             except Exception as e:
-                RNS.log("Error while sending message: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"Error while sending message: {e)}", RNS.LOG_ERROR)
                 RNS.trace_exception(e)
                 return False
 
@@ -4151,7 +4151,7 @@ class SidebandCore():
                 return self._service_send_command(content, destination_hash, propagation)
 
             except Exception as e:
-                RNS.log("Error while sending message: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"Error while sending message: {e)}", RNS.LOG_ERROR)
                 RNS.trace_exception(e)
                 return False
 
@@ -4178,7 +4178,7 @@ class SidebandCore():
                 dest_identity = RNS.Identity.recall(destination_hash)
                 dest = RNS.Destination(dest_identity, RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
                 source = self.lxmf_destination
-                
+
                 if propagation:
                     desired_method = LXMF.LXMessage.PROPAGATED
                 else:
@@ -4202,7 +4202,7 @@ class SidebandCore():
                 return True
 
             except Exception as e:
-                RNS.log("Error while sending message: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"Error while sending message: {e)}", RNS.LOG_ERROR)
                 return False
 
     def new_conversation(self, dest_str, name = "", trusted = False):
@@ -4214,7 +4214,7 @@ class SidebandCore():
             self._db_create_conversation(addr_b, name, trusted)
 
         except Exception as e:
-            RNS.log("Error while creating conversation: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while creating conversation: {e)}", RNS.LOG_ERROR)
             return False
 
         return True
@@ -4224,7 +4224,7 @@ class SidebandCore():
             self._db_create_conversation(context_dest, name, trusted)
 
         except Exception as e:
-            RNS.log("Error while creating conversation: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while creating conversation: {e)}", RNS.LOG_ERROR)
             return False
 
         return True
@@ -4240,13 +4240,13 @@ class SidebandCore():
 
         if ingest_result == False:
             response = "The URI contained no decodable messages"
-        
+
         elif ingest_result == local_delivery_signal:
             response = "Message was decoded, decrypted successfully, and added to your conversation list."
 
         elif ingest_result == duplicate_signal:
             response = "The decoded message has already been processed by the LXMF Router, and will not be ingested again."
-        
+
         else:
             # TODO: Add message to sneakernet queues
             response = "The decoded message was not addressed to your LXMF address, and has been discarded."
@@ -4273,7 +4273,7 @@ class SidebandCore():
             own_command = True
 
         if self._db_message(message.hash):
-            RNS.log("Message exists, setting state to: "+str(message.state), RNS.LOG_DEBUG)
+            RNS.log(f"Message exists, setting state to: {message.state)}", RNS.LOG_DEBUG)
             stamp = None
             if originator and message.stamp != None:
                 stamp = [message.stamp, message.stamp_valid, message.stamp_value]
@@ -4345,7 +4345,7 @@ class SidebandCore():
             try:
                 self.notify(title=self.peer_display_name(context_dest), content=notification_content, group="LXM", context_id=RNS.hexrep(context_dest, delimit=False))
             except Exception as e:
-                RNS.log("Could not post notification for received message: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"Could not post notification for received message: {e)}", RNS.LOG_ERROR)
                 RNS.trace_exception(e)
 
     def ptt_playback(self, message):
@@ -4375,27 +4375,27 @@ class SidebandCore():
                     return
 
                 if audio_field[0] == LXMF.AM_OPUS_OGG:
-                    temp_path = self.rec_cache+"/msg.ogg"
+                    temp_path = f"{self.rec_cache}/msg.ogg"
                     with open(temp_path, "wb") as af:
                         af.write(self.last_msg_audio)
 
                 elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
-                    temp_path = self.rec_cache+"/msg.ogg"
+                    temp_path = f"{self.rec_cache}/msg.ogg"
                     from sideband.audioproc import samples_to_ogg, decode_codec2, detect_codec2
-                    
+
                     target_rate = 8000
                     if RNS.vendor.platformutils.is_linux():
                         target_rate = 48000
 
                     if detect_codec2():
                         if samples_to_ogg(decode_codec2(audio_field[1], audio_field[0]), temp_path, input_rate=8000, output_rate=target_rate):
-                            RNS.log("Wrote OGG file to: "+temp_path, RNS.LOG_DEBUG)
+                            RNS.log(f"Wrote OGG file to: {temp_path}", RNS.LOG_DEBUG)
                         else:
                             RNS.log("OGG write failed", RNS.LOG_DEBUG)
                     else:
                         self.last_msg_audio = None
                         return
-                
+
                 else:
                     # Unimplemented audio type
                     pass
@@ -4411,7 +4411,7 @@ class SidebandCore():
                 RNS.log("Playback was requested, but no audio data was loaded for playback", RNS.LOG_ERROR)
 
         except Exception as e:
-            RNS.log("Error while playing message audio:"+str(e))
+            RNS.log(f"Error while playing message audio:{e)}")
             RNS.trace_exception(e)
 
     def ptt_event(self, message):
@@ -4422,7 +4422,7 @@ class SidebandCore():
                     time.sleep(0.5)
                 self.ptt_playback(message)
             except Exception as e:
-                RNS.log("Error while starting playback for PTT-enabled conversation: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"Error while starting playback for PTT-enabled conversation: {e)}", RNS.LOG_ERROR)
             finally:
                 self.ptt_playback_lock.release()
 
@@ -4445,7 +4445,7 @@ class SidebandCore():
         thread.start()
 
         self.setstate("core.started", True)
-        RNS.log("Sideband Core "+str(self)+" "+str(self.version_str)+" started")
+        RNS.log(f"Sideband Core {self)} {self.version_str)} started")
 
     def stop_webshare(self):
         if self.webshare_server != None:
@@ -4468,22 +4468,22 @@ class SidebandCore():
                             self.path = self.path.split("?")[0]
                         path = serve_root + self.path
                         if self.path == "/":
-                            path = serve_root + "/index.html"
+                            path = f"{serve_root}/index.html"
                         if "/.." in self.path:
                             self.send_response(403)
                             self.end_headers()
-                            self.write("Forbidden".encode("utf-8"))
+                            self.write(b"Forbidden")
                         elif self.path == "/pkglist":
                             try:
                                 self.send_response(200)
                                 self.send_header("Content-type", "text/json")
                                 self.end_headers()
-                                json_result = json.dumps(os.listdir(serve_root+"/pkg"))
+                                json_result = json.dumps(os.listdir(f"{serve_root}/pkg"))
                                 self.wfile.write(json_result.encode("utf-8"))
                             except Exception as e:
                                 self.send_response(500)
                                 self.end_headers()
-                                RNS.log("Error listing directory "+str(path)+": "+str(e), RNS.LOG_ERROR)
+                                RNS.log(f"Error listing directory {path)}: {e)}", RNS.LOG_ERROR)
                                 es = "Error"
                                 self.wfile.write(es.encode("utf-8"))
                         else:
@@ -4498,7 +4498,7 @@ class SidebandCore():
                             except Exception as e:
                                 self.send_response(500)
                                 self.end_headers()
-                                RNS.log("Error serving file "+str(path)+": "+str(e), RNS.LOG_ERROR)
+                                RNS.log(f"Error serving file {path)}: {e)}", RNS.LOG_ERROR)
                                 es = "Error"
                                 self.wfile.write(es.encode("utf-8"))
 
@@ -4513,7 +4513,7 @@ class SidebandCore():
     def request_lxmf_sync(self, limit = None):
         if self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_IDLE or self.message_router.propagation_transfer_state >= LXMF.LXMRouter.PR_COMPLETE:
             self.message_router.request_messages_from_propagation_node(self.identity, max_messages = limit)
-            RNS.log("LXMF message sync requested from propagation node "+RNS.prettyhexrep(self.message_router.get_outbound_propagation_node())+" for "+str(self.identity))
+            RNS.log(f"LXMF message sync requested from propagation node {RNS.prettyhexrep(self.message_router.get_outbound_propagation_node())} for {self.identity)}")
             return True
         else:
             return False
@@ -4547,13 +4547,13 @@ class SidebandCore():
             if message.unverified_reason == LXMF.LXMessage.SOURCE_UNKNOWN:
                 signature_string = "Cannot verify, source is unknown"
 
-        RNS.log("LXMF delivery "+str(time_string)+". "+str(signature_string)+".", RNS.LOG_DEBUG)
+        RNS.log(f"LXMF delivery {time_string)}. {signature_string)}.", RNS.LOG_DEBUG)
 
         try:
             context_dest = message.source_hash
             if self.config["lxmf_ignore_unknown"] == True:
                 if self._db_conversation(context_dest) == None:
-                    RNS.log("Dropping message from unknown sender "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
+                    RNS.log(f"Dropping message from unknown sender {RNS.prettyhexrep(context_dest)}", RNS.LOG_DEBUG)
                     return
 
             if message.signature_validated and LXMF.FIELD_COMMANDS in message.fields:
@@ -4563,13 +4563,13 @@ class SidebandCore():
                 else:
                     # TODO: Add these event to built-in log/event viewer
                     # when it is implemented.
-                    RNS.log("Unauthorized command received from "+RNS.prettyhexrep(context_dest), RNS.LOG_WARNING)
+                    RNS.log(f"Unauthorized command received from {RNS.prettyhexrep(context_dest)}", RNS.LOG_WARNING)
 
             else:
                 self.lxm_ingest(message)
 
         except Exception as e:
-            RNS.log("Error while ingesting LXMF message "+RNS.prettyhexrep(message.hash)+" to database: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while ingesting LXMF message {RNS.prettyhexrep(message.hash)} to database: {e)}", RNS.LOG_ERROR)
 
     def handle_plugin_command(self, command_string, message):
         try:
@@ -4577,37 +4577,37 @@ class SidebandCore():
             command = call[0]
             arguments = call[1:]
             if command in self.active_command_plugins:
-                RNS.log("Handling command \""+str(command)+"\" via command plugin "+str(self.active_command_plugins[command]), RNS.LOG_DEBUG)
+                RNS.log(f"Handling command \"{command)}\" via command plugin {self.active_command_plugins[command])}", RNS.LOG_DEBUG)
                 self.active_command_plugins[command].handle_command(arguments, message)
 
         except Exception as e:
-            RNS.log("An error occurred while handling a plugin command. The contained exception was: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"An error occurred while handling a plugin command. The contained exception was: {e)}", RNS.LOG_ERROR)
             RNS.trace_exception(e)
 
     def handle_commands(self, commands, message):
         try:
             context_dest = message.source_hash
-            RNS.log("Handling commands from "+RNS.prettyhexrep(context_dest), RNS.LOG_DEBUG)
+            RNS.log(f"Handling commands from {RNS.prettyhexrep(context_dest)}", RNS.LOG_DEBUG)
             for command in commands:
                 if Commands.TELEMETRY_REQUEST in command:
                     timebase = int(command[Commands.TELEMETRY_REQUEST])
-                    RNS.log("Handling telemetry request with timebase "+str(timebase), RNS.LOG_DEBUG)
+                    RNS.log(f"Handling telemetry request with timebase {timebase)}", RNS.LOG_DEBUG)
                     if self.config["telemetry_collector_enabled"]:
                         RNS.log(f"Collector requests enabled, returning complete telemetry response for all known objects since {timebase}", RNS.LOG_DEBUG)
                         self.create_telemetry_collector_response(to_addr=context_dest, timebase=timebase, is_authorized_telemetry_request=True)
                     else:
                         RNS.log("Responding with own latest telemetry", RNS.LOG_DEBUG)
                         self.send_latest_telemetry(to_addr=context_dest)
-                
+
                 elif Commands.PING in command:
                     RNS.log("Handling ping request", RNS.LOG_DEBUG)
                     self.send_message("Ping reply", context_dest, False, skip_fields=True, no_display=True)
-                
+
                 elif Commands.ECHO in command:
-                    msg_content = "Echo reply: "+command[Commands.ECHO].decode("utf-8")
+                    msg_content = f"Echo reply: {command[Commands.ECHO].decode('utf-8')}"
                     RNS.log("Handling echo request", RNS.LOG_DEBUG)
                     self.send_message(msg_content, context_dest, False, skip_fields=True, no_display=True)
-                
+
                 elif Commands.SIGNAL_REPORT in command:
                     RNS.log("Handling signal report", RNS.LOG_DEBUG)
                     phy_str = ""
@@ -4628,7 +4628,7 @@ class SidebandCore():
                     self.handle_plugin_command(command[Commands.PLUGIN_COMMAND], message)
 
         except Exception as e:
-            RNS.log("Error while handling commands: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while handling commands: {e)}", RNS.LOG_ERROR)
 
     def create_telemetry_collector_response(self, to_addr, timebase, is_authorized_telemetry_request=False):
         added_sources = {}
@@ -4698,7 +4698,7 @@ class SidebandCore():
             if new_msgs == 0:
                 return "Done, no new messages"
             else:
-                return "Downloaded "+str(new_msgs)+" new messages"
+                return f"Downloaded {new_msgs)} new messages"
         else:
             return "Unknown"
 

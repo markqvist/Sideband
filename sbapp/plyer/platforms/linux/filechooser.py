@@ -127,7 +127,7 @@ class ZenityFileChooser(SubprocessFileChooser):
             else:
                 cmdline += [
                     "--file-filter",
-                    "{name} | {flt}".format(name=f[0], flt=" ".join(f[1:]))
+                    f"{f[0]} | {' '.join(f[1:])}"
                 ]
         return cmdline
 
@@ -220,7 +220,7 @@ class YADFileChooser(SubprocessFileChooser):
             else:
                 cmdline += [
                     "--file-filter",
-                    "{name} | {flt}".format(name=f[0], flt=" ".join(f[1:]))
+                    f"{f[0]} | {' '.join(f[1:])}"
                 ]
         return cmdline
 

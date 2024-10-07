@@ -77,7 +77,7 @@ def simulate(link_speed=9600, audio_slot_ms=70, codec_rate=1200, method="msgpack
     PAYLOAD_LATENCY    = round(ENCRYPTED_PAYLOAD_LEN*PER_BYTE_LATENCY_MS, 1)
     RAW_DATA_LATENCY   = round(AUDIO_LEN*PER_BYTE_LATENCY_MS, 1)
     PACKING_LATENCY    = round(PACKING_OVERHEAD*PER_BYTE_LATENCY_MS, 1)
-    
+
     DATA_LATENCY       = round(ENCRYPTED_PAYLOAD_LEN*PER_BYTE_LATENCY_MS, 1)
     ENCRYPTION_LATENCY = round((ENCRYPTED_PAYLOAD_LEN-PL_LEN)*PER_BYTE_LATENCY_MS, 1)
     if ENCRYPTED_PAYLOAD_LEN-PL_LEN == 1:
@@ -100,7 +100,7 @@ def simulate(link_speed=9600, audio_slot_ms=70, codec_rate=1200, method="msgpack
     print(f"  On-air length        : {PACKET_LEN} bytes")
     print(f"  Packet airtime       : {PACKET_AIRTIME}ms")
 
-    print( "\n===== Results for "+RNS.prettyspeed(LINK_SPEED)+" Link Speed ===\n")
+    print( f"\n===== Results for {RNS.prettyspeed(LINK_SPEED)} Link Speed ===\n")
     print(f"  Final latency        : {TOTAL_LATENCY}ms")
     print(f"    Recording latency  : contributes {TARGET_MS}ms")
     print(f"    Packet transport   : contributes {PACKET_LATENCY}ms")

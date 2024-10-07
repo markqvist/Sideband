@@ -1,4 +1,3 @@
-# -- coding: utf-8 --
 '''
 Module of Windows API for creating taskbar balloon tip
 notification in the taskbar's tray notification area.
@@ -87,7 +86,7 @@ class WindowsBalloonTip:
         atexit.register(self.__del__)
 
         wnd_class_ex = win_api_defs.get_WNDCLASSEXW()
-        class_name = 'PlyerTaskbar' + str(WindowsBalloonTip._get_unique_id())
+        class_name = f"PlyerTaskbar{WindowsBalloonTip._get_unique_id())}"
 
         wnd_class_ex.lpszClassName = class_name
 
@@ -127,7 +126,7 @@ class WindowsBalloonTip:
             )
 
             if hicon is None:
-                raise Exception('Could not load icon {}'.format(app_icon))
+                raise Exception(f'Could not load icon {app_icon}')
             self._balloon_icon = self._hicon = hicon
         else:
             self._hicon = win_api_defs.LoadIconW(

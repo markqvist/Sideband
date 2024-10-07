@@ -180,7 +180,7 @@ if PYOGG_OGG_AVAIL and PYOGG_VORBIS_AVAIL and PYOGG_VORBIS_FILE_AVAIL:
                     ("res_bits", ogg_int64_t),
 
                     ("backend_state", c_void_p)]
-        
+
     class alloc_chain(ctypes.Structure):
         """
         Wrapper for:
@@ -232,7 +232,7 @@ if PYOGG_OGG_AVAIL and PYOGG_VORBIS_AVAIL and PYOGG_VORBIS_FILE_AVAIL:
                     ("comments", c_int),
                     ("vendor", c_char_p)]
 
-        
+
 
     vi_p = POINTER(vorbis_info)
     vc_p = POINTER(vorbis_comment)
@@ -285,7 +285,7 @@ if PYOGG_OGG_AVAIL and PYOGG_VORBIS_AVAIL and PYOGG_VORBIS_FILE_AVAIL:
         libvorbis.vorbis_comment_clear(vc)
 
 
-        
+
     libvorbis.vorbis_block_init.restype = c_int
     libvorbis.vorbis_block_init.argtypes = [vd_p, vb_p]
     def vorbis_block_init(v,vb):
@@ -307,7 +307,7 @@ if PYOGG_OGG_AVAIL and PYOGG_VORBIS_AVAIL and PYOGG_VORBIS_FILE_AVAIL:
         return libvorbis.vorbis_granule_time(v, granulepos)
 
 
-        
+
     libvorbis.vorbis_version_string.restype = c_char_p
     libvorbis.vorbis_version_string.argtypes = []
     def vorbis_version_string():
@@ -326,7 +326,7 @@ if PYOGG_OGG_AVAIL and PYOGG_VORBIS_AVAIL and PYOGG_VORBIS_FILE_AVAIL:
     libvorbis.vorbis_commentheader_out.argtypes = [vc_p, op_p]
     def vorbis_commentheader_out(vc, op):
         return libvorbis.vorbis_commentheader_out(vc, op)
-        
+
     libvorbis.vorbis_analysis_headerout.restype = c_int
     libvorbis.vorbis_analysis_headerout.argtypes = [vd_p, vc_p, op_p, op_p, op_p]
     def vorbis_analysis_headerout(v,vc, op, op_comm, op_code):
@@ -346,7 +346,7 @@ if PYOGG_OGG_AVAIL and PYOGG_VORBIS_AVAIL and PYOGG_VORBIS_FILE_AVAIL:
     libvorbis.vorbis_analysis_blockout.argtypes = [vd_p, vb_p]
     def vorbis_analysis_blockout(v, vb):
         return libvorbis.vorbis_analysis_blockout(v, vb)
-        
+
     libvorbis.vorbis_analysis.restype = c_int
     libvorbis.vorbis_analysis.argtypes = [vb_p, op_p]
     def vorbis_analysis(vb, op):
@@ -359,7 +359,7 @@ if PYOGG_OGG_AVAIL and PYOGG_VORBIS_AVAIL and PYOGG_VORBIS_FILE_AVAIL:
     libvorbis.vorbis_bitrate_addblock.argtypes = [vb_p]
     def vorbis_bitrate_addblock(vb):
         return libvorbis.vorbis_bitrate_addblock(vb)
-        
+
     libvorbis.vorbis_bitrate_flushpacket.restype = c_int
     libvorbis.vorbis_bitrate_flushpacket.argtypes = [vd_p, op_p]
     def vorbis_bitrate_flushpacket(vd, op):
@@ -372,7 +372,7 @@ if PYOGG_OGG_AVAIL and PYOGG_VORBIS_AVAIL and PYOGG_VORBIS_FILE_AVAIL:
     libvorbis.vorbis_synthesis_idheader.argtypes = [op_p]
     def vorbis_synthesis_idheader(op):
         return libvorbis.vorbis_synthesis_idheader(op)
-        
+
     libvorbis.vorbis_synthesis_headerin.restype = c_int
     libvorbis.vorbis_synthesis_headerin.argtypes = [vi_p, vc_p, op_p]
     def vorbis_synthesis_headerin(vi, vc, op):
@@ -400,7 +400,7 @@ if PYOGG_OGG_AVAIL and PYOGG_VORBIS_AVAIL and PYOGG_VORBIS_FILE_AVAIL:
     libvorbis.vorbis_synthesis_trackonly.argtypes = [vb_p, op_p]
     def vorbis_synthesis_trackonly(vb, op):
         return libvorbis.vorbis_synthesis_trackonly(vb, op)
-        
+
     libvorbis.vorbis_synthesis_blockin.restype = c_int
     libvorbis.vorbis_synthesis_blockin.argtypes = [vd_p, vb_p]
     def vorbis_synthesis_blockin(v, vb):
@@ -410,7 +410,7 @@ if PYOGG_OGG_AVAIL and PYOGG_VORBIS_AVAIL and PYOGG_VORBIS_FILE_AVAIL:
     libvorbis.vorbis_synthesis_pcmout.argtypes = [vd_p, c_float_p_p_p]
     def vorbis_synthesis_pcmout(v, pcm):
         return libvorbis.vorbis_synthesis_pcmout(v, pcm)
-        
+
     libvorbis.vorbis_synthesis_lapout.restype = c_int
     libvorbis.vorbis_synthesis_lapout.argtypes = [vd_p, c_float_p_p_p]
     def vorbis_synthesis_lapout(v, pcm):
@@ -420,7 +420,7 @@ if PYOGG_OGG_AVAIL and PYOGG_VORBIS_AVAIL and PYOGG_VORBIS_FILE_AVAIL:
     libvorbis.vorbis_synthesis_read.argtypes = [vd_p, c_int]
     def vorbis_synthesis_read(v, samples):
         return libvorbis.vorbis_synthesis_read(v, samples)
-        
+
     libvorbis.vorbis_packet_blocksize.restype = c_long
     libvorbis.vorbis_packet_blocksize.argtypes = [vi_p, op_p]
     def vorbis_packet_blocksize(vi, op):
@@ -432,7 +432,7 @@ if PYOGG_OGG_AVAIL and PYOGG_VORBIS_AVAIL and PYOGG_VORBIS_FILE_AVAIL:
     libvorbis.vorbis_synthesis_halfrate.argtypes = [vi_p, c_int]
     def vorbis_synthesis_halfrate(v, flag):
         return libvorbis.vorbis_synthesis_halfrate(v, flag)
-        
+
     libvorbis.vorbis_synthesis_halfrate_p.restype = c_int
     libvorbis.vorbis_synthesis_halfrate_p.argtypes = [vi_p]
     def vorbis_synthesis_halfrate_p(vi):
@@ -483,7 +483,7 @@ if PYOGG_OGG_AVAIL and PYOGG_VORBIS_AVAIL and PYOGG_VORBIS_FILE_AVAIL:
                     ("seek_func", seek_func),
                     ("close_func", close_func),
                     ("tell_func", tell_func)]
-        
+
     NOTOPEN   = 0
     PARTOPEN  = 1
     OPENED    = 2
@@ -768,10 +768,10 @@ if PYOGG_OGG_AVAIL and PYOGG_VORBIS_AVAIL and PYOGG_VORBIS_FILE_AVAIL:
 
     try:
         # vorbisenc
-        
+
         # Sanity check also satisfies mypy type checking
         assert libvorbisenc is not None
-        
+
         libvorbisenc.vorbis_encode_init.restype = c_int
         libvorbisenc.vorbis_encode_init.argtypes = [vi_p, c_long, c_long, c_long, c_long, c_long]
 

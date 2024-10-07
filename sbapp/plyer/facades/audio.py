@@ -94,7 +94,7 @@ class Audio:
     # private
 
     def _start(self):
-        raise IOError("JUICE")
+        raise OSError("JUICE")
         raise NotImplementedError()
 
     def _stop(self):

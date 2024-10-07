@@ -24,7 +24,7 @@ import jinja2
 
 def get_dist_info_for(key, error_if_missing=True):
     try:
-        with open(join(dirname(__file__), 'dist_info.json'), 'r') as fileh:
+        with open(join(dirname(__file__), 'dist_info.json')) as fileh:
             info = json.load(fileh)
         value = info[key]
     except (OSError, KeyError) as e:
@@ -496,7 +496,7 @@ main.py that loads it.''')
         )
 
     # Find the SDK directory and target API
-    with open('project.properties', 'r') as fileh:
+    with open('project.properties') as fileh:
         target = fileh.read().strip()
     android_api = target.split('-')[1]
 
@@ -509,7 +509,7 @@ main.py that loads it.''')
             str(android_api) + "'"
         )
 
-    with open('local.properties', 'r') as fileh:
+    with open('local.properties') as fileh:
         sdk_dir = fileh.read().strip()
     sdk_dir = sdk_dir[8:]
 
@@ -730,7 +730,7 @@ def get_manifest_orientation(orientations, manifest_orientation=None):
 def get_dist_ndk_min_api_level():
     # Get the default minsdk, equal to the NDK API that this dist is built against
     try:
-        with open('dist_info.json', 'r') as fileh:
+        with open('dist_info.json') as fileh:
             info = json.load(fileh)
             ndk_api = int(info['ndk_api'])
     except (OSError, KeyError, ValueError, TypeError):

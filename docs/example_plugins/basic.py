@@ -22,11 +22,11 @@ class BasicCommandPlugin(SidebandCommandPlugin):
         super().stop()
 
     def handle_command(self, arguments, lxm):
-        response_content = "Hello "+RNS.prettyhexrep(lxm.source_hash)+". "
+        response_content = f"Hello {RNS.prettyhexrep(lxm.source_hash)}. "
         response_content += "This is a response from the basic command example. It doesn't do much, but here is a list of the arguments you included:\n"
 
         for argument in arguments:
-            response_content += "\n"+str(argument)
+            response_content += f"\n{argument)}"
 
         # Let the Sideband core send a reply.
         self.get_sideband().send_message(
