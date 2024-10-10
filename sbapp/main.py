@@ -1,6 +1,6 @@
 __debug_build__ = False
 __disable_shaders__ = False
-__version__ = "1.1.2"
+__version__ = "1.1.3"
 __variant__ = ""
 
 import sys
