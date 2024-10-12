@@ -41,7 +41,7 @@ class OSXAudio(Audio):
     def _check_playback(self):
         while self._player and self._player.isPlaying:
             time.sleep(0.25)
-        
+
         if self._finished_callback and callable(self._finished_callback):
             self._check_thread = None
             self._finished_callback(self)

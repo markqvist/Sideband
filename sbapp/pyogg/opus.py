@@ -232,7 +232,7 @@ if libopus:
     PYOGG_OPUS_AVAIL = True
 else:
     PYOGG_OPUS_AVAIL = False
-    
+
 if libopusfile:
     PYOGG_OPUS_FILE_AVAIL = True
 else:
@@ -345,22 +345,22 @@ OPUS_APPLICATION_AUDIO              = 2049
 OPUS_APPLICATION_RESTRICTED_LOWDELAY =2051
 
 OPUS_SIGNAL_VOICE                    =3001
-OPUS_SIGNAL_MUSIC                    =3002 
-OPUS_BANDWIDTH_NARROWBAND            =1101 
-OPUS_BANDWIDTH_MEDIUMBAND            =1102 
-OPUS_BANDWIDTH_WIDEBAND              =1103 
-OPUS_BANDWIDTH_SUPERWIDEBAND         =1104 
-OPUS_BANDWIDTH_FULLBAND              =1105 
+OPUS_SIGNAL_MUSIC                    =3002
+OPUS_BANDWIDTH_NARROWBAND            =1101
+OPUS_BANDWIDTH_MEDIUMBAND            =1102
+OPUS_BANDWIDTH_WIDEBAND              =1103
+OPUS_BANDWIDTH_SUPERWIDEBAND         =1104
+OPUS_BANDWIDTH_FULLBAND              =1105
 
-OPUS_FRAMESIZE_ARG                   =5000 
-OPUS_FRAMESIZE_2_5_MS                =5001 
-OPUS_FRAMESIZE_5_MS                  =5002 
+OPUS_FRAMESIZE_ARG                   =5000
+OPUS_FRAMESIZE_2_5_MS                =5001
+OPUS_FRAMESIZE_5_MS                  =5002
 OPUS_FRAMESIZE_10_MS                 =5003
-OPUS_FRAMESIZE_20_MS                 =5004 
-OPUS_FRAMESIZE_40_MS                 =5005 
-OPUS_FRAMESIZE_60_MS                 =5006 
-OPUS_FRAMESIZE_80_MS                 =5007 
-OPUS_FRAMESIZE_100_MS                =5008 
+OPUS_FRAMESIZE_20_MS                 =5004
+OPUS_FRAMESIZE_40_MS                 =5005
+OPUS_FRAMESIZE_60_MS                 =5006
+OPUS_FRAMESIZE_80_MS                 =5007
+OPUS_FRAMESIZE_100_MS                =5008
 OPUS_FRAMESIZE_120_MS                =5009
 
 OPUS_MULTISTREAM_GET_ENCODER_STATE_REQUEST =5120
@@ -405,7 +405,7 @@ opus_int32 = c_int32
 opus_int32_p = POINTER(opus_int32)
 opus_uint32 = c_uint32
 
-opus_int  =  c_int  
+opus_int  =  c_int
 opus_int64=  c_longlong
 opus_int8=    c_int8
 
@@ -640,7 +640,7 @@ if PYOGG_OPUS_AVAIL:
 
     def opus_multistream_packet_unpad(data, len, nb_streams):
         return libopus.opus_multistream_packet_unpad(data, len, nb_streams)
-      
+
     libopus.opus_strerror.restype = c_char_p
     libopus.opus_strerror.argtypes = [c_int]
 
@@ -770,7 +770,7 @@ if PYOGG_OPUS_AVAIL:
 
     if PYOGG_OPUS_FILE_AVAIL:
         assert libopusfile is not None
-    
+
         # opusfile
 
         class OggOpusFile(ctypes.Structure):
@@ -1212,7 +1212,7 @@ if PYOGG_OPUS_AVAIL:
     if PYOGG_OPUS_ENC_AVAIL:
         # Sanity check also satisfies mypy type checking
         assert libopusenc is not None
-        
+
         ope_write_func = ctypes.CFUNCTYPE(c_int,
                                           c_void_p,
                                           c_uchar_p,

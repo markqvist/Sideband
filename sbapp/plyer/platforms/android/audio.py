@@ -37,7 +37,7 @@ class AndroidAudio(Audio):
             time.sleep(0.25)
 
         self.is_playing = False
-        
+
         if self._finished_callback and callable(self._finished_callback):
             self._check_thread = None
             self._finished_callback(self)
@@ -72,7 +72,7 @@ class AndroidAudio(Audio):
                 self._recorder.stop()
                 self._recorder.release()
             except Exception as e:
-                print("Could not stop recording: "+str(e))
+                print(f"Could not stop recording: {e)}")
 
             self._recorder = None
 
@@ -81,7 +81,7 @@ class AndroidAudio(Audio):
                 self._player.stop()
                 self._player.release()
             except Exception as e:
-                print("Could not stop playback: "+str(e))
+                print(f"Could not stop playback: {e)}")
 
             self._player = None
 

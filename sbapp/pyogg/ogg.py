@@ -212,7 +212,7 @@ if PYOGG_OGG_AVAIL:
     og_p = POINTER(ogg_page)
     os_p = POINTER(ogg_stream_state)
     iov_p = POINTER(ogg_iovec_t)
-        
+
     libogg.oggpack_writeinit.restype = None
     libogg.oggpack_writeinit.argtypes = [b_p]
 
@@ -330,13 +330,13 @@ if PYOGG_OGG_AVAIL:
 
     def oggpackB_writeinit(b):
         libogg.oggpackB_writeinit(b)
-    
+
     try:
         libogg.oggpackB_writecheck.restype = c_int
         libogg.oggpackB_writecheck.argtypes = [b_p]
 
         def oggpackB_writecheck(b):
-            return libogg.oggpackB_writecheck(b) 
+            return libogg.oggpackB_writecheck(b)
     except:
         pass
 

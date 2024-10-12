@@ -37,14 +37,14 @@ def samples_from_ogg(file_path=None, output_rate=8000):
         audio = AudioSegment(
             bytes(opus_file.as_array()),
             frame_rate=opus_file.frequency,
-            sample_width=opus_file.bytes_per_sample, 
+            sample_width=opus_file.bytes_per_sample,
             channels=opus_file.channels)
 
         audio = audio.split_to_mono()[0]
         audio = audio.apply_gain(-audio.max_dBFS)
         audio = audio.set_frame_rate(output_rate)
         audio = audio.set_sample_width(2)
-        
+
         return audio.get_array_of_samples()
 
 def resample(samples, width, channels, input_rate, output_rate, normalize):
@@ -80,12 +80,12 @@ def samples_to_ogg(samples=None, file_path=None, normalize=False, input_channels
             frame_duration = frame_duration_ms/1000.0
             frame_size = int(frame_duration * samples_per_second)
             bytes_per_frame = frame_size*bytes_per_sample
-            
+
             ogg_opus_writer.write(memoryview(bytearray(samples)))
             ogg_opus_writer.close()
-            
+
             return True
-    
+
     except Exception as e:
         RNS.trace_exception(e)
         return False
@@ -108,7 +108,7 @@ def voice_processing(input_path):
             filters = "highpass=f=250, lowpass=f=3000,speechnorm=e=12.5:r=0.0001:l=1"
             output_bitrate = "12k"
             opus_apptype = "audio"
-            output_path = input_path.replace(".ogg","")+".p.ogg"
+            output_path = f"{input_path.replace('.ogg', '')}.p.ogg"
             args = [
                 "-i", input_path, "-filter:a", filters,
                 "-c:a", "libopus", "-application", opus_apptype,
@@ -148,12 +148,12 @@ def encode_codec2(samples, mode):
     c2 = pycodec2.Codec2(codec2_modes[mode])
     SPF = c2.samples_per_frame()
     PACKET_SIZE = SPF * 2 # 16-bit samples
-    STRUCT_FORMAT = '{}h'.format(SPF)
+    STRUCT_FORMAT = f'{SPF}h'
     F_FRAMES = len(samples)/SPF
     N_FRAMES = math.floor(len(samples)/SPF)
     # TODO: Add padding to align to whole frames
     frames = np.array(samples[0:N_FRAMES*SPF], dtype=np.int16)
-    
+
     encoded = b""
     for pi in range(0, N_FRAMES):
         pstart = pi*SPF
@@ -163,7 +163,7 @@ def encode_codec2(samples, mode):
         encoded += encoded_packet
 
     ap_duration = time.time() - ap_start
-    RNS.log("Codec2 encoding complete in "+RNS.prettytime(ap_duration)+", bytes out: "+str(len(encoded)), RNS.LOG_DEBUG)
+    RNS.log(f"Codec2 encoding complete in {RNS.prettytime(ap_duration)}, bytes out: {len(encoded))}", RNS.LOG_DEBUG)
 
     return encoded
 
@@ -176,7 +176,7 @@ def decode_codec2(encoded_bytes, mode):
     c2 = pycodec2.Codec2(codec2_modes[mode])
     SPF = c2.samples_per_frame()
     BPF = c2.bytes_per_frame()
-    STRUCT_FORMAT = '{}h'.format(SPF)
+    STRUCT_FORMAT = f'{SPF}h'
     N_FRAMES = math.floor(len(encoded_bytes)/BPF)
 
     decoded = b""
@@ -188,6 +188,6 @@ def decode_codec2(encoded_bytes, mode):
         decoded += struct.pack(STRUCT_FORMAT, *decoded_frame)
 
     ap_duration = time.time() - ap_start
-    RNS.log("Codec2 decoding complete in "+RNS.prettytime(ap_duration)+", samples out: "+str(len(decoded)), RNS.LOG_DEBUG)
+    RNS.log(f"Codec2 decoding complete in {RNS.prettytime(ap_duration)}, samples out: {len(decoded))}", RNS.LOG_DEBUG)
 
     return decoded

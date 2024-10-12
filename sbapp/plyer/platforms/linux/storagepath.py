@@ -28,9 +28,9 @@ class LinuxStoragePath(StoragePath):
         if not exists(user_dirs):
             return default
 
-        with open(user_dirs, "r") as f:
+        with open(user_dirs) as f:
             for line in f.readlines():
-                if line.startswith("XDG_" + name):
+                if line.startswith(f"XDG_{name}"):
                     return line.split('"')[1]
 
         return default
@@ -39,7 +39,7 @@ class LinuxStoragePath(StoragePath):
         return expanduser('~')
 
     def _get_external_storage_dir(self):
-        return "/media/" + self._get_home_dir().split("/")[-1]
+        return f"/media/{self._get_home_dir().split('/')[-1]}"
 
     def _get_root_dir(self):
         return "/"

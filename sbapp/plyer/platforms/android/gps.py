@@ -55,8 +55,7 @@ class _LocationListener(PythonJavaClass):
                 s_status = 'temporarily-unavailable'
             elif status == 0x02:
                 s_status = 'available'
-            self.root.on_status('provider-status', '{}: {}'.format(
-                provider, s_status))
+            self.root.on_status('provider-status', f'{provider}: {s_status}')
 
 
 class AndroidGPS(GPS):

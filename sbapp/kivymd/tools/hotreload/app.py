@@ -182,7 +182,7 @@ class MDApp(BaseApp):
 
     def build(self):
         if self.DEBUG:
-            Logger.info("{}: Debug mode activated".format(self.appname))
+            Logger.info(f"{self.appname}: Debug mode activated")
             self.enable_autoreload()
             self.patch_builder()
             self.bind_key(32, self.rebuild)
@@ -267,7 +267,7 @@ class MDApp(BaseApp):
                         Builder.load_file(path_to_kv_file)
 
     def rebuild(self, *args, **kwargs):
-        print("{}: Rebuild the application".format(self.appname))
+        print(f"{self.appname}: Rebuild the application")
         first = kwargs.get("first", False)
         try:
             if not first:
@@ -287,7 +287,7 @@ class MDApp(BaseApp):
         except Exception as exc:
             import traceback
 
-            Logger.exception("{}: Error when building app".format(self.appname))
+            Logger.exception(f"{self.appname}: Error when building app")
             self.set_error(repr(exc), traceback.format_exc())
             if not self.DEBUG and self.RAISE_ERROR:
                 raise
@@ -304,7 +304,7 @@ class MDApp(BaseApp):
         lbl = Factory.Label(
             text_size=(Window.width - 100, None),
             size_hint_y=None,
-            text="{}\n\n{}".format(exc, tb or ""),
+            text=f"{exc}\n\n{tb or ''}",
         )
         lbl.bind(texture_size=lbl.setter("size"))
         scroll.add_widget(lbl)
@@ -338,10 +338,10 @@ class MDApp(BaseApp):
             from watchdog.observers import Observer
         except ImportError:
             Logger.warn(
-                "{}: Autoreloader is missing watchdog".format(self.appname)
+                f"{self.appname}: Autoreloader is missing watchdog"
             )
             return
-        Logger.info("{}: Autoreloader activated".format(self.appname))
+        Logger.info(f"{self.appname}: Autoreloader activated")
         rootpath = self.get_root_path()
         self.w_handler = handler = FileSystemEventHandler()
         handler.dispatch = self._reload_from_watchdog
@@ -402,16 +402,12 @@ class MDApp(BaseApp):
 
         if monotonic is None:
             Logger.exception(
-                "{}: Cannot use idle detector, monotonic is missing".format(
-                    self.appname
-                )
+                f"{self.appname}: Cannot use idle detector, monotonic is missing"
             )
         self.idle_timer = None
         self.idle_timeout = timeout
         Logger.info(
-            "{}: Install idle detector, {} seconds".format(
-                self.appname, timeout
-            )
+            f"{self.appname}: Install idle detector, {timeout} seconds"
         )
         Clock.schedule_interval(self._check_idle, 1)
         self.root.bind(
@@ -498,7 +494,7 @@ class MDApp(BaseApp):
 
         module = self._filename_to_module(filename)
         if module in sys.modules:
-            Logger.debug("{}: Module exist, reload it".format(self.appname))
+            Logger.debug(f"{self.appname}: Module exist, reload it")
             Factory.unregister_from_filename(filename)
             self._unregister_factory_from_module(module)
             reload(sys.modules[module])
@@ -528,9 +524,7 @@ class MDApp(BaseApp):
             filename = filename[1:]
         module = filename[:-3].replace("/", ".")
         Logger.debug(
-            "{}: Translated {} to {}".format(
-                self.appname, orig_filename, module
-            )
+            f"{self.appname}: Translated {orig_filename} to {module}"
         )
         return module
 

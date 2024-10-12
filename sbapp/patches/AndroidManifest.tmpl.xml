@@ -75,7 +75,7 @@
                   >
 
             <intent-filter>
-            {% if args.launcher %}            
+            {% if args.launcher %}
                 <action android:name="org.kivy.LAUNCH" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="{{ url_scheme }}" />
@@ -146,7 +146,7 @@
         <!-- ressource file to create -->
         <meta-data
             android:name="android.support.FILE_PROVIDER_PATHS"
-            android:resource="@xml/file_paths">  
+            android:resource="@xml/file_paths">
         </meta-data>
     </provider>
     </application>

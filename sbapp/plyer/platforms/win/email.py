@@ -35,7 +35,7 @@ class WindowsEmail(Email):
         # WE + startfile are available only on Windows
         try:
             os.startfile(uri)
-        except WindowsError:
+        except OSError:
             print("Warning: unable to find a program able to send emails.")
 
 

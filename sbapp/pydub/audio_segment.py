@@ -1,5 +1,3 @@
-from __future__ import division
-
 import array
 import os
 import subprocess
@@ -42,13 +40,12 @@ from .exceptions import (
     MissingAudioParameter,
 )
 
-if sys.version_info >= (3, 0):
-    basestring = str
-    xrange = range
-    StringIO = BytesIO
+basestring = str
+xrange = range
+StringIO = BytesIO
 
 
-class ClassPropertyDescriptor(object):
+class ClassPropertyDescriptor:
 
     def __init__(self, fget, fset=None):
         self.fget = fget
@@ -116,8 +113,7 @@ def read_wav_audio(data, headers=None):
     pos = fmt.position + 8
     audio_format = struct.unpack_from('<H', data[pos:pos + 2])[0]
     if audio_format != 1 and audio_format != 0xFFFE:
-        raise CouldntDecodeError("Unknown audio format 0x%X in wav data" %
-                                 audio_format)
+        raise CouldntDecodeError(f"Unknown audio format 0x{audio_format:X} in wav data")
 
     channels = struct.unpack_from('<H', data[pos + 2:pos + 4])[0]
     sample_rate = struct.unpack_from('<I', data[pos + 4:pos + 8])[0]
@@ -149,7 +145,7 @@ def fix_wav_headers(data):
     data[pos + 4:pos + 8] = struct.pack('<I', len(data) - pos - 8)
 
 
-class AudioSegment(object):
+class AudioSegment:
     """
     AudioSegments are *immutable* objects representing segments of audio
     that can be manipulated using python code.
@@ -255,7 +251,7 @@ class AudioSegment(object):
             self.sample_width = 4
             self.frame_width = self.channels * self.sample_width
 
-        super(AudioSegment, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def raw_data(self):
@@ -516,9 +512,9 @@ class AudioSegment(object):
             if format == f:
                 return True
             if isinstance(orig_file, basestring):
-                return orig_file.lower().endswith(".{0}".format(f))
+                return orig_file.lower().endswith(f".{f}")
             if isinstance(orig_file, bytes):
-                return orig_file.lower().endswith((".{0}".format(f)).encode('utf8'))
+                return orig_file.lower().endswith(f".{f}".encode('utf8'))
             return False
 
         if is_format("wav"):
@@ -622,7 +618,7 @@ class AudioSegment(object):
         try:
             if p.returncode != 0:
                 raise CouldntDecodeError(
-                    "Decoding failed. ffmpeg returned error code: {0}\n\nOutput from ffmpeg/avlib:\n\n{1}".format(
+                    "Decoding failed. ffmpeg returned error code: {}\n\nOutput from ffmpeg/avlib:\n\n{}".format(
                         p.returncode, p_err.decode(errors='ignore') ))
             obj = cls._from_safe_wav(output)
         finally:
@@ -660,7 +656,7 @@ class AudioSegment(object):
                 return True
 
             if filename:
-                return filename.lower().endswith(".{0}".format(f))
+                return filename.lower().endswith(f".{f}")
 
             return False
 
@@ -740,7 +736,7 @@ class AudioSegment(object):
             if bits_per_sample == 8:
                 acodec = 'pcm_u8'
             else:
-                acodec = 'pcm_s%dle' % bits_per_sample
+                acodec = f'pcm_s{int(bits_per_sample)}le'
 
             conversion_command += ["-acodec", acodec]
 
@@ -771,7 +767,7 @@ class AudioSegment(object):
             if close_file:
                 file.close()
             raise CouldntDecodeError(
-                "Decoding failed. ffmpeg returned error code: {0}\n\nOutput from ffmpeg/avlib:\n\n{1}".format(
+                "Decoding failed. ffmpeg returned error code: {}\n\nOutput from ffmpeg/avlib:\n\n{}".format(
                     p.returncode, p_err.decode(errors='ignore') ))
 
         p_out = bytearray(p_out)
@@ -938,13 +934,13 @@ class AudioSegment(object):
                 # print(tags)
                 for key, value in tags.items():
                     conversion_command.extend(
-                        ['-metadata', '{0}={1}'.format(key, value)])
+                        ['-metadata', f'{key}={value}'])
 
                 if format == 'mp3':
                     # set id3v2 tag version
                     if id3v2_version not in id3v2_allowed_versions:
                         raise InvalidID3TagVersion(
-                            "id3v2_version not allowed, allowed versions: %s" % id3v2_allowed_versions)
+                            f"id3v2_version not allowed, allowed versions: {id3v2_allowed_versions}")
                     conversion_command.extend([
                         "-id3v2_version", id3v2_version
                     ])
@@ -968,7 +964,7 @@ class AudioSegment(object):
 
         if p.returncode != 0:
             raise CouldntEncodeError(
-                "Encoding failed. ffmpeg/avlib returned error code: {0}\n\nCommand:{1}\n\nOutput from ffmpeg/avlib:\n\n{2}".format(
+                "Encoding failed. ffmpeg/avlib returned error code: {}\n\nCommand:{}\n\nOutput from ffmpeg/avlib:\n\n{}".format(
                     p.returncode, conversion_command, p_err.decode(errors='ignore') ))
 
         output.seek(0)

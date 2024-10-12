@@ -76,22 +76,22 @@ else:
     class OpusBufferedEncoder: # type: ignore
         def __init__(*args, **kw):
             raise PyOggError("The Opus library wasn't found or couldn't be loaded (maybe you're trying to use 64bit libraries with 32bit Python?)")
-        
+
     class OpusDecoder: # type: ignore
         def __init__(*args, **kw):
             raise PyOggError("The Opus library wasn't found or couldn't be loaded (maybe you're trying to use 64bit libraries with 32bit Python?)")
 
-if (PYOGG_OGG_AVAIL and PYOGG_OPUS_AVAIL):        
+if (PYOGG_OGG_AVAIL and PYOGG_OPUS_AVAIL):
     # OggOpusWriter
     from .ogg_opus_writer import OggOpusWriter
-    
+
 else:
     class OggOpusWriter: # type: ignore
         def __init__(*args, **kw):
             if not PYOGG_OGG_AVAIL:
                 raise PyOggError("The Ogg library wasn't found or couldn't be loaded (maybe you're trying to use 64bit libraries with 32bit Python?)")
             raise PyOggError("The Opus library was't found or couldn't be loaded (maybe you're trying to use 64bit libraries with 32bit Python?)")
-        
+
 
 if PYOGG_FLAC_AVAIL:
     # FlacFile

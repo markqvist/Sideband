@@ -15,7 +15,7 @@ class OpusFileRecipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             env = self.get_recipe_env(arch)
             flags = [
-                "--host=" + arch.command_prefix,
+                f"--host={arch.command_prefix}",
                 "--disable-http",
                 "--disable-examples",
                 "--disable-doc",
@@ -33,7 +33,7 @@ class OpusFileRecipe(Recipe):
             # env['CFLAGS'] += openssl_recipe.include_flags(arch)
             # env['LDFLAGS'] += openssl_recipe.link_dirs_flags(arch)
             # env['LIBS'] = openssl_recipe.link_libs_flags()
-            
+
             from rich.pretty import pprint
             pprint(env)
             time.sleep(5)

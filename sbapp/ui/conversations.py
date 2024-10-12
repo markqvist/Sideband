@@ -51,7 +51,7 @@ class Conversations():
             self.screen.app = self.app
             self.ids = self.screen.ids
             self.app.root.ids.screen_manager.add_widget(self.screen)
-        
+
         self.conversation_dropdown = None
         self.delete_dialog = None
         self.clear_dialog = None
@@ -73,9 +73,9 @@ class Conversations():
     def update(self):
         # if self.app.sideband.getstate("app.flags.unread_conversations"):
         #     self.clear_list()
-        
+
         self.context_dests = self.app.sideband.list_conversations(conversations=self.app.include_conversations, objects=self.app.include_objects)
-        
+
         view_title = "Conversations"
         if self.app.include_conversations:
             if self.app.include_objects:
@@ -104,7 +104,7 @@ class Conversations():
                 trust_icon = "email"
             else:
                 trust_icon = appearance[0] or da[0];
-        
+
         else:
             if self.app.sideband.requests_allowed_from(context_dest):
                 if unread:
@@ -183,7 +183,7 @@ class Conversations():
         for w in remove_widgets:
             self.list.remove_widget(w)
 
-            
+
         for conv in self.context_dests:
             context_dest = conv["dest"]
             unread = conv["unread"]
@@ -224,7 +224,7 @@ class Conversations():
 
                             dialog = MDDialog(
                                 title="Edit Conversation",
-                                text= "With "+RNS.prettyhexrep(dest),
+                                text= f"With {RNS.prettyhexrep(dest)}",
                                 type="custom",
                                 content_cls=dialog_content,
                                 buttons=[ yes_button, no_button ],
@@ -269,7 +269,7 @@ class Conversations():
                                     self.app.sideband.named_conversation(name, dest)
 
                                 except Exception as e:
-                                    RNS.log("Error while saving conversation settings: "+str(e), RNS.LOG_ERROR)
+                                    RNS.log(f"Error while saving conversation settings: {e)}", RNS.LOG_ERROR)
 
                                 dialog.dismiss()
 
@@ -284,10 +284,10 @@ class Conversations():
                             no_button.bind(on_release=dl_no)
                             item.dmenu.dismiss()
                             dialog.open()
-                            RNS.log("Generated edit dialog in "+str(RNS.prettytime(time.time()-t_s)), RNS.LOG_DEBUG)
+                            RNS.log(f"Generated edit dialog in {RNS.prettytime(time.time() - t_s))}", RNS.LOG_DEBUG)
 
                         except Exception as e:
-                            RNS.log("Error while creating conversation settings: "+str(e), RNS.LOG_ERROR)
+                            RNS.log(f"Error while creating conversation settings: {e)}", RNS.LOG_ERROR)
 
                     return x
 
@@ -447,7 +447,7 @@ class Conversations():
                 item.add_widget(item.iconr)
 
                 item.trusted = self.app.sideband.is_trusted(context_dest, conv_data=existing_conv)
-                
+
                 self.added_item_dests.append(context_dest)
                 self.list.add_widget(item)
 
@@ -479,7 +479,7 @@ class Conversations():
 
         self.list.children.sort(key=lambda w: (w.trusted, w.last_activity))
 
-        RNS.log("Updated conversation list widgets in "+RNS.prettytime(time.time()-us), RNS.LOG_DEBUG)
+        RNS.log(f"Updated conversation list widgets in {RNS.prettytime(time.time() - us)}", RNS.LOG_DEBUG)
 
     def get_widget(self):
         return self.list
@@ -487,7 +487,7 @@ class Conversations():
 conv_screen_kv = """
 MDScreen:
     name: "conversations_screen"
-    
+
     BoxLayout:
         orientation: "vertical"
 

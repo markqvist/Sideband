@@ -26,7 +26,7 @@ class KivyStyleChecker(pep8.Checker):
             )
 
         # html generation
-        print('<tr><td>{0}</td><td>{1}</td></tr>'.format(line_number, text))
+        print(f'<tr><td>{line_number}</td><td>{text}</td></tr>')
 
 
 if __name__ == '__main__':
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     def check(fn):
         try:
             checker = KivyStyleChecker(fn)
-        except IOError:
+        except OSError:
             # File couldn't be opened, so was deleted apparently.
             # Don't check deleted files.
             return 0
@@ -68,10 +68,9 @@ if __name__ == '__main__':
         if isdir(target):
             if htmlmode:
                 path = join(dirname(abspath(__file__)), 'pep8base.html')
-                print(open(path, 'r').read())
+                print(open(path).read())
                 print(
-                    '''<p>Generated: %s</p><table>'''
-                    '' % (time.strftime('%c'))
+                    f'''<p>Generated: {time.strftime('%c')}</p><table>'''
                 )
 
             for dirpath, dirnames, filenames in walk(target):
@@ -95,8 +94,7 @@ if __name__ == '__main__':
 
                     if htmlmode:
                         print(
-                            '<tr><th colspan="2">%s</td></tr>'
-                            '' % complete_filename
+                            f'<tr><th colspan="2">{complete_filename}</td></tr>'
                         )
                     errors += check(complete_filename)
 

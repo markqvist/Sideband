@@ -61,7 +61,7 @@ class ComicCommandPlugin(SidebandCommandPlugin):
         except Exception as e:
             # Send an error message
             self.get_sideband().send_message(
-                "An error occurred while trying to fetch the specified comic:\n\n"+str(e),
+                f"An error occurred while trying to fetch the specified comic:\n\n{e)}",
                 lxm.source_hash,
                 False,                # Don't use propagation by default, try direct first
                 skip_fields = True,   # Don't include any additional fields automatically

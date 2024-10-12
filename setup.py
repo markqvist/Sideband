@@ -3,7 +3,7 @@ import re
 import setuptools
 from pathlib import Path
 
-with open("README.md", "r") as fh:
+with open("README.md") as fh:
     long_description = fh.read()
 
 def get_version() -> str:
@@ -11,7 +11,7 @@ def get_version() -> str:
         os.path.dirname(__file__), "sbapp", "main.py"
     )
 
-    version_file_data = open(version_file, "rt", encoding="utf-8").read()
+    version_file_data = open(version_file, encoding="utf-8").read()
     version_regex = r"(?<=^__version__ = ['\"])[^'\"]+(?=['\"]$)"
     try:
         version = re.findall(version_regex, version_file_data, re.M)[0]
@@ -24,7 +24,7 @@ def get_variant() -> str:
         os.path.dirname(__file__), "sbapp", "main.py"
     )
 
-    version_file_data = open(version_file, "rt", encoding="utf-8").read()
+    version_file_data = open(version_file, encoding="utf-8").read()
     version_regex = r"(?<=^__variant__ = ['\"])[^'\"]+(?=['\"]$)"
     try:
         version = re.findall(version_regex, version_file_data, re.M)[0]
@@ -69,8 +69,8 @@ package_data = {
 
 variant_str = ""
 if __variant__:
-    variant_str = " "+__variant__
-print("Packaging Sideband "+__version__+variant_str)
+    variant_str = f" {__variant__}"
+print(f"Packaging Sideband {__version__}{variant_str}")
 
 setuptools.setup(
     name="sbapp",

@@ -14,14 +14,14 @@ class OpusFileStream:
         An exception will be raised if the file cannot be opened
         correctly.
 
-        """ 
+        """
         error = ctypes.c_int()
 
         self.of = opus.op_open_file(ogg.to_char_p(path), ctypes.pointer(error))
 
         if error.value != 0:
             self.of = None
-            raise PyOggError("file couldn't be opened or doesn't exist. Error code : {}".format(error.value))
+            raise PyOggError(f"file couldn't be opened or doesn't exist. Error code : {error.value}")
 
         #: Number of channels in audio file
         self.channels = opus.op_channel_count(self.of, -1)
@@ -75,7 +75,7 @@ class OpusFileStream:
         # Check for errors
         if samples_read < 0:
             raise PyOggError(
-                "Failed to read OpusFileStream.  Error {:d}".format(samples_read)
+                f"Failed to read OpusFileStream.  Error {samples_read:d}"
             )
 
         # Check if we've reached the end of the stream

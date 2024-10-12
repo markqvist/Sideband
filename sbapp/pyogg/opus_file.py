@@ -14,7 +14,7 @@ class OpusFile(AudioFile):
             ctypes.pointer(error)
         )
 
-        # Check for errors 
+        # Check for errors
         if error.value != 0:
             raise PyOggError(
                 ("File '{}' couldn't be opened or doesn't exist. "+
@@ -72,8 +72,7 @@ class OpusFile(AudioFile):
             # Check for errors
             if ns<0:
                 raise PyOggError(
-                    "Error while reading OggOpus file. "+
-                    "Error code: {}".format(ns)
+                    f"Error while reading OggOpus file. Error code: {ns}"
                 )
 
             # Increment the pointer

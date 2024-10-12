@@ -40,9 +40,9 @@ class FFMpegRecipe(Recipe):
                 ]
                 build_dir = Recipe.get_recipe(
                     'openssl', self.ctx).get_build_dir(arch.arch)
-                cflags += ['-I' + build_dir + '/include/',
+                cflags += [f"-I{build_dir}/include/",
                            '-DOPENSSL_API_COMPAT=0x10002000L']
-                ldflags += ['-L' + build_dir]
+                ldflags += [f"-L{build_dir}"]
 
             if 'ffpyplayer_codecs' in self.ctx.recipe_build_order:
                 # Enable GPL
@@ -52,22 +52,22 @@ class FFMpegRecipe(Recipe):
                 flags += ['--enable-libx264']
                 build_dir = Recipe.get_recipe(
                     'libx264', self.ctx).get_build_dir(arch.arch)
-                cflags += ['-I' + build_dir + '/include/']
-                ldflags += ['-lx264', '-L' + build_dir + '/lib/']
+                cflags += [f"-I{build_dir}/include/"]
+                ldflags += ['-lx264', f"-L{build_dir}/lib/"]
 
                 # libshine
                 flags += ['--enable-libshine']
                 build_dir = Recipe.get_recipe('libshine', self.ctx).get_build_dir(arch.arch)
-                cflags += ['-I' + build_dir + '/include/']
-                ldflags += ['-lshine', '-L' + build_dir + '/lib/']
+                cflags += [f"-I{build_dir}/include/"]
+                ldflags += ['-lshine', f"-L{build_dir}/lib/"]
                 ldflags += ['-lm']
 
                 # libvpx
                 flags += ['--enable-libvpx']
                 build_dir = Recipe.get_recipe(
                     'libvpx', self.ctx).get_build_dir(arch.arch)
-                cflags += ['-I' + build_dir + '/include/']
-                ldflags += ['-lvpx', '-L' + build_dir + '/lib/']
+                cflags += [f"-I{build_dir}/include/"]
+                ldflags += ['-lvpx', f"-L{build_dir}/lib/"]
 
                 # Enable all codecs:
                 flags += [
@@ -122,12 +122,12 @@ class FFMpegRecipe(Recipe):
             flags += [
                 '--target-os=android',
                 '--enable-cross-compile',
-                '--cross-prefix={}-'.format(arch.target),
-                '--arch={}'.format(arch_flag),
-                '--strip={}'.format(self.ctx.ndk.llvm_strip),
-                '--sysroot={}'.format(self.ctx.ndk.sysroot),
+                f'--cross-prefix={arch.target}-',
+                f'--arch={arch_flag}',
+                f'--strip={self.ctx.ndk.llvm_strip}',
+                f'--sysroot={self.ctx.ndk.sysroot}',
                 '--enable-neon',
-                '--prefix={}'.format(realpath('.')),
+                f"--prefix={realpath('.')}",
             ]
 
             if arch_flag == 'arm':
@@ -137,8 +137,8 @@ class FFMpegRecipe(Recipe):
                     '-fPIC',
                 ]
 
-            env['CFLAGS'] += ' ' + ' '.join(cflags)
-            env['LDFLAGS'] += ' ' + ' '.join(ldflags)
+            env['CFLAGS'] += f" {' '.join(cflags)}"
+            env['LDFLAGS'] += f" {' '.join(ldflags)}"
 
             configure = sh.Command('./configure')
             shprint(configure, *flags, _env=env)

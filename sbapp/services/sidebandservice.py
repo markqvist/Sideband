@@ -30,7 +30,7 @@ if RNS.vendor.platformutils.get_platform() == "android":
 
     from android import python_act
     android_api_version = autoclass('android.os.Build$VERSION').SDK_INT
-            
+
     Intent = autoclass('android.content.Intent')
     BitmapFactory = autoclass('android.graphics.BitmapFactory')
     Icon = autoclass("android.graphics.drawable.Icon")
@@ -63,7 +63,7 @@ class SidebandService():
         0x239A: [0x8029], # Adafruit (RAK4631)
         0x303A: [0x1001], # ESP-32S3
     }
-    
+
     def android_notification(self, title="", content="", ticker="", group=None, context_id=None):
         if android_api_version < 26:
             return
@@ -78,11 +78,11 @@ class SidebandService():
             channel_id = package_name
             group_id = ""
             if group != None:
-                channel_id += "."+str(group)
+                channel_id += f".{group)}"
                 group_id += str(group)
             if context_id != None:
-                channel_id += "."+str(context_id)
-                group_id += "."+str(context_id)
+                channel_id += f".{context_id)}"
+                group_id += f".{context_id)}"
 
             if not title or title == "":
                 channel_name = "Sideband"
@@ -99,7 +99,7 @@ class SidebandService():
             notification.setContentTitle(title)
             notification.setContentText(AndroidString(content))
             notification.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-            
+
             # if group != None:
             #     notification.setGroup(group_id)
 
@@ -134,15 +134,15 @@ class SidebandService():
     def check_permission(self, permission):
         if RNS.vendor.platformutils.is_android():
             try:
-                result = self.android_service.checkSelfPermission("android.permission."+permission)
+                result = self.android_service.checkSelfPermission(f"android.permission.{permission}")
                 if result == 0:
                     return True
 
             except Exception as e:
-                RNS.log("Error while checking permission: "+str(e), RNS.LOG_ERROR)
-            
+                RNS.log(f"Error while checking permission: {e)}", RNS.LOG_ERROR)
+
             return False
-        
+
         else:
             return False
 
@@ -184,7 +184,7 @@ class SidebandService():
             if self.should_update_location():
                 if not self._gps_started:
                     RNS.log("Starting service location provider", RNS.LOG_DEBUG)
-                    
+
                     if self.gps == None:
                         from plyer import gps
                         self.gps = gps
@@ -232,23 +232,23 @@ class SidebandService():
         if RNS.vendor.platformutils.is_android():
             self.android_service = autoclass('org.kivy.android.PythonService').mService
             self.app_context = self.android_service.getApplication().getApplicationContext()
-            
+
             try:
                 self.wifi_manager = self.app_context.getSystemService(Context.WIFI_SERVICE)
             except Exception as e:
                 self.wifi_manager = None
                 RNS.log("Could not acquire Android WiFi Manager! Keeping WiFi-based interfaces up will be unavailable.", RNS.LOG_ERROR)
-                RNS.log("The contained exception was: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"The contained exception was: {e)}", RNS.LOG_ERROR)
 
             try:
                 self.power_manager = self.app_context.getSystemService(Context.POWER_SERVICE)
             except Exception as e:
                 self.power_manager = None
                 RNS.log("Could not acquire Android Power Manager! Taking wakelocks and keeping the CPU running will be unavailable.", RNS.LOG_ERROR)
-                RNS.log("The contained exception was: "+str(e), RNS.LOG_ERROR)
+                RNS.log(f"The contained exception was: {e)}", RNS.LOG_ERROR)
 
             self.discover_usb_devices()
-        
+
         self.sideband = SidebandCore(self, is_service=True, android_app_dir=self.app_dir, verbose=__debug_build__, owner_service=self, service_context=self.android_service)
 
         if self.sideband.config["debug"]:
@@ -257,9 +257,9 @@ class SidebandService():
         self.sideband.start()
         self.update_connectivity_type()
         self.update_power_restrictions()
-        
+
         if RNS.vendor.platformutils.is_android():
-            RNS.log("Discovered USB devices: "+str(self.usb_devices), RNS.LOG_EXTREME)
+            RNS.log(f"Discovered USB devices: {self.usb_devices)}", RNS.LOG_EXTREME)
             self.update_location_provider()
 
 
@@ -281,8 +281,8 @@ class SidebandService():
                         self.usb_devices.append(device_entry)
 
         except Exception as e:
-            RNS.log("Could not list USB devices. The contained exception was: "+str(e), RNS.LOG_ERROR)
-    
+            RNS.log(f"Could not list USB devices. The contained exception was: {e)}", RNS.LOG_ERROR)
+
     def start(self):
         self.should_run = True
         self.take_locks()
@@ -334,7 +334,7 @@ class SidebandService():
             is_controlling = True
 
         self.sideband.setpersistent("service.is_controlling_connectivity", is_controlling)
-    
+
     def get_connectivity_status(self):
         if self.sideband.reticulum.is_connected_to_shared_instance:
             return "[size=22dp][b]Connectivity Status[/b][/size]\n\nSideband is connected via a shared Reticulum instance running on this system. Use the rnstatus utility to obtain full connectivity info."
@@ -351,7 +351,7 @@ class SidebandService():
                 if len(netdevs) > 0:
                     ds = "Using "
                     for netdev in netdevs:
-                        ds += "[i]"+str(netdev)+"[/i], "
+                        ds += f"[i]{netdev)}[/i], "
                     ds = ds[:-2]
                 else:
                     ds = "No usable network devices"
@@ -360,13 +360,13 @@ class SidebandService():
                 if np == 1:
                     ws = "1 reachable peer"
                 else:
-                    ws = str(np)+" reachable peers"
+                    ws = f"{np)} reachable peers"
 
-                stat += "[b]Local[/b]\n{ds}\n{ws}\n\n".format(ds=ds, ws=ws)
+                stat += f"[b]Local[/b]\n{ds}\n{ws}\n\n"
 
             if self.sideband.interface_rnode != None:
                 if self.sideband.interface_rnode.online:
-                    rs = "On-air at "+str(self.sideband.interface_rnode.bitrate_kbps)+" Kbps"
+                    rs = f"On-air at {self.sideband.interface_rnode.bitrate_kbps)} Kbps"
                 else:
                     rs = "Interface Down"
 
@@ -384,23 +384,23 @@ class SidebandService():
                 else:
                     rm = "Interface Down"
 
-                stat += "[b]Radio Modem[/b]\n{rm}\n\n".format(rm=rm)
+                stat += f"[b]Radio Modem[/b]\n{rm}\n\n"
 
             if self.sideband.interface_serial != None:
                 if self.sideband.interface_serial.online:
-                    rs = "Running at "+RNS.prettysize(self.sideband.interface_serial.bitrate/8, suffix="b")+"ps"
+                    rs = f"Running at {RNS.prettysize(self.sideband.interface_serial.bitrate / 8, suffix='b')}ps"
                 else:
                     rs = "Interface Down"
 
-                stat += "[b]Serial Port[/b]\n{rs}\n\n".format(rs=rs)
+                stat += f"[b]Serial Port[/b]\n{rs}\n\n"
 
             if self.sideband.interface_tcp != None:
                 if self.sideband.interface_tcp.online:
-                    ts = "Connected to "+str(self.sideband.interface_tcp.target_ip)+":"+str(self.sideband.interface_tcp.target_port)
+                    ts = f"Connected to {self.sideband.interface_tcp.target_ip)}:{self.sideband.interface_tcp.target_port)}"
                 else:
                     ts = "Interface Down"
 
-                stat += "[b]TCP[/b]\n{ts}\n\n".format(ts=ts)
+                stat += f"[b]TCP[/b]\n{ts}\n\n"
 
             if self.sideband.interface_i2p != None:
                 i2s = "Unknown"
@@ -417,7 +417,7 @@ class SidebandService():
                     else:
                         i2s = "Connecting to I2P"
 
-                stat += "[b]I2P[/b]\n{i2s}\n\n".format(i2s=i2s)
+                stat += f"[b]I2P[/b]\n{i2s}\n\n"
 
             total_rxb = 0
             total_txb = 0
@@ -425,23 +425,23 @@ class SidebandService():
             if self.sideband.interface_local != None:
                 total_rxb += self.sideband.interface_local.rxb
                 total_txb += self.sideband.interface_local.txb
-            
+
             if self.sideband.interface_rnode != None:
                 total_rxb += self.sideband.interface_rnode.rxb
                 total_txb += self.sideband.interface_rnode.txb
-            
+
             if self.sideband.interface_modem != None:
                 total_rxb += self.sideband.interface_modem.rxb
                 total_txb += self.sideband.interface_modem.txb
-            
+
             if self.sideband.interface_serial != None:
                 total_rxb += self.sideband.interface_serial.rxb
                 total_txb += self.sideband.interface_serial.txb
-            
+
             if self.sideband.interface_tcp != None:
                 total_rxb += self.sideband.interface_tcp.rxb
                 total_txb += self.sideband.interface_tcp.txb
-            
+
             if self.sideband.interface_i2p != None:
                 total_rxb += self.sideband.interface_i2p.rxb
                 total_txb += self.sideband.interface_i2p.txb
@@ -449,7 +449,7 @@ class SidebandService():
             if RNS.Reticulum.transport_enabled():
                 stat += "[b]Transport Instance[/b]\nRouting Traffic\n\n"
 
-            stat += "[b]Traffic[/b]\nIn: {inb}\nOut: {outb}\n\n".format(inb=RNS.prettysize(total_rxb), outb=RNS.prettysize(total_txb))
+            stat += f"[b]Traffic[/b]\nIn: {RNS.prettysize(total_rxb)}\nOut: {RNS.prettysize(total_txb)}\n\n"
 
             if stat.endswith("\n\n"):
                 stat = stat[:-2]
@@ -492,7 +492,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 
     import traceback
     exc_text = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-    RNS.log(f"An unhandled {str(exc_type)} exception occurred: {str(exc_value)}", RNS.LOG_ERROR)
+    RNS.log(f"An unhandled {exc_type)} exception occurred: {exc_value)}", RNS.LOG_ERROR)
     RNS.log(exc_text, RNS.LOG_ERROR)
 
 sys.excepthook = handle_exception

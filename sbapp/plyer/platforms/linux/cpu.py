@@ -83,7 +83,7 @@ class LinuxCPU(CPU):
         else:
             present = [present[0]]
 
-        cores = ['cpu{}'.format(i) for i in present]
+        cores = [f'cpu{i}' for i in present]
         for core in cores:
             indicies = [
                 # get 'indexN' files from 'cache' folder assuming
@@ -97,7 +97,7 @@ class LinuxCPU(CPU):
                 index_type = join(cpu_path, core, 'cache', index, 'level')
                 with open(index_type, 'rb') as fle:
                     cache_level = fle.read().decode('utf-8').strip()
-                values['L{}'.format(cache_level)] += 1
+                values[f'L{cache_level}'] += 1
         return values
 
     @staticmethod

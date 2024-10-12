@@ -229,10 +229,10 @@ class GradientTab(MDBoxLayout):
                 else self.color_picker.get_rgb(self.theme_cls.primary_color)
             )
         else:
-            r, g, b = [
+            r, g, b = (
                 int(value * 255)
                 for value in self.color_picker.default_color[:-1]
-            ]
+            )
         self.color_picker._rgb = [r, g, b]
         (
             r_adjacent_color_constant,
