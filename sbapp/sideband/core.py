@@ -1756,6 +1756,9 @@ class SidebandCore():
                                 elif "get_lxm_progress" in call:
                                     args = call["get_lxm_progress"]
                                     connection.send(self.get_lxm_progress(args["lxm_hash"]))
+                                elif "get_lxm_stamp_cost" in call:
+                                    args = call["get_lxm_stamp_cost"]
+                                    connection.send(self.get_lxm_stamp_cost(args["lxm_hash"]))
                                 else:
                                     connection.send(None)
 
@@ -4030,12 +4033,37 @@ class SidebandCore():
             RNS.log("An error occurred while getting message transfer progress: "+str(e), RNS.LOG_ERROR)
             return None
 
+    def _service_get_lxm_stamp_cost(self, lxm_hash):
+        if not RNS.vendor.platformutils.is_android():
+            return False
+        else:
+            if self.is_client:
+                try:
+                    return self.service_rpc_request({"get_lxm_stamp_cost": { "lxm_hash": lxm_hash } })
+                
+                except Exception as e:
+                    RNS.log("Error while sending message over RPC: "+str(e), RNS.LOG_DEBUG)
+                    RNS.trace_exception(e)
+                    return False
+            else:
+                return False
+
     def get_lxm_stamp_cost(self, lxm_hash):
-        try:
-            return self.message_router.get_outbound_lxm_stamp_cost(lxm_hash)
-        except Exception as e:
-            RNS.log("An error occurred while getting message transfer stamp cost: "+str(e), RNS.LOG_ERROR)
-            return None
+        if self.allow_service_dispatch and self.is_client:
+            try:
+                return self._service_get_lxm_stamp_cost(lxm_hash)
+
+            except Exception as e:
+                RNS.log("Error while getting message transfer stamp cost: "+str(e), RNS.LOG_ERROR)
+                RNS.trace_exception(e)
+                return False
+
+        else:
+            try:
+                return self.message_router.get_outbound_lxm_stamp_cost(lxm_hash)
+            except Exception as e:
+                RNS.log("An error occurred while getting message transfer stamp cost: "+str(e), RNS.LOG_ERROR)
+                return None
 
     def _service_send_message(self, content, destination_hash, propagation, skip_fields=False, no_display=False, attachment = None, image = None, audio = None):
         if not RNS.vendor.platformutils.is_android():
