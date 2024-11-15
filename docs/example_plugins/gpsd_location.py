@@ -67,7 +67,7 @@ class GpsdLocationPlugin(SidebandTelemetryPlugin):
                         self.latitude  = gpsd_latitude
                         self.longitude = gpsd_longitude
                         self.altitude  = gpsd_altitude
-                        self.speed     = gpsd_speed
+                        self.speed     = gpsd_speed*3.6 # Convert from m/s to km/h
                         self.bearing   = gpsd_bearing
 
                         epx = result.get("epx", None); epy = result.get("epy", None)

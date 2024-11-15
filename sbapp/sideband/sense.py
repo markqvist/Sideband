@@ -744,7 +744,8 @@ class Location(Sensor):
           if "altitude" in self._raw:
             self.altitude   = self._raw["altitude"]
           if "speed" in self._raw:
-            self.speed      = self._raw["speed"]
+            # Android GPS reports speed in m/s, convert to km/h
+            self.speed      = self._raw["speed"]*3.6
             if self.speed < 0:
               self.speed = 0
           if "bearing" in self._raw:
