@@ -2422,12 +2422,19 @@ class SidebandCore():
                     try:
                         if not entry[2] in added_dests:
                             app_data = entry[3]
+                            dest_type = entry[4]
+                            if dest_type == "lxmf.delivery":
+                                announced_name = LXMF.display_name_from_app_data(app_data)
+                                announced_cost = self.message_router.get_outbound_stamp_cost(entry[2])
+                            else:
+                                announced_name = None
+                                announced_cost = None
                             announce = {
                                 "dest": entry[2],
-                                "name": LXMF.display_name_from_app_data(app_data),
-                                "cost": LXMF.stamp_cost_from_app_data(app_data),
+                                "name": announced_name,
+                                "cost": announced_cost,
                                 "time": entry[1],
-                                "type": entry[4]
+                                "type": dest_type
                             }
                             added_dests.append(entry[2])
                             announces.append(announce)
