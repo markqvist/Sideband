@@ -652,6 +652,10 @@ Builder.load_string("""
     padding: [0, 0, 0, dp(16)]
     height: self.minimum_height+dp(24)
 
+    MDLabel:
+        id: node_info
+        text: "Unknown propagation node"
+
     MDProgressBar:
         id: sync_progress
         type: "determinate"
@@ -659,7 +663,6 @@ Builder.load_string("""
 
     MDLabel:
         id: sync_status
-        hint_text: "Name"
         text: "Initiating sync..."
 
 
