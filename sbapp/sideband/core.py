@@ -10,6 +10,7 @@ import shlex
 
 import RNS.vendor.umsgpack as msgpack
 import RNS.Interfaces.Interface as Interface
+from LXMF import pn_announce_data_is_valid
 
 import multiprocessing.connection
 
@@ -46,35 +47,42 @@ class PropagationNodeDetector():
     def received_announce(self, destination_hash, announced_identity, app_data):
         try:
             if app_data != None and len(app_data) > 0:
-                unpacked = msgpack.unpackb(app_data)
-                node_active = unpacked[0]
-                emitted = unpacked[1]
-                hops = RNS.Transport.hops_to(destination_hash)
+                if pn_announce_data_is_valid(app_data):
+                    unpacked = msgpack.unpackb(app_data)
+                    node_active = unpacked[0]
+                    emitted = unpacked[1]
+                    hops = RNS.Transport.hops_to(destination_hash)
 
-                age = time.time() - emitted
-                if age < 0:
-                    RNS.log("Warning, propagation node announce emitted in the future, possible timing inconsistency or tampering attempt.")
-                    if age < -1*PropagationNodeDetector.EMITTED_DELTA_GRACE:
-                        raise ValueError("Announce timestamp too far in the future, discarding it")
+                    age = time.time() - emitted
+                    if age < 0:
+                        RNS.log("Warning, propagation node announce emitted in the future, possible timing inconsistency or tampering attempt.")
+                        if age < -1*PropagationNodeDetector.EMITTED_DELTA_GRACE:
+                            raise ValueError("Announce timestamp too far in the future, discarding it")
 
-                if age > -1*PropagationNodeDetector.EMITTED_DELTA_IGNORE:
-                    # age = 0
-                    pass
+                    if age > -1*PropagationNodeDetector.EMITTED_DELTA_IGNORE:
+                        # age = 0
+                        pass
 
-                RNS.log("Detected active propagation node "+RNS.prettyhexrep(destination_hash)+" emission "+str(age)+" seconds ago, "+str(hops)+" hops away")
-                self.owner.log_announce(destination_hash, RNS.prettyhexrep(destination_hash).encode("utf-8"), dest_type=PropagationNodeDetector.aspect_filter)
+                    RNS.log("Detected active propagation node "+RNS.prettyhexrep(destination_hash)+" emission "+str(age)+" seconds ago, "+str(hops)+" hops away")
+                    self.owner.log_announce(destination_hash, app_data, dest_type=PropagationNodeDetector.aspect_filter)
 
-                if self.owner.config["lxmf_propagation_node"] == None:
-                    if self.owner.active_propagation_node == None:
-                        self.owner.set_active_propagation_node(destination_hash)
-                    else:
-                        prev_hops = RNS.Transport.hops_to(self.owner.active_propagation_node)
-                        if hops <= prev_hops:
+                    if self.owner.config["lxmf_propagation_node"] == None:
+                        if self.owner.active_propagation_node == None:
                             self.owner.set_active_propagation_node(destination_hash)
                         else:
-                            pass
+                            prev_hops = RNS.Transport.hops_to(self.owner.active_propagation_node)
+                            if hops <= prev_hops:
+                                self.owner.set_active_propagation_node(destination_hash)
+                            else:
+                                pass
+                    else:
+                        pass
+
                 else:
-                    pass
+                    RNS.log(f"Received malformed propagation node announce from {RNS.prettyhexrep(destination_hash)} with data: {app_data}", RNS.LOG_DEBUG)
+
+            else:
+                RNS.log(f"Received malformed propagation node announce from {RNS.prettyhexrep(destination_hash)} with data: {app_data}", RNS.LOG_DEBUG)
 
         except Exception as e:
             RNS.log("Error while processing received propagation node announce: "+str(e))
@@ -910,7 +918,8 @@ class SidebandCore():
         try:
             if app_data == None:
                 app_data = b""
-            app_data = msgpack.packb([app_data, stamp_cost])
+            if type(app_data) != bytes:
+                app_data = msgpack.packb([app_data, stamp_cost])
             RNS.log("Received "+str(dest_type)+" announce for "+RNS.prettyhexrep(dest)+" with data: "+str(app_data), RNS.LOG_DEBUG)
             self._db_save_announce(dest, app_data, dest_type)
             self.setstate("app.flags.new_announces", True)
