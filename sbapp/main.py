@@ -2404,9 +2404,10 @@ class SidebandApp(MDApp):
                 close_button = MDRectangleFlatButton(text="Close",font_size=dp(18))
                 stop_button = MDRectangleFlatButton(text="Stop",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
 
+                sync_title = "LXMF Sync"
                 dialog_content = MsgSync()
                 dialog = MDDialog(
-                    title="LXMF Sync via "+RNS.prettyhexrep(self.sideband.message_router.get_outbound_propagation_node()),
+                    title=sync_title,
                     type="custom",
                     content_cls=dialog_content,
                     buttons=[ stop_button, close_button ],
@@ -2443,7 +2444,8 @@ class SidebandApp(MDApp):
                 dsp = 0
 
             self.sideband.setstate("app.flags.lxmf_sync_dialog_open", True)
-            self.message_sync_dialog.title = f"LXMF Sync via "+RNS.prettyhexrep(self.sideband.message_router.get_outbound_propagation_node())
+            self.message_sync_dialog.title = sync_title
+            self.message_sync_dialog.d_content.ids.node_info.text = f"Via {RNS.prettyhexrep(self.sideband.message_router.get_outbound_propagation_node())}\n"
             self.message_sync_dialog.d_content.ids.sync_status.text = self.sideband.get_sync_status()
             self.message_sync_dialog.d_content.ids.sync_progress.value = dsp
             self.message_sync_dialog.d_content.ids.sync_progress.start()
