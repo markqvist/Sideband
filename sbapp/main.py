@@ -303,6 +303,7 @@ class SidebandApp(MDApp):
         self.hw_error_dialog = None
 
         self.final_load_completed = False
+        self.wants_wake_update = False
         self.service_last_available = 0
         self.closing_app = False
 
@@ -699,6 +700,10 @@ class SidebandApp(MDApp):
             else:
                 RNS.log("Conversations view did not exist", RNS.LOG_DEBUG)
 
+            def cb(dt):
+                self.wants_wake_update = True
+            Clock.schedule_once(cb, 1.2)
+
             RNS.log("App resumed", RNS.LOG_DEBUG)
 
     def on_stop(self):
@@ -972,6 +977,11 @@ class SidebandApp(MDApp):
                 if self.conversations_view != None:
                     self.conversations_view.update()
 
+            if self.wants_wake_update:
+                self.wants_wake_update = False
+                if self.conversations_view != None:
+                    self.conversations_view.update()
+
             if self.sideband.getstate("app.flags.lxmf_sync_dialog_open", allow_cache=True) and self.sync_dialog != None:
                 state = self.sideband.message_router.propagation_transfer_state
 
@@ -993,6 +1003,11 @@ class SidebandApp(MDApp):
                 if self.announces_view != None:
                     self.announces_view.update()
 
+            if self.wants_wake_update:
+                self.wants_wake_update = False
+                if self.announces_view != None:
+                    self.announces_view.update()
+
         elif self.root.ids.screen_manager.current == "map_screen":
             if self.map_screen and hasattr(self.map_screen.ids.map_layout, "map") and self.map_screen.ids.map_layout.map != None:
                 self.sideband.config["map_lat"] = self.map_screen.ids.map_layout.map.lat
@@ -1001,6 +1016,10 @@ class SidebandApp(MDApp):
 
             self.last_telemetry_received = self.sideband.getstate("app.flags.last_telemetry", allow_cache=True) or 0
             if self.last_telemetry_received > self.last_map_update:
+                self.map_update_markers()
+
+            if self.wants_wake_update:
+                self.wants_wake_update = False
                 self.map_update_markers()
 
         if self.sideband.getstate("app.flags.new_conversations", allow_cache=True):
@@ -2400,11 +2419,11 @@ class SidebandApp(MDApp):
             else:
                 sl = None
 
+            sync_title = "LXMF Sync"
             if not hasattr(self, "message_sync_dialog") or self.message_sync_dialog == None:
                 close_button = MDRectangleFlatButton(text="Close",font_size=dp(18))
                 stop_button = MDRectangleFlatButton(text="Stop",font_size=dp(18), theme_text_color="Custom", line_color=self.color_reject, text_color=self.color_reject)
 
-                sync_title = "LXMF Sync"
                 dialog_content = MsgSync()
                 dialog = MDDialog(
                     title=sync_title,

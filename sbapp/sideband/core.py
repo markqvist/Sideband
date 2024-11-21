@@ -3437,11 +3437,12 @@ class SidebandCore():
             else:
                 ifac_netkey = self.config["connect_local_ifac_passphrase"]
 
-            autointerface = RNS.Interfaces.AutoInterface.AutoInterface(
-                RNS.Transport,
-                name = "AutoInterface",
-                group_id = group_id
-            )
+            interface_config = {
+                "name": "AutoInterface",
+                "group_id": group_id
+            }
+
+            autointerface = RNS.Interfaces.AutoInterface.AutoInterface(RNS.Transport, interface_config)
             autointerface.OUT = True
 
             if RNS.Reticulum.transport_enabled():
@@ -3529,45 +3530,50 @@ class SidebandCore():
             else:
                 atl_long = self.config["hw_rnode_atl_long"]
 
+            interface_config = None
             if rnode_allow_ble:
-                rnodeinterface = RNS.Interfaces.Android.RNodeInterface.RNodeInterface(
-                        RNS.Transport,
-                        "RNodeInterface",
-                        None,
-                        frequency = self.config["hw_rnode_frequency"],
-                        bandwidth = self.config["hw_rnode_bandwidth"],
-                        txpower = self.config["hw_rnode_tx_power"],
-                        sf = self.config["hw_rnode_spreading_factor"],
-                        cr = self.config["hw_rnode_coding_rate"],
-                        flow_control = None,
-                        id_interval = self.config["hw_rnode_beaconinterval"],
-                        id_callsign = self.config["hw_rnode_beacondata"],
-                        allow_bluetooth = False,
-                        st_alock = atl_short,
-                        lt_alock = atl_long,
-                        force_ble = True,
-                        ble_name = bt_device_name,
-                    )
+                interface_config = {
+                    "name": "RNodeInterface",
+                    "port": None,
+                    "frequency": self.config["hw_rnode_frequency"],
+                    "bandwidth": self.config["hw_rnode_bandwidth"],
+                    "txpower": self.config["hw_rnode_tx_power"],
+                    "spreadingfactor": self.config["hw_rnode_spreading_factor"],
+                    "codingrate": self.config["hw_rnode_coding_rate"],
+                    "flow_control": False,
+                    "id_interval": self.config["hw_rnode_beaconinterval"],
+                    "id_callsign": self.config["hw_rnode_beacondata"],
+                    "st_alock": atl_short,
+                    "lt_alock": atl_long,
+                    "allow_bluetooth": False,
+                    "target_device_name": None,
+                    "force_ble": True,
+                    "ble_name": bt_device_name,
+                    "ble_addr": None,
+                }
 
             else:
-                rnodeinterface = RNS.Interfaces.Android.RNodeInterface.RNodeInterface(
-                        RNS.Transport,
-                        "RNodeInterface",
-                        target_port,
-                        frequency = self.config["hw_rnode_frequency"],
-                        bandwidth = self.config["hw_rnode_bandwidth"],
-                        txpower = self.config["hw_rnode_tx_power"],
-                        sf = self.config["hw_rnode_spreading_factor"],
-                        cr = self.config["hw_rnode_coding_rate"],
-                        flow_control = None,
-                        id_interval = self.config["hw_rnode_beaconinterval"],
-                        id_callsign = self.config["hw_rnode_beacondata"],
-                        allow_bluetooth = rnode_allow_bluetooth,
-                        target_device_name = bt_device_name,
-                        st_alock = atl_short,
-                        lt_alock = atl_long,
-                    )
+                interface_config = {
+                    "name": "RNodeInterface",
+                    "port": target_port,
+                    "frequency": self.config["hw_rnode_frequency"],
+                    "bandwidth": self.config["hw_rnode_bandwidth"],
+                    "txpower": self.config["hw_rnode_tx_power"],
+                    "spreadingfactor": self.config["hw_rnode_spreading_factor"],
+                    "codingrate": self.config["hw_rnode_coding_rate"],
+                    "flow_control": False,
+                    "id_interval": self.config["hw_rnode_beaconinterval"],
+                    "id_callsign": self.config["hw_rnode_beacondata"],
+                    "st_alock": atl_short,
+                    "lt_alock": atl_long,
+                    "allow_bluetooth": rnode_allow_bluetooth,
+                    "target_device_name": bt_device_name,
+                    "force_ble": False,
+                    "ble_name": None,
+                    "ble_addr": None,
+                }
 
+            rnodeinterface = RNS.Interfaces.Android.RNodeInterface.RNodeInterface(RNS.Transport, interface_config)
             rnodeinterface.OUT = True
 
             if RNS.Reticulum.transport_enabled():
@@ -3603,6 +3609,7 @@ class SidebandCore():
 
         except Exception as e:
             RNS.log("Error while adding RNode Interface. The contained exception was: "+str(e))
+            RNS.trace_exception(e)
             self.interface_rnode = None
             self.interface_rnode_adding = False
 
@@ -3678,15 +3685,14 @@ class SidebandCore():
                                 else:
                                     ifac_size = None
 
-                                tcpinterface = RNS.Interfaces.TCPInterface.TCPClientInterface(
-                                    RNS.Transport,
-                                    "TCPClientInterface",
-                                    tcp_host,
-                                    tcp_port,
-                                    kiss_framing = False,
-                                    i2p_tunneled = False
-                                )
-
+                                interface_config = {
+                                    "name": "TCPClientInterface",
+                                    "target_host": tcp_host,
+                                    "target_port": tcp_port,
+                                    "kiss_framing": False,
+                                    "i2p_tunneled": False,
+                                }
+                                tcpinterface = RNS.Interfaces.TCPInterface.TCPClientInterface(RNS.Transport, interface_config)
                                 tcpinterface.OUT = True
 
                                 if RNS.Reticulum.transport_enabled():
@@ -3730,13 +3736,14 @@ class SidebandCore():
                             else:
                                 ifac_size = None
 
-                            i2pinterface = RNS.Interfaces.I2PInterface.I2PInterface(
-                                RNS.Transport,
-                                "I2PInterface",
-                                RNS.Reticulum.storagepath,
-                                [self.config["connect_i2p_b32"]],
-                                connectable = False,
-                            )
+                            interface_config = {
+                                "name": "I2PInterface",
+                                "storagepath": RNS.Reticulum.storagepath,
+                                "peers": [self.config["connect_i2p_b32"]],
+                                "connectable": False,
+                            }
+
+                            i2pinterface = RNS.Interfaces.I2PInterface.I2PInterface(RNS.Transport, interface_config)
 
                             i2pinterface.OUT = True
 
@@ -3789,16 +3796,15 @@ class SidebandCore():
                             else:
                                 ifac_netkey = self.config["connect_serial_ifac_passphrase"]
 
-                            serialinterface = RNS.Interfaces.Android.SerialInterface.SerialInterface(
-                                RNS.Transport,
-                                "SerialInterface",
-                                target_device["port"],
-                                self.config["hw_serial_baudrate"],
-                                self.config["hw_serial_databits"],
-                                self.config["hw_serial_parity"],
-                                self.config["hw_serial_stopbits"],
-                            )
-
+                            interface_config = {
+                                "name": "SerialInterface",
+                                "port": target_device["port"],
+                                "speed": self.config["hw_serial_baudrate"],
+                                "databits": self.config["hw_serial_databits"],
+                                "parity": self.config["hw_serial_parity"],
+                                "stopbits": self.config["hw_serial_stopbits"],
+                            }
+                            serialinterface = RNS.Interfaces.Android.SerialInterface.SerialInterface(RNS.Transport, interface_config)
                             serialinterface.OUT = True
 
                             if RNS.Reticulum.transport_enabled():
@@ -3842,23 +3848,22 @@ class SidebandCore():
                             else:
                                 ifac_netkey = self.config["connect_modem_ifac_passphrase"]
 
-                            modeminterface = RNS.Interfaces.Android.KISSInterface.KISSInterface(
-                                RNS.Transport,
-                                "ModemInterface",
-                                target_device["port"],
-                                self.config["hw_modem_baudrate"],
-                                self.config["hw_modem_databits"],
-                                self.config["hw_modem_parity"],
-                                self.config["hw_modem_stopbits"],
-                                self.config["hw_modem_preamble"],
-                                self.config["hw_modem_tail"],
-                                self.config["hw_modem_persistence"],
-                                self.config["hw_modem_slottime"],
-                                False, # flow control
-                                self.config["hw_modem_beaconinterval"],
-                                self.config["hw_modem_beacondata"],
-                            )
-
+                            interface_config = {
+                                "name": "ModemInterface",
+                                "port": target_device["port"],
+                                "speed": self.config["hw_modem_baudrate"],
+                                "databits": self.config["hw_modem_databits"],
+                                "parity": self.config["hw_modem_parity"],
+                                "stopbits": self.config["hw_modem_stopbits"],
+                                "preamble": self.config["hw_modem_preamble"],
+                                "txtail": self.config["hw_modem_tail"],
+                                "persistence": self.config["hw_modem_persistence"],
+                                "slottime": self.config["hw_modem_slottime"],
+                                "flow_control": False,
+                                "beacon_interval": self.config["hw_modem_beaconinterval"],
+                                "beacon_data": self.config["hw_modem_beacondata"],
+                            }
+                            modeminterface = RNS.Interfaces.Android.KISSInterface.KISSInterface(RNS.Transport, interface_config)
                             modeminterface.OUT = True
 
                             if RNS.Reticulum.transport_enabled():
