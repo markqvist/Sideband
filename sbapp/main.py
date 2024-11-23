@@ -303,7 +303,6 @@ class SidebandApp(MDApp):
         self.hw_error_dialog = None
 
         self.final_load_completed = False
-        self.wants_wake_update = False
         self.service_last_available = 0
         self.closing_app = False
 
@@ -700,9 +699,12 @@ class SidebandApp(MDApp):
             else:
                 RNS.log("Conversations view did not exist", RNS.LOG_DEBUG)
 
-            def cb(dt):
-                self.wants_wake_update = True
-            Clock.schedule_once(cb, 1.2)
+            def ui_update_job():
+                time.sleep(0.05)
+                def cb(dt):
+                    self.perform_wake_update()
+                Clock.schedule_once(cb, 0.1)
+            threading.Thread(target=ui_update_job, daemon=True).start()
 
             RNS.log("App resumed", RNS.LOG_DEBUG)
 
@@ -718,6 +720,21 @@ class SidebandApp(MDApp):
             return True
         else:
             return False
+
+    def perform_wake_update(self):
+        # This workaround mitigates a bug in Kivy on Android
+        # which causes the UI to turn black on app resume,
+        # probably due to an invalid GL draw context. By
+        # simply opening and immediately closing the nav
+        # drawer, we force the UI to do a frame redraw, which
+        # results in the UI actually being visible again.
+        if RNS.vendor.platformutils.is_android():
+            RNS.log("Performing app wake UI update", RNS.LOG_DEBUG)
+            self.root.ids.nav_drawer.set_state("open")
+            def cb(dt):
+                self.root.ids.nav_drawer.set_state("closed")
+            Clock.schedule_once(cb, 0)
+
 
     def check_bluetooth_permissions(self):
         if RNS.vendor.platformutils.get_platform() == "android":
@@ -977,11 +994,6 @@ class SidebandApp(MDApp):
                 if self.conversations_view != None:
                     self.conversations_view.update()
 
-            if self.wants_wake_update:
-                self.wants_wake_update = False
-                if self.conversations_view != None:
-                    self.conversations_view.update()
-
             if self.sideband.getstate("app.flags.lxmf_sync_dialog_open", allow_cache=True) and self.sync_dialog != None:
                 state = self.sideband.message_router.propagation_transfer_state
 
@@ -1003,11 +1015,6 @@ class SidebandApp(MDApp):
                 if self.announces_view != None:
                     self.announces_view.update()
 
-            if self.wants_wake_update:
-                self.wants_wake_update = False
-                if self.announces_view != None:
-                    self.announces_view.update()
-
         elif self.root.ids.screen_manager.current == "map_screen":
             if self.map_screen and hasattr(self.map_screen.ids.map_layout, "map") and self.map_screen.ids.map_layout.map != None:
                 self.sideband.config["map_lat"] = self.map_screen.ids.map_layout.map.lat
@@ -1016,10 +1023,6 @@ class SidebandApp(MDApp):
 
             self.last_telemetry_received = self.sideband.getstate("app.flags.last_telemetry", allow_cache=True) or 0
             if self.last_telemetry_received > self.last_map_update:
-                self.map_update_markers()
-
-            if self.wants_wake_update:
-                self.wants_wake_update = False
                 self.map_update_markers()
 
         if self.sideband.getstate("app.flags.new_conversations", allow_cache=True):
