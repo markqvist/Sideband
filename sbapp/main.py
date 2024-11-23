@@ -1,6 +1,6 @@
 __debug_build__ = False
 __disable_shaders__ = False
-__version__ = "1.1.3"
+__version__ = "1.1.4"
 __variant__ = ""
 
 import sys
@@ -306,9 +306,11 @@ class SidebandApp(MDApp):
         self.service_last_available = 0
         self.closing_app = False
 
+        self.file_manager = None
         self.attach_path = None
         self.attach_type = None
         self.attach_dialog = None
+        self.shared_attach_dialog = None
         self.rec_dialog = None
         self.last_msg_audio = None
         self.msg_sound = None
@@ -892,12 +894,53 @@ class SidebandApp(MDApp):
             if data.lower().startswith(LXMF.LXMessage.URI_SCHEMA):
                 action = "lxm_uri"
 
+        if intent_action == "android.intent.action.SEND":
+            try:
+                Intent = autoclass("android.content.Intent")
+                extras = intent.getExtras()
+                target = extras.get(Intent.EXTRA_STREAM)
+                mime_types = extras.get(Intent.EXTRA_MIME_TYPES)
+                target_uri = target.toString()
+                target_path = target.getPath()
+                target_filename = target.getLastPathSegment()
+
+                RNS.log(f"Received share intent: {target_uri} / {target_path} / {target_filename}", RNS.LOG_DEBUG)
+                for cf in os.listdir(self.sideband.share_cache):
+                    rt = os.path.join(self.sideband.share_cache, cf)
+                    os.unlink(rt)
+                    RNS.log("Removed previously cached data: "+str(rt), RNS.LOG_DEBUG)
+
+                ContentResolver = autoclass("android.content.ContentResolver")
+                cr = mActivity.getContentResolver()
+                cache_path = os.path.join(self.sideband.share_cache, target_filename)
+                input_stream = cr.openInputStream(target)
+                with open(cache_path, "wb") as cache_file:
+                    cache_file.write(bytes(input_stream.readAllBytes()))
+                    RNS.log("Cached shared data from Android intent", RNS.LOG_DEBUG)
+
+                action = "shared_data"
+                data = {"filename": target_filename, "data_path": cache_path}
+
+            except Exception as e:
+                RNS.log(f"Error while getting intent action data: {e}", RNS.LOG_ERROR)
+                RNS.trace_exception(e)
+
         if action != None:
             self.handle_action(action, data)
 
     def handle_action(self, action, data):
         if action == "lxm_uri":
             self.ingest_lxm_uri(data)
+
+        if action == "shared_data":
+            RNS.log("Got shared data: "+str(data))
+            def cb(dt):
+                try:
+                    self.shared_attachment_action(data)
+                except Exception as e:
+                    RNS.log("Error while handling external message attachment", RNS.LOG_ERROR)
+                    RNS.trace_exception(e)
+            Clock.schedule_once(cb, 0.1)
 
     def ingest_lxm_uri(self, lxm_uri):
         RNS.log("Ingesting LXMF paper message from URI: "+str(lxm_uri), RNS.LOG_DEBUG)
@@ -1086,6 +1129,9 @@ class SidebandApp(MDApp):
             self.quit_action(None)
         return True
 
+    def file_dropped(self, window, file_path, x, y, *args):
+        self.shared_attachment_action({"data_path": file_path.decode("utf-8")})
+
     def on_start(self):
         self.last_exit_event = time.time()
         self.root.ids.screen_manager.transition = self.slide_transition
@@ -1096,6 +1142,7 @@ class SidebandApp(MDApp):
         EventLoop.window.bind(on_key_down=self.keydown_event)
         EventLoop.window.bind(on_key_up=self.keyup_event)
         Window.bind(on_request_close=self.close_requested)
+        Window.bind(on_drop_file=self.file_dropped)
 
         if __variant__ != "":
             variant_str = " "+__variant__
@@ -1701,7 +1748,8 @@ class SidebandApp(MDApp):
 
     def message_fm_exited(self, *args):
         self.manager_open = False
-        self.file_manager.close()
+        if self.file_manager != None:
+            self.file_manager.close()
 
     def message_select_file_action(self, sender=None):
         perm_ok = False
@@ -1716,11 +1764,20 @@ class SidebandApp(MDApp):
 
         if perm_ok and path != None:
             try:
-                self.file_manager = MDFileManager(
-                    exit_manager=self.message_fm_exited,
-                    select_path=self.message_fm_got_path,
-                )
-                # self.file_manager.ext = ["*"]
+                if self.attach_type in ["lbimg", "defimg", "hqimg"]:
+                    self.file_manager = MDFileManager(
+                        exit_manager=self.message_fm_exited,
+                        select_path=self.message_fm_got_path,
+                        # Current KivyMD preview implementation is too slow to be reliable on Android
+                        preview=False)
+                else:
+                    self.file_manager = MDFileManager(
+                        exit_manager=self.message_fm_exited,
+                        select_path=self.message_fm_got_path,
+                        preview=False)
+
+                # self.file_manager.ext = []
+                # self.file_manager.search = "all"
                 self.file_manager.show(path)
 
             except Exception as e:
@@ -2196,6 +2253,65 @@ class SidebandApp(MDApp):
                 ok_button.bind(on_release=ate_dialog.dismiss)
                 ate_dialog.open()
 
+
+    def shared_attachment_action(self, attachment_data):
+        if not self.root.ids.screen_manager.current == "messages_screen":
+            if RNS.vendor.platformutils.is_android():
+                toast("Please select a conversation first")
+            else:
+                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+                ate_dialog = MDDialog(
+                    title="No active conversation",
+                    text="To drop files as attachments, please open a conversation first",
+                    buttons=[ ok_button ],
+                )
+                ok_button.bind(on_release=ate_dialog.dismiss)
+                ate_dialog.open()
+        else:
+            self.rec_dialog_is_open = False
+
+            def a_img_lb(sender):
+                self.attach_type="lbimg"
+                self.shared_attach_dialog.dismiss()
+                self.shared_attach_dialog.att_exc()
+            def a_img_def(sender):
+                self.attach_type="defimg"
+                self.shared_attach_dialog.dismiss()
+                self.shared_attach_dialog.att_exc()
+            def a_img_hq(sender):
+                self.attach_type="hqimg"
+                self.shared_attach_dialog.dismiss()
+                self.shared_attach_dialog.att_exc()
+            def a_file(sender):
+                self.attach_type="file"
+                self.shared_attach_dialog.dismiss()
+                self.shared_attach_dialog.att_exc()
+
+            if self.shared_attach_dialog == None:
+                ss = int(dp(18))
+                cancel_button = MDRectangleFlatButton(text="Cancel", font_size=dp(18))
+                ad_items = [
+                        DialogItem(IconLeftWidget(icon="message-image-outline", on_release=a_img_lb), text="[size="+str(ss)+"]Low-bandwidth Image[/size]", on_release=a_img_lb),
+                        DialogItem(IconLeftWidget(icon="file-image", on_release=a_img_def), text="[size="+str(ss)+"]Medium Image[/size]", on_release=a_img_def),
+                        DialogItem(IconLeftWidget(icon="image-outline", on_release=a_img_hq), text="[size="+str(ss)+"]High-res Image[/size]", on_release=a_img_hq),
+                        DialogItem(IconLeftWidget(icon="file-outline", on_release=a_file), text="[size="+str(ss)+"]File Attachment[/size]", on_release=a_file)]
+                
+                self.shared_attach_dialog = MDDialog(
+                    title="Add Attachment",
+                    type="simple",
+                    text="Select how you want to attach this data to the next message sent\n",
+                    items=ad_items,
+                    buttons=[ cancel_button ],
+                    width_offset=dp(32),
+                )
+
+                cancel_button.bind(on_release=self.shared_attach_dialog.dismiss)
+
+            def att_exc():
+                self.message_fm_got_path(attachment_data["data_path"])
+
+            self.shared_attach_dialog.att_exc = att_exc
+            self.shared_attach_dialog.open()
 
     def update_message_widgets(self):
         toolbar_items = self.messages_view.ids.messages_toolbar.ids.right_actions.children

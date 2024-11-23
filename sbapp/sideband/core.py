@@ -203,6 +203,10 @@ class SidebandCore():
         if not os.path.isdir(self.rec_cache):
             os.makedirs(self.rec_cache)
 
+        self.share_cache       = self.cache_dir+"/share"
+        if not os.path.isdir(self.share_cache):
+            os.makedirs(self.share_cache)
+
         self.icon              = self.asset_dir+"/icon.png"
         self.icon_48           = self.asset_dir+"/icon_48.png"
         self.icon_32           = self.asset_dir+"/icon_32.png"
@@ -4369,7 +4373,11 @@ class SidebandCore():
 
             if not originator and LXMF.FIELD_AUDIO in message.fields and ptt_enabled:
                 self.ptt_event(message)
-                should_notify = False
+                if self.gui_conversation() != context_dest:
+                    if not RNS.vendor.platformutils.is_android():
+                        should_notify = True
+                else:
+                    should_notify = False
 
         if self.is_client:
             should_notify = False

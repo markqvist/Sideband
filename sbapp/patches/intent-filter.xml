@@ -13,11 +13,22 @@
 
 <!-- This intent filter allows opening scanned LXM URLs directly in Sideband -->
 <intent-filter>
-    <action android:name="android.intent.action.WEB_SEARCH" />
-    <category android:name="android.intent.category.DEFAULT" />
-    <category android:name="android.intent.category.LAUNCHER" />
+   <action android:name="android.intent.action.WEB_SEARCH" />
+   <category android:name="android.intent.category.DEFAULT" />
+   <category android:name="android.intent.category.LAUNCHER" />
 </intent-filter>
 
+<intent-filter>
+   <action android:name="android.intent.action.SEND" />
+   <category android:name="android.intent.category.DEFAULT" />
+   <data android:mimeType="text/plain" />
+</intent-filter>
+
+<intent-filter>
+   <action android:name="android.intent.action.SEND" />
+   <category android:name="android.intent.category.DEFAULT" />
+   <data android:mimeType="image/*" />
+</intent-filter>
 
 <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
     android:resource="@xml/device_filter" />
