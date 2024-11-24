@@ -2627,11 +2627,15 @@ class SidebandApp(MDApp):
                     RNS.log("Error while creating conversation: "+str(e), RNS.LOG_ERROR)
 
                 if new_result:
+                    dialog.d_content.ids["n_address_field"].helper_text = ""
+                    dialog.d_content.ids["n_address_field"].helper_text_mode = "on_focus"
                     dialog.d_content.ids["n_address_field"].error = False
                     dialog.dismiss()
                     if self.conversations_view != None:
                         self.conversations_view.update()
                 else:
+                    dialog.d_content.ids["n_address_field"].helper_text = "Invalid address, check your input"
+                    dialog.d_content.ids["n_address_field"].helper_text_mode = "persistent"
                     dialog.d_content.ids["n_address_field"].error = True
                     # dialog.d_content.ids["n_error_field"].text = "Could not create conversation. Check your input."
 

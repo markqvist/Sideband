@@ -4264,7 +4264,11 @@ class SidebandCore():
 
         try:
             addr_b = bytes.fromhex(dest_str)
-            self._db_create_conversation(addr_b, name, trusted)
+            if addr_b == self.lxmf_destination.hash:
+                RNS.log("Cannot create conversation with own LXMF address", RNS.LOG_ERROR)
+                return False
+            else:
+                self._db_create_conversation(addr_b, name, trusted)
 
         except Exception as e:
             RNS.log("Error while creating conversation: "+str(e), RNS.LOG_ERROR)
