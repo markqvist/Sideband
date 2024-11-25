@@ -24,6 +24,51 @@ import base64
 import threading
 import RNS.vendor.umsgpack as msgpack
 
+app_ui_scaling_path = None
+def apply_ui_scale():
+    global app_ui_scaling_path
+    default_scale = os.environ["KIVY_METRICS_DENSITY"] if "KIVY_METRICS_DENSITY" in os.environ else "unknown"
+    config_path = None
+    ui_scale_path = None
+    
+    try:
+        if RNS.vendor.platformutils.is_android():
+            import plyer
+            ui_scale_path = plyer.storagepath.get_application_dir()+"/io.unsigned.sideband/files/app_storage/ui_scale"
+        else:
+            if config_path == None:
+                import sbapp.plyer as plyer
+                ui_scale_path = plyer.storagepath.get_home_dir()+"/.config/sideband/app_storage/ui_scale"
+                if ui_scale_path.startswith("file://"):
+                    ui_scale_path = ui_scale_path.replace("file://", "")
+            else:
+                ui_scale_path = config_path+"/app_storage/ui_scale"
+
+        app_ui_scaling_path = ui_scale_path
+    
+    except Exception as e:
+        RNS.log(f"Error while locating UI scale file: {e}", RNS.LOG_ERROR)
+
+    if ui_scale_path != None:
+        RNS.log("Default scaling factor on this platform is "+str(default_scale), RNS.LOG_NOTICE)
+        try:
+            RNS.log("Looking for scaling info in "+str(ui_scale_path))
+            if os.path.isfile(ui_scale_path):
+                scale_factor = None
+                with open(ui_scale_path, "r") as sf:
+                    scale_factor = float(sf.readline())
+
+                if scale_factor != None:
+                    if scale_factor >= 0.3 and scale_factor <= 5.0:
+                        os.environ["KIVY_METRICS_DENSITY"] = str(scale_factor)
+                        RNS.log("UI scaling factor set to "+str(os.environ["KIVY_METRICS_DENSITY"]), RNS.LOG_NOTICE)
+                    elif scale_factor == 0.0:
+                        RNS.log("Using default UI scaling factor", RNS.LOG_NOTICE)
+
+
+        except Exception as e:
+            RNS.log(f"Error while reading UI scaling factor: {e}", RNS.LOG_ERROR)
+
 if args.export_settings:
     from .sideband.core import SidebandCore
     sideband = SidebandCore(
@@ -143,9 +188,11 @@ if args.daemon:
     NewConv = DaemonElement; Telemetry = DaemonElement; ObjectDetails = DaemonElement; Announces = DaemonElement;
     Messages = DaemonElement; ts_format = DaemonElement; messages_screen_kv = DaemonElement; plyer = DaemonElement; multilingual_markup = DaemonElement;
     ContentNavigationDrawer = DaemonElement; DrawerList = DaemonElement; IconListItem = DaemonElement; escape_markup = DaemonElement;
-    SoundLoader = DaemonElement;
+    SoundLoader = DaemonElement; BoxLayout = DaemonElement;
 
 else:
+    apply_ui_scale()
+
     from kivymd.app import MDApp
     app_superclass = MDApp
     from kivy.core.window import Window
@@ -157,6 +204,7 @@ else:
     from kivy.effects.scroll import ScrollEffect
     from kivy.uix.screenmanager import ScreenManager
     from kivy.uix.screenmanager import FadeTransition, NoTransition, SlideTransition
+    from kivy.uix.boxlayout import BoxLayout
     from kivymd.uix.list import OneLineIconListItem, IconLeftWidget
     from kivy.properties import StringProperty
     from kivymd.uix.button import BaseButton, MDIconButton
@@ -2728,6 +2776,72 @@ class SidebandApp(MDApp):
 
         if no_transition:
             self.root.ids.screen_manager.transition = self.slide_transition
+
+    def configure_ui_scaling_action(self, sender=None):
+        global app_ui_scaling_path
+        try:
+            cancel_button = MDRectangleFlatButton(text="Cancel",font_size=dp(18))
+            set_button = MDRectangleFlatButton(text="Set",font_size=dp(18), theme_text_color="Custom", line_color=self.color_accept, text_color=self.color_accept)
+            
+            dialog_content = UIScaling()
+            dialog = MDDialog(
+                title="UI Scaling",
+                type="custom",
+                content_cls=dialog_content,
+                buttons=[ set_button, cancel_button ],
+                # elevation=0,
+            )
+            dialog.d_content = dialog_content
+            dialog.d_content.ids["scaling_factor"].text = os.environ["KIVY_METRICS_DENSITY"] if "KIVY_METRICS_DENSITY" in os.environ else "0.0"
+            def dl_yes(s):
+                new_sf = 1.0
+                scaling_ok = False
+                try:
+                    si = dialog.d_content.ids["scaling_factor"].text
+                    sf = float(si)
+                    if (sf >= 0.3 and sf <= 5.0) or sf == 0.0:
+                        new_sf = sf
+                        scaling_ok = True
+
+                except Exception as e:
+                    RNS.log("Error while getting scaling factor from user: "+str(e), RNS.LOG_ERROR)
+
+                if scaling_ok:
+                    dialog.d_content.ids["scaling_factor"].helper_text = ""
+                    dialog.d_content.ids["scaling_factor"].helper_text_mode = "on_focus"
+                    dialog.d_content.ids["scaling_factor"].error = False
+                    dialog.dismiss()
+                    if app_ui_scaling_path == None:
+                        RNS.log("No path to UI scaling factor file could be found, cannot save scaling factor", RNS.LOG_ERROR)
+                    else:
+                        try:
+                            with open(app_ui_scaling_path, "w") as sfile:
+                                sfile.write(str(new_sf))
+                            RNS.log(f"Saved configured scaling factor {new_sf} to {app_ui_scaling_path}", RNS.LOG_DEBUG)
+                        except Exception as e:
+                            RNS.log(f"Error while saving scaling factor {new_sf} to {app_ui_scaling_path}: {e}", RNS.LOG_ERROR)
+
+                else:
+                    dialog.d_content.ids["scaling_factor"].helper_text = "Invalid scale factor, check your input"
+                    dialog.d_content.ids["scaling_factor"].helper_text_mode = "persistent"
+                    dialog.d_content.ids["scaling_factor"].error = True
+
+            def dl_no(s):
+                dialog.dismiss()
+
+            def dl_ds(s):
+                self.dialog_open = False
+
+            set_button.bind(on_release=dl_yes)
+            cancel_button.bind(on_release=dl_no)
+
+            dialog.bind(on_dismiss=dl_ds)
+            dialog.open()
+            self.dialog_open = True
+
+        except Exception as e:
+            RNS.log("Error while creating UI scaling dialog: "+str(e), RNS.LOG_ERROR)
+
 
     def settings_action(self, sender=None, direction="left"):
         if self.settings_ready:
@@ -5964,6 +6078,9 @@ class DialogItem(OneLineIconListItem):
     icon = StringProperty()
 
 class MDMapIconButton(MDIconButton):
+    pass
+
+class UIScaling(BoxLayout):
     pass
 
 if not args.daemon:

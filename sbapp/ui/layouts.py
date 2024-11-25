@@ -1260,6 +1260,28 @@ MDScreen:
 """
 
 layout_settings_screen = """
+<UIScaling>
+    orientation: "vertical"
+    spacing: "24dp"
+    size_hint_y: None
+    height: self.minimum_height+dp(0)
+
+    MDLabel:
+        id: scaling_info
+        markup: True
+        text: "You can scale the entire Sideband UI by specifying a scaling factor in the field below. After setting it, restart sideband for the scaling to take effect.\\n\\nSet to 0.0 to disable scaling adjustments."
+        size_hint_y: None
+        text_size: self.width, None
+        height: self.texture_size[1]
+
+    MDTextField:
+        id: scaling_factor
+        hint_text: "Scaling Factor"
+        helper_text: "From 0.3 to 5.0"
+        helper_text_mode: "on_focus"
+        text: ""
+        font_size: dp(24)
+
 MDScreen:
     name: "settings_screen"
     
@@ -1399,11 +1421,21 @@ MDScreen:
                     size_hint_y: None
                     height: self.texture_size[1]
 
+                MDRectangleFlatIconButton:
+                    id: appearance_ui_scaling
+                    icon: "relative-scale"
+                    text: "Configure UI Scaling"
+                    padding: [dp(0), dp(14), dp(0), dp(14)]
+                    icon_size: dp(24)
+                    font_size: dp(16)
+                    size_hint: [1.0, None]
+                    on_release: root.app.configure_ui_scaling_action(self)
+
                 MDBoxLayout:
                     orientation: "horizontal"
                     size_hint_y: None
-                    padding: [0,0,dp(24),dp(0)]
-                    height: dp(48)
+                    padding: [0,dp(14),dp(24),dp(0)]
+                    height: dp(62)
                     
                     MDLabel:
                         text: "Notifications"
