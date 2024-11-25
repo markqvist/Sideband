@@ -99,8 +99,8 @@ setuptools.setup(
         ]
     },
     install_requires=[
-        "rns>=0.8.5",
-        "lxmf>=0.5.7",
+        "rns>=0.8.6",
+        "lxmf>=0.5.8",
         "kivy>=2.3.0",
         "pillow>=10.2.0",
         "qrcode",
@@ -108,11 +108,10 @@ setuptools.setup(
         "ffpyplayer",
         "sh",
         "numpy<=1.26.4",
-        "pycodec2;platform_system!='Windows'",
+        "pycodec2;sys.platform!='Windows' and sys.platform!='darwin'",
         "pyaudio;sys.platform=='linux'",
         "pyobjus;sys.platform=='darwin'",
-        "pyogg;sys.platform=='darwin'",
-        "pyogg;platform_system=='Windows'",
+        "pyogg;sys.platform=='Windows'",
     ],
     python_requires='>=3.7',
 )
