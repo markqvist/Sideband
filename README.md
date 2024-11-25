@@ -39,7 +39,7 @@ Sideband can run on most computing devices, but installation methods vary by dev
 
 ## On Android
 
-For your Android devices, you can install Sideband through F-Droid, by adding the [Between the Borders Repo](https://reticulum.betweentheborders.com/fdroid/repo/), or you can download an [APK on the latest release](https://github.com/markqvist/Sideband/releases/latest) page. Both sources are signed with the same release keys, and can be used interchangably.
+For your Android devices, you can install Sideband through F-Droid, by adding the [Between the Borders Repo](https://reticulum.betweentheborders.com/fdroid/repo/), or you can download an [APK on the latest release page](https://github.com/markqvist/Sideband/releases/latest). Both sources are signed with the same release keys, and can be used interchangably.
 
 After the application is installed on your Android device, it is also possible to pull updates directly through the **Repository** section of the application.
 
@@ -154,13 +154,18 @@ sideband
 
 ## On macOS
 
-On macOS, you can install Sideband with `pip3` or `pipx`. Due to the many different potential Python versions and install paths across macOS versions, the easiest install method is to use `pipx`.
+You can download a DMG with Sideband for macOS (ARM and Intel) from the [latest release page](https://github.com/markqvist/Sideband/releases/latest). If you install Sideband from the DMG file, it is still recommended to install the `rns` package via the `pip` or `pipx` package manager, so you can use the RNS utility programs, like `rnstatus` to see interface and connectivity status from the terminal.
 
 If you don't already have the `pipx` package manager installed, it can be installed via [Homebrew](https://brew.sh/) with `brew install pipx`.
 
 ```bash
 # Install Sideband and dependencies on macOS using pipx:
 pipx install sbapp
+
+# It's recommended to also install the rns package for utilites:
+pipx install rns
+
+# Make sure programs installed by pipx are runnable by the user
 pipx ensurepath
 
 # Run it
