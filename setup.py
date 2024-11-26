@@ -108,10 +108,10 @@ setuptools.setup(
         "ffpyplayer",
         "sh",
         "numpy<=1.26.4",
-        "pycodec2;sys.platform!='Windows' and sys.platform!='darwin'",
+        "pycodec2;sys.platform!='Windows' and sys.platform!='win32' and sys.platform!='darwin'",
         "pyaudio;sys.platform=='linux'",
         "pyobjus;sys.platform=='darwin'",
-        "pyogg;sys.platform=='Windows'",
+        "pyogg;sys.platform=='Windows' and sys.platform!='win32'",
     ],
     python_requires='>=3.7',
 )
