@@ -47,6 +47,8 @@ After the application is installed on your Android device, it is also possible t
 
 On all Linux-based operating systems, Sideband is available as a `pipx`/`pip` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers. Below are install steps for the most common recent Linux distros. For Debian 11, see the end of this section.
 
+**Please note!** The very latest Python release, Python 3.13 is currently **not** compatible with the Kivy framework, that Sideband uses to render its user interface. If your Linux distribution uses Python 3.13 as its default Python installation, you will need to install an earlier version as well. Using [the latest release of Python 3.12](https://www.python.org/downloads/release/python-3127/) is recommended.
+
 You will first need to install a few dependencies for audio messaging and Codec2 support to work:
 
 ```bash
@@ -66,6 +68,10 @@ Once those are installed, install the Sideband application itself:
 ```bash
 # Finally, install Sideband using pipx:
 pipx install sbapp
+
+# If you need to specify a specific Python version,
+# use something like the following:
+pipx install sbapp --python python3.12
 ```
 
 After installation, you can now run Sideband in a number of different ways:
@@ -109,8 +115,9 @@ pip install sbapp --break-system-packages
 # any of the normal UI dependencies:
 pip install sbapp --no-dependencies
 
-# In the above case, you will still need to
-# manually install the RNS and LXMF dependencies:
+# In the case of using --no-dependencies, you
+# will still need to manually install the RNS
+# and LXMF dependencies:
 pip install rns lxmf
 
 # Install Sideband on Debian 11 and derivatives:
@@ -156,30 +163,25 @@ sideband
 
 You can download a DMG with Sideband for macOS (ARM and Intel) from the [latest release page](https://github.com/markqvist/Sideband/releases/latest). If you install Sideband from the DMG file, it is still recommended to install the `rns` package via the `pip` or `pipx` package manager, so you can use the RNS utility programs, like `rnstatus` to see interface and connectivity status from the terminal.
 
-If you don't already have the `pipx` package manager installed, it can be installed via [Homebrew](https://brew.sh/) with `brew install pipx`.
+**Please note!** The very latest Python release, Python 3.13 is currently **not** compatible with the Kivy framework, that Sideband uses to render its user interface. If your version of macOS uses Python 3.13 as its default Python installation, you will need to install an earlier version as well. Using [the latest release of Python 3.12](https://www.python.org/downloads/release/python-3127/) is recommended.
 
-```bash
-# Install Sideband and dependencies on macOS using pipx:
-pipx install sbapp
-
-# It's recommended to also install the rns package for utilites:
-pipx install rns
-
-# Make sure programs installed by pipx are runnable by the user
-pipx ensurepath
-
-# Run it
-sideband
-```
-
-Or, if you prefer to use `pip` directly, follow the instructions below. In this case, if you have not already installed Python and `pip3` on your macOS system, [download and install](https://www.python.org/downloads/) the latest version first.
+To install Sideband via `pip`, follow these instructions:
 
 ```bash
 # Install Sideband and dependencies on macOS using pip:
 pip3 install sbapp --user --break-system-packages
 
-# Run it:
+# Optionally install RNS command line utilities:
+pip3 install rns
+
+# Run Sideband from the terminal:
 python3 -m sbapp.main
+
+# Enable debug logging:
+python3 -m sbapp.main -v
+
+# Start Sideband in daemon mode:
+python3 -m sbapp.main -d
 
 # If you add your pip install location to
 # the PATH environment variable, you can
@@ -190,11 +192,13 @@ sideband
 
 ## On Windows
 
-Even though there is currently not an automated installer, or packaged `.exe` file for Sideband on Windows, you can still install it through `pip`. If you don't already have Python installed, [download and install](https://www.python.org/downloads/) the latest version of Python.
+Even though there is currently not an automated installer, or packaged `.exe` file for Sideband on Windows, you can install Sideband with the `pip` package manager.
 
-Please note that audio messaging functionality isn't supported on Windows yet. Please support the development if you'd like to see this feature added faster.
+If you don't already have Python installed, [download and install the latest supported version of Python](https://www.python.org/downloads/release/python-3127/) (currently Python 3.12.7).
 
-**Important!** When asked by the installer, make sure to add the Python program to your PATH environment variables. If you don't do this, you will not be able to use the `pip` installer, or run the `sideband` command.
+**Please note!** The very latest Python release, Python 3.13 is currently **not** compatible with the Kivy framework, that Sideband uses to render its user interface. If you are running Python 3.13, you will need to install an earlier version as well. Using the latest release of Python 3.12 is recommended.
+
+**Important!** When asked by the installer, make sure to add the Python program to your PATH environment variables. If you don't do this, you will not be able to use the `pip` installer, run the `sideband` command, or create a desktop shortcut for Sideband.
 
 When Python has been installed, you can open a command prompt and install sideband via `pip`:
 
