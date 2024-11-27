@@ -30,10 +30,13 @@ def get_variant() -> str:
         version = re.findall(version_regex, version_file_data, re.M)[0]
         return version
     except IndexError:
-        raise ValueError(f"Unable to find version string in {version_file}.")
+        return None
 
 __version__ = get_version()
 __variant__ = get_variant()
+variant_str = ""
+if __variant__:
+    variant_str = " "+__variant__
 
 def glob_paths(pattern):
     out_files = []
@@ -60,14 +63,14 @@ package_data = {
     ]
 }
 
-print("Freezing Sideband "+__version__+" "+__variant__)
+print("Freezing Sideband "+__version__+" "+variant_str)
 
 if build_appimage:
     global_excludes = [".buildozer", "build", "dist"]
     # Dependencies are automatically detected, but they might need fine-tuning.
     appimage_options = {
         "target_name": "Sideband",
-        "target_version": __version__+" "+__variant__,
+        "target_version": __version__+" "+variant_str,
         "include_files": [],
         "excludes": [],
         "packages": ["kivy"],
