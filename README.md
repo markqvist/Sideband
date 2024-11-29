@@ -192,7 +192,10 @@ sideband
 
 ## On Windows
 
-To install Sideband on Windows, you have two options available: An easy to install pre-built executable package, or a source package install for more advanced setups.
+To install Sideband on Windows, you have two options available:
+
+1. An easy to install pre-built executable package
+2. A source package install for more advanced setups.
 
 #### Prebuilt Executable
 
