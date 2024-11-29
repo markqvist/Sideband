@@ -212,7 +212,7 @@ pip install rns
 
 For more advanced setups, including the ability to run Sideband in headless daemon mode, enable debug logging output, configuration import and export and more, you may want to install it from the source package via `pip` instead.
 
-In this case, you will need to [download and install the latest supported version of Python](https://www.python.org/downloads/release/python-3127/) (currently Python 3.12.7), since very latest Python release, Python 3.13 is currently **not** compatible with the Kivy framework, that Sideband uses to render its user interface. The binary package already includes a compatible Python version, so if you are running Sideband from that, there is no need to install a specific version.
+In this case, you will need to [download and install the latest supported version of Python](https://www.python.org/downloads/release/python-3127/) (currently Python 3.12.7), since very latest Python release, Python 3.13 is currently **not** compatible with the Kivy framework, that Sideband uses to render its user interface. The binary package already includes a compatible Python version, so if you are running Sideband from that, there is no need to install a specific version of Python.
 
 When Python has been installed, you can open a command prompt and install Sideband via `pip`:
 
@@ -220,7 +220,9 @@ When Python has been installed, you can open a command prompt and install Sideba
 pip install sbapp
 ```
 
-The Sideband application can now be launched by running the command `sideband` in the command prompt. If needed, you can create a shortcut for Sideband on your desktop or in the start menu. Since this installation method automatically installs the `rns` and `lxmf` packages as well, you will also have access to using all the included RNS and LXMF utilities like `rnstatus`, `rnsd` and `lxmfd` on your system.
+The Sideband application can now be launched by running the command `sideband` in the command prompt. If needed, you can create a shortcut for Sideband on your desktop or in the start menu.
+
+Since this installation method automatically installs the `rns` and `lxmf` packages as well, you will also have access to using all the included RNS and LXMF utilities like `rnstatus`, `rnsd` and `lxmd` on your system.
 
 # Paper Messaging Example
 
