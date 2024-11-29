@@ -172,7 +172,18 @@ You can download a disk image with Sideband for macOS (ARM and Intel) from the [
 
 **Please note!** If you have application install restrictions enabled on your macOS install, or have restricted your system to only allow installation of application from the Apple App Store, you will need to create an exception for Sideband. The Sideband application will *never* be distributed with an Apple-controlled digital signature, as this will allow Apple to simply disable Sideband from running on your system if they decide to do so, or are forced to by authorities or other circumstances.
 
-If you install Sideband from the DMG file, it is still recommended to install the `rns` package via the `pip` or `pipx` package manager, so you can use the RNS utility programs, like `rnstatus` to see interface and connectivity status from the terminal.
+If you install Sideband from the DMG file, it is still recommended to install the `rns` package via the `pip` or `pipx` package manager, so you can use the RNS utility programs, like `rnstatus` to see interface and connectivity status from the terminal. If you already have Python and `pip` installed on your system, simply open a terminal window and use one of the following commands:
+
+```bash
+# Install Reticulum and utilities with pip:
+pip3 install rns
+
+# On some versions, you may need to use the
+# flag --break-system-packages to install:
+pip3 install rns --break-system-packages
+```
+
+If you do not have Python and `pip` available, [download and install it](https://www.python.org/downloads/) first.
 
 #### Source Package Install
 
