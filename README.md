@@ -192,23 +192,35 @@ sideband
 
 ## On Windows
 
-Even though there is currently not an automated installer, or packaged `.exe` file for Sideband on Windows, you can install Sideband with the `pip` package manager.
+To install Sideband on Windows, you have two options available: An easy to install pre-built executable package, or a source package install for more advanced setups.
 
-If you don't already have Python installed, [download and install the latest supported version of Python](https://www.python.org/downloads/release/python-3127/) (currently Python 3.12.7).
+#### Prebuilt Executable
 
-**Please note!** The very latest Python release, Python 3.13 is currently **not** compatible with the Kivy framework, that Sideband uses to render its user interface. If you are running Python 3.13, you will need to install an earlier version as well. Using the latest release of Python 3.12 is recommended.
+Simply download the packaged Windows ZIP file from the [latest release page](https://github.com/markqvist/Sideband/releases/latest), unzip the file, and run `Sideband.exe` from the unzipped directory. You can create desktop or start menu shortcuts from this executable if needed.
 
-**Important!** When asked by the installer, make sure to add the Python program to your PATH environment variables. If you don't do this, you will not be able to use the `pip` installer, run the `sideband` command, or create a desktop shortcut for Sideband.
+When running Sideband for the first time, a default Reticulum configuration file will be created, if you don't already have one. If you don't have any existing Reticulum connectivity available locally, you may want to edit the file, located at `C:\Users\USERNAME\.reticulum\config` and manually add an interface that provides connectivity to a wider network. If you just want to connect over the Internet, you can add one of the public hubs on the [Reticulum Testnet](https://reticulum.network/connect.html).
 
-When Python has been installed, you can open a command prompt and install sideband via `pip`:
+Though the ZIP file contains everything necessary to run Sideband, it is also recommended to install the Reticulum command line utilities separately, so that you can use commands like `rnstatus` and `rnsd` from the command line. This will make it easier to manage Reticulum connectivity on your system. If you do not already have Python installed on your system, [download and install it](https://www.python.org/downloads/) first.
+
+**Important!** When asked by the installer, make sure to add the Python program to your `PATH` environment variables. If you don't do this, you will not be able to use the `pip` installer, or run any of the installed commands. When Python has been installed, you can open a command prompt and install the Reticulum package via `pip`:
+
+```bash
+pip install rns
+```
+
+#### Source Package Install
+
+For more advanced setups, including the ability to run Sideband in headless daemon mode, enable debug logging output, configuration import and export and more, you may want to install it from the source package via `pip` instead.
+
+In this case, you will need to [download and install the latest supported version of Python](https://www.python.org/downloads/release/python-3127/) (currently Python 3.12.7), since very latest Python release, Python 3.13 is currently **not** compatible with the Kivy framework, that Sideband uses to render its user interface. The binary package already includes a compatible Python version, so if you are running Sideband from that, there is no need to install a specific version.
+
+When Python has been installed, you can open a command prompt and install Sideband via `pip`:
 
 ```bash
 pip install sbapp
 ```
 
-The Sideband application can now be launched by running the command `sideband` in the command prompt. If needed, you can create a shortcut for Sideband on your desktop or in the start menu.
-
-When running Sideband for the first time, a default Reticulum configuration file will be created, if you don't already have one. If you don't have any existing Reticulum connectivity available locally, you may want to edit the file, located at `C:\Users\USERNAME\.reticulum\config` and manually add an interface that provides connectivity to a wider network. If you just want to connect over the Internet, you can add one of the public hubs on the [Reticulum Testnet](https://reticulum.network/connect.html).
+The Sideband application can now be launched by running the command `sideband` in the command prompt. If needed, you can create a shortcut for Sideband on your desktop or in the start menu. Since this installation method automatically installs the `rns` and `lxmf` packages as well, you will also have access to using all the included RNS and LXMF utilities like `rnstatus`, `rnsd` and `lxmfd` on your system.
 
 # Paper Messaging Example
 
