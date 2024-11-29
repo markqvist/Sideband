@@ -164,7 +164,7 @@ sideband
 To install Sideband on macOS, you have two options available:
 
 1. An easy to install pre-built disk image package
-2. A source package install for more advanced setups.
+2. A source package install for more advanced setups
 
 #### Prebuilt Executable
 
@@ -210,7 +210,7 @@ sideband
 To install Sideband on Windows, you have two options available:
 
 1. An easy to install pre-built executable package
-2. A source package install for more advanced setups.
+2. A source package install for more advanced setups
 
 #### Prebuilt Executable
 
