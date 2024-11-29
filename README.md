@@ -161,7 +161,22 @@ sideband
 
 ## On macOS
 
-You can download a DMG with Sideband for macOS (ARM and Intel) from the [latest release page](https://github.com/markqvist/Sideband/releases/latest). If you install Sideband from the DMG file, it is still recommended to install the `rns` package via the `pip` or `pipx` package manager, so you can use the RNS utility programs, like `rnstatus` to see interface and connectivity status from the terminal.
+To install Sideband on macOS, you have two options available:
+
+1. An easy to install pre-built disk image package
+2. A source package install for more advanced setups.
+
+#### Prebuilt Executable
+
+You can download a disk image with Sideband for macOS (ARM and Intel) from the [latest release page](https://github.com/markqvist/Sideband/releases/latest). Simply mount the downloaded disk image, drag `Sideband` to your applications folder, and run it.
+
+**Please note!** If you have application install restrictions enabled on your macOS install, or have restricted your system to only allow installation of application from the Apple App Store, you will need to create an exception for Sideband. The Sideband application will *never* be distributed with an Apple-controlled digital signature, as this will allow Apple to simply disable Sideband from running on your system if they decide to do so, or are forced to by authorities or other circumstances.
+
+If you install Sideband from the DMG file, it is still recommended to install the `rns` package via the `pip` or `pipx` package manager, so you can use the RNS utility programs, like `rnstatus` to see interface and connectivity status from the terminal.
+
+#### Source Package Install
+
+For more advanced setups, including the ability to run Sideband in headless daemon mode, enable debug logging output, configuration import and export and more, you may want to install it from the source package via `pip` instead.
 
 **Please note!** The very latest Python release, Python 3.13 is currently **not** compatible with the Kivy framework, that Sideband uses to render its user interface. If your version of macOS uses Python 3.13 as its default Python installation, you will need to install an earlier version as well. Using [the latest release of Python 3.12](https://www.python.org/downloads/release/python-3127/) is recommended.
 
