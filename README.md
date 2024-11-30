@@ -288,7 +288,7 @@ You can help support the continued development of open, free and private communi
 
 <br/>
 
-# Development Roadmap
+# Planned Features
 
 - <s>Secure and private location and telemetry sharing</s>
 - <s>Including images in messages</s>
@@ -298,15 +298,15 @@ You can help support the continued development of open, free and private communi
 - <s>Using Sideband as a Reticulum Transport Instance</s>
 - <s>Encryption keys export and import</s>
 - <s>Plugin support for commands, services and telemetry</s>
-- <s>Adding Linux .desktop file integration</s>
 - <s>Sending voice messages (using Codec2 and Opus)</s>
-- Implementing the Local Broadcasts feature
+- <s>Adding a Linux desktop integration</s>
+- <s>Adding prebuilt Windows binaries to the releases</s>
+- <s>Adding prebuilt macOS binaries to the releases</s>
+- Adding a Nomad Net page browser
 - LXMF sneakernet functionality
 - Network visualisation and test tools
-- A debug log viewer
 - Better message sorting mechanism
-- Fix I2P status not being displayed correctly when the I2P router disappears unexpectedly
-- Adding a Nomad Net page browser
+- A debug log viewer
 
 # License
 Unless otherwise noted, this work is licensed under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License][cc-by-nc-sa].
