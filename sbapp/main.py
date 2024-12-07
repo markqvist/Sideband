@@ -229,6 +229,7 @@ else:
         from ui.layouts import *
         from ui.conversations import Conversations, MsgSync, NewConv
         from ui.telemetry import Telemetry
+        from ui.utilities import Utilities
         from ui.objectdetails import ObjectDetails
         from ui.announces import Announces
         from ui.messages import Messages, ts_format, messages_screen_kv
@@ -256,6 +257,7 @@ else:
         from .ui.conversations import Conversations, MsgSync, NewConv
         from .ui.announces import Announces
         from .ui.telemetry import Telemetry
+        from .ui.utilities import Utilities
         from .ui.objectdetails import ObjectDetails
         from .ui.messages import Messages, ts_format, messages_screen_kv
         from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
@@ -342,6 +344,7 @@ class SidebandApp(MDApp):
         self.sync_dialog = None
         self.settings_ready = False
         self.telemetry_ready = False
+        self.utilities_ready = False
         self.connectivity_ready = False
         self.hardware_ready = False
         self.repository_ready = False
@@ -1297,6 +1300,8 @@ class SidebandApp(MDApp):
                             self.close_sub_telemetry_action()
                         elif self.root.ids.screen_manager.current == "icons_screen":
                             self.close_sub_telemetry_action()
+                        elif self.root.ids.screen_manager.current == "utilities_screen":
+                            self.close_sub_utilities_action()
                         else:
                             self.open_conversations(direction="right")
                     
@@ -1336,8 +1341,11 @@ class SidebandApp(MDApp):
                         else:
                             self.telemetry_action(self)
 
-                    if text == "u":
+                    if text == "y":
                         self.map_display_own_telemetry()
+
+                    if text == "u":
+                        self.utilities_action()
 
                     if text == "o":
                         self.objects_action()
@@ -1350,6 +1358,8 @@ class SidebandApp(MDApp):
                                 self.lxmf_sync_action(self)
                         elif self.root.ids.screen_manager.current == "telemetry_screen":
                             self.conversations_action(self, direction="right")
+                        elif self.root.ids.screen_manager.current == "rnstatus_screen":
+                            self.utilities_screen.update_rnstatus()
                         elif self.root.ids.screen_manager.current == "object_details_screen":
                             if not self.object_details_screen.object_hash == self.sideband.lxmf_destination.hash:
                                 self.converse_from_telemetry(self)
@@ -1394,6 +1404,8 @@ class SidebandApp(MDApp):
                         self.close_sub_telemetry_action()
                     elif self.root.ids.screen_manager.current == "icons_screen":
                         self.close_sub_telemetry_action()
+                    elif self.root.ids.screen_manager.current == "rnstatus_screen":
+                        self.close_sub_utilities_action()
                     else:
                         self.open_conversations(direction="right")
 
@@ -5040,6 +5052,44 @@ class SidebandApp(MDApp):
                 ate_dialog.open()
 
 
+    ### Utilities Screen
+    ######################################
+
+    def utilities_init(self):
+        if not self.utilities_ready:
+            self.utilities_screen = Utilities(self)
+            self.utilities_ready = True
+    
+    def utilities_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
+        self.root.ids.screen_manager.current = "utilities_screen"
+        self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
+
+    def utilities_action(self, sender=None, direction="left"):
+        if self.utilities_ready:
+            self.utilities_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.utilities_init()
+                def o(dt):
+                    self.utilities_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
+
+    def close_sub_utilities_action(self, sender=None):
+        self.utilities_action(direction="right")
+
+
     ### Telemetry Screen
     ######################################
 
@@ -5945,7 +5995,7 @@ If you use Reticulum and LXMF on hardware that does not carry any identifiers ti
 
 [b]Quick Actions[/b]
  - [b]Ctrl-W[/b] Go back
- - [b]Ctrl+Q[/b] Shut down Sideband
+ - [b]Ctrl-Q[/b] Shut down Sideband
  - [b]Ctrl-R[/b] Start LXMF sync (from Conversations screen)
  - [b]Ctrl-N[/b] Create new conversation
  
@@ -5968,9 +6018,10 @@ If you use Reticulum and LXMF on hardware that does not carry any identifiers ti
  - [b]Ctrl-O[/b] Go to Objects & Devices
  - [b]Ctrl-L[/b] Go to Announce Stream
  - [b]Ctrl-M[/b] Go to Situation Map
+ - [b]Ctrl-U[/b] Go to Utilities
  - [b]Ctrl-T[/b] Go to Telemetry configuration
  - [b]Ctrl-G[/b] Go to Guide
- - [b]Ctrl-U[/b] Display own telemetry
+ - [b]Ctrl-Y[/b] Display own telemetry
 
 [b]Map Controls[/b]
  - [b]Up[/b], [b]down[/b], [b]left[/b], [b]right[/b] Navigate

@@ -81,6 +81,15 @@ MDNavigationLayout:
 
                                                        
                         OneLineIconListItem:
+                            text: "Overview"
+                            on_release: root.ids.screen_manager.app.overview_action(self)
+                        
+                            IconLeftWidget:
+                                icon: "view-dashboard-outline"
+                                on_release: root.ids.screen_manager.app.overview_action(self)
+
+                                                       
+                        OneLineIconListItem:
                             text: "Announce Stream"
                             on_release: root.ids.screen_manager.app.announces_action(self)
                         
@@ -105,6 +114,15 @@ MDNavigationLayout:
                             IconLeftWidget:
                                 icon: "map-marker-path"
                                 on_release: root.ids.screen_manager.app.telemetry_action(self)
+
+                                                       
+                        OneLineIconListItem:
+                            text: "Utilities"
+                            on_release: root.ids.screen_manager.app.utilities_action(self)
+                        
+                            IconLeftWidget:
+                                icon: "tools"
+                                on_release: root.ids.screen_manager.app.utilities_action(self)
 
                                                        
                         OneLineIconListItem:
