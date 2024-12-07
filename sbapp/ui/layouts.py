@@ -1287,7 +1287,7 @@ layout_settings_screen = """
     MDLabel:
         id: scaling_info
         markup: True
-        text: "You can scale the entire Sideband UI by specifying a scaling factor in the field below. After setting it, restart sideband for the scaling to take effect.\\n\\nSet to 0.0 to disable scaling adjustments."
+        text: "You can scale the entire Sideband UI by specifying a scaling factor in the field below. After setting it, restart sideband for the scaling to take effect.\\n\\nSet to 0.0 to disable scaling adjustments.\\n\\n[b]Please note![/b] On some devices, the default scaling factor will be higher than 1.0, and setting a smaller value will result in miniscule UI elements."
         size_hint_y: None
         text_size: self.width, None
         height: self.texture_size[1]

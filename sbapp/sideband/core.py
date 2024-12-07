@@ -16,6 +16,7 @@ import multiprocessing.connection
 
 from copy import deepcopy
 from threading import Lock
+from collections import deque
 from .res import sideband_fb_data
 from .sense import Telemeter, Commands
 from .plugins import SidebandCommandPlugin, SidebandServicePlugin, SidebandTelemetryPlugin
@@ -110,6 +111,8 @@ class SidebandCore():
 
     DEFAULT_APPEARANCE = ["account", [0,0,0,1], [1,1,1,1]]
 
+    LOG_DEQUE_MAXLEN = 256
+
     aspect_filter = "lxmf.delivery"
     def received_announce(self, destination_hash, announced_identity, app_data):
         # Add the announce to the directory announce
@@ -142,6 +145,7 @@ class SidebandCore():
             self.is_standalone = False
 
         self.log_verbose = verbose
+        self.log_deque = deque(maxlen=self.LOG_DEQUE_MAXLEN)
         self.owner_app = owner_app
         self.reticulum = None
         self.webshare_server = None
@@ -3630,6 +3634,14 @@ class SidebandCore():
         if self.is_client:
             self.service_rpc_set_debug(debug)
 
+    def _log_handler(self, message):
+        self.log_deque.append(message)
+        print(message)
+
+    # TODO: Get service log on Android
+    def get_log(self):
+        return "\n".join(self.log_deque)
+
     def __start_jobs_immediate(self):
         if self.log_verbose:
             selected_level = 6
@@ -3637,7 +3649,7 @@ class SidebandCore():
             selected_level = 2
 
         self.setstate("init.loadingstate", "Substantiating Reticulum")
-        self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=selected_level)
+        self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=selected_level, logdest=self._log_handler)
 
         if self.is_service:
             self.__start_rpc_listener()
