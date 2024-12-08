@@ -111,7 +111,7 @@ class SidebandCore():
 
     DEFAULT_APPEARANCE = ["account", [0,0,0,1], [1,1,1,1]]
 
-    LOG_DEQUE_MAXLEN = 256
+    LOG_DEQUE_MAXLEN = 128
 
     aspect_filter = "lxmf.delivery"
     def received_announce(self, destination_hash, announced_identity, app_data):
