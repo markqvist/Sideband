@@ -2503,30 +2503,35 @@ class SidebandApp(MDApp):
             return "Could not retrieve connectivity status"
     
     def connectivity_status(self, sender):
-        hs = dp(22)
+        if RNS.vendor.platformutils.is_android():
+            hs = dp(22)
+            yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+            dialog = MDDialog(
+                title="Connectivity Status",
+                text=str(self.get_connectivity_text()),
+                buttons=[ yes_button ],
+                # elevation=0,
+            )
+            def cs_updater(dt):
+                dialog.text = str(self.get_connectivity_text())
+            def dl_yes(s):
+                self.connectivity_updater.cancel()
+                dialog.dismiss()
+                if self.connectivity_updater != None:
+                    self.connectivity_updater.cancel()
 
-        yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
-        dialog = MDDialog(
-            title="Connectivity Status",
-            text=str(self.get_connectivity_text()),
-            buttons=[ yes_button ],
-            # elevation=0,
-        )
-        def cs_updater(dt):
-            dialog.text = str(self.get_connectivity_text())
-        def dl_yes(s):
-            self.connectivity_updater.cancel()
-            dialog.dismiss()
+            yes_button.bind(on_release=dl_yes)
+            dialog.open()
+
             if self.connectivity_updater != None:
                 self.connectivity_updater.cancel()
 
-        yes_button.bind(on_release=dl_yes)
-        dialog.open()
+            self.connectivity_updater = Clock.schedule_interval(cs_updater, 2.0)
 
-        if self.connectivity_updater != None:
-            self.connectivity_updater.cancel()
-
-        self.connectivity_updater = Clock.schedule_interval(cs_updater, 2.0)
+        else:
+            if not self.utilities_ready:
+                self.utilities_init()
+            self.utilities_screen.rnstatus_action()
 
     def ingest_lxm_action(self, sender):
         def cb(dt):
