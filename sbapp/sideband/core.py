@@ -160,6 +160,7 @@ class SidebandCore():
         self.telemetry_send_blocked_until = 0
         self.pending_telemetry_request = False
         self.telemetry_request_max_history = 7*24*60*60
+        self.live_tracked_objects = {}
         self.default_lxm_limit = 128*1000
         self.state_db = {}
         self.state_lock = Lock()
@@ -1253,7 +1254,7 @@ class SidebandCore():
             else:
                 return False
 
-    def request_latest_telemetry(self, from_addr=None):
+    def request_latest_telemetry(self, from_addr=None, is_livetrack=False):
         if self.allow_service_dispatch and self.is_client:
             try:
                 return self._service_request_latest_telemetry(from_addr)
@@ -1287,7 +1288,11 @@ class SidebandCore():
                         if self.config["telemetry_use_propagation_only"] == True:
                             desired_method = LXMF.LXMessage.PROPAGATED
                         else:
-                            desired_method = LXMF.LXMessage.DIRECT
+                            if not self.message_router.delivery_link_available(from_addr) and RNS.Identity.current_ratchet_id(from_addr) != None:
+                                RNS.log(f"Have ratchet for {RNS.prettyhexrep(from_addr)}, requesting opportunistic delivery of telemetry request", RNS.LOG_DEBUG)
+                                desired_method = LXMF.LXMessage.OPPORTUNISTIC
+                            else:
+                                desired_method = LXMF.LXMessage.DIRECT
 
                         request_timebase = self.getpersistent(f"telemetry.{RNS.hexrep(from_addr, delimit=False)}.timebase") or now - self.telemetry_request_max_history
                         lxm_fields = { LXMF.FIELD_COMMANDS: [
@@ -1300,7 +1305,7 @@ class SidebandCore():
                         lxm.register_failed_callback(self.telemetry_request_finished)
 
                         if self.message_router.get_outbound_propagation_node() != None:
-                            if self.config["telemetry_try_propagation_on_fail"]:
+                            if self.config["telemetry_try_propagation_on_fail"] and not is_livetrack:
                                 lxm.try_propagation_on_fail = True
 
                         RNS.log(f"Sending telemetry request with timebase {request_timebase}", RNS.LOG_DEBUG)
@@ -1311,6 +1316,62 @@ class SidebandCore():
 
                 else:
                     return "not_sent"
+
+    def _is_tracking(self, object_addr):
+        return object_addr in self.live_tracked_objects
+
+    def is_tracking(self, object_addr, allow_cache=False):
+        if not RNS.vendor.platformutils.is_android():
+            return self._is_tracking(object_addr)
+        else:
+            if self.is_service:
+                return self._is_tracking(object_addr)
+            else:
+                try:
+                    return self.service_rpc_request({"is_tracking": object_addr})
+                except Exception as e:
+                    ed = "Error while getting tracking state over RPC: "+str(e)
+                    RNS.log(ed, RNS.LOG_DEBUG)
+                    return ed
+
+    def _start_tracking(self, object_addr, interval, duration):
+        RNS.log("Starting tracking of "+RNS.prettyhexrep(object_addr), RNS.LOG_DEBUG)
+        self.live_tracked_objects[object_addr] = [interval, 0, time.time()+duration]
+
+    def start_tracking(self, object_addr, interval, duration, allow_cache=False):
+        if not RNS.vendor.platformutils.is_android():
+            return self._start_tracking(object_addr, interval, duration)
+        else:
+            if self.is_service:
+                return self._start_tracking(object_addr, interval, duration)
+            else:
+                try:
+                    args = {"object_addr": object_addr, "interval": interval, "duration": duration}
+                    return self.service_rpc_request({"start_tracking": args})
+                except Exception as e:
+                    ed = "Error while starting tracking over RPC: "+str(e)
+                    RNS.log(ed, RNS.LOG_DEBUG)
+                    return ed
+
+    def _stop_tracking(self, object_addr):
+        RNS.log("Stopping tracking of "+RNS.prettyhexrep(object_addr), RNS.LOG_DEBUG)
+        if object_addr in self.live_tracked_objects:
+            self.live_tracked_objects.pop(object_addr)
+
+    def stop_tracking(self, object_addr, allow_cache=False):
+        if not RNS.vendor.platformutils.is_android():
+            return self._stop_tracking(object_addr)
+        else:
+            if self.is_service:
+                return self._stop_tracking(object_addr)
+            else:
+                try:
+                    args = {"object_addr": object_addr}
+                    return self.service_rpc_request({"stop_tracking": args})
+                except Exception as e:
+                    ed = "Error while stopping tracking over RPC: "+str(e)
+                    RNS.log(ed, RNS.LOG_DEBUG)
+                    return ed
 
     def _service_send_latest_telemetry(self, to_addr=None, stream=None, is_authorized_telemetry_request=False):
         if not RNS.vendor.platformutils.is_android():
@@ -1367,7 +1428,11 @@ class SidebandCore():
                         if self.config["telemetry_use_propagation_only"] == True:
                             desired_method = LXMF.LXMessage.PROPAGATED
                         else:
-                            desired_method = LXMF.LXMessage.DIRECT
+                            if not self.message_router.delivery_link_available(to_addr) and RNS.Identity.current_ratchet_id(to_addr) != None:
+                                RNS.log(f"Have ratchet for {RNS.prettyhexrep(to_addr)}, requesting opportunistic delivery of telemetry", RNS.LOG_DEBUG)
+                                desired_method = LXMF.LXMessage.OPPORTUNISTIC
+                            else:
+                                desired_method = LXMF.LXMessage.DIRECT
 
                         lxm_fields = self.get_message_fields(to_addr, is_authorized_telemetry_request=is_authorized_telemetry_request, signal_already_sent=True)
                         if lxm_fields == False and stream == None:
@@ -1778,6 +1843,14 @@ class SidebandCore():
                                 elif "get_lxm_stamp_cost" in call:
                                     args = call["get_lxm_stamp_cost"]
                                     connection.send(self.get_lxm_stamp_cost(args["lxm_hash"]))
+                                elif "is_tracking" in call:
+                                    connection.send(self.is_tracking(call["is_tracking"]))
+                                elif "start_tracking" in call:
+                                    args = call["start_tracking"]
+                                    connection.send(self.start_tracking(object_addr=args["object_addr"], interval=args["interval"], duration=args["duration"]))
+                                elif "stop_tracking" in call:
+                                    args = call["stop_tracking"]
+                                    connection.send(self.stop_tracking(object_addr=args["object_addr"]))
                                 else:
                                     connection.send(None)
 
@@ -3402,6 +3475,28 @@ class SidebandCore():
 
                             except Exception as e:
                                 RNS.log("An error occurred while requesting scheduled telemetry from collector: "+str(e), RNS.LOG_ERROR)
+
+                stale_entries = []
+                if len(self.live_tracked_objects) > 0:
+                    now = time.time()
+                    for object_hash in self.live_tracked_objects:
+                        tracking_entry = self.live_tracked_objects[object_hash]
+                        tracking_int   = tracking_entry[0]
+                        tracking_last  = tracking_entry[1]
+                        tracking_end   = tracking_entry[2]
+
+                        if now < tracking_end:
+                            if now > tracking_last+tracking_int:
+                                RNS.log("Next live tracking request time reached for "+str(RNS.prettyhexrep(object_hash)))
+                                self.request_latest_telemetry(from_addr=object_hash, is_livetrack=True)
+                                tracking_entry[1] = time.time()
+                        else:
+                            stale_entries.append(object_hash)
+
+                    for object_hash in stale_entries:
+                        RNS.log("Terminating live tracking for "+RNS.prettyhexrep(object_hash)+", tracking duration reached", RNS.LOG_DEBUG)
+                        self.live_tracked_objects.pop(object_hash)
+
 
     def __start_jobs_deferred(self):
         if self.is_service:

@@ -148,6 +148,15 @@ class ObjectDetails():
                     else:
                         self.from_objects = False
 
+            if self.viewing_self:
+                self.screen.ids.track_button.disabled = True
+            else:
+                self.screen.ids.track_button.disabled = False
+                if self.app.sideband.is_tracking(source_dest):
+                    self.screen.ids.track_button.text = "Stop Live Tracking"
+                else:
+                    self.screen.ids.track_button.text = "Start Live Tracking"
+
             self.coords = None
             self.telemetry_list.data = []
             pds = multilingual_markup(escape_markup(str(self.app.sideband.peer_display_name(source_dest))).encode("utf-8")).decode("utf-8")
@@ -217,6 +226,15 @@ class ObjectDetails():
     def reload(self):
         self.clear_widget()
         self.update()
+
+    def live_tracking(self, sender):
+        if not self.viewing_self:
+            if not self.app.sideband.is_tracking(self.object_hash):
+                self.app.sideband.start_tracking(self.object_hash, interval=59, duration=7*24*60*60)
+                self.screen.ids.track_button.text = "Stop Live Tracking"
+            else:
+                self.app.sideband.stop_tracking(self.object_hash)
+                self.screen.ids.track_button.text = "Start Live Tracking"
 
     def send_update(self):
         if not self.viewing_self:
@@ -643,10 +661,9 @@ class RVDetails(MDRecycleView):
                             alt_str = RNS.prettydistance(alt)
                         formatted_values = f"Coordinates [b]{fcoords}[/b], altitude [b]{alt_str}[/b]"
                         if speed != None:
-                            if speed > 0.02:
+                            if speed > 0.1:
                                 speed_formatted_values = f"Speed [b]{speed} Km/h[/b], heading [b]{heading}°[/b]"
                             else:
-                                # speed_formatted_values = f"Speed [b]0 Km/h[/b]"
                                 speed_formatted_values = f"Object is [b]stationary[/b]"
                         else:
                             speed_formatted_values = None
@@ -972,22 +989,22 @@ MDScreen:
                 on_release: root.delegate.request_update()
                 disabled: False
 
-        # MDBoxLayout:
-        #     orientation: "horizontal"
-        #     spacing: dp(16)
-        #     size_hint_y: None
-        #     height: self.minimum_height
-        #     padding: [dp(24), dp(16), dp(24), dp(24)]
+        MDBoxLayout:
+            orientation: "horizontal"
+            spacing: dp(16)
+            size_hint_y: None
+            height: self.minimum_height
+            padding: [dp(24), dp(0), dp(24), dp(24)]
 
-        #     MDRectangleFlatIconButton:
-        #         id: delete_button
-        #         icon: "trash-can-outline"
-        #         text: "Delete All Telemetry"
-        #         padding: [dp(0), dp(14), dp(0), dp(14)]
-        #         icon_size: dp(24)
-        #         font_size: dp(16)
-        #         size_hint: [1.0, None]
-        #         on_release: root.delegate.copy_telemetry(self)
-        #         disabled: False
+            MDRectangleFlatIconButton:
+                id: track_button
+                icon: "crosshairs-gps"
+                text: "Start Live Tracking"
+                padding: [dp(0), dp(14), dp(0), dp(14)]
+                icon_size: dp(24)
+                font_size: dp(16)
+                size_hint: [1.0, None]
+                on_release: root.delegate.live_tracking(self)
+                disabled: False
                 
 """

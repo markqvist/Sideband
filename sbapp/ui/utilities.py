@@ -39,13 +39,13 @@ class Utilities():
             self.app.root.ids.screen_manager.add_widget(self.screen)
         
         self.screen.ids.telemetry_scrollview.effect_cls = ScrollEffect
-        info  = "\nYou can use various RNS utilities from Sideband. "
-        info += ""
+        info  = "This section contains various utilities and diagnostics tools, "
+        info += "that can be helpful while using Sideband and Reticulum."
         
         if self.app.theme_cls.theme_style == "Dark":
             info = "[color=#"+self.app.dark_theme_text_color+"]"+info+"[/color]"
         
-        self.screen.ids.telemetry_info.text = info
+        self.screen.ids.utilities_info.text = info
 
 
     ### rnstatus screen
@@ -151,14 +151,14 @@ MDScreen:
                 orientation: "vertical"
                 size_hint_y: None
                 height: self.minimum_height
-                padding: [dp(28), dp(48), dp(28), dp(16)]
+                padding: [dp(28), dp(32), dp(28), dp(16)]
+
+                # MDLabel:
+                #     text: "Utilities & Tools"
+                #     font_style: "H6"
 
                 MDLabel:
-                    text: "Utilities & Tools"
-                    font_style: "H6"
-
-                MDLabel:
-                    id: telemetry_info
+                    id: utilities_info
                     markup: True
                     text: ""
                     size_hint_y: None
@@ -192,6 +192,17 @@ MDScreen:
                         font_size: dp(16)
                         size_hint: [1.0, None]
                         on_release: root.delegate.logviewer_action(self)
+                        disabled: False
+
+                    MDRectangleFlatIconButton:
+                        id: advanced_button
+                        icon: "network-pos"
+                        text: "Advanced RNS Configuration"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.delegate.advanced_action(self)
                         disabled: False
                 
 """
