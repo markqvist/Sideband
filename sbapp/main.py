@@ -24,8 +24,8 @@ import base64
 import threading
 import RNS.vendor.umsgpack as msgpack
 
-WINDOW_DEFAULT_WIDTH  = "480"
-WINDOW_DEFAULT_HEIGHT = "750"
+WINDOW_DEFAULT_WIDTH  = "494"
+WINDOW_DEFAULT_HEIGHT = "800"
 
 app_ui_scaling_path = None
 def apply_ui_scale():
