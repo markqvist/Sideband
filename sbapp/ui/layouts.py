@@ -80,13 +80,13 @@ MDNavigationLayout:
                                 on_release: root.ids.screen_manager.app.map_action(self)
 
                                                        
-                        OneLineIconListItem:
-                            text: "Overview"
-                            on_release: root.ids.screen_manager.app.overview_action(self)
+                        # OneLineIconListItem:
+                        #     text: "Overview"
+                        #     on_release: root.ids.screen_manager.app.overview_action(self)
                         
-                            IconLeftWidget:
-                                icon: "view-dashboard-outline"
-                                on_release: root.ids.screen_manager.app.overview_action(self)
+                        #     IconLeftWidget:
+                        #         icon: "view-dashboard-outline"
+                        #         on_release: root.ids.screen_manager.app.overview_action(self)
 
                                                        
                         OneLineIconListItem:
