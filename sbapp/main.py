@@ -24,6 +24,9 @@ import base64
 import threading
 import RNS.vendor.umsgpack as msgpack
 
+WINDOW_DEFAULT_WIDTH  = "480"
+WINDOW_DEFAULT_HEIGHT = "750"
+
 app_ui_scaling_path = None
 def apply_ui_scale():
     global app_ui_scaling_path
@@ -170,6 +173,11 @@ if not args.daemon:
     if RNS.vendor.platformutils.get_platform() != "android":
         local = os.path.dirname(__file__)
         sys.path.append(local)
+
+    if not RNS.vendor.platformutils.is_android():
+        from kivy.config import Config
+        Config.set("graphics", "width", WINDOW_DEFAULT_WIDTH)
+        Config.set("graphics", "height", WINDOW_DEFAULT_HEIGHT)
 
 if args.daemon:
     from .sideband.core import SidebandCore
