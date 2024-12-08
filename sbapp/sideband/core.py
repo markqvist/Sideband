@@ -544,7 +544,7 @@ class SidebandCore():
         if not "eink_mode" in self.config:
             self.config["eink_mode"] = False
         if not "display_style_in_contact_list" in self.config:
-            self.config["display_style_in_contact_list"] = False
+            self.config["display_style_in_contact_list"] = True
         if not "lxm_limit_1mb" in self.config:
             self.config["lxm_limit_1mb"] = True
         if not "hq_ptt" in self.config:
@@ -676,11 +676,11 @@ class SidebandCore():
         if not "telemetry_bg" in self.config:
             self.config["telemetry_bg"] = SidebandCore.DEFAULT_APPEARANCE[2]
         if not "telemetry_send_appearance" in self.config:
-            self.config["telemetry_send_appearance"] = False
+            self.config["telemetry_send_appearance"] = True
         if not "telemetry_display_trusted_only" in self.config:
             self.config["telemetry_display_trusted_only"] = False
         if not "display_style_from_all" in self.config:
-            self.config["display_style_from_all"] = False
+            self.config["display_style_from_all"] = True
         if not "telemetry_receive_trusted_only" in self.config:
             self.config["telemetry_receive_trusted_only"] = False
 

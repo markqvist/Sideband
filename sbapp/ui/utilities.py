@@ -81,7 +81,7 @@ class Utilities():
                 output = buffer.getvalue()
 
         def cb(dt):
-            self.rnstatus_screen.ids.rnstatus_output.text = f"[font=RobotoMono-Regular]{output}[/font]"
+            self.rnstatus_screen.ids.rnstatus_output.text = f"[font=RobotoMono-Regular][size={int(dp(12))}]{output}[/size][/font]"
         Clock.schedule_once(cb, 0.2)
 
         if self.app.root.ids.screen_manager.current == "rnstatus_screen":
@@ -114,7 +114,7 @@ class Utilities():
 
         self.logviewer_screen.log_contents = output
         def cb(dt):
-            self.logviewer_screen.ids.logviewer_output.text = f"[font=RobotoMono-Regular]{output}[/font]"
+            self.logviewer_screen.ids.logviewer_output.text = f"[font=RobotoMono-Regular][size={int(dp(12))}]{output}[/size][/font]"
         Clock.schedule_once(cb, 0.2)
 
         if self.app.root.ids.screen_manager.current == "logviewer_screen":

@@ -1406,6 +1406,8 @@ class SidebandApp(MDApp):
                         self.close_sub_telemetry_action()
                     elif self.root.ids.screen_manager.current == "rnstatus_screen":
                         self.close_sub_utilities_action()
+                    elif self.root.ids.screen_manager.current == "logviewer_screen":
+                        self.close_sub_utilities_action()
                     else:
                         self.open_conversations(direction="right")
 
