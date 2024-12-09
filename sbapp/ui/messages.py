@@ -653,6 +653,14 @@ class Messages():
                 item.ids.content_text.owner = item
                 item.ids.content_text.bind(texture_size=check_textures)
 
+                def cbf(w):
+                    def x(dt):
+                        if w.texture_size[0] == 0 and w.texture_size[1] == 0:
+                            w.text = "[i]This message could not be rendered, likely due to an error in its markup. Falling back to plain-text rendering.[/i]\n\n"+escape_markup(w.text)
+                    return x
+
+                Clock.schedule_once(cbf(item.ids.content_text), 0.25)
+
                 if not RNS.vendor.platformutils.is_android():
                     item.radius = dp(5)
 

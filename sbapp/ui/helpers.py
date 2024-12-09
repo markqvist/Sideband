@@ -45,10 +45,6 @@ def strip_emojis(str_input):
     return output
 
 def multilingual_markup(data):
-    # TODO: Remove
-    # import time
-    # ts = time.time()
-
     do = ""
     rfont = "default"
     ds = data.decode("utf-8")
@@ -94,6 +90,10 @@ def multilingual_markup(data):
     # print(do+"\n\n"+str(time.time()-ts))
 
     return do.encode("utf-8")
+
+font_map = {
+    "mono": "RobotoMono-Regular"
+}
 
 codepoint_map = {
     0x0590: [0x05ff, "hebrew"],
