@@ -3043,6 +3043,10 @@ class SidebandApp(MDApp):
                 self.sideband.save_configuration()
                 self.sideband.setstate("wants.viewupdate.conversations", True)
 
+            def save_trusted_markup_only(sender=None, event=None):
+                self.sideband.config["trusted_markup_only"] = self.settings_screen.ids.settings_trusted_markup_only.active
+                self.sideband.save_configuration()
+
             def save_advanced_stats(sender=None, event=None):
                 self.sideband.config["advanced_stats"] = self.settings_screen.ids.settings_advanced_statistics.active
                 self.sideband.save_configuration()
@@ -3214,6 +3218,9 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.settings_lxmf_ignore_unknown.active = self.sideband.config["lxmf_ignore_unknown"]
             self.settings_screen.ids.settings_lxmf_ignore_unknown.bind(active=save_lxmf_ignore_unknown)
+
+            self.settings_screen.ids.settings_trusted_markup_only.active = self.sideband.config["trusted_markup_only"]
+            self.settings_screen.ids.settings_trusted_markup_only.bind(active=save_trusted_markup_only)
 
             self.settings_screen.ids.settings_ignore_invalid_stamps.active = self.sideband.config["lxmf_ignore_invalid_stamps"]
             self.settings_screen.ids.settings_ignore_invalid_stamps.bind(active=save_lxmf_ignore_invalid_stamps)

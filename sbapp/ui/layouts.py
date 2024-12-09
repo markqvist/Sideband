@@ -1631,6 +1631,22 @@ MDScreen:
                     height: dp(48)
                     
                     MDLabel:
+                        text: "Only render markup from trusted"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: settings_trusted_markup_only
+                        pos_hint: {"center_y": 0.3}
+                        disabled: False
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
                         text: "Limit incoming messages to 1MB"
                         font_style: "H6"
 

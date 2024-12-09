@@ -133,6 +133,7 @@ class Conversations():
         unread = conv["unread"]
         last_activity = conv["last_activity"]
         trusted = conv["trust"] == 1
+        appearance_from_all = self.app.sideband.config["display_style_from_all"]
         appearance = self.app.sideband.peer_appearance(context_dest, conv=conv)
         is_object = self.app.sideband.is_object(context_dest, conv_data=conv)
         da = self.app.sideband.DEFAULT_APPEARANCE
@@ -141,7 +142,7 @@ class Conversations():
         conv_icon = self.trust_icon(conv)
         fg = None; bg = None; ti_color = None
 
-        if trusted and self.app.sideband.config["display_style_in_contact_list"] and appearance != None and appearance != da:
+        if (trusted or appearance_from_all) and self.app.sideband.config["display_style_in_contact_list"] and appearance != None and appearance != da:
             fg = appearance[1] or da[1]; bg = appearance[2] or da[2]
             ti_color = "Custom"
         else:

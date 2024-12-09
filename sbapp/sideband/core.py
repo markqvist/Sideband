@@ -410,6 +410,7 @@ class SidebandCore():
         self.config["print_command"] = "lp"
         self.config["eink_mode"] = False
         self.config["lxm_limit_1mb"] = True
+        self.config["trusted_markup_only"] = False
 
         # Connectivity
         self.config["connect_transport"] = False
@@ -550,6 +551,8 @@ class SidebandCore():
             self.config["lxm_limit_1mb"] = True
         if not "hq_ptt" in self.config:
             self.config["hq_ptt"] = False
+        if not "trusted_markup_only" in self.config:
+            self.config["trusted_markup_only"] = False
 
         if not "input_language" in self.config:
             self.config["input_language"] = None

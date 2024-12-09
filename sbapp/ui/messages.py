@@ -378,7 +378,7 @@ class Messages():
         for m in self.new_messages:
             if not m["hash"] in self.added_item_hashes:
                 try:
-                    if not self.is_trusted:
+                    if self.app.sideband.config["trusted_markup_only"] and not self.is_trusted:
                         message_input = str( escape_markup(m["content"].decode("utf-8")) ).encode("utf-8")
                     else:
                         message_input = m["content"]
