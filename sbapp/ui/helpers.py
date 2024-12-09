@@ -4,6 +4,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.theming import ThemableBehavior
 from kivymd.uix.list import OneLineIconListItem, MDList, IconLeftWidget, IconRightWidget
 from kivy.properties import StringProperty
+import re
 
 ts_format = "%Y-%m-%d %H:%M:%S"
 file_ts_format = "%Y_%m_%d_%H_%M_%S"
@@ -48,6 +49,9 @@ def multilingual_markup(data):
     do = ""
     rfont = "default"
     ds = data.decode("utf-8")
+    di = 0
+    persistent_regions = [(m.start(), m.end()) for m in re.finditer("(?s)\[font=(?:nf|term)\].*?\[/font\]", ds)]
+
     for cp in ds:
         match = False
         switch = False
@@ -59,6 +63,10 @@ def multilingual_markup(data):
                 switch = True
                 rfont = "emoji"
 
+        in_persistent = False
+        if any(x[0] < di and x[1] > di for x in persistent_regions):
+            in_persistent = True
+
         if not match:
             for range_start in codepoint_map:
                 range_end = codepoint_map[range_start][0]
@@ -67,8 +75,9 @@ def multilingual_markup(data):
                 if range_end >= ord(cp) >= range_start:
                     match = True
                     if rfont != mapped_font:
-                        rfont = mapped_font
-                        switch = True               
+                        if not in_persistent:
+                            rfont = mapped_font
+                            switch = True
                     break
 
         if (not match) and rfont != "default":
@@ -82,12 +91,15 @@ def multilingual_markup(data):
                 do += "[font="+str(rfont)+"]"
 
         do += cp
+        di += 1
 
     if rfont != "default":
         do += "[/font]"
 
     return do.encode("utf-8")
 
+persistent_fonts = ["nf", "term"]
+nf_mapped = "nf"
 
 codepoint_map = {
     0x0590: [0x05ff, "hebrew"],
@@ -122,6 +134,29 @@ codepoint_map = {
     0xac00: [0xd7af, "korean"],
     0xd7b0: [0xd7ff, "korean"],
     0x0900: [0x097f, "combined"], # Devanagari
+    0xe5fa: [0xe6b7, nf_mapped],   # Seti-UI + Custom
+    0xe700: [0xe8ef, nf_mapped],   # Devicons
+    0xed00: [0xf2ff, nf_mapped],   # Font Awesome
+    0xe200: [0xe2a9, nf_mapped],   # Font Awesome Extension
+    0xf0001: [0xf1af0, nf_mapped], # Material Design Icons
+    0xe300: [0xe3e3, nf_mapped],   # Weather
+    0xf400: [0xf533, nf_mapped],   # Octicons
+    0x2665: [0x2665, nf_mapped],   # Octicons
+    0x26a1: [0x26a1, nf_mapped],   # Octicons
+    0xe0a0: [0xe0a2, nf_mapped],   # Powerline Symbols
+    0xe0b0: [0xe0b3, nf_mapped],   # Powerline Symbols
+    0xe0a3: [0xe0a3, nf_mapped],   # Powerline Extra Symbols
+    0xe0b4: [0xe0c8, nf_mapped],   # Powerline Extra Symbols
+    0xe0ca: [0xe0ca, nf_mapped],   # Powerline Extra Symbols
+    0xe0cc: [0xe0d7, nf_mapped],   # Powerline Extra Symbols
+    0x23fb: [0x23fe, nf_mapped],   # IEC Power Symbols
+    0x2b58: [0x2b58, nf_mapped],   # IEC Power Symbols
+    0xf300: [0xf381, nf_mapped],   # Font logos
+    0xe000: [0xe00a, nf_mapped],   # Pomicons
+    0xea60: [0xec1e, nf_mapped],   # Codicons
+    0x276c: [0x2771, nf_mapped],   # Heavy Angle Brackets
+    0x2500: [0x259f, nf_mapped],   # Box Drawing
+    0xee00: [0xee0b, nf_mapped],   # Progress
 }
 
 emoji_lookup = [
