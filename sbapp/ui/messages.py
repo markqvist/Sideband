@@ -656,7 +656,12 @@ class Messages():
                 def cbf(w):
                     def x(dt):
                         if w.texture_size[0] == 0 and w.texture_size[1] == 0:
-                            w.text = "[i]This message could not be rendered, likely due to an error in its markup. Falling back to plain-text rendering.[/i]\n\n"+escape_markup(w.text)
+                            w.markup = False
+                            escaped_content = escape_markup(w.text)
+                            def deferred(dt):
+                                w.text = "[i]This message could not be rendered correctly, likely due to an error in its markup. Falling back to plain-text rendering.[/i]\n\n"+escaped_content
+                                w.markup = True
+                            Clock.schedule_once(deferred, 0.1)
                     return x
 
                 Clock.schedule_once(cbf(item.ids.content_text), 0.25)

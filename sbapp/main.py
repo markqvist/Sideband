@@ -566,6 +566,15 @@ class SidebandApp(MDApp):
             fn_italic=fb_path+"NotoSans-Italic.ttf",
             fn_bolditalic=fb_path+"NotoSans-BoldItalic.ttf")
 
+        LabelBase.register(name="mono",
+            fn_regular=fb_path+"RobotoMonoNerdFont-Regular.ttf")
+
+        LabelBase.register(name="term",
+            fn_regular=fb_path+"BigBlueTerm437NerdFont-Regular.ttf")
+
+        LabelBase.register(name="nf",
+            fn_regular=fb_path+"RobotoMonoNerdFont-Regular.ttf")
+
     def update_input_language(self):
         language = self.sideband.config["input_language"]
         if language == None:

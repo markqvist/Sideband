@@ -86,14 +86,8 @@ def multilingual_markup(data):
     if rfont != "default":
         do += "[/font]"
 
-    # TODO: Remove
-    # print(do+"\n\n"+str(time.time()-ts))
-
     return do.encode("utf-8")
 
-font_map = {
-    "mono": "RobotoMono-Regular"
-}
 
 codepoint_map = {
     0x0590: [0x05ff, "hebrew"],
