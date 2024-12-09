@@ -35,13 +35,13 @@ if RNS.vendor.platformutils.get_platform() == "android":
     from sideband.sense import Telemeter, Commands
     from ui.helpers import ts_format, file_ts_format, mdc
     from ui.helpers import color_playing, color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light, intensity_play_dark, intensity_play_light
-    from ui.helpers import color_received_alt, color_received_alt_light, color_delivered_alt, color_propagated_alt, color_paper_alt, color_failed_alt, color_unknown_alt, color_playing_alt, intensity_msgs_dark_alt, intensity_msgs_light_alt
+    from ui.helpers import color_received_alt, color_received_alt_light, color_delivered_alt, color_propagated_alt, color_paper_alt, color_failed_alt, color_unknown_alt, color_playing_alt, intensity_msgs_dark_alt, intensity_msgs_light_alt, intensity_delivered_alt_dark
 else:
     import sbapp.plyer as plyer
     from sbapp.sideband.sense import Telemeter, Commands
     from .helpers import ts_format, file_ts_format, mdc
     from .helpers import color_playing, color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light, intensity_play_dark, intensity_play_light
-    from .helpers import color_received_alt, color_received_alt_light, color_delivered_alt, color_propagated_alt, color_paper_alt, color_failed_alt, color_unknown_alt, color_playing_alt, intensity_msgs_dark_alt, intensity_msgs_light_alt
+    from .helpers import color_received_alt, color_received_alt_light, color_delivered_alt, color_propagated_alt, color_paper_alt, color_failed_alt, color_unknown_alt, color_playing_alt, intensity_msgs_dark_alt, intensity_msgs_light_alt, intensity_delivered_alt_dark
 
 if RNS.vendor.platformutils.is_darwin():
     from PIL import Image as PilImage
@@ -264,16 +264,20 @@ class Messages():
             if self.app.sideband.config["dark_ui"]:
                 intensity_msgs = intensity_msgs_dark
                 intensity_play = intensity_play_dark
+                intensity_delivered = intensity_msgs
             else:
                 intensity_msgs = intensity_msgs_light
                 intensity_play = intensity_play_light
+                intensity_delivered = intensity_msgs
         else:
             if self.app.sideband.config["dark_ui"]:
                 intensity_msgs = intensity_msgs_dark_alt
                 intensity_play = intensity_play_dark
+                intensity_delivered = intensity_delivered_alt_dark
             else:
                 intensity_msgs = intensity_msgs_light_alt
                 intensity_play = intensity_play_light
+                intensity_delivered = intensity_msgs
 
         for w in self.widgets:
             m = w.m
@@ -332,7 +336,7 @@ class Messages():
 
 
                     if msg["state"] == LXMF.LXMessage.DELIVERED:
-                        w.md_bg_color = msg_color = mdc(c_delivered, intensity_msgs)
+                        w.md_bg_color = msg_color = mdc(c_delivered, intensity_delivered)
                         txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
                         titlestr = ""
                         if msg["title"]:
@@ -393,19 +397,23 @@ class Messages():
             if self.app.sideband.config["dark_ui"]:
                 intensity_msgs = intensity_msgs_dark
                 intensity_play = intensity_play_dark
+                intensity_delivered = intensity_msgs
                 mt_color = [1.0, 1.0, 1.0, 0.8]
             else:
                 intensity_msgs = intensity_msgs_light
                 intensity_play = intensity_play_light
+                intensity_delivered = intensity_msgs
                 mt_color = [1.0, 1.0, 1.0, 0.95]
         else:
             if self.app.sideband.config["dark_ui"]:
                 intensity_msgs = intensity_msgs_dark_alt
                 intensity_play = intensity_play_dark
+                intensity_delivered = intensity_delivered_alt_dark
                 mt_color = [1.0, 1.0, 1.0, 0.8]
             else:
                 intensity_msgs = intensity_msgs_light_alt
                 intensity_play = intensity_play_light
+                intensity_delivered = intensity_msgs
                 mt_color = [1.0, 1.0, 1.0, 0.95]
 
         if not self.app.sideband.config["classic_message_colors"]:
@@ -582,7 +590,7 @@ class Messages():
 
                 if m["source"] == self.app.sideband.lxmf_destination.hash:
                     if m["state"] == LXMF.LXMessage.DELIVERED:
-                        msg_color = mdc(c_delivered, intensity_msgs)
+                        msg_color = mdc(c_delivered, intensity_delivered)
                         heading_str = titlestr+"[b]Sent[/b] "+txstr+delivery_syms+"\n[b]State[/b] Delivered"
 
                     elif m["method"] == LXMF.LXMessage.PROPAGATED and m["state"] == LXMF.LXMessage.SENT:
