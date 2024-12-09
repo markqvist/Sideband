@@ -35,11 +35,13 @@ if RNS.vendor.platformutils.get_platform() == "android":
     from sideband.sense import Telemeter, Commands
     from ui.helpers import ts_format, file_ts_format, mdc
     from ui.helpers import color_playing, color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light, intensity_play_dark, intensity_play_light
+    from ui.helpers import color_received_alt, color_received_alt_light, color_delivered_alt, color_propagated_alt, color_paper_alt, color_failed_alt, color_unknown_alt, color_playing_alt, intensity_msgs_dark_alt, intensity_msgs_light_alt
 else:
     import sbapp.plyer as plyer
     from sbapp.sideband.sense import Telemeter, Commands
     from .helpers import ts_format, file_ts_format, mdc
     from .helpers import color_playing, color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light, intensity_play_dark, intensity_play_light
+    from .helpers import color_received_alt, color_received_alt_light, color_delivered_alt, color_propagated_alt, color_paper_alt, color_failed_alt, color_unknown_alt, color_playing_alt, intensity_msgs_dark_alt, intensity_msgs_light_alt
 
 if RNS.vendor.platformutils.is_darwin():
     from PIL import Image as PilImage
@@ -203,6 +205,23 @@ class Messages():
                 self.ids.message_text.input_type = "text"
                 self.ids.message_text.keyboard_suggestions = True
 
+        if not self.app.sideband.config["classic_message_colors"]:
+            c_delivered  = color_delivered_alt
+            c_received   = color_received_alt
+            c_propagated = color_propagated_alt
+            c_playing    = color_playing_alt
+            c_paper      = color_paper_alt
+            c_unknown    = color_unknown_alt
+            c_failed     = color_failed_alt
+        else:
+            c_delivered  = color_delivered
+            c_received   = color_received
+            c_propagated = color_propagated
+            c_playing    = color_playing
+            c_paper      = color_paper
+            c_unknown    = color_unknown
+            c_failed     = color_failed
+
         for new_message in self.app.sideband.list_messages(self.context_dest, after=self.latest_message_timestamp,limit=limit):
             self.new_messages.append(new_message)
 
@@ -241,12 +260,20 @@ class Messages():
         if (len(self.added_item_hashes) < self.db_message_count) and not self.load_more_button in self.list.children:
             self.list.add_widget(self.load_more_button, len(self.list.children))
 
-        if self.app.sideband.config["dark_ui"]:
-            intensity_msgs = intensity_msgs_dark
-            intensity_play = intensity_play_dark
+        if self.app.sideband.config["classic_message_colors"]:
+            if self.app.sideband.config["dark_ui"]:
+                intensity_msgs = intensity_msgs_dark
+                intensity_play = intensity_play_dark
+            else:
+                intensity_msgs = intensity_msgs_light
+                intensity_play = intensity_play_light
         else:
-            intensity_msgs = intensity_msgs_light
-            intensity_play = intensity_play_light
+            if self.app.sideband.config["dark_ui"]:
+                intensity_msgs = intensity_msgs_dark_alt
+                intensity_play = intensity_play_dark
+            else:
+                intensity_msgs = intensity_msgs_light_alt
+                intensity_play = intensity_play_light
 
         for w in self.widgets:
             m = w.m
@@ -271,7 +298,7 @@ class Messages():
                     delivery_syms = multilingual_markup(delivery_syms.encode("utf-8")).decode("utf-8")
 
                     if msg["state"] == LXMF.LXMessage.OUTBOUND or msg["state"] == LXMF.LXMessage.SENDING or msg["state"] == LXMF.LXMessage.SENT:
-                        w.md_bg_color = msg_color = mdc(color_unknown, intensity_msgs)
+                        w.md_bg_color = msg_color = mdc(c_unknown, intensity_msgs)
                         txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
                         titlestr = ""
                         prgstr = ""
@@ -305,7 +332,7 @@ class Messages():
 
 
                     if msg["state"] == LXMF.LXMessage.DELIVERED:
-                        w.md_bg_color = msg_color = mdc(color_delivered, intensity_msgs)
+                        w.md_bg_color = msg_color = mdc(c_delivered, intensity_msgs)
                         txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
                         titlestr = ""
                         if msg["title"]:
@@ -317,7 +344,7 @@ class Messages():
                         m["state"] = msg["state"]
 
                     if msg["method"] == LXMF.LXMessage.PAPER:
-                        w.md_bg_color = msg_color = mdc(color_paper, intensity_msgs)
+                        w.md_bg_color = msg_color = mdc(c_paper, intensity_msgs)
                         txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
                         titlestr = ""
                         if msg["title"]:
@@ -326,7 +353,7 @@ class Messages():
                         m["state"] = msg["state"]
 
                     if msg["method"] == LXMF.LXMessage.PROPAGATED and msg["state"] == LXMF.LXMessage.SENT:
-                        w.md_bg_color = msg_color = mdc(color_propagated, intensity_msgs)
+                        w.md_bg_color = msg_color = mdc(c_propagated, intensity_msgs)
                         txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
                         titlestr = ""
                         if msg["title"]:
@@ -338,7 +365,7 @@ class Messages():
                         m["state"] = msg["state"]
 
                     if msg["state"] == LXMF.LXMessage.FAILED:
-                        w.md_bg_color = msg_color = mdc(color_failed, intensity_msgs)
+                        w.md_bg_color = msg_color = mdc(c_failed, intensity_msgs)
                         txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
                         titlestr = ""
                         if msg["title"]:
@@ -361,14 +388,45 @@ class Messages():
             wid.height, wid.size_hint_y, wid.opacity, wid.disabled = 0, None, 0, True
 
     def update_widget(self):
-        if self.app.sideband.config["dark_ui"]:
-            intensity_msgs = intensity_msgs_dark
-            intensity_play = intensity_play_dark
-            mt_color = [1.0, 1.0, 1.0, 0.8]
+
+        if self.app.sideband.config["classic_message_colors"]:
+            if self.app.sideband.config["dark_ui"]:
+                intensity_msgs = intensity_msgs_dark
+                intensity_play = intensity_play_dark
+                mt_color = [1.0, 1.0, 1.0, 0.8]
+            else:
+                intensity_msgs = intensity_msgs_light
+                intensity_play = intensity_play_light
+                mt_color = [1.0, 1.0, 1.0, 0.95]
         else:
-            intensity_msgs = intensity_msgs_light
-            intensity_play = intensity_play_light
-            mt_color = [1.0, 1.0, 1.0, 0.95]
+            if self.app.sideband.config["dark_ui"]:
+                intensity_msgs = intensity_msgs_dark_alt
+                intensity_play = intensity_play_dark
+                mt_color = [1.0, 1.0, 1.0, 0.8]
+            else:
+                intensity_msgs = intensity_msgs_light_alt
+                intensity_play = intensity_play_light
+                mt_color = [1.0, 1.0, 1.0, 0.95]
+
+        if not self.app.sideband.config["classic_message_colors"]:
+            if self.app.sideband.config["dark_ui"]:
+                c_received   = color_received_alt
+            else:
+                c_received   = color_received_alt_light
+            c_delivered  = color_delivered_alt
+            c_propagated = color_propagated_alt
+            c_playing    = color_playing_alt
+            c_paper      = color_paper_alt
+            c_unknown    = color_unknown_alt
+            c_failed     = color_failed_alt
+        else:
+            c_delivered  = color_delivered
+            c_received   = color_received
+            c_propagated = color_propagated
+            c_playing    = color_playing
+            c_paper      = color_paper
+            c_unknown    = color_unknown
+            c_failed     = color_failed
 
         self.ids.message_text.font_name = self.app.input_font
 
@@ -524,31 +582,31 @@ class Messages():
 
                 if m["source"] == self.app.sideband.lxmf_destination.hash:
                     if m["state"] == LXMF.LXMessage.DELIVERED:
-                        msg_color = mdc(color_delivered, intensity_msgs)
+                        msg_color = mdc(c_delivered, intensity_msgs)
                         heading_str = titlestr+"[b]Sent[/b] "+txstr+delivery_syms+"\n[b]State[/b] Delivered"
 
                     elif m["method"] == LXMF.LXMessage.PROPAGATED and m["state"] == LXMF.LXMessage.SENT:
-                        msg_color = mdc(color_propagated, intensity_msgs)
+                        msg_color = mdc(c_propagated, intensity_msgs)
                         heading_str = titlestr+"[b]Sent[/b] "+txstr+delivery_syms+"\n[b]State[/b] On Propagation Net"
 
                     elif m["method"] == LXMF.LXMessage.PAPER:
-                        msg_color = mdc(color_paper, intensity_msgs)
+                        msg_color = mdc(c_paper, intensity_msgs)
                         heading_str = titlestr+"[b]Created[/b] "+txstr+"\n[b]State[/b] Paper Message"
 
                     elif m["state"] == LXMF.LXMessage.FAILED:
-                        msg_color = mdc(color_failed, intensity_msgs)
+                        msg_color = mdc(c_failed, intensity_msgs)
                         heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Failed"
 
                     elif m["state"] == LXMF.LXMessage.OUTBOUND or m["state"] == LXMF.LXMessage.SENDING:
-                        msg_color = mdc(color_unknown, intensity_msgs)
+                        msg_color = mdc(c_unknown, intensity_msgs)
                         heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Sending                          "
 
                     else:
-                        msg_color = mdc(color_unknown, intensity_msgs)
+                        msg_color = mdc(c_unknown, intensity_msgs)
                         heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Unknown"
 
                 else:
-                    msg_color = mdc(color_received, intensity_msgs)
+                    msg_color = mdc(c_received, intensity_msgs)
                     heading_str = titlestr
                     if phy_stats_str != "" and self.app.sideband.config["advanced_stats"]:
                         heading_str += phy_stats_str+"\n"
@@ -598,9 +656,9 @@ class Messages():
                         self.app.play_audio_field(sender.audio_field)
                         stored_color = sender.md_bg_color
                         if sender.lsource == self.app.sideband.lxmf_destination.hash:
-                            sender.md_bg_color = mdc(color_delivered, intensity_play)
+                            sender.md_bg_color = mdc(c_delivered, intensity_play)
                         else:
-                            sender.md_bg_color = mdc(color_received, intensity_play)
+                            sender.md_bg_color = mdc(c_received, intensity_play)
 
                         def cb(dt):
                             sender.md_bg_color = stored_color

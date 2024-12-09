@@ -392,7 +392,7 @@ class SidebandCore():
         self.config["debug"] = False
         self.config["display_name"] = "Anonymous Peer"
         self.config["notifications_on"] = True
-        self.config["dark_ui"] = False
+        self.config["dark_ui"] = True
         self.config["start_announce"] = True
         self.config["propagation_by_default"] = False
         self.config["home_node_as_broadcast_repeater"] = False
@@ -408,7 +408,7 @@ class SidebandCore():
         self.config["last_lxmf_propagation_node"] = None
         self.config["nn_home_node"] = None
         self.config["print_command"] = "lp"
-        self.config["eink_mode"] = False
+        self.config["eink_mode"] = True
         self.config["lxm_limit_1mb"] = True
         self.config["trusted_markup_only"] = False
 
@@ -524,7 +524,7 @@ class SidebandCore():
         if not "dark_ui" in self.config:
             self.config["dark_ui"] = True
         if not "advanced_stats" in self.config:
-            self.config["advanced_stats"] = False
+            self.config["advanced_stats"] = True
         if not "lxmf_periodic_sync" in self.config:
             self.config["lxmf_periodic_sync"] = False
         if not "lxmf_ignore_unknown" in self.config:
@@ -544,7 +544,9 @@ class SidebandCore():
         if not "print_command" in self.config:
             self.config["print_command"] = "lp"
         if not "eink_mode" in self.config:
-            self.config["eink_mode"] = False
+            self.config["eink_mode"] = True
+        if not "classic_message_colors" in self.config:
+            self.config["classic_message_colors"] = False
         if not "display_style_in_contact_list" in self.config:
             self.config["display_style_in_contact_list"] = True
         if not "lxm_limit_1mb" in self.config:

@@ -26,6 +26,19 @@ intensity_msgs_light = "500"
 intensity_play_dark = "600"
 intensity_play_light = "300"
 
+
+intensity_msgs_dark_alt = "800"
+intensity_msgs_light_alt = "400"
+color_received_alt = "BlueGray"
+color_received_alt_light = "BlueGray"
+color_delivered_alt = "LightBlue"
+color_delivered_alt = "Blue"
+color_propagated_alt = "Indigo"
+color_paper_alt = "Indigo"
+color_playing_alt = "Amber"
+color_failed_alt = "Red"
+color_unknown_alt = "Gray"
+
 class ContentNavigationDrawer(Screen):
     pass
 

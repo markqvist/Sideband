@@ -3033,6 +3033,11 @@ class SidebandApp(MDApp):
                 self.sideband.save_configuration()
                 self.update_ui_theme()
 
+            def save_classic_message_colors(sender=None, event=None):
+                self.sideband.config["classic_message_colors"] = self.settings_screen.ids.settings_classic_message_colors.active
+                self.sideband.save_configuration()
+                self.update_ui_theme()
+
             def save_display_style_in_contact_list(sender=None, event=None):
                 self.sideband.config["display_style_in_contact_list"] = self.settings_screen.ids.display_style_in_contact_list.active
                 self.sideband.save_configuration()
@@ -3197,6 +3202,9 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.settings_eink_mode.active = self.sideband.config["eink_mode"]
             self.settings_screen.ids.settings_eink_mode.bind(active=save_eink_mode)
+
+            self.settings_screen.ids.settings_classic_message_colors.active = self.sideband.config["classic_message_colors"]
+            self.settings_screen.ids.settings_classic_message_colors.bind(active=save_classic_message_colors)
 
             self.settings_screen.ids.display_style_in_contact_list.active = self.sideband.config["display_style_in_contact_list"]
             self.settings_screen.ids.display_style_in_contact_list.bind(active=save_display_style_in_contact_list)
