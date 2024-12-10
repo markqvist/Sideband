@@ -9,6 +9,8 @@ from kivy.utils import escape_markup
 from kivymd.uix.recycleview import MDRecycleView
 from kivymd.uix.list import OneLineIconListItem
 from kivymd.uix.pickers import MDColorPicker
+from kivymd.uix.button import MDRectangleFlatButton
+from kivymd.uix.dialog import MDDialog
 from kivymd.icon_definitions import md_icons
 from kivymd.toast import toast
 from kivy.properties import StringProperty, BooleanProperty
@@ -46,6 +48,33 @@ class Utilities():
             info = "[color=#"+self.app.dark_theme_text_color+"]"+info+"[/color]"
         
         self.screen.ids.utilities_info.text = info
+
+
+    ### RNode Flasher
+    ######################################
+
+    def flasher_action(self, sender=None):
+        yes_button = MDRectangleFlatButton(text="Launch",font_size=dp(18), theme_text_color="Custom", line_color=self.app.color_accept, text_color=self.app.color_accept)
+        no_button = MDRectangleFlatButton(text="Back",font_size=dp(18))
+        dialog = MDDialog(
+            title="RNode Flasher",
+            text="You can use the included web-based RNode flasher, by starting Sideband's built-in repository server, and accessing the RNode Flasher page.",
+            buttons=[ no_button, yes_button ],
+            # elevation=0,
+        )
+        def dl_yes(s):
+            dialog.dismiss()
+            self.app.sideband.start_webshare()
+            def cb(dt):
+                self.app.repository_action()
+            Clock.schedule_once(cb, 0.6)
+
+        def dl_no(s):
+            dialog.dismiss()
+
+        yes_button.bind(on_release=dl_yes)
+        no_button.bind(on_release=dl_no)
+        dialog.open()
 
 
     ### rnstatus screen
@@ -192,6 +221,17 @@ MDScreen:
                         font_size: dp(16)
                         size_hint: [1.0, None]
                         on_release: root.delegate.logviewer_action(self)
+                        disabled: False
+
+                    MDRectangleFlatIconButton:
+                        id: flasher_button
+                        icon: "radio-handheld"
+                        text: "RNode Flasher"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.delegate.flasher_action(self)
                         disabled: False
 
                     MDRectangleFlatIconButton:

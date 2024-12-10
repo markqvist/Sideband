@@ -7,7 +7,7 @@ clean:
 	-(rm ./__pycache__ -r)
 	-(rm ./app_storage -r)
 	-(rm ./share/pkg/* -r)
-	-(rm ./share/mirrors/* -r)
+	-(rm ./share/mirrors/* -rf)
 	-(rm ./bin -r)
 
 cleanlibs:
@@ -64,13 +64,14 @@ fetchshare:
 	cp ../../dist_archive/lxmf-*-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/nomadnet-*-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/rnsh-*-py3-none-any.whl ./share/pkg/
-# 	cp ../../dist_archive/sbapp-*-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/RNode_Firmware_*_Source.zip ./share/pkg/
 	zip --junk-paths ./share/pkg/example_plugins.zip ../docs/example_plugins/*.py
 	cp -r ../../dist_archive/reticulum.network ./share/mirrors/
 	cp -r ../../dist_archive/unsigned.io ./share/mirrors/
 	cp ../../dist_archive/Reticulum\ Manual.pdf ./share/mirrors/Reticulum_Manual.pdf
 	cp ../../dist_archive/Reticulum\ Manual.epub ./share/mirrors/Reticulum_Manual.epub
+	cp -r ../../rnode-flasher ./share/mirrors/
+	-(rm ./share/mirrors/rnode-flasher/.git -rf)
 
 release:
 	buildozer android release

@@ -3678,6 +3678,7 @@ class SidebandApp(MDApp):
     ######################################
     def repository_action(self, sender=None, direction="left"):
         if self.repository_ready:
+            self.repository_update_info()
             self.repository_open(direction=direction)
         else:
             self.loader_action(direction=direction)
@@ -3714,9 +3715,9 @@ class SidebandApp(MDApp):
         info += "If you want to share the Sideband application itself via the repository server, you must first download it into the local repository, using the \"Update Content\" button below.\n\n"
         info += "To make the repository available on your local network, simply start it below, and it will become browsable on a local IP address for anyone connected to the same WiFi or wired network.\n\n"
         if self.sideband.webshare_server != None:
-            if RNS.vendor.platformutils.is_android():                    
-                def getIP():
-                    adrs = []
+            def getIP():
+                adrs = []
+                if RNS.vendor.platformutils.is_android():
                     try:
                         from jnius import autoclass
                         import ipaddress
@@ -3739,24 +3740,30 @@ class SidebandApp(MDApp):
                         RNS.log("Error while getting repository IP address: "+str(e), RNS.LOG_ERROR)
                         return None
 
-                    return adrs
-
-                ips = getIP()
-                if ips == None or len(ips) == 0:
-                    info += "The repository server is running, but the local device IP address could not be determined.\n\nYou can access the repository by pointing a browser to: http://DEVICE_IP:4444/"
-                    self.reposository_url = None
                 else:
-                    ipstr = ""
-                    for ip in ips:
-                        ipstr += "http://"+str(ip)+":4444/\n"
-                        self.reposository_url = ipstr
+                    import socket
+                    adrs.append(socket.gethostbyname(socket.gethostname()))
 
-                    ms = "" if len(ips) == 1 else "es"
-                    info += "The repository server is running at the following address"+ms+":\n [u][ref=link]"+ipstr+"[/ref][u]"
-                    self.repository_screen.ids.repository_info.bind(on_ref_press=self.repository_link_action)
+                return adrs
 
-            self.repository_screen.ids.repository_enable_button.disabled = True
-            self.repository_screen.ids.repository_disable_button.disabled = False
+            ips = getIP()
+            if ips == None or len(ips) == 0:
+                info += "The repository server is running, but the local device IP address could not be determined.\n\nYou can access the repository by pointing a browser to: http://DEVICE_IP:4444/"
+                self.reposository_url = None
+            else:
+                ipstr = ""
+                for ip in ips:
+                    ipstr += "http://"+str(ip)+":4444/\n"
+                    self.reposository_url = ipstr
+
+                ms = "" if len(ips) == 1 else "es"
+                info += "The repository server is running at the following address"+ms+":\n [u][ref=link]"+ipstr+"[/ref][u]"
+                self.repository_screen.ids.repository_info.bind(on_ref_press=self.repository_link_action)
+
+            def cb(dt):
+                self.repository_screen.ids.repository_enable_button.disabled = True
+                self.repository_screen.ids.repository_disable_button.disabled = False
+            Clock.schedule_once(cb, 0.1)
 
         else:
             self.repository_screen.ids.repository_enable_button.disabled = False
@@ -3778,39 +3785,85 @@ class SidebandApp(MDApp):
         def update_job(sender=None):
             try:
                 import requests
+                ### RNode Firmwares ###########
+                if True:
+                    downloads = []
+                    try:
+                        release_url = "https://api.github.com/repos/markqvist/rnode_firmware/releases"
+                        with requests.get(release_url) as response:
+                            releases = response.json()
+                            release = releases[0]
+                            assets = release["assets"]
+                            for asset in assets:
+                                if asset["name"].lower().startswith("rnode_firmware"):
+                                    fw_url = asset["browser_download_url"]
+                                    pkgname = asset["name"]
+                                    fw_version = release["tag_name"]
+                                    RNS.log(f"Found version {fw_version} artefact {pkgname} at {fw_url}", RNS.LOG_DEBUG)
+                                    downloads.append([fw_url, pkgname, fw_version])
 
-                # Get release info
-                apk_version = None
-                apk_url = None
-                pkgname = None
-                try:
-                    release_url = "https://api.github.com/repos/markqvist/sideband/releases"
-                    with requests.get(release_url) as response:
-                        releases = response.json()
-                        release = releases[0]
-                        assets = release["assets"]
-                        for asset in assets:
-                            if asset["name"].lower().endswith(".apk"):
-                                apk_url = asset["browser_download_url"]
-                                pkgname = asset["name"]
-                                apk_version = release["tag_name"]
-                                RNS.log(f"Found version {apk_version} artefact {pkgname} at {apk_url}")
-                except Exception as e:
-                    self.repository_screen.ids.repository_update.text = f"Downloading release info failed with the error:\n"+str(e)
-                    return
+                    except Exception as e:
+                        self.repository_screen.ids.repository_update.text = f"Downloading RNode firmware release info failed with the error:\n"+str(e)
+                        return
 
-                self.repository_screen.ids.repository_update.text = "Downloading: "+str(apk_url)
-                with requests.get(apk_url, stream=True) as response:
-                    with open("./dl_tmp", "wb") as tmp_file:
-                        cs = 32*1024
-                        tds = 0
-                        for chunk in response.iter_content(chunk_size=cs):
-                            tmp_file.write(chunk)
-                            tds += cs
-                            self.repository_screen.ids.repository_update.text = "Downloaded "+RNS.prettysize(tds)+" of "+str(pkgname)
+                    try:
+                        for download in downloads:
+                            fw_url = download[0]
+                            pkgname = download[1]
+                            self.repository_screen.ids.repository_update.text = "Downloading: "+str(pkgname)
+                            with requests.get(fw_url, stream=True) as response:
+                                with open("./dl_tmp", "wb") as tmp_file:
+                                    cs = 32*1024
+                                    tds = 0
+                                    for chunk in response.iter_content(chunk_size=cs):
+                                        tmp_file.write(chunk)
+                                        tds += cs
+                                        self.repository_screen.ids.repository_update.text = "Downloaded "+RNS.prettysize(tds)+" of "+str(pkgname)
 
-                    os.rename("./dl_tmp", f"./share/pkg/{pkgname}")
-                    self.repository_screen.ids.repository_update.text = f"Added {pkgname} to the repository!"
+                                os.rename("./dl_tmp", f"{self.sideband.webshare_dir}/pkg/{pkgname}")
+                                self.repository_screen.ids.repository_update.text = f"Added {pkgname} to the repository!"
+
+                    except Exception as e:
+                        self.repository_screen.ids.repository_update.text = f"Downloading RNode firmware failed with the error:\n"+str(e)
+                        return
+
+                ### Sideband APK File #########
+                if True:
+                    # Get release info
+                    apk_version = None
+                    apk_url = None
+                    pkgname = None
+                    try:
+                        release_url = "https://api.github.com/repos/markqvist/sideband/releases"
+                        with requests.get(release_url) as response:
+                            releases = response.json()
+                            release = releases[0]
+                            assets = release["assets"]
+                            for asset in assets:
+                                if asset["name"].lower().endswith(".apk"):
+                                    apk_url = asset["browser_download_url"]
+                                    pkgname = asset["name"]
+                                    apk_version = release["tag_name"]
+                                    RNS.log(f"Found version {apk_version} artefact {pkgname} at {apk_url}", RNS.LOG_DEBUG)
+                    except Exception as e:
+                        self.repository_screen.ids.repository_update.text = f"Downloading Sideband APK release info failed with the error:\n"+str(e)
+                        return
+
+                    self.repository_screen.ids.repository_update.text = "Downloading: "+str(pkgname)
+                    with requests.get(apk_url, stream=True) as response:
+                        with open("./dl_tmp", "wb") as tmp_file:
+                            cs = 32*1024
+                            tds = 0
+                            for chunk in response.iter_content(chunk_size=cs):
+                                tmp_file.write(chunk)
+                                tds += cs
+                                self.repository_screen.ids.repository_update.text = "Downloaded "+RNS.prettysize(tds)+" of "+str(pkgname)
+
+                        os.rename("./dl_tmp", f"{self.sideband.webshare_dir}/pkg/{pkgname}")
+                        self.repository_screen.ids.repository_update.text = f"Added {pkgname} to the repository!"
+
+                self.repository_screen.ids.repository_update.text = f"Repository contents updated successfully!"
+
             except Exception as e:
                 self.repository_screen.ids.repository_update.text = f"Downloading contents failed with the error:\n"+str(e)
 
@@ -3827,15 +3880,7 @@ class SidebandApp(MDApp):
                 self.root.ids.screen_manager.add_widget(self.repository_screen)
 
             self.repository_screen.ids.repository_scrollview.effect_cls = ScrollEffect
-                                
             self.repository_update_info()
-
-            if not RNS.vendor.platformutils.is_android():
-                self.widget_hide(self.repository_screen.ids.repository_enable_button)
-                self.widget_hide(self.repository_screen.ids.repository_disable_button)
-                self.widget_hide(self.repository_screen.ids.repository_download_button)
-                self.repository_screen.ids.repository_info.text = "\nThe [b]Repository Webserver[/b] feature is currently only available on mobile devices."
-
             self.repository_ready = True
 
     def close_repository_action(self, sender=None):

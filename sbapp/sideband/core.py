@@ -233,7 +233,11 @@ class SidebandCore():
         self.log_dir       = self.app_dir+"/app_storage/"
         self.tmp_dir       = self.app_dir+"/app_storage/tmp"
         self.exports_dir   = self.app_dir+"/exports"
-        self.webshare_dir  = "./share/"
+        if RNS.vendor.platformutils.is_android():
+            self.webshare_dir  = "./share/"
+        else:
+            sideband_dir = os.path.dirname(os.path.abspath(__file__))
+            self.webshare_dir  = os.path.abspath(os.path.join(sideband_dir, "..", "share"))
         
         self.first_run     = True
         self.saving_configuration = False
@@ -4653,7 +4657,7 @@ class SidebandCore():
                                 self.send_response(200)
                                 self.send_header("Content-type", "text/json")
                                 self.end_headers()
-                                json_result = json.dumps(os.listdir(serve_root+"/pkg"))
+                                json_result = json.dumps(sorted(os.listdir(serve_root+"/pkg")))
                                 self.wfile.write(json_result.encode("utf-8"))
                             except Exception as e:
                                 self.send_response(500)
@@ -4668,6 +4672,8 @@ class SidebandCore():
                                 self.send_response(200)
                                 if path.lower().endswith(".apk"):
                                     self.send_header("Content-type", "application/vnd.android.package-archive")
+                                elif path.lower().endswith(".js"):
+                                    self.send_header("Content-type", "text/javascript")
                                 self.end_headers()
                                 self.wfile.write(data)
                             except Exception as e:
@@ -4677,6 +4683,7 @@ class SidebandCore():
                                 es = "Error"
                                 self.wfile.write(es.encode("utf-8"))
 
+                socketserver.TCPServer.allow_reuse_address = True
                 with socketserver.TCPServer(("", port), RequestHandler) as webserver:
                     self.webshare_server = webserver
                     webserver.serve_forever()
