@@ -47,6 +47,20 @@ def glob_paths(pattern):
 
     return out_files
 
+def glob_share():
+    out_files = []
+    src_path = os.path.join(os.path.dirname(__file__), "sbapp/share")
+    print(src_path)
+
+    for root, dirs, files in os.walk(src_path):
+        for file in files:
+            filepath = os.path.join(str(Path(*Path(root).parts[1:])), file)
+            
+            if not "mirrors/unsigned.io" in str(filepath):
+                out_files.append(filepath.split(f"sbapp{os.sep}")[1])
+
+    return out_files
+
 packages = setuptools.find_packages(
     exclude=[
         "sbapp.plyer.platforms.android",
@@ -63,6 +77,7 @@ package_data = {
     "kivymd/images/*",
     "kivymd/*",
     "mapview/icons/*",
+    *glob_share(),
     *glob_paths(".kv")
     ]
 }
