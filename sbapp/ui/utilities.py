@@ -133,17 +133,22 @@ class Utilities():
         self.update_advanced()
 
     def update_advanced(self, sender=None):
-        ct = self.app.sideband.config["config_template"]
-        self.advanced_screen.ids.config_template.text = f"[font=RobotoMono-Regular][size={int(dp(12))}]{ct}[/size][/font]"
+        if RNS.vendor.platformutils.is_android():
+            ct = self.app.sideband.config["config_template"]
+            self.advanced_screen.ids.config_template.text = f"[font=RobotoMono-Regular][size={int(dp(12))}]{ct}[/size][/font]"
+        else:
+            self.advanced_screen.ids.config_template.text = f"[font=RobotoMono-Regular][size={int(dp(12))}]On this platform, Reticulum configuration is managed by the system. You can change the configuration by editing the file located at:\n\n{self.app.sideband.reticulum.configpath}[/size][/font]"
 
     def copy_config(self, sender=None):
-        Clipboard.copy(self.app.sideband.config_template)
+        if RNS.vendor.platformutils.is_android():
+            Clipboard.copy(self.app.sideband.config_template)
 
     def paste_config(self, sender=None):
-        self.app.sideband.config_template = Clipboard.paste()
-        self.app.sideband.config["config_template"] = self.app.sideband.config_template
-        self.app.sideband.save_configuration()
-        self.update_advanced()
+        if RNS.vendor.platformutils.is_android():
+            self.app.sideband.config_template = Clipboard.paste()
+            self.app.sideband.config["config_template"] = self.app.sideband.config_template
+            self.app.sideband.save_configuration()
+            self.update_advanced()
 
     ### Log viewer screen
     ######################################
