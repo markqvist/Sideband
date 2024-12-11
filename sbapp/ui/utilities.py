@@ -116,6 +116,35 @@ class Utilities():
         if self.app.root.ids.screen_manager.current == "rnstatus_screen":
             Clock.schedule_once(self.update_rnstatus, 1)
 
+    ### Advanced Configuration screen
+    ######################################
+
+    def advanced_action(self, sender=None):
+        if not self.app.root.ids.screen_manager.has_screen("advanced_screen"):
+            self.advanced_screen = Builder.load_string(layout_advanced_screen)
+            self.advanced_screen.app = self.app
+            self.advanced_screen.delegate = self
+            self.app.root.ids.screen_manager.add_widget(self.advanced_screen)
+
+        self.app.root.ids.screen_manager.transition.direction = "left"
+        self.app.root.ids.screen_manager.current = "advanced_screen"
+        self.app.sideband.setstate("app.displaying", self.app.root.ids.screen_manager.current)
+        
+        self.update_advanced()
+
+    def update_advanced(self, sender=None):
+        ct = self.app.sideband.config["config_template"]
+        self.advanced_screen.ids.config_template.text = f"[font=RobotoMono-Regular][size={int(dp(12))}]{ct}[/size][/font]"
+
+    def copy_config(self, sender=None):
+        Clipboard.copy(self.app.sideband.config_template)
+
+    def paste_config(self, sender=None):
+        self.app.sideband.config_template = Clipboard.paste()
+        self.app.sideband.config["config_template"] = self.app.sideband.config_template
+        self.app.sideband.save_configuration()
+        self.update_advanced()
+
     ### Log viewer screen
     ######################################
 
@@ -326,6 +355,79 @@ MDScreen:
 
                 MDLabel:
                     id: logviewer_output
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+"""
+
+layout_advanced_screen = """
+MDScreen:
+    name: "advanced_screen"
+    
+    BoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            id: top_bar
+            title: "RNS Configuration"
+            anchor_title: "left"
+            elevation: 0
+            left_action_items:
+                [['menu', lambda x: root.app.nav_drawer.set_state("open")]]
+            right_action_items:
+                [
+                # ['refresh', lambda x: root.delegate.update_rnstatus()],
+                ['close', lambda x: root.app.close_sub_utilities_action(self)],
+                ]
+
+        MDScrollView:
+            id: advanced_scrollview
+            size_hint_x: 1
+            size_hint_y: None
+            size: [root.width, root.height-root.ids.top_bar.height]
+            do_scroll_x: False
+            do_scroll_y: True
+
+            MDGridLayout:
+                cols: 1
+                padding: [dp(28), dp(14), dp(28), dp(28)]
+                size_hint_y: None
+                height: self.minimum_height
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: dp(24)
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(0), dp(14), dp(0), dp(24)]
+
+                    MDRectangleFlatIconButton:
+                        id: telemetry_button
+                        icon: "content-copy"
+                        text: "Copy Configuration"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.delegate.copy_config(self)
+                        disabled: False
+
+                    MDRectangleFlatIconButton:
+                        id: coordinates_button
+                        icon: "download"
+                        text: "Paste Configuration"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.delegate.paste_config(self)
+                        disabled: False
+
+
+                MDLabel:
+                    id: config_template
                     markup: True
                     text: ""
                     size_hint_y: None

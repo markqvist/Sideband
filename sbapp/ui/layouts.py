@@ -1583,7 +1583,7 @@ MDScreen:
                     height: dp(48)
                     
                     MDLabel:
-                        text: "Announce Automatically"
+                        text: "Announce automatically"
                         font_style: "H6"
 
                     MDSwitch:
@@ -1598,7 +1598,7 @@ MDScreen:
                     height: dp(48)
                     
                     MDLabel:
-                        text: "Try propagation on direct delivery failure"
+                        text: "Try propagation automatically"
                         font_style: "H6"
 
                     MDSwitch:

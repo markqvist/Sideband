@@ -172,6 +172,7 @@ class SidebandCore():
         self.owner_service = owner_service
         self.allow_service_dispatch = True
         self.version_str = ""
+        self.config_template = rns_config
 
         if config_path == None:
             self.app_dir     = plyer.storagepath.get_home_dir()+"/.config/sideband"
@@ -276,6 +277,29 @@ class SidebandCore():
         if load_config_only:
             return
 
+        if RNS.vendor.platformutils.is_android():
+            if self.config["config_template"] != None:
+                try:
+                    if not os.path.isfile(self.rns_configdir+"/config_template_invalid"):
+                        if self.is_service:
+                            with open(self.rns_configdir+"/config_template_invalid", "w") as invalidation_file:
+                                invalidation_file.write("\n")
+
+                        ct = self.config["config_template"]
+                        RNS.log(f"Loading modified RNS config template", RNS.LOG_WARNING)
+                        self.config_template = ct
+
+                    else:
+                        RNS.log("Custom configuration template invalid, using default configuration template", RNS.LOG_WARNING)
+                        self.config_template = rns_config
+                        if self.is_service:
+                            self.setstate("hardware_operation.error", "At the previous start, Sideband could not initialise Reticulum. Custom configuration template loading has been temporarily disabled. Please check and fix any errors in your configuration template.")
+
+                except Exception as e:
+                    RNS.log(f"An error occurred while setting RNS configuration template: {e}", RNS.LOG_ERROR)
+                    RNS.log(f"Using default configuration template", RNS.LOG_ERROR)
+                    self.config_template = rns_config
+
         # Initialise Reticulum configuration
         if RNS.vendor.platformutils.get_platform() == "android":
             try:
@@ -286,11 +310,10 @@ class SidebandCore():
                 RNS.log("Configuring Reticulum instance...")
                 if self.config["connect_transport"]:
                     RNS.log("Enabling Reticulum Transport")
-                    generated_config = rns_config.replace("TRANSPORT_IS_ENABLED", "Yes")
+                    generated_config = self.config_template.replace("TRANSPORT_IS_ENABLED", "Yes")
                 else:
                     RNS.log("Not enabling Reticulum Transport")
-                    generated_config = rns_config.replace("TRANSPORT_IS_ENABLED", "No")
-
+                    generated_config = self.config_template.replace("TRANSPORT_IS_ENABLED", "No")
 
                 config_file = open(self.rns_configdir+"/config", "wb")
                 config_file.write(generated_config.encode("utf-8"))
@@ -567,6 +590,8 @@ class SidebandCore():
         if not "block_predictive_text" in self.config:
             self.config["block_predictive_text"] = False
 
+        if not "config_template" in self.config:
+            self.config["config_template"] = None
         if not "connect_transport" in self.config:
             self.config["connect_transport"] = False
         if not "connect_rnode" in self.config:
@@ -801,9 +826,8 @@ class SidebandCore():
                 time.sleep(0.15)
             try:
                 self.saving_configuration = True
-                config_file = open(self.config_path, "wb")
-                config_file.write(msgpack.packb(self.config))
-                config_file.close()
+                with open(self.config_path, "wb") as config_file:
+                    config_file.write(msgpack.packb(self.config))
                 self.saving_configuration = False
             except Exception as e:
                 self.saving_configuration = False
@@ -3753,7 +3777,20 @@ class SidebandCore():
             selected_level = 2
 
         self.setstate("init.loadingstate", "Substantiating Reticulum")
-        self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=selected_level, logdest=self._log_handler)
+        
+        try:
+            self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=selected_level, logdest=self._log_handler)
+            if RNS.vendor.platformutils.is_android():
+                if self.is_service:
+                    if os.path.isfile(self.rns_configdir+"/config_template_invalid"):
+                        os.unlink(self.rns_configdir+"/config_template_invalid")
+                    else:
+                        pass
+
+        except Exception as e:
+            RNS.log(f"Error while instantiating Reticulum: {e}", RNS.LOG_ERROR)
+            RNS.log(f"Local configuration template changes will be ignored on next start", RNS.LOG_ERROR)
+            exit(255)
 
         if self.is_service:
             self.__start_rpc_listener()
@@ -4889,15 +4926,41 @@ class SidebandCore():
             if not self.reticulum.is_connected_to_shared_instance:
                 RNS.Transport.detach_interfaces()
 
-rns_config = """
+rns_config = """# This template is used to generate a
+# running configuration for Sideband's
+# internal RNS instance. Incorrect changes
+# or addition here may cause Sideband to
+# fail starting up or working properly.
+#
+# If Sideband detects that Reticulum
+# aborts at startup, due to an error in
+# configuration, any template changes
+# will be reset to this default.
+
 [reticulum]
-enable_transport = TRANSPORT_IS_ENABLED
-share_instance = Yes
-shared_instance_port = 37428
-instance_control_port = 37429
-panic_on_interface_error = No
+  # Don't change this line, use the UI
+  # setting for selecting whether RNS
+  # transport is enabled or disabled
+  enable_transport = TRANSPORT_IS_ENABLED
 
+  # Changing this setting will cause
+  # Sideband to not work.
+  share_instance = Yes
+
+  # Changing these options should only
+  # be done if you know what you're doing.
+  shared_instance_port = 37428
+  instance_control_port = 37429
+  panic_on_interface_error = No
+
+# Logging is controlled by settings
+# in the UI, so this section is mostly
+# not relevant in Sideband.
 [logging]
-loglevel = 3
+  loglevel = 3
 
+# No additional interfaces are currently
+# defined, but you can use this section
+# to do so.
+[interfaces]
 """
