@@ -239,6 +239,9 @@ class SidebandCore():
         else:
             sideband_dir = os.path.dirname(os.path.abspath(__file__))
             self.webshare_dir  = os.path.abspath(os.path.join(sideband_dir, "..", "share"))
+
+        self.webshare_ssl_key_path  = self.app_dir+"/app_storage/ssl_key.pem"
+        self.webshare_ssl_cert_path = self.app_dir+"/app_storage/ssl_cert.pem"
         
         self.first_run     = True
         self.saving_configuration = False
@@ -4674,6 +4677,7 @@ class SidebandCore():
                 from http import server
                 import socketserver
                 import json
+                import ssl
 
                 webshare_dir = self.webshare_dir
                 port = 4444
@@ -4721,7 +4725,17 @@ class SidebandCore():
                                 self.wfile.write(es.encode("utf-8"))
 
                 socketserver.TCPServer.allow_reuse_address = True
-                with socketserver.TCPServer(("", port), RequestHandler) as webserver:
+                class ThreadedHTTPServer(socketserver.ThreadingMixIn, server.HTTPServer):
+                    daemon_threads = True
+
+                with ThreadedHTTPServer(("", port), RequestHandler) as webserver:
+                    from sideband.certgen import ensure_certificate
+                    
+                    ensure_certificate(self.webshare_ssl_key_path, self.webshare_ssl_cert_path)
+                    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+                    ssl_context.load_cert_chain(certfile=self.webshare_ssl_cert_path, keyfile=self.webshare_ssl_key_path)
+                    webserver.socket = ssl_context.wrap_socket(webserver.socket, do_handshake_on_connect=False, server_side=True)
+
                     self.webshare_server = webserver
                     webserver.serve_forever()
                     self.webshare_server = None

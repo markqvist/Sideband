@@ -3748,12 +3748,12 @@ class SidebandApp(MDApp):
 
             ips = getIP()
             if ips == None or len(ips) == 0:
-                info += "The repository server is running, but the local device IP address could not be determined.\n\nYou can access the repository by pointing a browser to: http://DEVICE_IP:4444/"
+                info += "The repository server is running, but the local device IP address could not be determined.\n\nYou can access the repository by pointing a browser to: https://DEVICE_IP:4444/"
                 self.reposository_url = None
             else:
                 ipstr = ""
                 for ip in ips:
-                    ipstr += "http://"+str(ip)+":4444/\n"
+                    ipstr += "https://"+str(ip)+":4444/\n"
                     self.reposository_url = ipstr
 
                 ms = "" if len(ips) == 1 else "es"
