@@ -4724,6 +4724,23 @@ class SidebandCore():
                                 es = "Error"
                                 self.wfile.write(es.encode("utf-8"))
 
+                #######################################################
+                # Override BaseHTTPRequestHandler method to squelch
+                # excessive exception logging when client signals
+                # invalid certificate to the server. This will always
+                # happen from some clients when using a self-signed
+                # certificate, so we don't care.
+                server.BaseHTTPRequestHandler.handle_orig = server.BaseHTTPRequestHandler.handle
+                def handle(self):
+                    try:
+                        self.handle_orig()
+                    except ssl.SSLError:
+                        pass
+                    except Exception as e:
+                        RNS.log("HTTP server exception: "+str(e), RNS.LOG_ERROR)
+                server.BaseHTTPRequestHandler.handle = handle
+                #######################################################
+
                 socketserver.TCPServer.allow_reuse_address = True
                 class ThreadedHTTPServer(socketserver.ThreadingMixIn, server.HTTPServer):
                     daemon_threads = True
