@@ -45,7 +45,7 @@ class PropagationNodeDetector():
 
     aspect_filter = "lxmf.propagation"
 
-    def received_announce(self, destination_hash, announced_identity, app_data):
+    def received_announce(self, destination_hash, announced_identity, app_data, announce_packet_hash):
         try:
             if app_data != None and len(app_data) > 0:
                 if pn_announce_data_is_valid(app_data):
@@ -64,8 +64,12 @@ class PropagationNodeDetector():
                         # age = 0
                         pass
 
+                    link_stats = {"rssi": self.reticulum.get_packet_rssi(announce_packet_hash),
+                                 "snr": self.reticulum.get_packet_snr(announce_packet_hash),
+                                 "q": self.reticulum.get_packet_q(announce_packet_hash)}
+
                     RNS.log("Detected active propagation node "+RNS.prettyhexrep(destination_hash)+" emission "+str(age)+" seconds ago, "+str(hops)+" hops away")
-                    self.owner.log_announce(destination_hash, app_data, dest_type=PropagationNodeDetector.aspect_filter)
+                    self.owner.log_announce(destination_hash, app_data, dest_type=PropagationNodeDetector.aspect_filter, link_stats=link_stats)
 
                     if self.owner.config["lxmf_propagation_node"] == None:
                         if self.owner.active_propagation_node == None:
@@ -114,9 +118,13 @@ class SidebandCore():
     LOG_DEQUE_MAXLEN = 128
 
     aspect_filter = "lxmf.delivery"
-    def received_announce(self, destination_hash, announced_identity, app_data):
+    def received_announce(self, destination_hash, announced_identity, app_data, announce_packet_hash):
         # Add the announce to the directory announce
         # stream logger
+
+        link_stats = {"rssi": self.reticulum.get_packet_rssi(announce_packet_hash),
+                     "snr": self.reticulum.get_packet_snr(announce_packet_hash),
+                     "q": self.reticulum.get_packet_q(announce_packet_hash)}
 
         # This reformats the new v0.5.0 announce data back to the expected format
         # for Sidebands database and other handling functions.
@@ -126,7 +134,7 @@ class SidebandCore():
         if dn != None:
             app_data = dn.encode("utf-8")
 
-        self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter, stamp_cost=sc)
+        self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter, stamp_cost=sc, link_stats=link_stats)
 
     def __init__(self, owner_app, config_path = None, is_service=False, is_client=False, android_app_dir=None, verbose=False, owner_service=None, service_context=None, is_daemon=False, load_config_only=False):
         self.is_service = is_service
@@ -961,14 +969,14 @@ class SidebandCore():
                     else:
                         plyer.notification.notify(title, content, app_icon=self.icon_32)
 
-    def log_announce(self, dest, app_data, dest_type, stamp_cost=None):
+    def log_announce(self, dest, app_data, dest_type, stamp_cost=None, link_stats=None):
         try:
             if app_data == None:
                 app_data = b""
             if type(app_data) != bytes:
                 app_data = msgpack.packb([app_data, stamp_cost])
             RNS.log("Received "+str(dest_type)+" announce for "+RNS.prettyhexrep(dest)+" with data: "+str(app_data), RNS.LOG_DEBUG)
-            self._db_save_announce(dest, app_data, dest_type)
+            self._db_save_announce(dest, app_data, dest_type, link_stats)
             self.setstate("app.flags.new_announces", True)
 
         except Exception as e:
@@ -1980,10 +1988,10 @@ class SidebandCore():
         # TODO: Remove this again at some point in the future
         db = self.__db_connect()
         dbc = db.cursor()
-        dbc.execute("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'lxm' AND sql LIKE '%extra%'")
+        dbc.execute("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'announce' AND sql LIKE '%extra%'")
         result = dbc.fetchall()
         if len(result) == 0:
-            dbc.execute("ALTER TABLE lxm ADD COLUMN extra BLOB")
+            dbc.execute("ALTER TABLE announce ADD COLUMN extra BLOB")
         db.commit()
 
     def _db_initstate(self):
@@ -2540,8 +2548,16 @@ class SidebandCore():
                 for entry in result:
                     try:
                         if not entry[2] in added_dests:
-                            app_data = entry[3]
+                            app_data  = entry[3]
                             dest_type = entry[4]
+                            if entry[5] != None:
+                                try:
+                                    extras = msgpack.unpackb(entry[5])
+                                except Exception as e:
+                                    RNS.log(f"Error while unpacking extras from announce: {e}", RNS.LOG_ERROR)
+                                    extras = None
+                            else:
+                                extras = None
                             if dest_type == "lxmf.delivery":
                                 announced_name = LXMF.display_name_from_app_data(app_data)
                                 announced_cost = self.message_router.get_outbound_stamp_cost(entry[2])
@@ -2549,11 +2565,12 @@ class SidebandCore():
                                 announced_name = None
                                 announced_cost = None
                             announce = {
-                                "dest": entry[2],
-                                "name": announced_name,
-                                "cost": announced_cost,
-                                "time": entry[1],
-                                "type": dest_type
+                                "dest"  : entry[2],
+                                "name"  : announced_name,
+                                "cost"  : announced_cost,
+                                "time"  : entry[1],
+                                "type"  : dest_type,
+                                "extras": extras,
                             }
                             added_dests.append(entry[2])
                             announces.append(announce)
@@ -2967,7 +2984,7 @@ class SidebandCore():
 
             self.__event_conversation_changed(context_dest)
 
-    def _db_save_announce(self, destination_hash, app_data, dest_type="lxmf.delivery"):
+    def _db_save_announce(self, destination_hash, app_data, dest_type="lxmf.delivery", link_stats = None):
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
@@ -2981,14 +2998,16 @@ class SidebandCore():
             now = time.time()
             hash_material = str(time).encode("utf-8")+destination_hash+app_data+dest_type.encode("utf-8")
             announce_hash = RNS.Identity.full_hash(hash_material)
+            extras = msgpack.packb({"link_stats": link_stats})
 
-            query = "INSERT INTO announce (id, received, source, data, dest_type) values (?, ?, ?, ?, ?)"
+            query = "INSERT INTO announce (id, received, source, data, dest_type, extra) values (?, ?, ?, ?, ?, ?)"
             data = (
                 announce_hash,
                 now,
                 destination_hash,
                 app_data,
                 dest_type,
+                extras,
             )
 
             dbc.execute(query, data)

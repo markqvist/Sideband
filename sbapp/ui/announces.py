@@ -18,9 +18,9 @@ from kivy.lang.builder import Builder
 
 from kivy.utils import escape_markup
 if RNS.vendor.platformutils.get_platform() == "android":
-    from ui.helpers import multilingual_markup
+    from ui.helpers import multilingual_markup, sig_icon_for_q
 else:
-    from .helpers import multilingual_markup
+    from .helpers import multilingual_markup, sig_icon_for_q
 
 if RNS.vendor.platformutils.get_platform() == "android":
     from ui.helpers import ts_format
@@ -92,6 +92,25 @@ class Announces():
             a_name = announce["name"]
             a_cost = announce["cost"]
             dest_type = announce["type"]
+            a_rssi = None
+            a_snr = None
+            a_q = None
+
+            link_extras_str = ""
+            link_extras_full = ""
+            if "extras" in announce and announce["extras"] != None:
+                extras = announce["extras"]
+                RNS.log("Announce has extras: "+str(announce["extras"]))
+                if "link_stats" in extras:
+                    link_stats = extras["link_stats"]
+                    if "rssi" in link_stats and "snr" in link_stats and "q" in link_stats:
+                        a_rssi = link_stats["rssi"]
+                        a_snr  = link_stats["snr"]
+                        a_q    = link_stats["q"]
+                        link_extras_str  = f" ([b]RSSI[/b] {a_rssi} [b]SNR[/b] {a_snr})"
+                        link_extras_full = f"\n[b]Link Quality[/b] {a_q}%[/b]\n[b]RSSI[/b] {a_rssi}\n[b]SNR[/b] {a_snr}"
+
+            sig_icon = multilingual_markup(sig_icon_for_q(a_q).encode("utf-8")).decode("utf-8")
 
             if not context_dest in self.added_item_dests:
                 if self.app.sideband.is_trusted(context_dest):
@@ -99,16 +118,16 @@ class Announces():
                 else:
                     trust_icon = "account-question"
 
-                def gen_info(ts, dest, name, cost, dtype):
+                def gen_info(ts, dest, name, cost, dtype, link_extras):
                     name = multilingual_markup(escape_markup(str(name)).encode("utf-8")).decode("utf-8")
                     cost = str(cost)
                     def x(sender):
                         yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))    
                         if dtype == "lxmf.delivery":
-                            ad_text = "[size=22dp]LXMF Peer[/size]\n\n[b]Received[/b] "+ts+"\n[b]Address[/b] "+RNS.prettyhexrep(dest)+"\n[b]Name[/b] "+name+"\n[b]Stamp Cost[/b] "+cost
+                            ad_text = "[size=22dp]LXMF Peer[/size]\n\n[b]Received[/b] "+ts+"\n[b]Address[/b] "+RNS.prettyhexrep(dest)+"\n[b]Name[/b] "+name+"\n[b]Stamp Cost[/b] "+cost+link_extras
 
                         if dtype == "lxmf.propagation":
-                            ad_text = "[size=22dp]LXMF Propagation Node[/size]\n\n[b]Received[/b] "+ts+"\n[b]Address[/b] "+RNS.prettyhexrep(dest)
+                            ad_text = "[size=22dp]LXMF Propagation Node[/size]\n\n[b]Received[/b] "+ts+"\n[b]Address[/b] "+RNS.prettyhexrep(dest)+link_extras
 
                         dialog = MDDialog(
                             text=ad_text,
@@ -123,7 +142,8 @@ class Announces():
                         dialog.open()
                     return x
 
-                time_string = time.strftime(ts_format, time.localtime(ts))
+                time_string = sig_icon + "  " + time.strftime(ts_format, time.localtime(ts)) + link_extras_str
+                time_string_plain = time.strftime(ts_format, time.localtime(ts))
 
                 if dest_type == "lxmf.delivery":
                     disp_name = multilingual_markup(escape_markup(str(self.app.sideband.peer_display_name(context_dest))).encode("utf-8")).decode("utf-8")
@@ -137,7 +157,7 @@ class Announces():
                     disp_name = "Unknown Announce"
                     iconl = IconLeftWidget(icon="progress-question")
 
-                item = TwoLineAvatarIconListItem(text=time_string, secondary_text=disp_name, on_release=gen_info(time_string, context_dest, a_name, a_cost, dest_type))
+                item = TwoLineAvatarIconListItem(text=time_string, secondary_text=disp_name, on_release=gen_info(time_string_plain, context_dest, a_name, a_cost, dest_type, link_extras_full))
                 item.add_widget(iconl)
                 item.sb_uid = context_dest
                 item.ts = ts

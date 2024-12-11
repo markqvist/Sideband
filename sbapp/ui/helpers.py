@@ -111,6 +111,20 @@ def multilingual_markup(data):
 
     return do.encode("utf-8")
 
+def sig_icon_for_q(q):
+    if q == None:
+        return "󰴽"
+    elif q > 90:
+        return "󰣺"
+    elif q > 70:
+        return "󰣸"
+    elif q > 50:
+        return "󰣶"
+    elif q > 30:
+        return "󰣴"
+    elif q > 10:
+        return "󰣾"
+
 persistent_fonts = ["nf", "term"]
 nf_mapped = "nf"
 
