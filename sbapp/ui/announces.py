@@ -100,15 +100,15 @@ class Announces():
             link_extras_full = ""
             if "extras" in announce and announce["extras"] != None:
                 extras = announce["extras"]
-                RNS.log("Announce has extras: "+str(announce["extras"]))
                 if "link_stats" in extras:
                     link_stats = extras["link_stats"]
                     if "rssi" in link_stats and "snr" in link_stats and "q" in link_stats:
                         a_rssi = link_stats["rssi"]
                         a_snr  = link_stats["snr"]
                         a_q    = link_stats["q"]
-                        link_extras_str  = f" ([b]RSSI[/b] {a_rssi} [b]SNR[/b] {a_snr})"
-                        link_extras_full = f"\n[b]Link Quality[/b] {a_q}%[/b]\n[b]RSSI[/b] {a_rssi}\n[b]SNR[/b] {a_snr}"
+                        if a_rssi != None and a_snr != None and a_q != None:
+                            link_extras_str  = f" ([b]RSSI[/b] {a_rssi} [b]SNR[/b] {a_snr})"
+                            link_extras_full = f"\n[b]Link Quality[/b] {a_q}%[/b]\n[b]RSSI[/b] {a_rssi}\n[b]SNR[/b] {a_snr}"
 
             sig_icon = multilingual_markup(sig_icon_for_q(a_q).encode("utf-8")).decode("utf-8")
 

@@ -64,9 +64,9 @@ class PropagationNodeDetector():
                         # age = 0
                         pass
 
-                    link_stats = {"rssi": self.reticulum.get_packet_rssi(announce_packet_hash),
-                                 "snr": self.reticulum.get_packet_snr(announce_packet_hash),
-                                 "q": self.reticulum.get_packet_q(announce_packet_hash)}
+                    link_stats = {"rssi": self.owner_app.sideband.reticulum.get_packet_rssi(announce_packet_hash),
+                                 "snr": self.owner_app.sideband.reticulum.get_packet_snr(announce_packet_hash),
+                                 "q": self.owner_app.sideband.reticulum.get_packet_q(announce_packet_hash)}
 
                     RNS.log("Detected active propagation node "+RNS.prettyhexrep(destination_hash)+" emission "+str(age)+" seconds ago, "+str(hops)+" hops away")
                     self.owner.log_announce(destination_hash, app_data, dest_type=PropagationNodeDetector.aspect_filter, link_stats=link_stats)
