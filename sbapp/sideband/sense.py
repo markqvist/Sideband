@@ -778,9 +778,9 @@ class Location(Sensor):
         return [
           struct.pack("!i", int(round(d["latitude"], 6)*1e6)),
           struct.pack("!i", int(round(d["longitude"], 6)*1e6)),
-          struct.pack("!I", int(round(d["altitude"], 2)*1e2)),
+          struct.pack("!i", int(round(d["altitude"], 2)*1e2)),
           struct.pack("!I", int(round(d["speed"], 2)*1e2)),
-          struct.pack("!I", int(round(d["bearing"], 2)*1e2)),
+          struct.pack("!i", int(round(d["bearing"], 2)*1e2)),
           struct.pack("!H", int(round(d["accuracy"], 2)*1e2)),
           d["last_update"],
         ]
@@ -796,9 +796,9 @@ class Location(Sensor):
         return {
           "latitude": struct.unpack("!i", packed[0])[0]/1e6,
           "longitude": struct.unpack("!i", packed[1])[0]/1e6,
-          "altitude": struct.unpack("!I", packed[2])[0]/1e2,
+          "altitude": struct.unpack("!i", packed[2])[0]/1e2,
           "speed": struct.unpack("!I", packed[3])[0]/1e2,
-          "bearing": struct.unpack("!I", packed[4])[0]/1e2,
+          "bearing": struct.unpack("!i", packed[4])[0]/1e2,
           "accuracy": struct.unpack("!H", packed[5])[0]/1e2,
           "last_update": packed[6],
         }
