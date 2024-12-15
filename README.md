@@ -195,24 +195,36 @@ To install Sideband via `pip`, follow these instructions:
 
 ```bash
 # Install Sideband and dependencies on macOS using pip:
-pip3 install sbapp --user --break-system-packages
+pip3 install sbapp
 
 # Optionally install RNS command line utilities:
 pip3 install rns
 
 # Run Sideband from the terminal:
+#################################
+sideband
+# or
 python3 -m sbapp.main
 
 # Enable debug logging:
+#################################
+sideband -v
+# or
 python3 -m sbapp.main -v
 
 # Start Sideband in daemon mode:
+#################################
+sideband -d
+# or
 python3 -m sbapp.main -d
 
-# If you add your pip install location to
-# the PATH environment variable, you can
-# also run Sideband simply using:
-sideband
+# If Python and pip was installed correctly,
+# you can simply use the "sideband" command
+# directly. Otherwise, you will manually
+# need to add the pip binaries directory to
+# your PATH environment variable, or start
+# Sideband via the "python3 -m sbapp.main"
+# syntax.
 
 ```
 
