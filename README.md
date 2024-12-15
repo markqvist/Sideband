@@ -197,9 +197,6 @@ To install Sideband via `pip`, follow these instructions:
 # Install Sideband and dependencies on macOS using pip:
 pip3 install sbapp
 
-# Optionally install RNS command line utilities:
-pip3 install rns
-
 # Run Sideband from the terminal:
 #################################
 sideband
