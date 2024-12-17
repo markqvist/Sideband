@@ -47,7 +47,11 @@ def get_key(key_path, force_reload=False):
         return LOADED_KEY
     elif os.path.isfile(KEY_PATH):
         with open(KEY_PATH, "rb") as f:
-            key = load_pem_private_key(f.read(), KEY_PASSPHRASE)
+            if cryptography_major_version > 3:
+                key = load_pem_private_key(f.read(), KEY_PASSPHRASE)
+            else:
+                from cryptography.hazmat.backends import default_backend
+                key = load_pem_private_key(f.read(), KEY_PASSPHRASE, backend=default_backend())
     else:
         if cryptography_major_version > 3:
             key = ec.generate_private_key(curve=ec.SECP256R1())
@@ -87,6 +91,7 @@ def gen_cert(cert_path, key):
     cb = cb.not_valid_before(datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(days=-14))
     cb = cb.not_valid_after(datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(days=3652))
     cb = cb.add_extension(x509.SubjectAlternativeName([x509.DNSName("localhost")]), critical=False)
+
     if cryptography_major_version > 3:
         cert = cb.sign(key, hashes.SHA256())
     else:
