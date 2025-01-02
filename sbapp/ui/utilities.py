@@ -135,13 +135,24 @@ class Utilities():
     def update_advanced(self, sender=None):
         if RNS.vendor.platformutils.is_android():
             ct = self.app.sideband.config["config_template"]
+            if ct == None:
+                ct = self.app.sideband.default_config_template
             self.advanced_screen.ids.config_template.text = f"[font=RobotoMono-Regular][size={int(dp(12))}]{ct}[/size][/font]"
         else:
             self.advanced_screen.ids.config_template.text = f"[font=RobotoMono-Regular][size={int(dp(12))}]On this platform, Reticulum configuration is managed by the system. You can change the configuration by editing the file located at:\n\n{self.app.sideband.reticulum.configpath}[/size][/font]"
 
+    def reset_config(self, sender=None):
+        if RNS.vendor.platformutils.is_android():
+            self.app.sideband.config["config_template"] = None
+            self.app.sideband.save_configuration()
+            self.update_advanced()
+
     def copy_config(self, sender=None):
         if RNS.vendor.platformutils.is_android():
-            Clipboard.copy(self.app.sideband.config_template)
+            if self.app.sideband.config["config_template"]:
+                Clipboard.copy(self.app.sideband.config["config_template"])
+            else:
+                Clipboard.copy(self.app.sideband.default_config_template)
 
     def paste_config(self, sender=None):
         if RNS.vendor.platformutils.is_android():
@@ -409,7 +420,7 @@ MDScreen:
                     padding: [dp(0), dp(14), dp(0), dp(24)]
 
                     MDRectangleFlatIconButton:
-                        id: telemetry_button
+                        id: conf_copy_button
                         icon: "content-copy"
                         text: "Copy Configuration"
                         padding: [dp(0), dp(14), dp(0), dp(14)]
@@ -420,7 +431,7 @@ MDScreen:
                         disabled: False
 
                     MDRectangleFlatIconButton:
-                        id: coordinates_button
+                        id: conf_paste_button
                         icon: "download"
                         text: "Paste Configuration"
                         padding: [dp(0), dp(14), dp(0), dp(14)]
@@ -430,6 +441,23 @@ MDScreen:
                         on_release: root.delegate.paste_config(self)
                         disabled: False
 
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: dp(24)
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(0), dp(0), dp(0), dp(24)]
+
+                    MDRectangleFlatIconButton:
+                        id: conf_reset_button
+                        icon: "cog-counterclockwise"
+                        text: "Reset Configuration"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.delegate.reset_config(self)
+                        disabled: False
 
                 MDLabel:
                     id: config_template

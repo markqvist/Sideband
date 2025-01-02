@@ -181,6 +181,7 @@ class SidebandCore():
         self.allow_service_dispatch = True
         self.version_str = ""
         self.config_template = rns_config
+        self.default_config_template = rns_config
 
         if config_path == None:
             self.app_dir     = plyer.storagepath.get_home_dir()+"/.config/sideband"
@@ -5012,6 +5013,6 @@ rns_config = """# This template is used to generate a
 
 # No additional interfaces are currently
 # defined, but you can use this section
-# to do so.
+# to add additional custom interfaces.
 [interfaces]
 """
