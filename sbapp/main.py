@@ -3753,11 +3753,11 @@ class SidebandApp(MDApp):
             else:
                 ipstr = ""
                 for ip in ips:
-                    ipstr += "https://"+str(ip)+":4444/"
-                    self.reposository_url = ipstr
+                    ipstr += "[u][ref=link]https://" + str(ip) + ":4444/[/ref][u]\n"
+                self.repository_url = ipstr
 
                 ms = "" if len(ips) == 1 else "es"
-                info += "The repository server is running at the following address"+ms+":\n [u][ref=link]"+ipstr+"[/ref][u]\n"
+                info += "The repository server is running at the following address" + ms +":\n"+ipstr
                 self.repository_screen.ids.repository_info.bind(on_ref_press=self.repository_link_action)
 
             def cb(dt):
