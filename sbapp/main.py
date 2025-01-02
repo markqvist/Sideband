@@ -3768,13 +3768,20 @@ class SidebandApp(MDApp):
             def cb(dt):
                 self.repository_screen.ids.repository_enable_button.disabled = True
                 self.repository_screen.ids.repository_disable_button.disabled = False
+                if hasattr(self, "wants_flasher_launch") and self.wants_flasher_launch == True:
+                    self.wants_flasher_launch = False
+                    if self.rnode_flasher_url != None:
+                        def lj():
+                            webbrowser.open(self.rnode_flasher_url)
+                        threading.Thread(target=lj, daemon=True).start()
+
             Clock.schedule_once(cb, 0.1)
 
         else:
             self.repository_screen.ids.repository_enable_button.disabled = False
             self.repository_screen.ids.repository_disable_button.disabled = True
 
-        info += "\n"
+        info += ""
         self.repository_screen.ids.repository_info.text = info
 
     def repository_start_action(self, sender=None):

@@ -64,6 +64,7 @@ class Utilities():
         )
         def dl_yes(s):
             dialog.dismiss()
+            self.app.wants_flasher_launch = True
             self.app.sideband.start_webshare()
             def cb(dt):
                 self.app.repository_action()
