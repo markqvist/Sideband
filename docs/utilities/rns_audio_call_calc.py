@@ -98,7 +98,7 @@ def simulate(link_speed=9600, audio_slot_ms=70, codec_rate=1200, method="msgpack
     print(f"  Encrypted payload    : {ENCRYPTED_PAYLOAD_LEN} bytes")
     print(f"  Transport overhead   : {TRANSPORT_OVERHEAD} bytes ({RNS_OVERHEAD} from RNS, {PHY_OVERHEAD} from PHY)")
     print(f"  On-air length        : {PACKET_LEN} bytes")
-    print(f"  Packet airtime       : {PACKET_AIRTIME}ms")
+    print(f"  Packet airtime       : {round(PACKET_AIRTIME,2)}ms")
 
     print( "\n===== Results for "+RNS.prettyspeed(LINK_SPEED)+" Link Speed ===\n")
     print(f"  Final latency        : {TOTAL_LATENCY}ms")
