@@ -4238,7 +4238,7 @@ class SidebandApp(MDApp):
             valid = False
         
         try:
-            valid_vals = [7.8, 10.4, 15.6, 20.8, 31.25, 41.7, 62.5, 125, 250, 500]
+            valid_vals = [7.8, 10.4, 15.6, 20.8, 31.25, 41.7, 62.5, 125, 250, 500, 203.125, 406.25, 812.5, 1625]
             val = float(self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.text)
             if not val in valid_vals:
                 raise ValueError("Invalid bandwidth")
