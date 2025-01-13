@@ -64,9 +64,14 @@ class PropagationNodeDetector():
                         # age = 0
                         pass
 
-                    link_stats = {"rssi": self.owner_app.sideband.reticulum.get_packet_rssi(announce_packet_hash),
-                                 "snr": self.owner_app.sideband.reticulum.get_packet_snr(announce_packet_hash),
-                                 "q": self.owner_app.sideband.reticulum.get_packet_q(announce_packet_hash)}
+                    if self.owner_app != None:
+                        stat_endpoint = self.owner_app.sideband
+                    else:
+                        stat_endpoint = self.owner
+
+                    link_stats = {"rssi": stat_endpoint.reticulum.get_packet_rssi(announce_packet_hash),
+                                 "snr": stat_endpoint.reticulum.get_packet_snr(announce_packet_hash),
+                                 "q": stat_endpoint.reticulum.get_packet_q(announce_packet_hash)}
 
                     RNS.log("Detected active propagation node "+RNS.prettyhexrep(destination_hash)+" emission "+str(age)+" seconds ago, "+str(hops)+" hops away")
                     self.owner.log_announce(destination_hash, app_data, dest_type=PropagationNodeDetector.aspect_filter, link_stats=link_stats)
@@ -4684,7 +4689,7 @@ class SidebandCore():
         thread.start()
 
         self.setstate("core.started", True)
-        RNS.log("Sideband Core "+str(self)+" "+str(self.version_str)+" started")
+        RNS.log("Sideband Core "+str(self)+" "+str(self.version_str)+"started")
 
     def stop_webshare(self):
         if self.webshare_server != None:
