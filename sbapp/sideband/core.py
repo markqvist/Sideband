@@ -7,6 +7,7 @@ import struct
 import sqlite3
 import random
 import shlex
+import re
 
 import RNS.vendor.umsgpack as msgpack
 import RNS.Interfaces.Interface as Interface
@@ -127,19 +128,20 @@ class SidebandCore():
         # Add the announce to the directory announce
         # stream logger
 
-        link_stats = {"rssi": self.reticulum.get_packet_rssi(announce_packet_hash),
-                     "snr": self.reticulum.get_packet_snr(announce_packet_hash),
-                     "q": self.reticulum.get_packet_q(announce_packet_hash)}
+        if self.reticulum != None:
+            link_stats = {"rssi": self.reticulum.get_packet_rssi(announce_packet_hash),
+                         "snr": self.reticulum.get_packet_snr(announce_packet_hash),
+                         "q": self.reticulum.get_packet_q(announce_packet_hash)}
 
-        # This reformats the new v0.5.0 announce data back to the expected format
-        # for Sidebands database and other handling functions.
-        dn = LXMF.display_name_from_app_data(app_data)
-        sc = LXMF.stamp_cost_from_app_data(app_data)
-        app_data = b""
-        if dn != None:
-            app_data = dn.encode("utf-8")
+            # This reformats the new v0.5.0 announce data back to the expected format
+            # for Sidebands database and other handling functions.
+            dn = LXMF.display_name_from_app_data(app_data)
+            sc = LXMF.stamp_cost_from_app_data(app_data)
+            app_data = b""
+            if dn != None:
+                app_data = dn.encode("utf-8")
 
-        self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter, stamp_cost=sc, link_stats=link_stats)
+            self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter, stamp_cost=sc, link_stats=link_stats)
 
     def __init__(self, owner_app, config_path = None, is_service=False, is_client=False, android_app_dir=None, verbose=False, owner_service=None, service_context=None, is_daemon=False, load_config_only=False):
         self.is_service = is_service
@@ -4532,6 +4534,11 @@ class SidebandCore():
 
         self.setstate("lxm_uri_ingest.result", response)
 
+    def strip_markup(self, text):
+        if not hasattr(self, "smr") or self.smr == None:
+            self.smr = re.compile(r'\[\/?(?:b|i|u|url|quote|code|img|color|size)*?.*?\]',re.IGNORECASE | re.MULTILINE )
+        return self.smr.sub("", text)
+
     def lxm_ingest(self, message, originator = False):
         should_notify = False
         is_trusted = False
@@ -4614,7 +4621,7 @@ class SidebandCore():
         if should_notify:
             nlen = 128
             text = message.content.decode("utf-8")
-            notification_content = text[:nlen]
+            notification_content = self.strip_markup(text[:nlen])
             if len(text) > nlen:
                 notification_content += " [...]"
 
