@@ -1868,6 +1868,10 @@ class SidebandCore():
                                         image=args["image"],
                                         audio=args["audio"])
                                     connection.send(send_result)
+                                elif "cancel_message" in call:
+                                    args = call["cancel_message"]
+                                    cancel_result = self.cancel_message(args["message_id"])
+                                    connection.send(cancel_result)
                                 elif "send_command" in call:
                                     args = call["send_command"]
                                     send_result = self.send_command(
@@ -4273,6 +4277,21 @@ class SidebandCore():
                 RNS.log("An error occurred while getting message transfer stamp cost: "+str(e), RNS.LOG_ERROR)
                 return None
 
+    def _service_cancel_message(self, message_id):
+        if not RNS.vendor.platformutils.is_android():
+            return False
+        else:
+            if self.is_client:
+                try:
+                    return self.service_rpc_request({"cancel_message": {"message_id": message_id }})
+                
+                except Exception as e:
+                    RNS.log("Error while cancelling message over RPC: "+str(e), RNS.LOG_DEBUG)
+                    RNS.trace_exception(e)
+                    return False
+            else:
+                return False
+
     def _service_send_message(self, content, destination_hash, propagation, skip_fields=False, no_display=False, attachment = None, image = None, audio = None):
         if not RNS.vendor.platformutils.is_android():
             return False
@@ -4314,6 +4333,26 @@ class SidebandCore():
                     RNS.trace_exception(e)
                     return False
             else:
+                return False
+
+    def cancel_message(self, message_id):
+        if self.allow_service_dispatch and self.is_client:
+            try:
+                return self._service_cancel_message(message_id)
+
+            except Exception as e:
+                RNS.log("Error while cancelling message: "+str(e), RNS.LOG_ERROR)
+                RNS.trace_exception(e)
+                return False
+
+        else:
+            try:
+                self.message_router.cancel_outbound(message_id)
+                return True
+
+            except Exception as e:
+                RNS.log("Error while cancelling message: "+str(e), RNS.LOG_ERROR)
+                RNS.trace_exception(e)
                 return False
 
     def send_message(self, content, destination_hash, propagation, skip_fields=False, no_display=False, attachment = None, image = None, audio = None):

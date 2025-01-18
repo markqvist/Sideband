@@ -34,14 +34,14 @@ if RNS.vendor.platformutils.get_platform() == "android":
     import plyer
     from sideband.sense import Telemeter, Commands
     from ui.helpers import ts_format, file_ts_format, mdc
-    from ui.helpers import color_playing, color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light, intensity_play_dark, intensity_play_light
-    from ui.helpers import color_received_alt, color_received_alt_light, color_delivered_alt, color_propagated_alt, color_paper_alt, color_failed_alt, color_unknown_alt, color_playing_alt, intensity_msgs_dark_alt, intensity_msgs_light_alt, intensity_delivered_alt_dark
+    from ui.helpers import color_playing, color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light, intensity_play_dark, intensity_play_light, color_cancelled, intensity_cancelled
+    from ui.helpers import color_received_alt, color_received_alt_light, color_delivered_alt, color_propagated_alt, color_paper_alt, color_failed_alt, color_unknown_alt, color_playing_alt, intensity_msgs_dark_alt, intensity_msgs_light_alt, intensity_delivered_alt_dark, color_cancelled_alt
 else:
     import sbapp.plyer as plyer
     from sbapp.sideband.sense import Telemeter, Commands
     from .helpers import ts_format, file_ts_format, mdc
-    from .helpers import color_playing, color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light, intensity_play_dark, intensity_play_light
-    from .helpers import color_received_alt, color_received_alt_light, color_delivered_alt, color_propagated_alt, color_paper_alt, color_failed_alt, color_unknown_alt, color_playing_alt, intensity_msgs_dark_alt, intensity_msgs_light_alt, intensity_delivered_alt_dark
+    from .helpers import color_playing, color_received, color_delivered, color_propagated, color_paper, color_failed, color_unknown, intensity_msgs_dark, intensity_msgs_light, intensity_play_dark, intensity_play_light, color_cancelled, intensity_cancelled
+    from .helpers import color_received_alt, color_received_alt_light, color_delivered_alt, color_propagated_alt, color_paper_alt, color_failed_alt, color_unknown_alt, color_playing_alt, intensity_msgs_dark_alt, intensity_msgs_light_alt, intensity_delivered_alt_dark, color_cancelled_alt
 
 if RNS.vendor.platformutils.is_darwin():
     from PIL import Image as PilImage
@@ -213,6 +213,7 @@ class Messages():
             c_paper      = color_paper_alt
             c_unknown    = color_unknown_alt
             c_failed     = color_failed_alt
+            c_cancelled  = color_cancelled_alt
         else:
             c_delivered  = color_delivered
             c_received   = color_received
@@ -221,6 +222,7 @@ class Messages():
             c_paper      = color_paper
             c_unknown    = color_unknown
             c_failed     = color_failed
+            c_cancelled  = color_cancelled
 
         for new_message in self.app.sideband.list_messages(self.context_dest, after=self.latest_message_timestamp,limit=limit):
             self.new_messages.append(new_message)
@@ -369,12 +371,25 @@ class Messages():
                         m["state"] = msg["state"]
 
                     if msg["state"] == LXMF.LXMessage.FAILED:
-                        w.md_bg_color = msg_color = mdc(c_failed, intensity_msgs)
+                        w.md_bg_color = msg_color = mdc(c_failed, intensity_cancelled)
                         txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
                         titlestr = ""
                         if msg["title"]:
                             titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
                         w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Failed"
+                        m["state"] = msg["state"]
+                        if w.has_audio:
+                            alstr = RNS.prettysize(w.audio_size)
+                            w.heading += f"\n[b]Audio Message[/b] ({alstr})"
+                        w.dmenu.items.append(w.dmenu.retry_item)
+
+                    if msg["state"] == LXMF.LXMessage.CANCELLED:
+                        w.md_bg_color = msg_color = mdc(c_cancelled, intensity_cancelled)
+                        txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
+                        titlestr = ""
+                        if msg["title"]:
+                            titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
+                        w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Cancelled"
                         m["state"] = msg["state"]
                         if w.has_audio:
                             alstr = RNS.prettysize(w.audio_size)
@@ -427,6 +442,7 @@ class Messages():
             c_paper      = color_paper_alt
             c_unknown    = color_unknown_alt
             c_failed     = color_failed_alt
+            c_cancelled  = color_cancelled_alt
         else:
             c_delivered  = color_delivered
             c_received   = color_received
@@ -435,6 +451,7 @@ class Messages():
             c_paper      = color_paper
             c_unknown    = color_unknown
             c_failed     = color_failed
+            c_cancelled  = color_cancelled
 
         self.ids.message_text.font_name = self.app.input_font
 
@@ -602,8 +619,12 @@ class Messages():
                         heading_str = titlestr+"[b]Created[/b] "+txstr+"\n[b]State[/b] Paper Message"
 
                     elif m["state"] == LXMF.LXMessage.FAILED:
-                        msg_color = mdc(c_failed, intensity_msgs)
+                        msg_color = mdc(c_failed, intensity_cancelled)
                         heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Failed"
+
+                    elif m["state"] == LXMF.LXMessage.CANCELLED:
+                        msg_color = mdc(c_cancelled, intensity_cancelled)
+                        heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Cancelled"
 
                     elif m["state"] == LXMF.LXMessage.OUTBOUND or m["state"] == LXMF.LXMessage.SENDING:
                         msg_color = mdc(c_unknown, intensity_msgs)
@@ -794,6 +815,13 @@ class Messages():
                 def gen_copy(msg, item):
                     def x():
                         Clipboard.copy(msg)
+                        item.dmenu.dismiss()
+
+                    return x
+
+                def gen_cancel(mhash, item):
+                    def x():
+                        self.app.sideband.cancel_message(mhash)
                         item.dmenu.dismiss()
 
                     return x
@@ -1195,6 +1223,14 @@ class Messages():
                                 "text": "Save attachment",
                                 "height": dp(40),
                                 "on_release": gen_save_attachment(item)
+                            }
+                            dm_items.append(extra_item)
+                        if m["state"] <= LXMF.LXMessage.SENT:
+                            extra_item = {
+                                "viewclass": "OneLineListItem",
+                                "text": "Cancel message",
+                                "height": dp(40),
+                                "on_release": gen_cancel(m["hash"], item)
                             }
                             dm_items.append(extra_item)
 

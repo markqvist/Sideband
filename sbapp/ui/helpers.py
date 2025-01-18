@@ -20,11 +20,13 @@ color_delivered = "Blue"
 color_paper = "Indigo"
 color_propagated = "Indigo"
 color_failed = "Red"
+color_cancelled = "Red"
 color_unknown = "Gray"
 intensity_msgs_dark = "800"
 intensity_msgs_light = "500"
 intensity_play_dark = "600"
 intensity_play_light = "300"
+intensity_cancelled = "900"
 
 
 intensity_msgs_dark_alt = "800"
@@ -38,6 +40,7 @@ color_paper_alt = "DeepPurple"
 color_playing_alt = "Amber"
 color_failed_alt = "Red"
 color_unknown_alt = "Gray"
+color_cancelled_alt = "Red"
 
 class ContentNavigationDrawer(Screen):
     pass
