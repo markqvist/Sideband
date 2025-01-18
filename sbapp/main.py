@@ -1767,6 +1767,11 @@ class SidebandApp(MDApp):
         if self.root.ids.screen_manager.current == "messages_screen":
             self.object_details_action(self.messages_view, from_conv=True)
 
+    def outbound_mode_reset(self, sender=None):
+        self.outbound_mode_paper = False
+        self.outbound_mode_propagation = False
+        self.outbound_mode_command = False
+
     def message_propagation_action(self, sender):
         if self.outbound_mode_command:
             self.outbound_mode_paper = False
@@ -1796,6 +1801,8 @@ class SidebandApp(MDApp):
             tf = open(path, "rb")
             tf.close()
             self.attach_path = path
+            if self.outbound_mode_command:
+                self.outbound_mode_reset()
             
             if RNS.vendor.platformutils.is_android():
                 toast("Attached \""+str(fbn)+"\"")
@@ -2048,6 +2055,8 @@ class SidebandApp(MDApp):
 
             self.sideband.ui_stopped_recording()
             if self.message_process_audio():
+                if self.outbound_mode_command:
+                    self.outbound_mode_reset()
                 self.message_send_action()
         Clock.schedule_once(cb_s, 0.35)
 
@@ -2195,6 +2204,8 @@ class SidebandApp(MDApp):
                 else:
                     self.message_process_audio()
 
+                if self.outbound_mode_command:
+                    self.outbound_mode_reset()
                 self.update_message_widgets()
                 toast("Added recorded audio to message")
             
