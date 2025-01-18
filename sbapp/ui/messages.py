@@ -396,6 +396,19 @@ class Messages():
                             w.heading += f"\n[b]Audio Message[/b] ({alstr})"
                         w.dmenu.items.append(w.dmenu.retry_item)
 
+                    if msg["state"] == LXMF.LXMessage.REJECTED:
+                        w.md_bg_color = msg_color = mdc(c_cancelled, intensity_cancelled)
+                        txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
+                        titlestr = ""
+                        if msg["title"]:
+                            titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
+                        w.heading = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Rejected"
+                        m["state"] = msg["state"]
+                        if w.has_audio:
+                            alstr = RNS.prettysize(w.audio_size)
+                            w.heading += f"\n[b]Audio Message[/b] ({alstr})"
+                        w.dmenu.items.append(w.dmenu.retry_item)
+
 
     def hide_widget(self, wid, dohide=True):
         if hasattr(wid, 'saved_attrs'):
@@ -625,6 +638,10 @@ class Messages():
                     elif m["state"] == LXMF.LXMessage.CANCELLED:
                         msg_color = mdc(c_cancelled, intensity_cancelled)
                         heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Cancelled"
+
+                    elif m["state"] == LXMF.LXMessage.REJECTED:
+                        msg_color = mdc(c_cancelled, intensity_cancelled)
+                        heading_str = titlestr+"[b]Sent[/b] "+txstr+"\n[b]State[/b] Rejected"
 
                     elif m["state"] == LXMF.LXMessage.OUTBOUND or m["state"] == LXMF.LXMessage.SENDING:
                         msg_color = mdc(c_unknown, intensity_msgs)
