@@ -274,9 +274,7 @@ else:
         import sbapp.pyogg as pyogg
         from sbapp.pydub import AudioSegment
 
-        class toast:
-            def __init__(self, *kwargs):
-                pass
+        from kivymd.toast import toast
 
         from kivy.config import Config
         Config.set('input', 'mouse', 'mouse,disable_multitouch')
@@ -1804,17 +1802,7 @@ class SidebandApp(MDApp):
             if self.outbound_mode_command:
                 self.outbound_mode_reset()
             
-            if RNS.vendor.platformutils.is_android():
-                toast("Attached \""+str(fbn)+"\"")
-            else:
-                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
-                ate_dialog = MDDialog(
-                    title="File Attached",
-                    text="The file \""+str(fbn)+"\" was attached, and will be included with the next message sent.",
-                    buttons=[ ok_button ],
-                )
-                ok_button.bind(on_release=ate_dialog.dismiss)
-                ate_dialog.open()
+            toast("Attached \""+str(fbn)+"\"")
 
         except Exception as e:
             RNS.log(f"Error while attaching \"{fbn}\": "+str(e), RNS.LOG_ERROR)
@@ -2332,18 +2320,7 @@ class SidebandApp(MDApp):
             self.attach_type = None
             self.update_message_widgets()
 
-            if RNS.vendor.platformutils.get_platform() == "android":
-                toast("Attachment removed")
-            else:
-                ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
-                ate_dialog = MDDialog(
-                    title="Attachment Removed",
-                    text="The attached resource was removed from the message",
-                    buttons=[ ok_button ],
-                )
-                ok_button.bind(on_release=ate_dialog.dismiss)
-                ate_dialog.open()
-
+            toast("Attachment removed")
 
     def shared_attachment_action(self, attachment_data):
         if not self.root.ids.screen_manager.current == "messages_screen":
