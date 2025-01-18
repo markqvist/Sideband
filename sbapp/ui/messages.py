@@ -336,6 +336,12 @@ class Messages():
                             w.heading += f"\n[b]Audio Message[/b] ({alstr})"
                         m["state"] = msg["state"]
 
+                    att_heading_str = ""
+                    if hasattr(w, "has_attachment") and w.has_attachment:
+                        att_heading_str = "\n[b]Attachments[/b] "
+                        for attachment in w.attachments_field:
+                            att_heading_str += str(attachment[0])+", "
+                        att_heading_str = att_heading_str[:-2]
 
                     if msg["state"] == LXMF.LXMessage.DELIVERED:
                         w.md_bg_color = msg_color = mdc(c_delivered, intensity_delivered)
@@ -408,6 +414,8 @@ class Messages():
                             alstr = RNS.prettysize(w.audio_size)
                             w.heading += f"\n[b]Audio Message[/b] ({alstr})"
                         w.dmenu.items.append(w.dmenu.retry_item)
+
+                    w.heading += att_heading_str
 
 
     def hide_widget(self, wid, dohide=True):
@@ -656,9 +664,6 @@ class Messages():
                     heading_str = titlestr
                     if phy_stats_str != "" and self.app.sideband.config["advanced_stats"]:
                         heading_str += phy_stats_str+"\n"
-                    # TODO: Remove
-                    # if stamp_valid:
-                    #     txstr += f" [b]Stamp[/b] value is {stamp_value} "
 
                     heading_str += "[b]Sent[/b] "+txstr+delivery_syms
                     heading_str += "\n[b]Received[/b] "+rxstr
@@ -696,6 +701,9 @@ class Messages():
 
                 if has_attachment:
                     item.attachments_field = attachments_field
+                    item.has_attachment = True
+                else:
+                    item.has_attachment = False
 
                 if has_audio:
                     def play_audio(sender):
