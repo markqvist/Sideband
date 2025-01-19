@@ -5778,8 +5778,23 @@ class SidebandApp(MDApp):
             self.map_action()
             self.map_show(location)
 
-    def map_display_telemetry(self, sender=None):
-        self.object_details_action(sender)
+    def map_display_telemetry(self, sender=None, event=None):
+        alt_event = False
+        if sender != None:
+            if hasattr(sender, "last_touch"):
+                if hasattr(sender.last_touch, "button"):
+                    if sender.last_touch.button == "right":
+                        alt_event = True
+
+        if alt_event:
+            try:
+                if hasattr(sender, "source_dest"):
+                    self.sideband.request_latest_telemetry(from_addr=sender.source_dest)
+                    toast("Telemetry request sent")
+            except Exception as e:
+                RNS.log(f"Could not request telemetry update: {e}", RNS.LOG_ERROR)
+        else:
+            self.object_details_action(sender)
 
     def map_display_own_telemetry(self, sender=None):
         self.sideband.update_telemetry()
