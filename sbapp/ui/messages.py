@@ -303,6 +303,17 @@ class Messages():
                         delivery_syms += " 📦"
                     delivery_syms = multilingual_markup(delivery_syms.encode("utf-8")).decode("utf-8")
 
+                    if msg["state"] > LXMF.LXMessage.SENT:
+                        if hasattr(w, "dmenu"):
+                            if hasattr(w.dmenu, "items"):
+                                remove_item = None
+                                for item in w.dmenu.items:
+                                    if item["text"] == "Cancel message":
+                                        remove_item = item
+                                        break
+                                if remove_item != None:
+                                    w.dmenu.items.remove(remove_item)
+
                     if msg["state"] == LXMF.LXMessage.OUTBOUND or msg["state"] == LXMF.LXMessage.SENDING or msg["state"] == LXMF.LXMessage.SENT:
                         w.md_bg_color = msg_color = mdc(c_unknown, intensity_msgs)
                         txstr = time.strftime(ts_format, time.localtime(msg["sent"]))
@@ -1250,7 +1261,7 @@ class Messages():
                                 "on_release": gen_save_attachment(item)
                             }
                             dm_items.append(extra_item)
-                        if m["state"] <= LXMF.LXMessage.SENT:
+                        if m["source"] == self.app.sideband.lxmf_destination.hash and m["state"] <= LXMF.LXMessage.SENT:
                             extra_item = {
                                 "viewclass": "OneLineListItem",
                                 "text": "Cancel message",
