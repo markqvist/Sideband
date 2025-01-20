@@ -1543,6 +1543,7 @@ class SidebandApp(MDApp):
         h3s = int(sp(16))
         
         if not hasattr(self, "pres"):
+            self.presz = re.compile(r"\[(?:size=\d*?)\]", re.IGNORECASE | re.MULTILINE )
             self.pres = []
             res = [ [r"\[(?:code|icode).*?\]", f"[font=mono][size={ms}]"],
                     [r"\[\/(?:code|icode).*?\]", "[/size][/font]"],
@@ -1562,6 +1563,11 @@ class SidebandApp(MDApp):
 
             for r in res:
                 self.pres.append([re.compile(r[0], re.IGNORECASE | re.MULTILINE ), r[1]])
+
+
+        size_matches = self.presz.findall(text)
+        for sm in size_matches:
+            text = text.replace(sm, f"{sm[:-1]}sp]")
 
         for pr in self.pres:
             text = pr[0].sub(pr[1], text)
