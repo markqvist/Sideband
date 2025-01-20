@@ -4396,6 +4396,8 @@ class SidebandCore():
                     fields[LXMF.FIELD_IMAGE] = image
                 if audio != None:
                     fields[LXMF.FIELD_AUDIO] = audio
+                if self.has_bb_markup(content):
+                    fields[LXMF.FIELD_RENDERER] = LXMF.RENDERER_BBCODE
 
                 lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = fields, include_ticket=self.is_trusted(destination_hash))
                 
@@ -4534,10 +4536,18 @@ class SidebandCore():
 
         self.setstate("lxm_uri_ingest.result", response)
 
-    def strip_markup(self, text):
+    def strip_bb_markup(self, text):
         if not hasattr(self, "smr") or self.smr == None:
             self.smr = re.compile(r'\[\/?(?:b|i|u|url|quote|code|img|color|size)*?.*?\]',re.IGNORECASE | re.MULTILINE )
         return self.smr.sub("", text)
+
+    def has_bb_markup(self, text):
+        if not hasattr(self, "smr") or self.smr == None:
+            self.smr = re.compile(r'\[\/?(?:b|i|u|url|quote|code|img|color|size)*?.*?\]',re.IGNORECASE | re.MULTILINE )
+        if self.smr.match(text):
+            return True
+        else:
+            return False
 
     def lxm_ingest(self, message, originator = False):
         should_notify = False
@@ -4621,7 +4631,7 @@ class SidebandCore():
         if should_notify:
             nlen = 128
             text = message.content.decode("utf-8")
-            notification_content = self.strip_markup(text[:nlen])
+            notification_content = self.strip_bb_markup(text[:nlen])
             if len(text) > nlen:
                 notification_content += " [...]"
 
