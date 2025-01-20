@@ -19,6 +19,7 @@ import RNS
 import LXMF
 import time
 import os
+import re
 import pathlib
 import base64
 import threading
@@ -1523,6 +1524,50 @@ class SidebandApp(MDApp):
 
     ### Messages (conversation) screen
     ######################################
+
+    def md_to_bbcode(self, text):
+        if not hasattr(self, "mdconv"):
+            from md2bbcode.main import process_readme as mdconv
+            self.mdconv = mdconv
+        converted = self.mdconv(text)
+        while converted.endswith("\n"):
+            converted = converted[:-1]
+
+        return converted
+
+    def process_bb_markup(self, text):
+        st = time.time()
+        ms = int(sp(14))
+        h1s = int(sp(20))
+        h2s = int(sp(18))
+        h3s = int(sp(16))
+        
+        if not hasattr(self, "pres"):
+            self.pres = []
+            res = [ [r"\[(?:code|icode).*?\]", f"[font=mono][size={ms}]"],
+                    [r"\[\/(?:code|icode).*?\]", "[/size][/font]"],
+                    [r"\[(?:heading)\]", f"[b][size={h1s}]"],
+                    [r"\[(?:heading=1)*?\]", f"[b][size={h1s}]"],
+                    [r"\[(?:heading=2)*?\]", f"[b][size={h2s}]"],
+                    [r"\[(?:heading=3)*?\]", f"[b][size={h3s}]"],
+                    [r"\[(?:heading=).*?\]", f"[b][size={h3s}]"], # Match all remaining lower-level headings
+                    [r"\[\/(?:heading).*?\]", "[/size][/b]"],
+                    [r"\[(?:list).*?\]", ""],
+                    [r"\[\/(?:list).*?\]", ""],
+                    [r"\n\[(?:\*).*?\]", "\n - "],
+                    [r"\[(?:url).*?\]", ""], # Strip URLs for now
+                    [r"\[\/(?:url).*?\]", ""],
+                    [r"\[(?:img).*?\].*\[\/(?:img).*?\]", ""] # Strip images for now
+                   ]
+
+            for r in res:
+                self.pres.append([re.compile(r[0], re.IGNORECASE | re.MULTILINE ), r[1]])
+
+        for pr in self.pres:
+            text = pr[0].sub(pr[1], text)
+
+        return text
+
     def conversation_from_announce_action(self, context_dest):
         if self.sideband.has_conversation(context_dest):
             pass
@@ -2758,7 +2803,7 @@ class SidebandApp(MDApp):
 
             str_comps  = " - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)"
             str_comps += "\n - [b]Kivy[/b] (MIT License)\n - [b]Codec2[/b] (LGPL License)\n - [b]PyCodec2[/b] (BSD-3 License)"
-            str_comps += "\n - [b]PyDub[/b] (MIT License)\n - [b]PyOgg[/b] (Public Domain)"
+            str_comps += "\n - [b]PyDub[/b] (MIT License)\n - [b]PyOgg[/b] (Public Domain)\n - [b]MD2bbcode[/b] (GPL3 License)"
             str_comps += "\n - [b]GeoidHeight[/b] (LGPL License)\n - [b]Python[/b] (PSF License)"
             str_comps += "\n\nGo to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project.\n\nThe Sideband app is Copyright © 2025 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of "+self.root.ids.app_version_info.text+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - SIDEBAND COMES WITH ABSOLUTELY NO WARRANTY - USE AT YOUR OWN RISK AND RESPONSIBILITY"
             info = "This is "+self.root.ids.app_version_info.text+", on RNS v"+RNS.__version__+" and LXMF v"+LXMF.__version__+".\n\nHumbly build using the following open components:\n\n"+str_comps
@@ -3041,6 +3086,10 @@ class SidebandApp(MDApp):
                 self.sideband.config["trusted_markup_only"] = self.settings_screen.ids.settings_trusted_markup_only.active
                 self.sideband.save_configuration()
 
+            def save_compose_in_markdown(sender=None, event=None):
+                self.sideband.config["compose_in_markdown"] = self.settings_screen.ids.settings_compose_in_markdown.active
+                self.sideband.save_configuration()
+
             def save_advanced_stats(sender=None, event=None):
                 self.sideband.config["advanced_stats"] = self.settings_screen.ids.settings_advanced_statistics.active
                 self.sideband.save_configuration()
@@ -3218,6 +3267,9 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.settings_trusted_markup_only.active = self.sideband.config["trusted_markup_only"]
             self.settings_screen.ids.settings_trusted_markup_only.bind(active=save_trusted_markup_only)
+
+            self.settings_screen.ids.settings_compose_in_markdown.active = self.sideband.config["compose_in_markdown"]
+            self.settings_screen.ids.settings_compose_in_markdown.bind(active=save_compose_in_markdown)
 
             self.settings_screen.ids.settings_ignore_invalid_stamps.active = self.sideband.config["lxmf_ignore_invalid_stamps"]
             self.settings_screen.ids.settings_ignore_invalid_stamps.bind(active=save_lxmf_ignore_invalid_stamps)

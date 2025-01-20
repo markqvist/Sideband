@@ -123,6 +123,8 @@ setuptools.setup(
         "ffpyplayer",
         "sh",
         "numpy<=1.26.4",
+        "mistune>=3.0.2",
+        "beautifulsoup4",
         "pycodec2;sys.platform!='Windows' and sys.platform!='win32' and sys.platform!='darwin'",
         "pyaudio;sys.platform=='linux'",
         "pyobjus;sys.platform=='darwin'",

@@ -110,8 +110,6 @@ class Messages():
         msg = self.app.sideband.message(lxm_hash)
         if msg:
             close_button = MDRectangleFlatButton(text="Close", font_size=dp(18))
-            # d_items = [ ]
-            # d_items.append(DialogItem(IconLeftWidget(icon="postage-stamp"), text="[size="+str(ss)+"]Stamp[/size]"))
 
             d_text = ""
 
@@ -492,11 +490,24 @@ class Messages():
 
         for m in self.new_messages:
             if not m["hash"] in self.added_item_hashes:
+                renderer = None
+                message_source = m["content"]
+                if "lxm" in m and m["lxm"] and m["lxm"].fields != None and LXMF.FIELD_RENDERER in m["lxm"].fields:
+                    renderer = m["lxm"].fields[LXMF.FIELD_RENDERER]
+
                 try:
                     if self.app.sideband.config["trusted_markup_only"] and not self.is_trusted:
                         message_input = str( escape_markup(m["content"].decode("utf-8")) ).encode("utf-8")
                     else:
                         message_input = m["content"]
+                        if renderer == LXMF.RENDERER_MARKDOWN:
+                            message_input = self.app.md_to_bbcode(message_input.decode("utf-8")).encode("utf-8")
+                            message_input = self.app.process_bb_markup(message_input.decode("utf-8")).encode("utf-8")
+                        elif renderer == LXMF.RENDERER_BBCODE:
+                            message_input = self.app.process_bb_markup(message_input.decode("utf-8")).encode("utf-8")
+                        else:
+                            message_input = str(escape_markup(m["content"].decode("utf-8"))).encode("utf-8")
+
                 except Exception as e:
                     RNS.log(f"Message content could not be decoded: {e}", RNS.LOG_DEBUG)
                     message_input = b""
@@ -1144,7 +1155,7 @@ class Messages():
                                 "viewclass": "OneLineListItem",
                                 "text": "Copy message text",
                                 "height": dp(40),
-                                "on_release": gen_copy(message_input.decode("utf-8"), item)
+                                "on_release": gen_copy(message_source.decode("utf-8"), item)
                             },
                             {
                                 "text": "Delete",
@@ -1178,7 +1189,7 @@ class Messages():
                                 "viewclass": "OneLineListItem",
                                 "text": "Copy message text",
                                 "height": dp(40),
-                                "on_release": gen_copy(message_input.decode("utf-8"), item)
+                                "on_release": gen_copy(message_source.decode("utf-8"), item)
                             },
                             {
                                 "text": "Delete",
@@ -1196,7 +1207,7 @@ class Messages():
                                 "viewclass": "OneLineListItem",
                                 "text": "Copy",
                                 "height": dp(40),
-                                "on_release": gen_copy(message_input.decode("utf-8"), item)
+                                "on_release": gen_copy(message_source.decode("utf-8"), item)
                             },
                             {
                                 "text": "Delete",
@@ -1213,7 +1224,7 @@ class Messages():
                                     "viewclass": "OneLineListItem",
                                     "text": "Copy",
                                     "height": dp(40),
-                                    "on_release": gen_copy(message_input.decode("utf-8"), item)
+                                    "on_release": gen_copy(message_source.decode("utf-8"), item)
                                 },
                                 {
                                     "viewclass": "OneLineListItem",
@@ -1236,7 +1247,7 @@ class Messages():
                                     "viewclass": "OneLineListItem",
                                     "text": "Copy",
                                     "height": dp(40),
-                                    "on_release": gen_copy(message_input.decode("utf-8"), item)
+                                    "on_release": gen_copy(message_source.decode("utf-8"), item)
                                 },
                                 {
                                     "text": "Delete",

@@ -457,6 +457,7 @@ class SidebandCore():
         self.config["eink_mode"] = True
         self.config["lxm_limit_1mb"] = True
         self.config["trusted_markup_only"] = False
+        self.config["compose_in_markdown"] = False
 
         # Connectivity
         self.config["connect_transport"] = False
@@ -601,6 +602,8 @@ class SidebandCore():
             self.config["hq_ptt"] = False
         if not "trusted_markup_only" in self.config:
             self.config["trusted_markup_only"] = False
+        if not "compose_in_markdown" in self.config:
+            self.config["compose_in_markdown"] = False
 
         if not "input_language" in self.config:
             self.config["input_language"] = None
@@ -4396,7 +4399,13 @@ class SidebandCore():
                     fields[LXMF.FIELD_IMAGE] = image
                 if audio != None:
                     fields[LXMF.FIELD_AUDIO] = audio
-                if self.has_bb_markup(content):
+                md_sig = "#!md\n"
+                if content.startswith(md_sig):
+                    content = content[len(md_sig):]
+                    fields[LXMF.FIELD_RENDERER] = LXMF.RENDERER_MARKDOWN
+                elif self.config["compose_in_markdown"]:
+                    fields[LXMF.FIELD_RENDERER] = LXMF.RENDERER_MARKDOWN
+                elif self.has_bb_markup(content):
                     fields[LXMF.FIELD_RENDERER] = LXMF.RENDERER_BBCODE
 
                 lxm = LXMF.LXMessage(dest, source, content, title="", desired_method=desired_method, fields = fields, include_ticket=self.is_trusted(destination_hash))
@@ -4538,12 +4547,12 @@ class SidebandCore():
 
     def strip_bb_markup(self, text):
         if not hasattr(self, "smr") or self.smr == None:
-            self.smr = re.compile(r'\[\/?(?:b|i|u|url|quote|code|img|color|size)*?.*?\]',re.IGNORECASE | re.MULTILINE )
+            self.smr = re.compile(r"\[\/?(?:b|i|u|url|quote|code|img|color|size)*?.*?\]",re.IGNORECASE | re.MULTILINE )
         return self.smr.sub("", text)
 
     def has_bb_markup(self, text):
         if not hasattr(self, "smr") or self.smr == None:
-            self.smr = re.compile(r'\[\/?(?:b|i|u|url|quote|code|img|color|size)*?.*?\]',re.IGNORECASE | re.MULTILINE )
+            self.smr = re.compile(r"\[\/?(?:b|i|u|url|quote|code|img|color|size)*?.*?\]",re.IGNORECASE | re.MULTILINE )
         if self.smr.match(text):
             return True
         else:
