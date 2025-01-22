@@ -2807,10 +2807,10 @@ class SidebandApp(MDApp):
             self.information_screen.ids.information_scrollview.effect_cls = ScrollEffect
             self.information_screen.ids.information_logo.icon = self.sideband.asset_dir+"/rns_256.png"
 
-            str_comps  = " - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)"
+            str_comps  =   " - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)"
             str_comps += "\n - [b]Kivy[/b] (MIT License)\n - [b]Codec2[/b] (LGPL License)\n - [b]PyCodec2[/b] (BSD-3 License)"
             str_comps += "\n - [b]PyDub[/b] (MIT License)\n - [b]PyOgg[/b] (Public Domain)\n - [b]MD2bbcode[/b] (GPL3 License)"
-            str_comps += "\n - [b]GeoidHeight[/b] (LGPL License)\n - [b]Python[/b] (PSF License)"
+            str_comps += "\n - [b]GeoidHeight[/b] (LGPL License)\n - [b]Paho MQTT[/b] (EPL2 License)\n - [b]Python[/b] (PSF License)"
             str_comps += "\n\nGo to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project.\n\nThe Sideband app is Copyright © 2025 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of "+self.root.ids.app_version_info.text+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - SIDEBAND COMES WITH ABSOLUTELY NO WARRANTY - USE AT YOUR OWN RISK AND RESPONSIBILITY"
             info = "This is "+self.root.ids.app_version_info.text+", on RNS v"+RNS.__version__+" and LXMF v"+LXMF.__version__+".\n\nHumbly build using the following open components:\n\n"+str_comps
             self.information_screen.ids.information_info.text = info
