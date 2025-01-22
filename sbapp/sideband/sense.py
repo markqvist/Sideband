@@ -33,6 +33,7 @@ class Telemeter():
             s.data = s.unpack(p[sid])
             s.synthesized = True
             s.active = True
+            s._telemeter = t
             t.sensors[name] = s
 
       return t
@@ -53,8 +54,8 @@ class Telemeter():
       Sensor.SID_PROXIMITY: Proximity, Sensor.SID_POWER_CONSUMPTION: PowerConsumption,
       Sensor.SID_POWER_PRODUCTION: PowerProduction, Sensor.SID_PROCESSOR: Processor,
       Sensor.SID_RAM: RandomAccessMemory, Sensor.SID_NVM: NonVolatileMemory,
-      Sensor.SID_CUSTOM: Custom, Sensor.SID_TANK: Tank, Sensor.SID_FUEL: Fuel,
-    }
+      Sensor.SID_CUSTOM: Custom, Sensor.SID_TANK: Tank, Sensor.SID_FUEL: Fuel}
+
     self.available = {
       "time": Sensor.SID_TIME,
       "information": Sensor.SID_INFORMATION, "received": Sensor.SID_RECEIVED,
@@ -66,8 +67,12 @@ class Telemeter():
       "acceleration": Sensor.SID_ACCELERATION, "proximity": Sensor.SID_PROXIMITY,
       "power_consumption": Sensor.SID_POWER_CONSUMPTION, "power_production": Sensor.SID_POWER_PRODUCTION,
       "processor": Sensor.SID_PROCESSOR, "ram": Sensor.SID_RAM, "nvm": Sensor.SID_NVM,
-      "custom": Sensor.SID_CUSTOM, "tank": Sensor.SID_TANK, "fuel": Sensor.SID_FUEL
-    }
+      "custom": Sensor.SID_CUSTOM, "tank": Sensor.SID_TANK, "fuel": Sensor.SID_FUEL}
+
+    self.names = {}
+    for name in self.available:
+      self.names[self.available[name]] = name
+
     self.from_packed = from_packed
     self.sensors = {}
     if not self.from_packed:
@@ -76,6 +81,12 @@ class Telemeter():
     self.location_provider = location_provider
     self.android_context = android_context
     self.service = service
+
+  def get_name(self, sid):
+    if sid in self.names:
+      return self.names[sid]
+    else:
+      return None
 
   def synthesize(self, sensor):
       if sensor in self.available:
@@ -268,6 +279,15 @@ class Sensor():
   def render(self, relative_to=None):
     return None
 
+  def render_mqtt(self, relative_to=None):
+    return None
+
+  def name(self):
+    if self._telemeter != None:
+      return self._telemeter.get_name(self._sid)
+    else:
+      return None
+
   def check_permission(self, permission):
     if self._telemeter != None:
       return self._telemeter.check_permission(permission)
@@ -319,6 +339,19 @@ class Time(Sensor):
 
     return rendered
 
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": "Timestamp",
+        f"{topic}/icon": "clock-time-ten-outline",
+        f"{topic}/utc": self.data["utc"],       
+      }
+    else:
+      rendered = None
+
+    return rendered
+
 class Information(Sensor):
   SID = Sensor.SID_INFORMATION
   STALE_TIME = 5
@@ -361,6 +394,19 @@ class Information(Sensor):
       "name": "Information",
       "values": { "contents": self.data["contents"] },
     }
+
+    return rendered
+
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": "Information",
+        f"{topic}/icon": "information-variant",
+        f"{topic}/text": self.data["contents"],
+      }
+    else:
+      rendered = None
 
     return rendered
 
@@ -427,6 +473,22 @@ class Received(Sensor):
       "name": "Received",
       "values": self.data,
     }
+
+    return rendered
+
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": "Received",
+        f"{topic}/icon": "arrow-down-bold-hexagon-outline",
+        f"{topic}/by": mqtt_desthash(self.data["by"]),
+        f"{topic}/via": mqtt_desthash(self.data["via"]),
+        f"{topic}/distance/geodesic": self.data["distance"]["geodesic"],
+        f"{topic}/distance/euclidian": self.data["distance"]["euclidian"],
+      }
+    else:
+      rendered = None
 
     return rendered
 
@@ -555,6 +617,22 @@ class Battery(Sensor):
 
     return rendered
 
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render()
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+        f"{topic}/percent": r["values"]["percent"],
+        f"{topic}/temperature": r["values"]["temperature"],
+        f"{topic}/meta": r["values"]["_meta"],
+      }
+    else:
+      rendered = None
+
+    return rendered
+
 class Pressure(Sensor):
   SID = Sensor.SID_PRESSURE
   STALE_TIME = 5
@@ -618,6 +696,20 @@ class Pressure(Sensor):
     }
     if delta != None:
       rendered["deltas"] = {"mbar": delta}
+
+    return rendered
+
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render()
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+        f"{topic}/mbar": r["values"]["mbar"],
+      }
+    else:
+      rendered = None
 
     return rendered
 
@@ -876,6 +968,45 @@ class Location(Sensor):
 
     return rendered
 
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+        f"{topic}/latitude": r["values"]["latitude"],
+        f"{topic}/longitude": r["values"]["longitude"],
+        f"{topic}/altitude": r["values"]["altitude"],
+        f"{topic}/speed": r["values"]["speed"],
+        f"{topic}/heading": r["values"]["heading"],
+        f"{topic}/accuracy": r["values"]["accuracy"],
+        f"{topic}/updated": r["values"]["updated"],
+        f"{topic}/angle_to_horizon": r["values"]["angle_to_horizon"],
+        f"{topic}/radio_horizon": r["values"]["radio_horizon"]}
+      if "distance" in r:
+        rendered[f"{topic}/distance/euclidian"] = r["distance"]["euclidian"]
+        rendered[f"{topic}/distance/orthodromic"] = r["distance"]["orthodromic"]
+        rendered[f"{topic}/distance/vertical"] = r["distance"]["vertical"]
+      if "azalt" in r:
+        rendered[f"{topic}/azalt/azimuth"] = r["azalt"]["azimuth"]
+        rendered[f"{topic}/azalt/altitude"] = r["azalt"]["altitude"]
+        rendered[f"{topic}/azalt/above_horizon"] = r["azalt"]["above_horizon"]
+        rendered[f"{topic}/azalt/altitude_delta"] = r["azalt"]["altitude_delta"]
+        rendered[f"{topic}/azalt/local_angle_to_horizon"] = r["azalt"]["local_angle_to_horizon"]
+      if "radio_horizon" in r:
+        rendered[f"{topic}/radio_horizon/object_range"] = r["radio_horizon"]["object_range"]
+        rendered[f"{topic}/radio_horizon/related_range"] = r["radio_horizon"]["related_range"]
+        rendered[f"{topic}/radio_horizon/combined_range"] = r["radio_horizon"]["combined_range"]
+        rendered[f"{topic}/radio_horizon/within_range"] = r["radio_horizon"]["within_range"]
+        rendered[f"{topic}/radio_horizon/geodesic_distance"] = r["radio_horizon"]["geodesic_distance"]
+        rendered[f"{topic}/radio_horizon/antenna_distance"] = r["radio_horizon"]["antenna_distance"]
+
+    else:
+      rendered = None
+
+    return rendered
+
 class PhysicalLink(Sensor):
   SID = Sensor.SID_PHYSICAL_LINK
   STALE_TIME = 5
@@ -930,6 +1061,22 @@ class PhysicalLink(Sensor):
       if q > 40: rendered["icon"] = "network-strength-2"
       if q > 75: rendered["icon"] = "network-strength-3"
       if q > 90: rendered["icon"] = "network-strength-4"
+    return rendered
+
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+        f"{topic}/rssi": r["values"]["rssi"],
+        f"{topic}/snr": r["values"]["snr"],
+        f"{topic}/q": r["values"]["q"],
+      }
+    else:
+      rendered = None
+
     return rendered
 
 class Temperature(Sensor):
@@ -988,6 +1135,20 @@ class Temperature(Sensor):
     }
     return rendered
 
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+        f"{topic}/c": r["values"]["c"],
+      }
+    else:
+      rendered = None
+
+    return rendered
+
 class Humidity(Sensor):
   SID = Sensor.SID_HUMIDITY
   STALE_TIME = 5
@@ -1042,6 +1203,20 @@ class Humidity(Sensor):
       "name": "Relative Humidity",
       "values": { "percent": self.data["percent_relative"] },
     }
+    return rendered
+
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+        f"{topic}/percent_relative": r["values"]["percent"],
+      }
+    else:
+      rendered = None
+
     return rendered
 
 class MagneticField(Sensor):
@@ -1099,6 +1274,22 @@ class MagneticField(Sensor):
       "name": "Magnetic Field",
       "values": { "x": self.data["x"], "y": self.data["y"], "z": self.data["z"] },
     }
+    return rendered
+
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+        f"{topic}/x": r["values"]["x"],
+        f"{topic}/y": r["values"]["y"],
+        f"{topic}/z": r["values"]["z"],
+      }
+    else:
+      rendered = None
+
     return rendered
 
 class AmbientLight(Sensor):
@@ -1167,6 +1358,22 @@ class AmbientLight(Sensor):
 
     return rendered
 
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+        f"{topic}/lux": r["values"]["lux"],
+      }
+      if "deltas" in r:
+        rendered[f"{topic}/deltas/lux"] = r["deltas"]["lux"]
+    else:
+      rendered = None
+
+    return rendered
+
 class Gravity(Sensor):
   SID = Sensor.SID_GRAVITY
   STALE_TIME = 1
@@ -1222,6 +1429,22 @@ class Gravity(Sensor):
       "name": "Gravity",
       "values": { "x": self.data["x"], "y": self.data["y"], "z": self.data["z"] },
     }
+    return rendered
+
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+        f"{topic}/x": r["values"]["x"],
+        f"{topic}/y": r["values"]["y"],
+        f"{topic}/z": r["values"]["z"],
+      }
+    else:
+      rendered = None
+
     return rendered
 
 class AngularVelocity(Sensor):
@@ -1281,6 +1504,22 @@ class AngularVelocity(Sensor):
     }
     return rendered
 
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+        f"{topic}/x": r["values"]["x"],
+        f"{topic}/y": r["values"]["y"],
+        f"{topic}/z": r["values"]["z"],
+      }
+    else:
+      rendered = None
+
+    return rendered
+
 class Acceleration(Sensor):
   SID = Sensor.SID_ACCELERATION
   STALE_TIME = 1
@@ -1326,6 +1565,33 @@ class Acceleration(Sensor):
         return {"x": packed[0], "y": packed[1], "z": packed[2]}
     except:
       return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+    
+    rendered = {
+      "icon": "arrow-right-thick",
+      "name": "Acceleration",
+      "values": { "x": self.data["x"], "y": self.data["y"], "z": self.data["z"] },
+    }
+    return rendered
+
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+        f"{topic}/x": r["values"]["x"],
+        f"{topic}/y": r["values"]["y"],
+        f"{topic}/z": r["values"]["z"],
+      }
+    else:
+      rendered = None
+
+    return rendered
 
 class Proximity(Sensor):
   SID = Sensor.SID_PROXIMITY
@@ -1381,6 +1647,20 @@ class Proximity(Sensor):
       "name": "Proximity",
       "values": { "triggered": self.data },
     }
+    return rendered
+
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+        f"{topic}/triggered": r["values"]["triggered"],
+      }
+    else:
+      rendered = None
+
     return rendered
 
 class PowerConsumption(Sensor):
@@ -1464,6 +1744,22 @@ class PowerConsumption(Sensor):
 
     return rendered
 
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+      }
+      for consumer in r["values"]:
+        rendered[f"{topic}/{consumer["label"]}/w"] = consumer["w"]
+        rendered[f"{topic}/{consumer["label"]}/icon"] = consumer["custom_icon"]
+    else:
+      rendered = None
+
+    return rendered
+
 class PowerProduction(Sensor):
   SID = Sensor.SID_POWER_PRODUCTION
   STALE_TIME = 5
@@ -1542,6 +1838,22 @@ class PowerProduction(Sensor):
       "name": "Power Production",
       "values": producers,
     }
+
+    return rendered
+
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+      }
+      for producer in r["values"]:
+        rendered[f"{topic}/{producer["label"]}/w"] = producer["w"]
+        rendered[f"{topic}/{producer["label"]}/icon"] = producer["custom_icon"]
+    else:
+      rendered = None
 
     return rendered
 
@@ -1628,6 +1940,25 @@ class Processor(Sensor):
       "name": "Processor",
       "values": entries,
     }
+
+    return rendered
+
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+      }
+      for cpu in r["values"]:
+        rendered[f"{topic}/{cpu["label"]}/current_load"] = cpu["current_load"]
+        rendered[f"{topic}/{cpu["label"]}/avgs/1m"] = cpu["load_avgs"][0]
+        rendered[f"{topic}/{cpu["label"]}/avgs/5m"] = cpu["load_avgs"][1]
+        rendered[f"{topic}/{cpu["label"]}/avgs/15m"] = cpu["load_avgs"][2]
+        rendered[f"{topic}/{cpu["label"]}/clock"] = cpu["clock"]
+    else:
+      rendered = None
 
     return rendered
 
@@ -1718,6 +2049,24 @@ class RandomAccessMemory(Sensor):
 
     return rendered
 
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+      }
+      for ram in r["values"]:
+        rendered[f"{topic}/{ram["label"]}/capacity"] = ram["capacity"]
+        rendered[f"{topic}/{ram["label"]}/used"] = ram["used"]
+        rendered[f"{topic}/{ram["label"]}/free"] = ram["free"]
+        rendered[f"{topic}/{ram["label"]}/percent"] = ram["percent"]
+    else:
+      rendered = None
+
+    return rendered
+
 class NonVolatileMemory(Sensor):
   SID = Sensor.SID_NVM
   STALE_TIME = 5
@@ -1802,6 +2151,24 @@ class NonVolatileMemory(Sensor):
       "name": "Non-Volatile Memory",
       "values": entries,
     }
+
+    return rendered
+
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+      }
+      for nvm in r["values"]:
+        rendered[f"{topic}/{nvm["label"]}/capacity"] = nvm["capacity"]
+        rendered[f"{topic}/{nvm["label"]}/used"] = nvm["used"]
+        rendered[f"{topic}/{nvm["label"]}/free"] = nvm["free"]
+        rendered[f"{topic}/{nvm["label"]}/percent"] = nvm["percent"]
+    else:
+      rendered = None
 
     return rendered
 
@@ -1890,6 +2257,21 @@ class Custom(Sensor):
 
     return rendered
 
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+      }
+      for custom in r["values"]:
+        rendered[f"{topic}/{custom["label"]}/value"] = custom["value"]
+        rendered[f"{topic}/{custom["label"]}/icon"] = custom["custom_icon"]
+    else:
+      rendered = None
+
+    return rendered
 
 class Tank(Sensor):
   SID = Sensor.SID_TANK
@@ -1981,6 +2363,26 @@ class Tank(Sensor):
       "name": "Tank",
       "values": entries,
     }
+
+    return rendered
+
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+      }
+      for tank in r["values"]:
+        rendered[f"{topic}/{tank["label"]}/unit"] = tank["unit"]
+        rendered[f"{topic}/{tank["label"]}/capacity"] = tank["capacity"]
+        rendered[f"{topic}/{tank["label"]}/level"] = tank["level"]
+        rendered[f"{topic}/{tank["label"]}/free"] = tank["free"]
+        rendered[f"{topic}/{tank["label"]}/percent"] = tank["percent"]
+        rendered[f"{topic}/{tank["label"]}/icon"] = tank["custom_icon"]
+    else:
+      rendered = None
 
     return rendered
 
@@ -2076,3 +2478,29 @@ class Fuel(Sensor):
     }
 
     return rendered
+
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      topic = self.name()
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+      }
+      for tank in r["values"]:
+        rendered[f"{topic}/{tank["label"]}/unit"] = tank["unit"]
+        rendered[f"{topic}/{tank["label"]}/capacity"] = tank["capacity"]
+        rendered[f"{topic}/{tank["label"]}/level"] = tank["level"]
+        rendered[f"{topic}/{tank["label"]}/free"] = tank["free"]
+        rendered[f"{topic}/{tank["label"]}/percent"] = tank["percent"]
+        rendered[f"{topic}/{tank["label"]}/icon"] = tank["custom_icon"]
+    else:
+      rendered = None
+
+    return rendered
+
+def mqtt_desthash(desthash):
+  if type(desthash) == bytes:
+    return RNS.prettyhexrep(desthash)
+  else:
+    return None
