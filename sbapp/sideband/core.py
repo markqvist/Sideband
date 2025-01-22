@@ -21,6 +21,7 @@ from collections import deque
 from .res import sideband_fb_data
 from .sense import Telemeter, Commands
 from .plugins import SidebandCommandPlugin, SidebandServicePlugin, SidebandTelemetryPlugin
+from .mqtt import MQTT
 
 if RNS.vendor.platformutils.get_platform() == "android":
     import plyer
@@ -258,6 +259,8 @@ class SidebandCore():
 
         self.webshare_ssl_key_path  = self.app_dir+"/app_storage/ssl_key.pem"
         self.webshare_ssl_cert_path = self.app_dir+"/app_storage/ssl_cert.pem"
+
+        self.mqtt = None
         
         self.first_run     = True
         self.saving_configuration = False
@@ -725,6 +728,18 @@ class SidebandCore():
             self.config["telemetry_request_interval"] = 43200
         if not "telemetry_collector_enabled" in self.config:
             self.config["telemetry_collector_enabled"] = False
+        if not "telemetry_to_mqtt" in self.config:
+            self.config["telemetry_to_mqtt"] = False
+        if not "telemetry_mqtt_host" in self.config:
+            self.config["telemetry_mqtt_host"] = None
+        if not "telemetry_mqtt_port" in self.config:
+            self.config["telemetry_mqtt_port"] = None
+        if not "telemetry_mqtt_user" in self.config:
+            self.config["telemetry_mqtt_user"] = None
+        if not "telemetry_mqtt_pass" in self.config:
+            self.config["telemetry_mqtt_pass"] = None
+        if not "telemetry_mqtt_validate_ssl" in self.config:
+            self.config["telemetry_mqtt_validate_ssl"] = False
 
         if not "telemetry_icon" in self.config:
             self.config["telemetry_icon"] = SidebandCore.DEFAULT_APPEARANCE[0]
@@ -2267,6 +2282,9 @@ class SidebandCore():
 
                 self.setstate("app.flags.last_telemetry", time.time())
 
+                if self.config["telemetry_to_mqtt"] == True:
+                    self.mqtt_handle_telemetry(context_dest, telemetry)
+
                 return telemetry
 
             except Exception as e:
@@ -3082,6 +3100,14 @@ class SidebandCore():
         self.telemeter.stop_all()
         self.update_telemeter_config()
         self.setstate("app.flags.last_telemetry", time.time())
+
+    def mqtt_handle_telemetry(self, context_dest, telemetry):
+        if self.mqtt == None:
+            self.mqtt = MQTT()
+
+        self.mqtt.set_server(self.config["telemetry_mqtt_host"], self.config["telemetry_mqtt_port"])
+        self.mqtt.set_auth(self.config["telemetry_mqtt_user"], self.config["telemetry_mqtt_pass"])
+        self.mqtt.handle(context_dest, telemetry)
 
     def update_telemetry(self):
         try:
