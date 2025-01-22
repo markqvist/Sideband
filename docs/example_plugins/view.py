@@ -310,7 +310,8 @@ class ViewCommandPlugin(SidebandCommandPlugin):
             else:
                 image_field     = self.sources[source].get_image_field(quality_preset)
                 image_timestamp = self.timestamp_str(self.sources[source].last_update)
-                message         = f"Source [b]{source}[/b] at [b]{image_timestamp}[/b]"
+                message         = "#!md\n" # Tell sideband to format this message
+                message        += f"Source [b]{source}[/b] at [b]{image_timestamp}[/b]"
 
                 if image_field != None:
                     self.image_response(message, image_field, requestor)
