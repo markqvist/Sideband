@@ -39,6 +39,7 @@ class MQTT():
                 if len(self.waiting_msgs) > 0:
                     RNS.log(f"Processing {len(self.waiting_msgs)} MQTT messages", RNS.LOG_DEBUG)
                     self.process_queue()
+                    RNS.log("All MQTT messages processed", RNS.LOG_DEBUG)
 
             except Exception as e:
                 RNS.log("An error occurred while running MQTT scheduler jobs: {e}", RNS.LOG_ERROR)

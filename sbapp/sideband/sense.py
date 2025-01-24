@@ -2508,7 +2508,7 @@ class RNSTransport(Sensor):
 
 class LXMFPropagation(Sensor):
   SID = Sensor.SID_LXMF_PROPAGATION
-  STALE_TIME = 5
+  STALE_TIME = 120
 
   def __init__(self):
     self.identity = None
@@ -2577,9 +2577,6 @@ class LXMFPropagation(Sensor):
   def render(self, relative_to=None):
     if self.data == None:
       return None
-
-    from rich.pretty import pprint
-    pprint(self.data["peers"])
 
     try:
       d = self.data
