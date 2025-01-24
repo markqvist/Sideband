@@ -54,7 +54,8 @@ class Telemeter():
       Sensor.SID_PROXIMITY: Proximity, Sensor.SID_POWER_CONSUMPTION: PowerConsumption,
       Sensor.SID_POWER_PRODUCTION: PowerProduction, Sensor.SID_PROCESSOR: Processor,
       Sensor.SID_RAM: RandomAccessMemory, Sensor.SID_NVM: NonVolatileMemory,
-      Sensor.SID_CUSTOM: Custom, Sensor.SID_TANK: Tank, Sensor.SID_FUEL: Fuel}
+      Sensor.SID_CUSTOM: Custom, Sensor.SID_TANK: Tank, Sensor.SID_FUEL: Fuel,
+      Sensor.SID_RNS_TRANSPORT: RNSTransport, Sensor.SID_LXMF_PROPAGATION: LXMFPropagation}
 
     self.available = {
       "time": Sensor.SID_TIME,
@@ -67,7 +68,8 @@ class Telemeter():
       "acceleration": Sensor.SID_ACCELERATION, "proximity": Sensor.SID_PROXIMITY,
       "power_consumption": Sensor.SID_POWER_CONSUMPTION, "power_production": Sensor.SID_POWER_PRODUCTION,
       "processor": Sensor.SID_PROCESSOR, "ram": Sensor.SID_RAM, "nvm": Sensor.SID_NVM,
-      "custom": Sensor.SID_CUSTOM, "tank": Sensor.SID_TANK, "fuel": Sensor.SID_FUEL}
+      "custom": Sensor.SID_CUSTOM, "tank": Sensor.SID_TANK, "fuel": Sensor.SID_FUEL,
+      "rns_transport": Sensor.SID_RNS_TRANSPORT, "lxmf_propagation": Sensor.SID_LXMF_PROPAGATION}
 
     self.names = {}
     for name in self.available:
@@ -206,6 +208,8 @@ class Sensor():
   SID_NVM               = 0x15
   SID_TANK              = 0x16
   SID_FUEL              = 0x17
+  SID_RNS_TRANSPORT     = 0x19
+  SID_LXMF_PROPAGATION  = 0x18
   SID_CUSTOM            = 0xff
 
   def __init__(self, sid = None, stale_time = None):
@@ -2494,6 +2498,201 @@ class Fuel(Sensor):
         rendered[f"{topic}/{tank["label"]}/free"] = tank["free"]
         rendered[f"{topic}/{tank["label"]}/percent"] = tank["percent"]
         rendered[f"{topic}/{tank["label"]}/icon"] = tank["custom_icon"]
+    else:
+      rendered = None
+
+    return rendered
+
+class RNSTransport(Sensor):
+  pass
+
+class LXMFPropagation(Sensor):
+  SID = Sensor.SID_LXMF_PROPAGATION
+  STALE_TIME = 5
+
+  def __init__(self):
+    self.identity = None
+    self.lxmd = None
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+  def set_identity(self, identity):
+    if type(identity) == RNS.Identity:
+      self.identity = identity
+    else:
+      file_path = os.path.expanduser(identity)
+      if os.path.isfile(file_path):
+        try:
+          self.identity = RNS.Identity.from_file(file_path)
+        except Exception as e:
+          RNS.log("Could not load LXMF propagation sensor identity from \"{file_path}\"", RNS.LOG_ERROR)
+
+  def setup_sensor(self):
+    self.update_data()
+
+  def teardown_sensor(self):
+    self.identity = None
+    self.data = None
+
+  def update_data(self):
+    if self.identity != None:
+      if self.lxmd == None:
+        import LXMF.LXMPeer as LXMPeer
+        import LXMF.Utilities.lxmd as lxmd
+        self.ERROR_NO_IDENTITY = LXMPeer.LXMPeer.ERROR_NO_IDENTITY
+        self.ERROR_NO_ACCESS = LXMPeer.LXMPeer.ERROR_NO_ACCESS
+        self.ERROR_TIMEOUT = LXMPeer.LXMPeer.ERROR_TIMEOUT
+        self.lxmd = lxmd
+
+      status_response = self.lxmd.query_status(identity=self.identity)
+      if status_response == None:
+        RNS.log("Status response from lxmd was received, but contained no data", RNS.LOG_ERROR)
+      elif status_response == self.ERROR_NO_IDENTITY:
+        RNS.log("Updating telemetry from lxmd failed due to missing identification", RNS.LOG_ERROR)
+      elif status_response == self.ERROR_NO_IDENTITY:
+        RNS.log("Updating telemetry from lxmd failed due to missing identification", RNS.LOG_ERROR)
+      elif status_response == self.ERROR_NO_IDENTITY:
+        RNS.log("Updating telemetry from lxmd failed due to missing identification", RNS.LOG_ERROR)
+      else:
+        RNS.log("Received status response from lxmd", RNS.LOG_DEBUG) # TODO: Remove debug
+        self.data = status_response
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      packed = self.data
+      return packed
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        return packed
+        
+    except:
+      return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+
+    from rich.pretty import pprint
+    pprint(self.data["peers"])
+
+    try:
+      d = self.data
+      values = {
+        "destination_hash": d["destination_hash"],
+        "identity_hash": d["identity_hash"],
+        "uptime": d["uptime"],
+        "delivery_limit": d["delivery_limit"]*1000,
+        "propagation_limit": d["propagation_limit"]*1000,
+        "autopeer_maxdepth": d["autopeer_maxdepth"],
+        "from_static_only": d["from_static_only"],
+        "messagestore_count": d["messagestore"]["count"],
+        "messagestore_bytes": d["messagestore"]["bytes"],
+        "messagestore_free": d["messagestore"]["limit"]-d["messagestore"]["bytes"],
+        "messagestore_limit": d["messagestore"]["limit"],
+        "messagestore_pct": round(max( (d["messagestore"]["bytes"]/d["messagestore"]["limit"])*100, 100.0), 2),
+        "client_propagation_messages_received": d["clients"]["client_propagation_messages_received"],
+        "client_propagation_messages_served": d["clients"]["client_propagation_messages_served"],
+        "unpeered_propagation_incoming": d["unpeered_propagation_incoming"],
+        "unpeered_propagation_rx_bytes": d["unpeered_propagation_rx_bytes"],
+        "static_peers": d["static_peers"],
+        "total_peers": d["total_peers"],
+        "max_peers": d["max_peers"],
+        "peers": {}
+      }
+
+      for peer_id in d["peers"]:
+        p = d["peers"][peer_id]
+        values["peers"][peer_id] = {
+          "type": p["type"],
+          "state": p["state"],
+          "alive": p["alive"],
+          "last_heard": p["last_heard"],
+          "next_sync_attempt": p["next_sync_attempt"],
+          "last_sync_attempt": p["last_sync_attempt"],
+          "sync_backoff": p["sync_backoff"],
+          "peering_timebase": p["peering_timebase"],
+          "ler": p["ler"],
+          "str": p["str"],
+          "transfer_limit": p["transfer_limit"],
+          "network_distance": p["network_distance"],
+          "rx_bytes": p["rx_bytes"],
+          "tx_bytes": p["tx_bytes"],
+          "messages_offered": p["messages"]["offered"],
+          "messages_outgoing": p["messages"]["outgoing"],
+          "messages_incoming": p["messages"]["incoming"],
+          "messages_unhandled": p["messages"]["unhandled"],
+        }
+
+      rendered = {
+        "icon": "email-fast-outline",
+        "name": "LXMF Propagation",
+        "values": values,
+      }
+
+      return rendered
+
+    except Exception as e:
+      RNS.log(f"Could not render lxmd telemetry data. The contained exception was: {e}", RNS.LOG_ERROR)
+
+    return None
+
+  def render_mqtt(self, relative_to=None):
+    if self.data != None:
+      r = self.render(relative_to=relative_to)
+      v = r["values"]
+      nid = mqtt_desthash(v["destination_hash"])
+      topic = f"{self.name()}/{nid}"
+      rendered = {
+        f"{topic}/name": r["name"],
+        f"{topic}/icon": r["icon"],
+        f"{topic}/identity_hash": mqtt_desthash(v["identity_hash"]),
+        f"{topic}/uptime": v["uptime"],
+        f"{topic}/delivery_limit": v["delivery_limit"],
+        f"{topic}/propagation_limit": v["propagation_limit"],
+        f"{topic}/autopeer_maxdepth": v["autopeer_maxdepth"],
+        f"{topic}/from_static_only": v["from_static_only"],
+        f"{topic}/messagestore_count": v["messagestore_count"],
+        f"{topic}/messagestore_bytes": v["messagestore_bytes"],
+        f"{topic}/messagestore_free": v["messagestore_free"],
+        f"{topic}/messagestore_limit": v["messagestore_limit"],
+        f"{topic}/messagestore_pct": v["messagestore_pct"],
+        f"{topic}/client_propagation_messages_received": v["client_propagation_messages_received"],
+        f"{topic}/client_propagation_messages_served": v["client_propagation_messages_served"],
+        f"{topic}/unpeered_propagation_incoming": v["unpeered_propagation_incoming"],
+        f"{topic}/unpeered_propagation_rx_bytes": v["unpeered_propagation_rx_bytes"],
+        f"{topic}/static_peers": v["static_peers"],
+        f"{topic}/total_peers": v["total_peers"],
+        f"{topic}/max_peers": v["max_peers"],
+      }
+
+      for peer_id in v["peers"]:
+        p = v["peers"][peer_id]
+        pid = mqtt_desthash(peer_id)
+        rendered[f"{topic}/peers/{pid}/type"] = p["type"]
+        rendered[f"{topic}/peers/{pid}/state"] = p["state"]
+        rendered[f"{topic}/peers/{pid}/alive"] = p["alive"]
+        rendered[f"{topic}/peers/{pid}/last_heard"] = p["last_heard"]
+        rendered[f"{topic}/peers/{pid}/next_sync_attempt"] = p["next_sync_attempt"]
+        rendered[f"{topic}/peers/{pid}/last_sync_attempt"] = p["last_sync_attempt"]
+        rendered[f"{topic}/peers/{pid}/sync_backoff"] = p["sync_backoff"]
+        rendered[f"{topic}/peers/{pid}/peering_timebase"] = p["peering_timebase"]
+        rendered[f"{topic}/peers/{pid}/ler"] = p["ler"]
+        rendered[f"{topic}/peers/{pid}/str"] = p["str"]
+        rendered[f"{topic}/peers/{pid}/transfer_limit"] = p["transfer_limit"]
+        rendered[f"{topic}/peers/{pid}/network_distance"] = p["network_distance"]
+        rendered[f"{topic}/peers/{pid}/rx_bytes"] = p["rx_bytes"]
+        rendered[f"{topic}/peers/{pid}/tx_bytes"] = p["tx_bytes"]
+        rendered[f"{topic}/peers/{pid}/messages_offered"] = p["messages_offered"]
+        rendered[f"{topic}/peers/{pid}/messages_outgoing"] = p["messages_outgoing"]
+        rendered[f"{topic}/peers/{pid}/messages_incoming"] = p["messages_incoming"]
+        rendered[f"{topic}/peers/{pid}/messages_unhandled"] = p["messages_unhandled"]
+    
     else:
       rendered = None
 
