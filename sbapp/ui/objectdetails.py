@@ -767,6 +767,16 @@ class RVDetails(MDRecycleView):
                             threading.Thread(target=lj, daemon=True).start()
 
                         release_function = select
+                    
+                    elif name == "Reticulum Transport":
+                        te = "enabled" if s["values"]["transport_enabled"] else "disabled"
+                        formatted_values = f"Reticulum Transport [b]{te}[/b]"
+                    
+                    elif name == "LXMF Propagation":
+                        tp = str(s["values"]["total_peers"])
+                        ap = str(s["values"]["active_peers"])
+                        formatted_values = f"Peered with [b]{tp}[/b] LXMF Propagation Nodes, [b]{ap}[/b] available"
+                    
                     else:
                         formatted_values = f"{name}"
                         for vn in s["values"]:
