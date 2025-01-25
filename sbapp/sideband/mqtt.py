@@ -38,8 +38,8 @@ class MQTT():
             try:
                 if len(self.waiting_msgs) > 0:
                     RNS.log(f"Processing {len(self.waiting_msgs)} MQTT messages", RNS.LOG_DEBUG)
-                    self.process_queue()
-                    RNS.log("All MQTT messages processed", RNS.LOG_DEBUG)
+                    if self.process_queue():
+                        RNS.log("All MQTT messages processed", RNS.LOG_DEBUG)
 
             except Exception as e:
                 RNS.log("An error occurred while running MQTT scheduler jobs: {e}", RNS.LOG_ERROR)
@@ -82,7 +82,11 @@ class MQTT():
 
     def process_queue(self):
         with self.queue_lock:
-            self.connect()
+            try:
+                self.connect()
+            except Exception as e:
+                RNS.log(f"An error occurred while connecting to MQTT server: {e}", RNS.LOG_ERROR)
+                return False
 
             try:
                 while len(self.waiting_msgs) > 0:
@@ -100,6 +104,7 @@ class MQTT():
                 RNS.trace_exception(e)
 
             self.disconnect()
+            return True
 
     def handle(self, context_dest, telemetry):
         remote_telemeter = Telemeter.from_packed(telemetry)
