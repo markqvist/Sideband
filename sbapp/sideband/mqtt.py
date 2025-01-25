@@ -58,6 +58,11 @@ class MQTT():
         self.is_connected = False
 
     def set_server(self, host, port):
+        try:
+            port = int(port)
+        except:
+            port = None
+
         self.host = host
         self.port = port or 1883
 
