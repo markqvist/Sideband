@@ -2791,8 +2791,11 @@ class LXMFPropagation(Sensor):
         "peers": {}
       }
 
+      active_peers = 0
       for peer_id in d["peers"]:
         p = d["peers"][peer_id]
+        if p["alive"] == True:
+          active_peers += 1
         values["peers"][peer_id] = {
           "type": p["type"],
           "state": p["state"],
@@ -2813,6 +2816,9 @@ class LXMFPropagation(Sensor):
           "messages_incoming": p["messages"]["incoming"],
           "messages_unhandled": p["messages"]["unhandled"],
         }
+
+      values["active_peers"] = active_peers
+      values["unreachable_peers"] = values["total_peers"] - active_peers
 
       rendered = {
         "icon": "email-fast-outline",
@@ -2854,6 +2860,8 @@ class LXMFPropagation(Sensor):
           f"{topic}/unpeered_propagation_rx_bytes": v["unpeered_propagation_rx_bytes"],
           f"{topic}/static_peers": v["static_peers"],
           f"{topic}/total_peers": v["total_peers"],
+          f"{topic}/active_peers": v["active_peers"],
+          f"{topic}/unreachable_peers": v["unreachable_peers"],
           f"{topic}/max_peers": v["max_peers"],
         }
 
