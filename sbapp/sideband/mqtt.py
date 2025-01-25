@@ -6,7 +6,7 @@ from sbapp.mqtt import client as mqtt
 from .sense import Telemeter, Commands
 
 class MQTT():
-    QUEUE_MAXLEN = 1024
+    QUEUE_MAXLEN = 65536
     SCHEDULER_SLEEP = 1
 
     def __init__(self):
