@@ -398,6 +398,8 @@ class Telemetry():
         self.sensors_screen.ids.telemetry_s_accelerometer.bind(active=self.sensors_save)
         self.sensors_screen.ids.telemetry_s_proximity.active = self.app.sideband.config["telemetry_s_proximity"]
         self.sensors_screen.ids.telemetry_s_proximity.bind(active=self.sensors_save)
+        self.sensors_screen.ids.telemetry_s_rns_transport.active = self.app.sideband.config["telemetry_s_rns_transport"]
+        self.sensors_screen.ids.telemetry_s_rns_transport.bind(active=self.sensors_save)
         self.sensors_screen.ids.telemetry_s_information.active = self.app.sideband.config["telemetry_s_information"]
         self.sensors_screen.ids.telemetry_s_information.bind(active=self.sensors_save)
         self.sensors_screen.ids.telemetry_s_information_text.text = str(self.app.sideband.config["telemetry_s_information_text"])
@@ -466,6 +468,7 @@ class Telemetry():
         self.app.sideband.config["telemetry_s_angular_velocity"] = self.sensors_screen.ids.telemetry_s_gyroscope.active
         self.app.sideband.config["telemetry_s_acceleration"] = self.sensors_screen.ids.telemetry_s_accelerometer.active
         self.app.sideband.config["telemetry_s_proximity"] = self.sensors_screen.ids.telemetry_s_proximity.active
+        self.app.sideband.config["telemetry_s_rns_transport"] = self.sensors_screen.ids.telemetry_s_rns_transport.active
 
         if self.app.sideband.config["telemetry_s_information"] != self.sensors_screen.ids.telemetry_s_information.active:
             run_telemetry_update = True
@@ -1324,6 +1327,21 @@ MDScreen:
 
                     MDSwitch:
                         id: telemetry_s_proximity
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Reticulum Transport Stats"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: telemetry_s_rns_transport
                         pos_hint: {"center_y": 0.3}
                         active: False
 

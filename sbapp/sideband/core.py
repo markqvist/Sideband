@@ -791,6 +791,8 @@ class SidebandCore():
             self.config["telemetry_s_acceleration"] = False
         if not "telemetry_s_proximity" in self.config:
             self.config["telemetry_s_proximity"] = False
+        if not "telemetry_s_rns_transport" in self.config:
+            self.config["telemetry_s_rns_transport"] = False
         if not "telemetry_s_fixed_location" in self.config:
             self.config["telemetry_s_fixed_location"] = False
         if not "telemetry_s_fixed_latlon" in self.config:
@@ -3176,7 +3178,9 @@ class SidebandCore():
                 else:
                     self.telemeter = Telemeter(android_context=self.service_context, service=True, location_provider=self.owner_service)
 
-            sensors = ["location", "information", "battery", "pressure", "temperature", "humidity", "magnetic_field", "ambient_light", "gravity", "angular_velocity", "acceleration", "proximity"]
+            sensors = ["location", "information", "battery", "pressure", "temperature", "humidity", "magnetic_field",
+                       "ambient_light", "gravity", "angular_velocity", "acceleration", "proximity", "rns_transport"]
+
             for sensor in sensors:
                 if self.config["telemetry_s_"+sensor]:
                     self.telemeter.enable(sensor)
