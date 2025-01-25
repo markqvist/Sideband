@@ -2283,7 +2283,9 @@ class SidebandCore():
                 self.setstate("app.flags.last_telemetry", time.time())
 
                 if self.config["telemetry_to_mqtt"] == True:
-                    self.mqtt_handle_telemetry(context_dest, telemetry)
+                    def mqtt_job():
+                        self.mqtt_handle_telemetry(context_dest, telemetry)
+                    threading.Thread(target=mqtt_job, daemon=True).start()
 
                 return telemetry
 
@@ -3222,6 +3224,9 @@ class SidebandCore():
         if self.config["telemetry_enabled"] == True:
             self.update_telemeter_config()
             if self.telemeter != None:
+                def mqtt_job():
+                    self.mqtt_handle_telemetry(self.lxmf_destination.hash, self.telemeter.packed())
+                threading.Thread(target=mqtt_job, daemon=True).start()
                 return self.telemeter.read_all()
             else:
                 return {}
