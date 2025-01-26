@@ -1757,8 +1757,9 @@ class PowerConsumption(Sensor):
         f"{topic}/icon": r["icon"],
       }
       for consumer in r["values"]:
-        rendered[f"{topic}/{consumer["label"]}/w"] = consumer["w"]
-        rendered[f"{topic}/{consumer["label"]}/icon"] = consumer["custom_icon"]
+        cl = consumer["label"]
+        rendered[f"{topic}/{cl}/w"] = consumer["w"]
+        rendered[f"{topic}/{cl}/icon"] = consumer["custom_icon"]
     else:
       rendered = None
 
@@ -1854,8 +1855,9 @@ class PowerProduction(Sensor):
         f"{topic}/icon": r["icon"],
       }
       for producer in r["values"]:
-        rendered[f"{topic}/{producer["label"]}/w"] = producer["w"]
-        rendered[f"{topic}/{producer["label"]}/icon"] = producer["custom_icon"]
+        pl = producer["label"]
+        rendered[f"{topic}/{pl}/w"] = producer["w"]
+        rendered[f"{topic}/{pl}/icon"] = producer["custom_icon"]
     else:
       rendered = None
 
@@ -1956,11 +1958,12 @@ class Processor(Sensor):
         f"{topic}/icon": r["icon"],
       }
       for cpu in r["values"]:
-        rendered[f"{topic}/{cpu["label"]}/current_load"] = cpu["current_load"]
-        rendered[f"{topic}/{cpu["label"]}/avgs/1m"] = cpu["load_avgs"][0]
-        rendered[f"{topic}/{cpu["label"]}/avgs/5m"] = cpu["load_avgs"][1]
-        rendered[f"{topic}/{cpu["label"]}/avgs/15m"] = cpu["load_avgs"][2]
-        rendered[f"{topic}/{cpu["label"]}/clock"] = cpu["clock"]
+        cl = cpu["label"]
+        rendered[f"{topic}/{cl}/current_load"] = cpu["current_load"]
+        rendered[f"{topic}/{cl}/avgs/1m"] = cpu["load_avgs"][0]
+        rendered[f"{topic}/{cl}/avgs/5m"] = cpu["load_avgs"][1]
+        rendered[f"{topic}/{cl}/avgs/15m"] = cpu["load_avgs"][2]
+        rendered[f"{topic}/{cl}/clock"] = cpu["clock"]
     else:
       rendered = None
 
@@ -2062,10 +2065,11 @@ class RandomAccessMemory(Sensor):
         f"{topic}/icon": r["icon"],
       }
       for ram in r["values"]:
-        rendered[f"{topic}/{ram["label"]}/capacity"] = ram["capacity"]
-        rendered[f"{topic}/{ram["label"]}/used"] = ram["used"]
-        rendered[f"{topic}/{ram["label"]}/free"] = ram["free"]
-        rendered[f"{topic}/{ram["label"]}/percent"] = ram["percent"]
+        rl = ram["label"]
+        rendered[f"{topic}/{rl}/capacity"] = ram["capacity"]
+        rendered[f"{topic}/{rl}/used"] = ram["used"]
+        rendered[f"{topic}/{rl}/free"] = ram["free"]
+        rendered[f"{topic}/{rl}/percent"] = ram["percent"]
     else:
       rendered = None
 
@@ -2167,10 +2171,11 @@ class NonVolatileMemory(Sensor):
         f"{topic}/icon": r["icon"],
       }
       for nvm in r["values"]:
-        rendered[f"{topic}/{nvm["label"]}/capacity"] = nvm["capacity"]
-        rendered[f"{topic}/{nvm["label"]}/used"] = nvm["used"]
-        rendered[f"{topic}/{nvm["label"]}/free"] = nvm["free"]
-        rendered[f"{topic}/{nvm["label"]}/percent"] = nvm["percent"]
+        nl = nvm["label"]
+        rendered[f"{topic}/{nl}/capacity"] = nvm["capacity"]
+        rendered[f"{topic}/{nl}/used"] = nvm["used"]
+        rendered[f"{topic}/{nl}/free"] = nvm["free"]
+        rendered[f"{topic}/{nl}/percent"] = nvm["percent"]
     else:
       rendered = None
 
@@ -2270,8 +2275,9 @@ class Custom(Sensor):
         f"{topic}/icon": r["icon"],
       }
       for custom in r["values"]:
-        rendered[f"{topic}/{custom["label"]}/value"] = custom["value"]
-        rendered[f"{topic}/{custom["label"]}/icon"] = custom["custom_icon"]
+        cl = custom["label"]
+        rendered[f"{topic}/{cl}/value"] = custom["value"]
+        rendered[f"{topic}/{cl}/icon"] = custom["custom_icon"]
     else:
       rendered = None
 
@@ -2379,12 +2385,13 @@ class Tank(Sensor):
         f"{topic}/icon": r["icon"],
       }
       for tank in r["values"]:
-        rendered[f"{topic}/{tank["label"]}/unit"] = tank["unit"]
-        rendered[f"{topic}/{tank["label"]}/capacity"] = tank["capacity"]
-        rendered[f"{topic}/{tank["label"]}/level"] = tank["level"]
-        rendered[f"{topic}/{tank["label"]}/free"] = tank["free"]
-        rendered[f"{topic}/{tank["label"]}/percent"] = tank["percent"]
-        rendered[f"{topic}/{tank["label"]}/icon"] = tank["custom_icon"]
+        tl = tank["label"]
+        rendered[f"{topic}/{tl}/unit"] = tank["unit"]
+        rendered[f"{topic}/{tl}/capacity"] = tank["capacity"]
+        rendered[f"{topic}/{tl}/level"] = tank["level"]
+        rendered[f"{topic}/{tl}/free"] = tank["free"]
+        rendered[f"{topic}/{tl}/percent"] = tank["percent"]
+        rendered[f"{topic}/{tl}/icon"] = tank["custom_icon"]
     else:
       rendered = None
 
@@ -2492,12 +2499,13 @@ class Fuel(Sensor):
         f"{topic}/icon": r["icon"],
       }
       for tank in r["values"]:
-        rendered[f"{topic}/{tank["label"]}/unit"] = tank["unit"]
-        rendered[f"{topic}/{tank["label"]}/capacity"] = tank["capacity"]
-        rendered[f"{topic}/{tank["label"]}/level"] = tank["level"]
-        rendered[f"{topic}/{tank["label"]}/free"] = tank["free"]
-        rendered[f"{topic}/{tank["label"]}/percent"] = tank["percent"]
-        rendered[f"{topic}/{tank["label"]}/icon"] = tank["custom_icon"]
+        tl = tank["label"]
+        rendered[f"{topic}/{tl}/unit"] = tank["unit"]
+        rendered[f"{topic}/{tl}/capacity"] = tank["capacity"]
+        rendered[f"{topic}/{tl}/level"] = tank["level"]
+        rendered[f"{topic}/{tl}/free"] = tank["free"]
+        rendered[f"{topic}/{tl}/percent"] = tank["percent"]
+        rendered[f"{topic}/{tl}/icon"] = tank["custom_icon"]
     else:
       rendered = None
 
@@ -2733,13 +2741,13 @@ class RNSTransport(Sensor):
 
 class LXMFPropagation(Sensor):
   SID = Sensor.SID_LXMF_PROPAGATION
-  STALE_TIME = 45
+  STALE_TIME = 15
 
   def __init__(self):
     self.identity = None
     self.lxmd = None
     self._last_update = 0
-    self._update_interval = 60
+    self._update_interval = 18
     self._update_lock = threading.Lock()
     self._running = False
     super().__init__(type(self).SID, type(self).STALE_TIME)
@@ -2754,6 +2762,11 @@ class LXMFPropagation(Sensor):
           self.identity = RNS.Identity.from_file(file_path)
         except Exception as e:
           RNS.log("Could not load LXMF propagation sensor identity from \"{file_path}\"", RNS.LOG_ERROR)
+
+    if self.identity != None:
+      self.setup_sensor()
+    else:
+      RNS.log(f"Identity was not configured for {self}. Updates will not occur until a valid identity is configured.", RNS.LOG_ERROR)
 
   def _update_job(self):
     while self._running:
