@@ -922,7 +922,7 @@ MDScreen:
                 MDLabel:
                     id: telemetry_info6
                     markup: True
-                    text: "\\nYou can configure Sideband to send all received telemetry data to an MQTT server by specifying the relevant hostname, port and authentication details.\\n"
+                    text: "\\nFor integration with other systems, you can configure Sideband to send all known telemetry data to an MQTT server in real-time as it is received or generated.\\n"
                     size_hint_y: None
                     text_size: self.width, None
                     height: self.texture_size[1]
