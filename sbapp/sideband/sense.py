@@ -2505,9 +2505,13 @@ class Fuel(Sensor):
 
 class RNSTransport(Sensor):
   SID = Sensor.SID_RNS_TRANSPORT
-  STALE_TIME = 5
+  STALE_TIME = 1
 
   def __init__(self):
+    self._last_traffic_rxb = 0
+    self._last_traffic_txb = 0
+    self._last_update = 0
+    self._update_lock = threading.Lock()
     super().__init__(type(self).SID, type(self).STALE_TIME)
 
   def setup_sensor(self):
@@ -2518,24 +2522,50 @@ class RNSTransport(Sensor):
     self.data = None
 
   def update_data(self):
-    r = RNS.Reticulum.get_instance()
-    ifstats = r.get_interface_stats()
-    rss = None
-    if "rss" in ifstats:
-      rss = ifstats.pop("rss")
-    self.data = {
-      "transport_enabled": RNS.Reticulum.transport_enabled(),
-      "transport_identity": RNS.Transport.identity.hash,
-      "transport_uptime": time.time()-RNS.Transport.start_time if RNS.Reticulum.transport_enabled() else None,
-      "traffic_rxb": ifstats["rxb"],
-      "traffic_txb": ifstats["txb"],
-      "speed_rx": ifstats["rxs"],
-      "speed_tx": ifstats["txs"],
-      "memory_used": rss,
-      "ifstats": ifstats,
-      "link_count": r.get_link_count(),
-      "path_table": sorted(r.get_path_table(max_hops=RNS.Transport.PATHFINDER_M-1), key=lambda e: (e["interface"], e["hops"]) )
-    }
+    with self._update_lock:
+      if time.time() - self._last_update < self.STALE_TIME:
+        return
+
+      r = RNS.Reticulum.get_instance()
+      self._last_update = time.time()
+      ifstats = r.get_interface_stats()
+      rss = None
+      if "rss" in ifstats:
+        rss = ifstats.pop("rss")
+
+      if self.last_update == 0:
+        RNS.log("NO CALC DIFF")
+        rxs = ifstats["rxs"]
+        txs = ifstats["txs"]
+      else:
+        td  = time.time()-self.last_update
+        rxd = ifstats["rxb"] - self._last_traffic_rxb
+        txd = ifstats["txb"] - self._last_traffic_txb
+        rxs = (rxd/td)*8
+        txs = (txd/td)*8
+        RNS.log(f"CALC DIFFS: td={td}, rxd={rxd}, txd={txd}")
+        RNS.log(f"            rxs={rxs}, txs={txs}")
+
+
+      self._last_traffic_rxb = ifstats["rxb"]
+      self._last_traffic_txb = ifstats["txb"]
+
+      self.data = {
+        "transport_enabled": RNS.Reticulum.transport_enabled(),
+        "transport_identity": RNS.Transport.identity.hash,
+        "transport_uptime": time.time()-RNS.Transport.start_time if RNS.Reticulum.transport_enabled() else None,
+        "traffic_rxb": ifstats["rxb"],
+        "traffic_txb": ifstats["txb"],
+        "speed_rx": rxs,
+        "speed_tx": txs,
+        "speed_rx_inst": ifstats["rxs"],
+        "speed_tx_inst": ifstats["txs"],
+        "memory_used": rss,
+        "ifstats": ifstats,
+        "interface_count": len(ifstats["interfaces"]),
+        "link_count": r.get_link_count(),
+        "path_table": sorted(r.get_path_table(max_hops=RNS.Transport.PATHFINDER_M-1), key=lambda e: (e["interface"], e["hops"]) )
+      }
 
   def pack(self):
     d = self.data
@@ -2592,9 +2622,12 @@ class RNSTransport(Sensor):
         "traffic_txb": d["traffic_txb"],
         "speed_rx": d["speed_rx"],
         "speed_tx": d["speed_tx"],
+        "speed_rx_inst": d["speed_rx_inst"],
+        "speed_tx_inst": d["speed_tx_inst"],
         "memory_used": d["memory_used"],
         "path_count": len(d["path_table"]),
         "link_count": d["link_count"],
+        "interface_count": len(ifs),
         "interfaces": ifs,
         "remote_transport_node_count": len(transport_nodes),
         "remote_transport_nodes": transport_nodes,
@@ -2632,9 +2665,12 @@ class RNSTransport(Sensor):
           f"{topic}/traffic_txb": v["traffic_txb"],
           f"{topic}/speed_rx": v["speed_rx"],
           f"{topic}/speed_tx": v["speed_tx"],
+          f"{topic}/speed_rx_inst": v["speed_rx_inst"],
+          f"{topic}/speed_tx_inst": v["speed_tx_inst"],
           f"{topic}/memory_used": v["memory_used"],
           f"{topic}/path_count": v["path_count"],
           f"{topic}/link_count": v["link_count"],
+          f"{topic}/interface_count": v["interface_count"],
           f"{topic}/remote_transport_node_count": v["remote_transport_node_count"],
         }
 
@@ -2900,7 +2936,7 @@ class LXMFPropagation(Sensor):
 
 def mqtt_desthash(desthash):
   if type(desthash) == bytes:
-    return RNS.prettyhexrep(desthash)
+    return RNS.hexrep(desthash, delimit=False)
   else:
     return None
 

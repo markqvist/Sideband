@@ -115,7 +115,7 @@ class MQTT():
         remote_telemeter = Telemeter.from_packed(telemetry)
         read_telemetry = remote_telemeter.read_all()
         telemetry_timestamp = read_telemetry["time"]["utc"]
-        root_path = f"lxmf/telemetry/{RNS.prettyhexrep(context_dest)}"
+        root_path = f"lxmf/telemetry/{RNS.hexrep(context_dest, delimit=False)}"
         for sensor in remote_telemeter.sensors:
             s = remote_telemeter.sensors[sensor]
             topics = s.render_mqtt()
