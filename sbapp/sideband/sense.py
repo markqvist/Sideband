@@ -2554,10 +2554,16 @@ class RNSTransport(Sensor):
       self._last_traffic_rxb = ifstats["rxb"]
       self._last_traffic_txb = ifstats["txb"]
 
+      transport_enabled = False
+      transport_uptime = 0
+      if "transport_uptime" in ifstats:
+        transport_enabled = True
+        transport_uptime = ifstats["transport_uptime"]
+
       self.data = {
-        "transport_enabled": RNS.Reticulum.transport_enabled(),
+        "transport_enabled": transport_enabled,
         "transport_identity": RNS.Transport.identity.hash,
-        "transport_uptime": time.time()-RNS.Transport.start_time if RNS.Reticulum.transport_enabled() else None,
+        "transport_uptime": transport_uptime,
         "traffic_rxb": ifstats["rxb"],
         "traffic_txb": ifstats["txb"],
         "speed_rx": rxs,
@@ -2856,7 +2862,7 @@ class LXMFPropagation(Sensor):
         "messagestore_bytes": d["messagestore"]["bytes"],
         "messagestore_free": d["messagestore"]["limit"]-d["messagestore"]["bytes"],
         "messagestore_limit": d["messagestore"]["limit"],
-        "messagestore_pct": round(max( (d["messagestore"]["bytes"]/d["messagestore"]["limit"])*100, 100.0), 2),
+        "messagestore_pct": round(min( (d["messagestore"]["bytes"]/d["messagestore"]["limit"])*100, 100.0), 2),
         "client_propagation_messages_received": d["clients"]["client_propagation_messages_received"],
         "client_propagation_messages_served": d["clients"]["client_propagation_messages_served"],
         "unpeered_propagation_incoming": d["unpeered_propagation_incoming"],
