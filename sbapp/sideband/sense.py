@@ -2733,11 +2733,15 @@ class RNSTransport(Sensor):
 
 class LXMFPropagation(Sensor):
   SID = Sensor.SID_LXMF_PROPAGATION
-  STALE_TIME = 120
+  STALE_TIME = 45
 
   def __init__(self):
     self.identity = None
     self.lxmd = None
+    self._last_update = 0
+    self._update_interval = 60
+    self._update_lock = threading.Lock()
+    self._running = False
     super().__init__(type(self).SID, type(self).STALE_TIME)
 
   def set_identity(self, identity):
@@ -2751,34 +2755,61 @@ class LXMFPropagation(Sensor):
         except Exception as e:
           RNS.log("Could not load LXMF propagation sensor identity from \"{file_path}\"", RNS.LOG_ERROR)
 
+  def _update_job(self):
+    while self._running:
+      self._update_data()
+      time.sleep(self._update_interval)
+
+  def _start_update_job(self):
+    if not self._running:
+      self._running = True
+      update_thread = threading.Thread(target=self._update_job, daemon=True)
+      update_thread.start()
+
   def setup_sensor(self):
     self.update_data()
 
   def teardown_sensor(self):
+    self._running = False
     self.identity = None
     self.data = None
 
   def update_data(self):
-    if self.identity != None:
-      if self.lxmd == None:
-        import LXMF.LXMPeer as LXMPeer
-        import LXMF.Utilities.lxmd as lxmd
-        self.ERROR_NO_IDENTITY = LXMPeer.LXMPeer.ERROR_NO_IDENTITY
-        self.ERROR_NO_ACCESS = LXMPeer.LXMPeer.ERROR_NO_ACCESS
-        self.ERROR_TIMEOUT = LXMPeer.LXMPeer.ERROR_TIMEOUT
-        self.lxmd = lxmd
+    # This sensor runs the actual data updates
+    # in the background. An update_data request
+    # will simply start the update job if it is
+    # not already running.
+    if not self._running:
+      RNS.log(self)
+      self._start_update_job()
 
-      status_response = self.lxmd.query_status(identity=self.identity)
-      if status_response == None:
-        RNS.log("Status response from lxmd was received, but contained no data", RNS.LOG_ERROR)
-      elif status_response == self.ERROR_NO_IDENTITY:
-        RNS.log("Updating telemetry from lxmd failed due to missing identification", RNS.LOG_ERROR)
-      elif status_response == self.ERROR_NO_ACCESS:
-        RNS.log("Access was denied while attempting to update lxmd telemetry", RNS.LOG_ERROR)
-      elif status_response == self.ERROR_TIMEOUT:
-        RNS.log("Updating telemetry from lxmd failed due to timeout", RNS.LOG_ERROR)
-      else:
-        self.data = status_response
+  def _update_data(self):
+    if not self.synthesized:
+      with self._update_lock:
+        if time.time() - self._last_update < self.STALE_TIME:
+          return
+
+        if self.identity != None:
+          if self.lxmd == None:
+            import LXMF.LXMPeer as LXMPeer
+            import LXMF.Utilities.lxmd as lxmd
+            self.ERROR_NO_IDENTITY = LXMPeer.LXMPeer.ERROR_NO_IDENTITY
+            self.ERROR_NO_ACCESS = LXMPeer.LXMPeer.ERROR_NO_ACCESS
+            self.ERROR_TIMEOUT = LXMPeer.LXMPeer.ERROR_TIMEOUT
+            self.lxmd = lxmd
+
+          self._last_update = time.time()
+          status_response = self.lxmd.query_status(identity=self.identity)
+          if status_response == None:
+            RNS.log("Status response from lxmd was received, but contained no data", RNS.LOG_ERROR)
+          elif status_response == self.ERROR_NO_IDENTITY:
+            RNS.log("Updating telemetry from lxmd failed due to missing identification", RNS.LOG_ERROR)
+          elif status_response == self.ERROR_NO_ACCESS:
+            RNS.log("Access was denied while attempting to update lxmd telemetry", RNS.LOG_ERROR)
+          elif status_response == self.ERROR_TIMEOUT:
+            RNS.log("Updating telemetry from lxmd failed due to timeout", RNS.LOG_ERROR)
+          else:
+            self.data = status_response
 
   def pack(self):
     d = self.data
