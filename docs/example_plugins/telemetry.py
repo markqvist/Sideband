@@ -59,7 +59,8 @@ class BasicTelemetryPlugin(SidebandTelemetryPlugin):
 
             # Create fuel sensor
             telemeter.synthesize("fuel")
-            telemeter.sensors["fuel"].update_entry(capacity=75, level=61)
+            telemeter.sensors["fuel"].update_entry(capacity=75, level=61, type_label="Main")
+            telemeter.sensors["fuel"].update_entry(capacity=15, level=15, type_label="Reserve")
 
 # Finally, tell Sideband what class in this
 # file is the actual plugin class.
