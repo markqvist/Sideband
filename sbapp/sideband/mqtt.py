@@ -2,8 +2,12 @@ import RNS
 import time
 import threading
 from collections import deque
-from sbapp.mqtt import client as mqtt
 from .sense import Telemeter, Commands
+
+if RNS.vendor.platformutils.get_platform() == "android":
+    import pmqtt.client as mqtt
+else:
+    from sbapp.pmqtt import client as mqtt
 
 class MQTT():
     QUEUE_MAXLEN = 65536

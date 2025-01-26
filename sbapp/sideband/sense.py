@@ -2542,7 +2542,6 @@ class RNSTransport(Sensor):
         rss = ifstats.pop("rss")
 
       if self.last_update == 0:
-        RNS.log("NO CALC DIFF")
         rxs = ifstats["rxs"]
         txs = ifstats["txs"]
       else:
@@ -2551,9 +2550,6 @@ class RNSTransport(Sensor):
         txd = ifstats["txb"] - self._last_traffic_txb
         rxs = (rxd/td)*8
         txs = (txd/td)*8
-        RNS.log(f"CALC DIFFS: td={td}, rxd={rxd}, txd={txd}")
-        RNS.log(f"            rxs={rxs}, txs={txs}")
-
 
       self._last_traffic_rxb = ifstats["rxb"]
       self._last_traffic_txb = ifstats["txb"]
