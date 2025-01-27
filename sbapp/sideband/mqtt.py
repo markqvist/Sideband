@@ -22,8 +22,6 @@ class MQTT():
         self.queue_lock = threading.Lock()
         self.waiting_msgs = deque(maxlen=MQTT.QUEUE_MAXLEN)
         self.waiting_telemetry = set()
-        self.unacked_msgs = set()
-        self.client.user_data_set(self.unacked_msgs)
         self.client.on_connect_fail = self.connect_failed
         self.client.on_disconnect = self.disconnected
         self.start()
@@ -86,7 +84,6 @@ class MQTT():
 
     def post_message(self, topic, data):
         mqtt_msg = self.client.publish(topic, data, qos=1)
-        self.unacked_msgs.add(mqtt_msg.mid)
         self.waiting_telemetry.add(mqtt_msg)
 
     def process_queue(self):
@@ -108,6 +105,8 @@ class MQTT():
             try:
                 for msg in self.waiting_telemetry:
                     msg.wait_for_publish()
+                self.waiting_telemetry.clear()
+
             except Exception as e:
                 RNS.log(f"An error occurred while publishing MQTT messages: {e}", RNS.LOG_ERROR)
                 RNS.trace_exception(e)
@@ -128,4 +127,3 @@ class MQTT():
                     topic_path = f"{root_path}/{topic}"
                     data = topics[topic]
                     self.waiting_msgs.append((topic_path, data))
-                    # RNS.log(f"{topic_path}: {data}") # TODO: Remove debug
