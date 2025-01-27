@@ -2513,7 +2513,7 @@ class Fuel(Sensor):
 
 class RNSTransport(Sensor):
   SID = Sensor.SID_RNS_TRANSPORT
-  STALE_TIME = 1
+  STALE_TIME = 60
 
   def __init__(self):
     self._last_traffic_rxb = 0
@@ -2743,7 +2743,7 @@ class RNSTransport(Sensor):
 
 class LXMFPropagation(Sensor):
   SID = Sensor.SID_LXMF_PROPAGATION
-  STALE_TIME = 15
+  STALE_TIME = 300
 
   def __init__(self):
     self.identity = None
