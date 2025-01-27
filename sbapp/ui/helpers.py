@@ -123,10 +123,12 @@ def sig_icon_for_q(q):
         return "󰣸"
     elif q > 50:
         return "󰣶"
-    elif q > 30:
+    elif q > 20:
         return "󰣴"
-    elif q > 10:
+    elif q > 5:
         return "󰣾"
+    else:
+        return "󰣽"
 
 persistent_fonts = ["nf", "term"]
 nf_mapped = "nf"
