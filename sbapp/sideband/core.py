@@ -75,7 +75,7 @@ class PropagationNodeDetector():
                                  "snr": stat_endpoint.reticulum.get_packet_snr(announce_packet_hash),
                                  "q": stat_endpoint.reticulum.get_packet_q(announce_packet_hash)}
 
-                    RNS.log("Detected active propagation node "+RNS.prettyhexrep(destination_hash)+" emission "+str(age)+" seconds ago, "+str(hops)+" hops away")
+                    RNS.log("Detected active propagation node "+RNS.prettyhexrep(destination_hash)+" emission "+str(age)+" seconds ago, "+str(hops)+" hops away", RNS.LOG_EXTREME)
                     self.owner.log_announce(destination_hash, app_data, dest_type=PropagationNodeDetector.aspect_filter, link_stats=link_stats)
 
                     if self.owner.config["lxmf_propagation_node"] == None:
@@ -91,10 +91,10 @@ class PropagationNodeDetector():
                         pass
 
                 else:
-                    RNS.log(f"Received malformed propagation node announce from {RNS.prettyhexrep(destination_hash)} with data: {app_data}", RNS.LOG_DEBUG)
+                    RNS.log(f"Received malformed propagation node announce from {RNS.prettyhexrep(destination_hash)} with data: {app_data}", RNS.LOG_EXTREME)
 
             else:
-                RNS.log(f"Received malformed propagation node announce from {RNS.prettyhexrep(destination_hash)} with data: {app_data}", RNS.LOG_DEBUG)
+                RNS.log(f"Received malformed propagation node announce from {RNS.prettyhexrep(destination_hash)} with data: {app_data}", RNS.LOG_EXTREME)
 
         except Exception as e:
             RNS.log("Error while processing received propagation node announce: "+str(e))
@@ -1003,7 +1003,7 @@ class SidebandCore():
                 app_data = b""
             if type(app_data) != bytes:
                 app_data = msgpack.packb([app_data, stamp_cost])
-            RNS.log("Received "+str(dest_type)+" announce for "+RNS.prettyhexrep(dest)+" with data: "+str(app_data), RNS.LOG_DEBUG)
+            RNS.log("Received "+str(dest_type)+" announce for "+RNS.prettyhexrep(dest), RNS.LOG_DEBUG)
             self._db_save_announce(dest, app_data, dest_type, link_stats)
             self.setstate("app.flags.new_announces", True)
 
