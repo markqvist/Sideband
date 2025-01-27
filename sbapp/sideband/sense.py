@@ -2947,9 +2947,23 @@ class LXMFPropagation(Sensor):
           f"{topic}/max_peers": v["max_peers"],
         }
 
+        peered_rx_bytes = 0
+        peered_tx_bytes = 0
+        peered_offered = 0
+        peered_outgoing = 0
+        peered_incoming = 0
+        peered_unhandled = 0
+        peered_max_unhandled = 0
         for peer_id in v["peers"]:
           p = v["peers"][peer_id]
           pid = mqtt_desthash(peer_id)
+          peer_rx_bytes = p["rx_bytes"]; peered_rx_bytes += peer_rx_bytes
+          peer_tx_bytes = p["tx_bytes"]; peered_tx_bytes += peer_tx_bytes
+          peer_messages_offered = p["messages_offered"]; peered_offered += peer_messages_offered
+          peer_messages_outgoing = p["messages_outgoing"]; peered_outgoing += peer_messages_outgoing
+          peer_messages_incoming = p["messages_incoming"]; peered_incoming += peer_messages_incoming
+          peer_messages_unhandled = p["messages_unhandled"]; peered_unhandled += peer_messages_unhandled
+          peered_max_unhandled = max(peered_max_unhandled, peer_messages_unhandled)
           rendered[f"{topic}/peers/{pid}/type"] = p["type"]
           rendered[f"{topic}/peers/{pid}/state"] = p["state"]
           rendered[f"{topic}/peers/{pid}/alive"] = p["alive"]
@@ -2962,12 +2976,20 @@ class LXMFPropagation(Sensor):
           rendered[f"{topic}/peers/{pid}/str"] = p["str"]
           rendered[f"{topic}/peers/{pid}/transfer_limit"] = p["transfer_limit"]
           rendered[f"{topic}/peers/{pid}/network_distance"] = p["network_distance"]
-          rendered[f"{topic}/peers/{pid}/rx_bytes"] = p["rx_bytes"]
-          rendered[f"{topic}/peers/{pid}/tx_bytes"] = p["tx_bytes"]
-          rendered[f"{topic}/peers/{pid}/messages_offered"] = p["messages_offered"]
-          rendered[f"{topic}/peers/{pid}/messages_outgoing"] = p["messages_outgoing"]
-          rendered[f"{topic}/peers/{pid}/messages_incoming"] = p["messages_incoming"]
-          rendered[f"{topic}/peers/{pid}/messages_unhandled"] = p["messages_unhandled"]
+          rendered[f"{topic}/peers/{pid}/rx_bytes"] = peer_rx_bytes
+          rendered[f"{topic}/peers/{pid}/tx_bytes"] = peer_tx_bytes
+          rendered[f"{topic}/peers/{pid}/messages_offered"] = peer_messages_offered
+          rendered[f"{topic}/peers/{pid}/messages_outgoing"] = peer_messages_outgoing
+          rendered[f"{topic}/peers/{pid}/messages_incoming"] = peer_messages_incoming
+          rendered[f"{topic}/peers/{pid}/messages_unhandled"] = peer_messages_unhandled
+
+        rendered[f"{topic}/peered_propagation_rx_bytes"] = peered_rx_bytes
+        rendered[f"{topic}/peered_propagation_tx_bytes"] = peered_tx_bytes
+        rendered[f"{topic}/peered_propagation_offered"] = peered_offered
+        rendered[f"{topic}/peered_propagation_outgoing"] = peered_outgoing
+        rendered[f"{topic}/peered_propagation_incoming"] = peered_incoming
+        rendered[f"{topic}/peered_propagation_unhandled"] = peered_unhandled
+        rendered[f"{topic}/peered_propagation_max_unhandled"] = peered_max_unhandled
       
       else:
         rendered = None
