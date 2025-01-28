@@ -55,7 +55,8 @@ class Telemeter():
       Sensor.SID_POWER_PRODUCTION: PowerProduction, Sensor.SID_PROCESSOR: Processor,
       Sensor.SID_RAM: RandomAccessMemory, Sensor.SID_NVM: NonVolatileMemory,
       Sensor.SID_CUSTOM: Custom, Sensor.SID_TANK: Tank, Sensor.SID_FUEL: Fuel,
-      Sensor.SID_RNS_TRANSPORT: RNSTransport, Sensor.SID_LXMF_PROPAGATION: LXMFPropagation}
+      Sensor.SID_RNS_TRANSPORT: RNSTransport, Sensor.SID_LXMF_PROPAGATION: LXMFPropagation,
+      Sensor.SID_CONNECTION_MAP: ConnectionMap}
 
     self.available = {
       "time": Sensor.SID_TIME,
@@ -69,7 +70,8 @@ class Telemeter():
       "power_consumption": Sensor.SID_POWER_CONSUMPTION, "power_production": Sensor.SID_POWER_PRODUCTION,
       "processor": Sensor.SID_PROCESSOR, "ram": Sensor.SID_RAM, "nvm": Sensor.SID_NVM,
       "custom": Sensor.SID_CUSTOM, "tank": Sensor.SID_TANK, "fuel": Sensor.SID_FUEL,
-      "rns_transport": Sensor.SID_RNS_TRANSPORT, "lxmf_propagation": Sensor.SID_LXMF_PROPAGATION}
+      "rns_transport": Sensor.SID_RNS_TRANSPORT, "lxmf_propagation": Sensor.SID_LXMF_PROPAGATION,
+      "connection_map": Sensor.SID_CONNECTION_MAP}
 
     self.names = {}
     for name in self.available:
@@ -210,6 +212,7 @@ class Sensor():
   SID_FUEL              = 0x17
   SID_RNS_TRANSPORT     = 0x19
   SID_LXMF_PROPAGATION  = 0x18
+  SID_CONNECTION_MAP    = 0x1A
   SID_CUSTOM            = 0xff
 
   def __init__(self, sid = None, stale_time = None):
@@ -2999,6 +3002,130 @@ class LXMFPropagation(Sensor):
     except Exception as e:
       RNS.log(f"Could not render lxmd telemetry data to MQTT format. The contained exception was: {e}", RNS.LOG_ERROR)
       RNS.trace_exception(e)
+
+    return None
+
+class ConnectionMap(Sensor):
+  SID = Sensor.SID_CONNECTION_MAP
+  STALE_TIME = 60
+  DEFAULT_MAP_NAME = 0x00
+
+  def __init__(self):
+    self.maps = {}
+    super().__init__(type(self).SID, type(self).STALE_TIME)
+
+  def setup_sensor(self):
+    self.update_data()
+
+  def teardown_sensor(self):
+    self.data = None
+
+  def ensure_map(self, map_name):
+    if map_name == None:
+      map_name = self.DEFAULT_MAP_NAME
+
+    if not map_name in self.maps:
+      self.maps[map_name] = {
+        "name": map_name,
+        "points": {},
+      }
+
+    return self.maps[map_name]
+
+  def add_point(self, lat, lon, altitude=None, type_label=None, name=None, map_name=None,
+                signal_rssi=None, signal_snr=None, signal_q=None, hash_on_name_and_type_only=False):
+
+    p = {
+      "latitude": lat,
+      "longitude": lon,
+      "altitude": altitude,
+      "type_label": type_label,
+      "name": name}
+
+    if not hash_on_name_and_type_only:
+      p_hash = RNS.Identity.truncated_hash(umsgpack.packb(p))
+    else:
+      p_hash = RNS.Identity.truncated_hash(umsgpack.packb({"type_label": type_label, "name": name}))
+
+    p["signal"] = {"rssi": signal_rssi, "snr": signal_snr, "q": signal_q}
+    self.ensure_map(map_name)["points"][p_hash] = p
+
+  def update_data(self):
+    self.data = {
+      "maps": self.maps,
+    }
+
+  def pack(self):
+    d = self.data
+    if d == None:
+      return None
+    else:
+      packed = self.data
+      return packed
+
+  def unpack(self, packed):
+    try:
+      if packed == None:
+        return None
+      else:
+        return packed
+        
+    except:
+      return None
+
+  def render(self, relative_to=None):
+    if self.data == None:
+      return None
+    
+    try:
+      rendered = {
+        "icon": "map-check-outline",
+        "name": "Connection Map",
+        "values": {"maps": self.data["maps"]},
+      }
+
+      return rendered
+
+    except Exception as e:
+      RNS.log(f"Could not render connection map telemetry data. The contained exception was: {e}", RNS.LOG_ERROR)
+      RNS.trace_exception(e)
+
+    return None
+
+  def render_mqtt(self, relative_to=None):
+    try:
+      if self.data != None:
+        r = self.render(relative_to=relative_to)
+        v = r["values"]
+        topic = f"{self.name()}"
+        rendered = {
+          f"{topic}/name": r["name"],
+          f"{topic}/icon": r["icon"],
+        }
+
+        for map_name in v["maps"]:
+          m = v["maps"][map_name]
+          if map_name == self.DEFAULT_MAP_NAME:
+            map_name = "default"
+          for ph in m["points"]:
+            pid = mqtt_hash(ph)
+            p = m["points"][ph]
+            tl = p["type_label"]
+            n = p["name"]
+            rendered[f"{topic}/maps/{map_name}/points/{tl}/{n}/{pid}/lat"] = p["latitude"]
+            rendered[f"{topic}/maps/{map_name}/points/{tl}/{n}/{pid}/lon"] = p["longitude"]
+            rendered[f"{topic}/maps/{map_name}/points/{tl}/{n}/{pid}/alt"] = p["altitude"]
+            rendered[f"{topic}/maps/{map_name}/points/{tl}/{n}/{pid}/rssi"] = p["signal"]["rssi"]
+            rendered[f"{topic}/maps/{map_name}/points/{tl}/{n}/{pid}/snr"] = p["signal"]["snr"]
+            rendered[f"{topic}/maps/{map_name}/points/{tl}/{n}/{pid}/q"] = p["signal"]["q"]
+          
+      else:
+        rendered = None
+
+      return rendered
+
+    except Exception as e:
+      RNS.log(f"Could not render conection map telemetry data to MQTT format. The contained exception was: {e}", RNS.LOG_ERROR)
 
     return None
 
