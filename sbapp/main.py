@@ -1527,7 +1527,7 @@ class SidebandApp(MDApp):
 
     def md_to_bbcode(self, text):
         if not hasattr(self, "mdconv"):
-            from md2bbcode.main import process_readme as mdconv
+            from .md2bbcode.main import process_readme as mdconv
             self.mdconv = mdconv
         converted = self.mdconv(text)
         while converted.endswith("\n"):

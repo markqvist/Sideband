@@ -26,6 +26,7 @@ class BBCodeRenderer(BaseRenderer):
                 return func(**attrs)
             else:
                 return func()
+        
         if attrs:
             return func(text, **attrs)
         else:
@@ -69,7 +70,7 @@ class BBCodeRenderer(BaseRenderer):
         return '\n'
 
     def softbreak(self) -> str:
-        return ''
+        return '\n'
 
     def inline_html(self, html: str) -> str:
         if self._escape:
@@ -126,13 +127,24 @@ class BBCodeRenderer(BaseRenderer):
         return '[color=red][icode]' + text + '[/icode][/color]\n'
 
     def list(self, text: str, ordered: bool, **attrs) -> str:
-        # For ordered lists, always use [list=1] to get automatic sequential numbering
-        # For unordered lists, use [list]
-        tag = 'list=1' if ordered else 'list'
-        return '[{}]'.format(tag) + text + '[/list]\n'
+        depth = 0; sln = ""; tli = ""
+        if "depth" in attrs: depth = attrs["depth"]
+        if depth != 0: sln = "\n"
+        if depth == 0: tli = "\n"
+        def remove_empty_lines(text):
+            lines = text.split('\n')
+            non_empty_lines = [line for line in lines if line.strip() != '']
+            nli = ""; dlm = "\n"+"  "*depth
+            if depth != 0: nli = dlm
+            return nli+dlm.join(non_empty_lines)
+
+        text = remove_empty_lines(text)
+
+        return sln+text+"\n"+tli
+        # return '[{}]'.format(tag) + text + '[/list]\n'
 
     def list_item(self, text: str) -> str:
-        return '[*]' + text + '\n'
+        return '• ' + text + '\n'
     
     def strikethrough(self, text: str) -> str:
         return '[s]' + text + '[/s]'
@@ -209,7 +221,7 @@ class BBCodeRenderer(BaseRenderer):
 
     def task_list_item(self, text: str, checked: bool = False) -> str:
         # Using emojis to represent the checkbox
-        checkbox_emoji = '🗹' if checked else '☐'
+        checkbox_emoji = '󰱒' if checked else '󰄱'
         return checkbox_emoji + ' ' + text + '\n'
 
     def def_list(self, text: str) -> str:

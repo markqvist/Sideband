@@ -17,9 +17,9 @@ from mistune.plugins.abbr import abbr
 from mistune.plugins.spoiler import spoiler
 
 # local
-from md2bbcode.plugins.merge_lists import merge_ordered_lists
-from md2bbcode.renderers.bbcode import BBCodeRenderer
-from md2bbcode.html2bbcode import process_html
+from .plugins.merge_lists import merge_ordered_lists
+from .renderers.bbcode import BBCodeRenderer
+from .html2bbcode import process_html
 
 def convert_markdown_to_bbcode(markdown_text, domain):
     # Create a Markdown parser instance using the custom BBCode renderer
@@ -31,11 +31,6 @@ def convert_markdown_to_bbcode(markdown_text, domain):
 def process_readme(markdown_text, domain=None, debug=False):
     # Convert Markdown to BBCode
     bbcode_text = convert_markdown_to_bbcode(markdown_text, domain)
-
-    # If debug mode, save intermediate BBCode
-    if debug:
-        with open('readme.1stpass', 'w', encoding='utf-8') as file:
-            file.write(bbcode_text)
 
     # Convert BBCode formatted as HTML to final BBCode
     final_bbcode = process_html(bbcode_text, debug, 'readme.finalpass')
