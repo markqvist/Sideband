@@ -114,7 +114,7 @@ setuptools.setup(
         ]
     },
     install_requires=[
-        "rns>=0.9.1",
+        "rns>=0.9.2",
         "lxmf>=0.6.0",
         "kivy>=2.3.0",
         "pillow>=10.2.0",
