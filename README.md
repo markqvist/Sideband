@@ -311,11 +311,11 @@ You can help support the continued development of open, free and private communi
 - <s>Adding a Linux desktop integration</s>
 - <s>Adding prebuilt Windows binaries to the releases</s>
 - <s>Adding prebuilt macOS binaries to the releases</s>
+- <s>A debug log viewer</s>
 - Adding a Nomad Net page browser
 - LXMF sneakernet functionality
 - Network visualisation and test tools
 - Better message sorting mechanism
-- A debug log viewer
 
 # License
 Unless otherwise noted, this work is licensed under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License][cc-by-nc-sa].
