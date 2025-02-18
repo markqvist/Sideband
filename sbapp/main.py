@@ -255,8 +255,6 @@ else:
         import pyogg
         from pydub import AudioSegment
 
-        from md2bbcode.main import process_readme as mdconv
-
         from kivymd.utils.set_bars_colors import set_bars_colors
         android_api_version = autoclass('android.os.Build$VERSION').SDK_INT
 
@@ -273,7 +271,6 @@ else:
         from .ui.messages import Messages, ts_format, messages_screen_kv
         from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
         from .ui.helpers import multilingual_markup, mdc
-        from .md2bbcode.main import process_readme as mdconv
 
         import sbapp.pyogg as pyogg
         from sbapp.pydub import AudioSegment
@@ -1530,7 +1527,10 @@ class SidebandApp(MDApp):
 
     def md_to_bbcode(self, text):
         if not hasattr(self, "mdconv"):
+            if RNS.vendor.platformutils.is_android(): from md import mdconv
+            else: from .md import mdconv
             self.mdconv = mdconv
+
         converted = self.mdconv(text)
         while converted.endswith("\n"):
             converted = converted[:-1]
