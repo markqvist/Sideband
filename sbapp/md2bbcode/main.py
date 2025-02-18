@@ -5,6 +5,7 @@
 #standard library
 import argparse
 import sys
+import RNS
 
 # mistune
 import mistune
@@ -16,10 +17,14 @@ from mistune.plugins.def_list import def_list
 from mistune.plugins.abbr import abbr
 from mistune.plugins.spoiler import spoiler
 
-# local
-from .plugins.merge_lists import merge_ordered_lists
-from .renderers.bbcode import BBCodeRenderer
-from .html2bbcode import process_html
+if RNS.vendor.platformutils.is_android():
+    from .plugins.merge_lists import merge_ordered_lists
+    from .renderers.bbcode import BBCodeRenderer
+    from .html2bbcode import process_html
+else:
+    from sbapp.md2bbcode.plugins.merge_lists import merge_ordered_lists
+    from sbapp.md2bbcode.renderers.bbcode import BBCodeRenderer
+    from sbapp.md2bbcode.html2bbcode import process_html
 
 def convert_markdown_to_bbcode(markdown_text, domain):
     # Create a Markdown parser instance using the custom BBCode renderer

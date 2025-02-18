@@ -197,7 +197,7 @@ if args.daemon:
     NewConv = DaemonElement; Telemetry = DaemonElement; ObjectDetails = DaemonElement; Announces = DaemonElement;
     Messages = DaemonElement; ts_format = DaemonElement; messages_screen_kv = DaemonElement; plyer = DaemonElement; multilingual_markup = DaemonElement;
     ContentNavigationDrawer = DaemonElement; DrawerList = DaemonElement; IconListItem = DaemonElement; escape_markup = DaemonElement;
-    SoundLoader = DaemonElement; BoxLayout = DaemonElement;
+    SoundLoader = DaemonElement; BoxLayout = DaemonElement; mdconv = DaemonElement;
 
 else:
     apply_ui_scale()
@@ -255,6 +255,8 @@ else:
         import pyogg
         from pydub import AudioSegment
 
+        from md2bbcode.main import process_readme as mdconv
+
         from kivymd.utils.set_bars_colors import set_bars_colors
         android_api_version = autoclass('android.os.Build$VERSION').SDK_INT
 
@@ -271,6 +273,7 @@ else:
         from .ui.messages import Messages, ts_format, messages_screen_kv
         from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
         from .ui.helpers import multilingual_markup, mdc
+        from .md2bbcode.main import process_readme as mdconv
 
         import sbapp.pyogg as pyogg
         from sbapp.pydub import AudioSegment
@@ -1527,7 +1530,6 @@ class SidebandApp(MDApp):
 
     def md_to_bbcode(self, text):
         if not hasattr(self, "mdconv"):
-            from .md2bbcode.main import process_readme as mdconv
             self.mdconv = mdconv
         converted = self.mdconv(text)
         while converted.endswith("\n"):

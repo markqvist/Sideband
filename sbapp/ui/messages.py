@@ -510,6 +510,7 @@ class Messages():
 
                 except Exception as e:
                     RNS.log(f"Message content could not be decoded: {e}", RNS.LOG_DEBUG)
+                    RNS.trace_exception(e)
                     message_input = b""
 
                 if message_input.strip() == b"":
