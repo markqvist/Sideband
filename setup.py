@@ -129,6 +129,7 @@ setuptools.setup(
         "pyaudio;sys.platform=='linux'",
         "pyobjus;sys.platform=='darwin'",
         "pyogg;sys.platform=='Windows' and sys.platform!='win32'",
+        "audioop-lts>=0.2.1;python_version>='3.13'"
     ],
     python_requires='>=3.7',
 )
