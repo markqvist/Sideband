@@ -1838,6 +1838,72 @@ class SidebandCore():
                     RNS.log(ed, RNS.LOG_DEBUG)
                     return None
 
+    def _get_destination_mtu(self, destination_hash):
+        try:
+            mr = self.message_router
+            oh = destination_hash
+            ol = None
+            if oh in mr.direct_links:
+                ol = mr.direct_links[oh]
+            elif oh in mr.backchannel_links:
+                ol = mr.backchannel_links[oh]
+
+            if ol != None:
+                return ol.get_mtu()
+
+            return None
+
+        except Exception as e:
+            RNS.trace_exception(e)
+            return None
+
+    def get_destination_mtu(self, destination_hash):
+        if not RNS.vendor.platformutils.is_android():
+            return self._get_destination_mtu(destination_hash)
+        else:
+            if self.is_service:
+                return self._get_destination_mtu(destination_hash)
+            else:
+                try:
+                    return self.service_rpc_request({"get_destination_mtu": destination_hash})
+                except Exception as e:
+                    ed = "Error while getting destination link MTU over RPC: "+str(e)
+                    RNS.log(ed, RNS.LOG_DEBUG)
+                    return None
+
+    def _get_destination_edr(self, destination_hash):
+        try:
+            mr = self.message_router
+            oh = destination_hash
+            ol = None
+            if oh in mr.direct_links:
+                ol = mr.direct_links[oh]
+            elif oh in mr.backchannel_links:
+                ol = mr.backchannel_links[oh]
+
+            if ol != None:
+                return ol.get_expected_rate()
+
+            return None
+
+        except Exception as e:
+            RNS.trace_exception(e)
+            return None
+
+    def get_destination_edr(self, destination_hash):
+        if not RNS.vendor.platformutils.is_android():
+            return self._get_destination_edr(destination_hash)
+        else:
+            if self.is_service:
+                return self._get_destination_edr(destination_hash)
+            else:
+                try:
+                    return self.service_rpc_request({"get_destination_edr": destination_hash})
+                except Exception as e:
+                    ed = "Error while getting destination link EIFR over RPC: "+str(e)
+                    RNS.log(ed, RNS.LOG_DEBUG)
+                    return None
+
     def __start_rpc_listener(self):
         try:
             RNS.log("Starting RPC listener", RNS.LOG_DEBUG)
@@ -1882,6 +1948,10 @@ class SidebandCore():
                                     connection.send(self._get_plugins_info())
                                 elif "get_destination_establishment_rate" in call:
                                     connection.send(self._get_destination_establishment_rate(call["get_destination_establishment_rate"]))
+                                elif "get_destination_mtu" in call:
+                                    connection.send(self._get_destination_mtu(call["get_destination_mtu"]))
+                                elif "get_destination_edr" in call:
+                                    connection.send(self._get_destination_edr(call["get_destination_edr"]))
                                 elif "send_message" in call:
                                     args = call["send_message"]
                                     send_result = self.send_message(
