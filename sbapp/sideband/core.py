@@ -993,13 +993,16 @@ class SidebandCore():
                     notifications_permitted = True
 
                 if notifications_permitted:
-                    if RNS.vendor.platformutils.get_platform() == "android":
-                        if self.is_service:
-                            self.owner_service.android_notification(title, content, group=group, context_id=context_id)
+                    try:
+                        if RNS.vendor.platformutils.get_platform() == "android":
+                            if self.is_service:
+                                self.owner_service.android_notification(title, content, group=group, context_id=context_id)
+                            else:
+                                plyer.notification.notify(title, content, notification_icon=self.notification_icon, context_override=None)
                         else:
-                            plyer.notification.notify(title, content, notification_icon=self.notification_icon, context_override=None)
-                    else:
-                        plyer.notification.notify(title, content, app_icon=self.icon_32)
+                            plyer.notification.notify(title, content, app_icon=self.icon_32)
+                    except Exception as e:
+                        RNS.log("An error occurred while posting a notification to the operating system: {e}", RNS.LOG_ERROR)
 
     def log_announce(self, dest, app_data, dest_type, stamp_cost=None, link_stats=None):
         try:
