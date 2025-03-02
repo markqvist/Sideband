@@ -1,0 +1,50 @@
+#!/bin/bash
+
+set -ex
+
+# any of the tasks that require adb should be run on the host, not the guest docker container
+# ad-hoc docker usb passthrough sounds miserable...
+if [ $1 == "install" ] || [ $1 == "devinstall" ] || [ $1 == "install-multi" ] || [ $1 == "devinstall-multi" ]; then
+    echo "Command requiring adb detected, running on host..."
+    # shellcheck disable=SC2068 # goal is to re-split
+    make -C sbapp $@
+    exit 0
+fi 
+    
+if [[ -z $P4A_RELEASE_KEYSTORE ]]; then 
+    echo "P4A_RELEASE_KEYSTORE is not set correctly! Using default debug keystore..."
+    P4A_RELEASE_KEYSTORE=$(realpath ~/.android/debug.keystore)
+    P4A_RELEASE_KEYALIAS=androiddebugkey
+    P4A_RELEASE_KEYSTORE_PASSWD=android
+    P4A_RELEASE_KEYALIAS_PASSWD=android
+fi
+
+# will hit caches automatically, unless the dockerfile was changed
+# buildozer writes to its own venv, so it can't be --read-only even though it really should be
+# /root/.buildozer has some build artifacts that are reused, and since they are dependent on the libraries available at compile-time, they must be isolated from ~/.buildozer as these may have different fingerprints
+# ~/.cache, on the other hand, may be reused because pip is smart enough to download/rebuild native dependencies if they wouldn't be compatible
+docker build --network=host -t sideband-dmake .
+docker run \
+    --rm \
+    --tty \
+    --network=host \
+    --tmpfs /tmp:rw,exec \
+    -e P4A_RELEASE_KEYALIAS=$P4A_RELEASE_KEYALIAS \
+    -e P4A_RELEASE_KEYSTORE_PASSWD=$P4A_RELEASE_KEYSTORE_PASSWD \
+    -e P4A_RELEASE_KEYSTORE="/keystore.jks" \
+    -e P4A_RELEASE_KEYALIAS_PASSWD=$P4A_RELEASE_KEYALIAS_PASSWD \
+    -v "$(realpath $(dirname "$0")/..):/repositories:rw" \
+    -v "$(realpath ./.buildozer-container):/root/.buildozer:rw" \
+    -v "$(realpath ./sbapp/.buildozer-container):/repositories/Sideband/sbapp/.buildozer:rw" \
+    -v "$(realpath ~/.cache):/root/.cache:rw" \
+    -v "$P4A_RELEASE_KEYSTORE:/keystore.jks:ro" \
+    -v "$(realpath ~/.android):/root/.android:rw" \
+    -v "$(realpath ~/.gradle):/root/.gradle:rw" \
+    sideband-dmake \
+    /bin/bash \
+    -c \
+    "python3 -m venv --system-site-packages /tmp/venv \
+    && source /tmp/venv/bin/activate \
+    && cd /repositories/Sideband \
+    && pip install -e . \"Cython<3.0\" \
+    && make -C sbapp $@"

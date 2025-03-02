@@ -12,7 +12,7 @@ version.regex = __version__ = ['"](.*)['"]
 version.filename = %(source.dir)s/main.py
 android.numeric_version = 20250220
 
-requirements = kivy==2.3.0,libbz2,pillow==10.2.0,qrcode==7.3.1,usb4a,usbserial4a,able_recipe,libwebp,libogg,libopus,opusfile,numpy,cryptography,ffpyplayer,codec2,pycodec2,sh,pynacl,typing-extensions,mistune>=3.0.2,beautifulsoup4
+requirements = kivy==2.3.1,libbz2,pillow==10.3.0,freetype-py==2.2.0,qrcode==7.3.1,usb4a,usbserial4a,able_recipe,libwebp,libogg,libopus,opusfile,numpy,cryptography,ffpyplayer,codec2,pycodec2,sh,pynacl,typing-extensions,mistune>=3.0.2,beautifulsoup4,filetype
 
 android.gradle_dependencies =  com.android.support:support-compat:28.0.0
 #android.enable_androidx = True
@@ -37,11 +37,13 @@ android.ndk = 25b
 android.skip_update = False
 android.accept_sdk_license = True
 android.release_artifact = apk
-android.archs = arm64-v8a,armeabi-v7a
+android.archs = arm64-v8a,armeabi-v7a,x86,x86_64
 #android.logcat_filters = *:S python:D
 
 services = sidebandservice:services/sidebandservice.py:foreground
 android.whitelist = lib-dynload/termios.so
+android.add_src = src/main/java
+android.res_xml = src/main/res/xml/device_filter.xml,src/main/res/xml/file_paths.xml
 android.manifest.intent_filters = patches/intent-filter.xml
 
 # android.add_libs_armeabi_v7a = ../libs/armeabi/*.so*

@@ -23,10 +23,29 @@ import re
 import pathlib
 import base64
 import threading
+import traceback
 import RNS.vendor.umsgpack as msgpack
 
 WINDOW_DEFAULT_WIDTH  = 494
 WINDOW_DEFAULT_HEIGHT = 800
+
+# not all exceptions caught by sys.excepthook are sent to logcat: this is a small shim that ensures that always happens
+original_excepthook = sys.excepthook
+
+# Custom exception handler that writes to Android log
+def custom_excepthook(exc_type, exc_value, exc_traceback):
+    # First call the original excepthook to maintain default behavior
+    original_excepthook(exc_type, exc_value, exc_traceback)
+
+    # Format the exception and traceback as a string
+    exception_str = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+    
+    # add extra handling to make sure any Python errors are exposed to logcat
+    if RNS.vendor.platformutils.is_android():
+        RNS.log(f"PYTHON EXCEPTION: {exception_str}")
+
+# Replace the default exception handler
+sys.excepthook = custom_excepthook
 
 app_ui_scaling_path = None
 def apply_ui_scale():
