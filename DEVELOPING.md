@@ -8,14 +8,20 @@ Until this repository has a `flake.nix` added, you will need to manually downloa
 
 - `make`
 - `adb` (available as a part of the `android-tools` package on Fedora, `adb` on Debian/Ubuntu, `android-platform-tools` on Brew Casks)
-- `python3`/`python3-dev(el)` (must be available as `python`)
+- `python3`/`python3-dev(el)` (must be available as `python`, on Ubuntu try `apt install python-is-python3`)
 - `patchelf`
 - `patch`
 - `perl`
+- `portaudio19-dev`
+- `libopus-dev`
+- `libogg-dev`
 - `buildozer` (see https://buildozer.readthedocs.io/en/latest/installation.html)
     - buildozer's PyPI hosted version is very far behind, therefore you should install from source at https://github.com/kivy/buildozer.git; this is easy with pipx `pipx install git+https://github.com/kivy/buildozer.git`.
-    - buildozer needs `wheel` to run, but it is not currently marked as a dependency. If you are using pipx, you will need to inject it with `pipx inject wheel`.
-- all of buildozer's Android dependencies (at the time of writing, the Debian packages `git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev`) (Fedora/RHEL equivalents `git zip unzip java-17-openjdk java-17-openjdk-devel python3-pip autoconf libtool pkgconf-pkg-config ghc-zlib-devel ncurses-devel ncurses-compat-libs cmake libffi-devel openssl-devel`)
+    - buildozer needs `wheel` to run, but it is not currently marked as a dependency. If you are using pipx, you will need to inject it with `pipx inject buildozer wheel`.
+- all of buildozer's Android dependencies
+  - Ubuntu 22.04 LTS packages `git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev`
+  - Ubuntu 24.04 LTS packages `git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses-dev libtinfo6 cmake libffi-dev libssl-dev`
+  - Fedora 41 `git zip unzip java-17-openjdk java-17-openjdk-devel python3-pip autoconf libtool pkgconf-pkg-config ghc-zlib-devel ncurses-devel ncurses-compat-libs cmake libffi-devel openssl-devel`
 
 In the root directory of the repository, use `pip install .` to install the package from `setup.py`. The use of a `venv` is strongly recommended.
 
@@ -68,6 +74,10 @@ Regardless of what release type you build, the output will be placed in `./sbapp
 
 #### Addendum: Fedora
 
-As many users of Kivy have noted before, some of Python4Android's recipies do not compile correctly on Fedora/RHEL. For this project, one package of interest is [`freetype-py` and its native dependency](https://github.com/kivy/python-for-android/blob/develop/pythonforandroid/recipes/freetype/__init__.py), which is a direct dependency of pillow, the ubiquitous Python image editing library.
+As many users of Kivy have noted before, some of Python4Android's recipes do not compile correctly on Fedora/RHEL. For this project, one package of interest is [`freetype-py` and its native dependency](https://github.com/kivy/python-for-android/blob/develop/pythonforandroid/recipes/freetype/__init__.py), which is a direct dependency of pillow, the ubiquitous Python image editing library.
 
-The use of Ubuntu is therefore recommended for developing this project. Sideband does run fine on Fedora, however.
+This is due to the fact that Fedora and several other distros include default versions of toolchains, which prompts python4android to abstain from downloading its own. [This issue has been encountered by many other users.](https://groups.google.com/g/kivy-users/c/z46lSJXgbjY/m/M1UoWwtWAgAJ)
+
+The use of Ubuntu 24.04 LTS is therefore recommended for developing this project. Ubuntu 22.04 LTS is not supported, as its `cmake` version (even with backports) is below the minimum 3.24.
+
+Sideband does run fine on Fedora, however.
