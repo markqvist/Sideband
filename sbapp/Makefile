@@ -53,6 +53,9 @@ else
 	@(sleep 2)
 endif
 
+createshare:
+    # TODO
+
 fetchshare:
 	-(rm ./share/pkg/*)
 	-(rm ./share/mirrors/* -r)
@@ -76,7 +79,7 @@ release:
 postbuild:
 	$(MAKE) cleanrns
 
-apk: clean prepare prebake patchfiles fetchshare release postbuild
+apk: clean prepare prebake patchfiles createshare fetchshare release postbuild
 
 devapk: clean prepare prebake patchfiles debug postbuild
 
@@ -85,6 +88,15 @@ version:
 
 install:
 	adb install bin/sideband-$$(python ./gv.py)-arm64-v8a_armeabi-v7a-release.apk
+
+devinstall:
+	adb install bin/sideband-$$(python ./gv.py)-arm64-v8a_armeabi-v7a-debug.apk
+
+install-multi:
+	adb devices | tail -n +2 | cut -sf 1 | xargs -iX adb -s X install bin/sideband-$$(python ./gv.py)-arm64-v8a_armeabi-v7a-release.apk
+
+devinstall-multi:
+	adb devices | tail -n +2 | cut -sf 1 | xargs -iX adb -s X install bin/sideband-$$(python ./gv.py)-arm64-v8a_armeabi-v7a-debug.apk
 
 console:
 	(adb logcat | grep "python\|sidebandservice")

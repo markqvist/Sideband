@@ -1,8 +1,51 @@
-### Establishing a Development environment
+# Establishing a Development environment
 
 Looking to contribute some code to Sideband? Awesome! Follow the guide below to get the repository building on your machine.
 
-#### Required dependencies for development
+## Creating folders
+
+Sideband relies on a certain folder structure to achieve a psuedo-monorepo structure with the other Reticulum projects.
+
+To make sure that the `getrns` target runs successfully, make sure your directory tree looks like this:
+
+```
+repositories/
+├─ LXMF/
+├─ dist_archive/
+├─ rnode-flasher/
+├─ Sideband/
+└─ Reticulum/
+```
+
+> Please note: in order for the docker script and `createshare` make target to work correctly, your directory **must** be laid out like this.
+
+LXMF can be obtained from https://github.com/markqvist/LXMF, Reticulum from https://github.com/markqvist/Reticulum, and rnode-flasher from https://github.com/liamcottle/rnode-flasher.
+
+`dist_archive` can simply be an empty folder. It is used by Sideband for the built-in repository server, but not necessary for development.
+
+## Required dependencies for development (Docker)
+
+If you have a Fedora-based Linux system (see [Addendum: Fedora](#addendum-fedora)) or simply would not like to install all of P4A's dependencies manually, you may choose to use the containerized build.
+
+This method requires that you have Docker installed on your system: https://docs.docker.com/engine/install/
+
+Additionally, [rootless Docker](https://docs.docker.com/engine/install/) should be used to minimize any possible attack surface on your system. Never run a script you haven't vetted with sudo! The `./dmake.sh` script uses `set -ex`.
+
+After configuring docker, you can replace any use of the `make` command with `dmake.sh` (i.e. `./dmake devapk`) to run make commands in the container, building it on demand if needed. 
+
+Example:
+
+```
+./dmake devapk
+```
+
+(or if running in sbapp, it is smart enough to run itself in Sideband regardless of where it is called from)
+
+```
+../dmake devapk
+```
+
+## Required dependencies for development (Native)
 
 Until this repository has a `flake.nix` added, you will need to manually download the following dependencies using your Operating System's package manager.
 
@@ -27,30 +70,28 @@ In the root directory of the repository, use `pip install .` to install the pack
 
 Make sure you manually install `Cython<3.0` into your Python install or `venv`, as buildozer will need it for Android.
 
-#### Creating folders
+### Addendum: Fedora
 
-Sideband relies on a certain folder structure to achieve a psuedo-monorepo structure with the other Reticulum projects.
+As many users of Kivy have noted before, some of Python4Android's recipes do not compile correctly on Fedora/RHEL. For this project, one package of interest is [`freetype-py` and its native dependency](https://github.com/kivy/python-for-android/blob/develop/pythonforandroid/recipes/freetype/__init__.py), which is a direct dependency of pillow, the ubiquitous Python image editing library.
 
-To make sure that the `getrns` target runs successfully, make sure your directory tree looks like this:
+This is due to the fact that Fedora and several other distros include default versions of toolchains, which prompts python4android to abstain from downloading its own. [This issue has been encountered by many other users.](https://groups.google.com/g/kivy-users/c/z46lSJXgbjY/m/M1UoWwtWAgAJ)
 
-```
-repositories/
-├─ LXMF/
-├─ dist_archive/
-├─ rnode-flasher/
-└─ Reticulum/
-```
+If you can't use Docker, use of Ubuntu 24.04 LTS is therefore recommended for developing this project. Ubuntu 22.04 LTS is not supported, as its `cmake` version (even with backports) is below the minimum 3.24.
 
-LXMF can be obtained from https://github.com/markqvist/LXMF, Reticulum from https://github.com/markqvist/Reticulum, and rnode-flasher from https://github.com/liamcottle/rnode-flasher.
+Sideband does run fine on Fedora, however.
 
-`dist_archive` can simply be an empty folder. It is used by Sideband for the built-in repository server, but not necessary for development.
-
-#### Creating and testing Sideband on an Android device
+## Creating and testing Sideband on an Android device
 
 With a correctly configured environment, run the following command to create a development APK.
 
 ```
 make devapk
+```
+
+You can then install it to a connected device with
+
+```
+make devinstall
 ```
 
 If you would like your release to be signed, you must configure the following four environment variables:
@@ -60,24 +101,18 @@ If you would like your release to be signed, you must configure the following fo
 - `P4A_RELEASE_KEYSTORE`
 - `P4A_RELEASE_KEYALIAS_PASSWD`
 
-If you would like to build a distribution-ready release, you must also configure the `dist_archive`.
-
-Please contact [`@unsignedmark:matrix.org`](https://matrix.to/#/@unsignedmark:matrix.org) for help doing this.
-
 After it is configured correctly, you may build it with
 
 ```
 make apk
 ```
 
+and install it to a connected device with
+
+```
+make install
+```
+
 Regardless of what release type you build, the output will be placed in `./sbapp/bin/`.
 
-#### Addendum: Fedora
-
-As many users of Kivy have noted before, some of Python4Android's recipes do not compile correctly on Fedora/RHEL. For this project, one package of interest is [`freetype-py` and its native dependency](https://github.com/kivy/python-for-android/blob/develop/pythonforandroid/recipes/freetype/__init__.py), which is a direct dependency of pillow, the ubiquitous Python image editing library.
-
-This is due to the fact that Fedora and several other distros include default versions of toolchains, which prompts python4android to abstain from downloading its own. [This issue has been encountered by many other users.](https://groups.google.com/g/kivy-users/c/z46lSJXgbjY/m/M1UoWwtWAgAJ)
-
-The use of Ubuntu 24.04 LTS is therefore recommended for developing this project. Ubuntu 22.04 LTS is not supported, as its `cmake` version (even with backports) is below the minimum 3.24.
-
-Sideband does run fine on Fedora, however.
+If you have multiple devices connected at once (for example, while developing the BLE interface between devices), you may use `devinstall-multi` or `install-multi` in place of `devinstall` and `install` respectively.
