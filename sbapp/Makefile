@@ -15,7 +15,7 @@ cleanlibs:
 	
 cleanall: clean cleanlibs
 
-pacthfiles: patchsdl injectxml patchpycodec2
+patchfiles: patchsdl injectxml patchpycodec2
 
 patchsdl:
 	# Pach USB HID behaviour
@@ -35,10 +35,7 @@ patchpycodec2:
 injectxml:
 	# mkdir /home/markqvist/.local/lib/python3.11/site-packages/pythonforandroid/bootstraps/sdl2/build/src/main/xml
 	# Inject XML on arm64-v8a
-	mkdir -p .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/src/main/res/xml
 	mkdir -p .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/templates
-	cp patches/device_filter.xml .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/src/main/res/xml/
-	cp patches/file_paths.xml .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/src/main/res/xml/
 	cp patches/AndroidManifest.tmpl.xml .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/templates/
 	cp patches/p4a_build.py .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/sideband/build.py
 	
@@ -51,10 +48,13 @@ ifneq (,$(wildcard .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists
 else
 	@(echo Prebaking build before patching files...)
 	@(sleep 2)
-	-(buildozer android release)
+	(buildozer android release)  # this mustn't be ignored, or else the release will indubitably fail
 	@(echo Prebake finished, applying patches and rebuilding...)
 	@(sleep 2)
 endif
+
+createshare:
+    # TODO
 
 fetchshare:
 	-(rm ./share/pkg/*)
@@ -79,9 +79,9 @@ release:
 postbuild:
 	$(MAKE) cleanrns
 
-apk: prepare prebake pacthfiles fetchshare release postbuild
+apk: clean prepare prebake patchfiles createshare fetchshare release postbuild
 
-devapk: prepare prebake pacthfiles fetchshare debug postbuild
+devapk: clean prepare prebake patchfiles debug postbuild
 
 version:
 	@(echo $$(python ./gv.py))
@@ -89,13 +89,24 @@ version:
 install:
 	adb install bin/sideband-$$(python ./gv.py)-arm64-v8a_armeabi-v7a-release.apk
 
+devinstall:
+	adb install bin/sideband-$$(python ./gv.py)-arm64-v8a_armeabi-v7a-debug.apk
+
+install-multi:
+	adb devices | tail -n +2 | cut -sf 1 | xargs -iX adb -s X install bin/sideband-$$(python ./gv.py)-arm64-v8a_armeabi-v7a-release.apk
+
+devinstall-multi:
+	adb devices | tail -n +2 | cut -sf 1 | xargs -iX adb -s X install bin/sideband-$$(python ./gv.py)-arm64-v8a_armeabi-v7a-debug.apk
+
 console:
 	(adb logcat | grep "python\|sidebandservice")
 
 getrns:
-	(cp -rv ../../Reticulum/RNS ./;rm ./RNS/Utilities/RNS)
+	(cp -rv ../../Reticulum/RNS ./)
+	-(rm ./RNS/Utilities/RNS) # created by the create_symlinks target in Reticulum
 	-(rm ./RNS/__pycache__ -r)
-	(cp -rv ../../LXMF/LXMF ./;rm ./LXMF/Utilities/LXMF)
+	(cp -rv ../../LXMF/LXMF ./)
+	-(rm ./LXMF/Utilities/LXMF) # ditto
 	-(rm ./LXMF/__pycache__ -r)
 
 cleanrns:
