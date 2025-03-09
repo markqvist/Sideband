@@ -730,16 +730,23 @@ class Messages():
 
                 if has_audio:
                     def play_audio(sender):
-                        self.app.play_audio_field(sender.audio_field)
-                        stored_color = sender.md_bg_color
-                        if sender.lsource == self.app.sideband.lxmf_destination.hash:
-                            sender.md_bg_color = mdc(c_delivered, intensity_play)
-                        else:
-                            sender.md_bg_color = mdc(c_received, intensity_play)
+                        touch_event = None; block_play = False
+                        if sender and hasattr(sender, "last_touch"): touch_event = sender.last_touch
+                        if touch_event and hasattr(touch_event, "dpos"):
+                            delta = abs(touch_event.dpos[0]) + abs(touch_event.dpos[1])
+                            if delta >= 2.0: block_play = True
 
-                        def cb(dt):
-                            sender.md_bg_color = stored_color
-                        Clock.schedule_once(cb, 0.25)
+                        if not block_play:
+                            self.app.play_audio_field(sender.audio_field)
+                            stored_color = sender.md_bg_color
+                            if sender.lsource == self.app.sideband.lxmf_destination.hash:
+                                sender.md_bg_color = mdc(c_delivered, intensity_play)
+                            else:
+                                sender.md_bg_color = mdc(c_received, intensity_play)
+
+                            def cb(dt):
+                                sender.md_bg_color = stored_color
+                            Clock.schedule_once(cb, 0.25)
 
                     item.has_audio = True
                     item.audio_size = len(audio_field[1])
