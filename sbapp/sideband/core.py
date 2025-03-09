@@ -3287,7 +3287,7 @@ class SidebandCore():
                     else:
                         self.telemeter.disable(sensor)
 
-            for telemetry_plugin in self.active_telemetry_plugins:
+            for telemetry_plugin in self.active_telemetry_plugins.copy():
                 try:
                     plugin = self.active_telemetry_plugins[telemetry_plugin]
                     plugin.update_telemetry(self.telemeter)
