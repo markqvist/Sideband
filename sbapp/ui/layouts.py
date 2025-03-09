@@ -96,6 +96,16 @@ MDNavigationLayout:
                             IconLeftWidget:
                                 icon: "account-voice"
                                 on_release: root.ids.screen_manager.app.announces_action(self)
+                                
+
+                        OneLineIconListItem:
+                            text: "Voice"
+                            on_release: root.ids.screen_manager.app.voice_action(self)
+                            # _no_ripple_effect: True
+                        
+                            IconLeftWidget:
+                                icon: "phone-in-talk"
+                                on_release: root.ids.screen_manager.app.voice_action(self)
 
                                                        
                         # OneLineIconListItem:
@@ -1790,11 +1800,27 @@ MDScreen:
                     height: dp(48)
                     
                     MDLabel:
-                        text: "Use high-quality voice for PTT"
+                        text: "High-quality codec for LXMF PTT"
                         font_style: "H6"
 
                     MDSwitch:
                         id: settings_hq_ptt
+                        pos_hint: {"center_y": 0.3}
+                        disabled: False
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Enable voice calls"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: settings_voice_enabled
                         pos_hint: {"center_y": 0.3}
                         disabled: False
                         active: False

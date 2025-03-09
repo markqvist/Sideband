@@ -167,6 +167,7 @@ class SidebandCore():
         self.owner_app = owner_app
         self.reticulum = None
         self.webshare_server = None
+        self.voice_running = False
         self.telemeter = None
         self.telemetry_running = False
         self.latest_telemetry = None
@@ -531,6 +532,9 @@ class SidebandCore():
         self.config["telemetry_send_to_trusted"] = False
         self.config["telemetry_send_to_collector"] = False
 
+        # Voice
+        self.config["voice_enabled"] = False
+
         if not os.path.isfile(self.db_path):
             self.__db_init()
         else:
@@ -836,6 +840,9 @@ class SidebandCore():
             self.config["map_storage_path"] = None
         if not "map_storage_file" in self.config:
             self.config["map_storage_file"] = None
+
+        if not "voice_enabled" in self.config:
+            self.config["voice_enabled"] = False
 
         # Make sure we have a database
         if not os.path.isfile(self.db_path):
@@ -3715,8 +3722,8 @@ class SidebandCore():
             self.periodic_thread.start()
 
         if self.is_standalone or self.is_client:
-            if self.config["telemetry_enabled"]:
-                self.run_telemetry()
+            if self.config["telemetry_enabled"]: self.run_telemetry()
+            if self.config["voice_enabled"]: self.start_voice()
         elif self.is_service:
             self.run_service_telemetry()
 
@@ -5182,6 +5189,36 @@ class SidebandCore():
         if RNS.vendor.platformutils.get_platform() == "android":
             if not self.reticulum.is_connected_to_shared_instance:
                 RNS.Transport.detach_interfaces()
+
+    def start_voice(self):
+        try:
+            if not self.voice_running:
+                RNS.log("Starting voice service", RNS.LOG_DEBUG)
+                self.voice_running = True
+                from .voice import ReticulumTelephone
+                self.telephone = ReticulumTelephone(self.identity)
+                ringtone_path = os.path.join(self.asset_dir, "audio", "notifications", "soft1.opus")
+                self.telephone.set_ringtone(ringtone_path)
+
+        except Exception as e:
+            self.voice_running = False
+            RNS.log(f"An error occurred while starting voice services, the contained exception was: {e}", RNS.LOG_ERROR)
+            RNS.trace_exception(e)
+
+    def stop_voice(self):
+        try:
+            if self.voice_running:
+                RNS.log("Stopping voice service", RNS.LOG_DEBUG)
+                if self.telephone:
+                    self.telephone.stop()
+                    del self.telephone
+
+                self.telephone = None
+                self.voice_running = False
+
+        except Exception as e:
+            RNS.log(f"An error occurred while stopping voice services, the contained exception was: {e}", RNS.LOG_ERROR)
+            RNS.trace_exception(e)
 
 rns_config = """# This template is used to generate a
 # running configuration for Sideband's

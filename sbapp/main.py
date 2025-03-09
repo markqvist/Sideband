@@ -239,6 +239,7 @@ else:
         from ui.conversations import Conversations, MsgSync, NewConv
         from ui.telemetry import Telemetry
         from ui.utilities import Utilities
+        from ui.voice import Voice
         from ui.objectdetails import ObjectDetails
         from ui.announces import Announces
         from ui.messages import Messages, ts_format, messages_screen_kv
@@ -267,6 +268,7 @@ else:
         from .ui.announces import Announces
         from .ui.telemetry import Telemetry
         from .ui.utilities import Utilities
+        from .ui.voice import Voice
         from .ui.objectdetails import ObjectDetails
         from .ui.messages import Messages, ts_format, messages_screen_kv
         from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
@@ -352,6 +354,7 @@ class SidebandApp(MDApp):
         self.settings_ready = False
         self.telemetry_ready = False
         self.utilities_ready = False
+        self.voice_ready = False
         self.connectivity_ready = False
         self.hardware_ready = False
         self.repository_ready = False
@@ -3148,6 +3151,15 @@ class SidebandApp(MDApp):
                 self.sideband.config["hq_ptt"] = self.settings_screen.ids.settings_hq_ptt.active
                 self.sideband.save_configuration()
 
+            def save_voice_enabled(sender=None, event=None):
+                self.sideband.config["voice_enabled"] = self.settings_screen.ids.settings_voice_enabled.active
+                self.sideband.save_configuration()
+
+                if self.sideband.config["voice_enabled"] == True:
+                    self.sideband.start_voice()
+                else:
+                    self.sideband.stop_voice()
+
             def save_print_command(sender=None, event=None):
                 if not sender.focus:
                     in_cmd = self.settings_screen.ids.settings_print_command.text
@@ -3322,6 +3334,9 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.settings_hq_ptt.active = self.sideband.config["hq_ptt"]
             self.settings_screen.ids.settings_hq_ptt.bind(active=save_hq_ptt)
+
+            self.settings_screen.ids.settings_voice_enabled.active = self.sideband.config["voice_enabled"]
+            self.settings_screen.ids.settings_voice_enabled.bind(active=save_voice_enabled)
 
             self.settings_screen.ids.settings_debug.active = self.sideband.config["debug"]
             self.settings_screen.ids.settings_debug.bind(active=save_debug)
@@ -5232,6 +5247,44 @@ class SidebandApp(MDApp):
 
     def close_sub_utilities_action(self, sender=None):
         self.utilities_action(direction="right")
+
+
+    ### voice Screen
+    ######################################
+
+    def voice_init(self):
+        if not self.voice_ready:
+            self.voice_screen = Voice(self)
+            self.voice_ready = True
+    
+    def voice_open(self, sender=None, direction="left", no_transition=False):
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.no_transition
+        else:
+            self.root.ids.screen_manager.transition = self.slide_transition
+            self.root.ids.screen_manager.transition.direction = direction
+
+        self.root.ids.screen_manager.current = "voice_screen"
+        self.root.ids.nav_drawer.set_state("closed")
+        self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+
+        if no_transition:
+            self.root.ids.screen_manager.transition = self.slide_transition
+
+    def voice_action(self, sender=None, direction="left"):
+        if self.voice_ready:
+            self.voice_open(direction=direction)
+        else:
+            self.loader_action(direction=direction)
+            def final(dt):
+                self.voice_init()
+                def o(dt):
+                    self.voice_open(no_transition=True)
+                Clock.schedule_once(o, ll_ot)
+            Clock.schedule_once(final, ll_ft)
+
+    def close_sub_voice_action(self, sender=None):
+        self.voice_action(direction="right")
 
 
     ### Telemetry Screen
