@@ -6,6 +6,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import StringProperty, BooleanProperty
 from kivymd.uix.list import MDList, IconLeftWidget, IconRightWidget, OneLineAvatarIconListItem
 from kivymd.uix.menu import MDDropdownMenu
+from kivymd.toast import toast
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
@@ -53,6 +54,7 @@ class Conversations():
             self.app.root.ids.screen_manager.add_widget(self.screen)
         
         self.conversation_dropdown = None
+        self.voice_dropdown = None
         self.delete_dialog = None
         self.clear_dialog = None
         self.clear_telemetry_dialog = None
@@ -91,6 +93,7 @@ class Conversations():
         self.app.sideband.setstate("wants.viewupdate.conversations", False)
 
     def trust_icon(self, conv):
+        conv_type = conv["type"]
         context_dest = conv["dest"]
         unread = conv["unread"]
         appearance = self.app.sideband.peer_appearance(context_dest, conv=conv)
@@ -106,25 +109,28 @@ class Conversations():
                 trust_icon = appearance[0] or da[0];
         
         else:
-            if self.app.sideband.requests_allowed_from(context_dest):
-                if unread:
-                    if is_trusted:
-                        trust_icon = "email-seal"
-                    else:
-                        trust_icon = "email"
-                else:
-                    trust_icon = "account-lock-open"
+            if conv_type == self.app.sideband.CONV_VOICE:
+                trust_icon = "phone"
             else:
-                if is_trusted:
+                if self.app.sideband.requests_allowed_from(context_dest):
                     if unread:
-                        trust_icon = "email-seal"
+                        if is_trusted:
+                            trust_icon = "email-seal"
+                        else:
+                            trust_icon = "email"
                     else:
-                        trust_icon = "account-check"
+                        trust_icon = "account-lock-open"
                 else:
-                    if unread:
-                        trust_icon = "email"
+                    if is_trusted:
+                        if unread:
+                            trust_icon = "email-seal"
+                        else:
+                            trust_icon = "account-check"
                     else:
-                        trust_icon = "account-question"
+                        if unread:
+                            trust_icon = "email"
+                        else:
+                            trust_icon = "account-question"
 
         return trust_icon
 
@@ -166,6 +172,7 @@ class Conversations():
 
         iconl._default_icon_pad = dp(ic_p)
         iconl.icon_size = dp(ic_s)
+        iconl.conv_type = conv["type"]
 
         return iconl
 
@@ -187,6 +194,7 @@ class Conversations():
             
         for conv in self.context_dests:
             context_dest = conv["dest"]
+            conv_type = conv["type"]
             unread = conv["unread"]
             last_activity = conv["last_activity"]
 
@@ -203,6 +211,7 @@ class Conversations():
                 item.sb_uid = context_dest
                 item.sb_unread = unread
                 iconl.sb_uid = context_dest
+                item.conv_type = conv_type
 
                 def gen_edit(item):
                     def x():
@@ -366,23 +375,58 @@ class Conversations():
                         self.delete_dialog.open()
                     return x
 
-                # def gen_move_to(item):
-                #     def x():
-                #         item.dmenu.dismiss()
-                #         self.app.sideband.conversation_set_object(self.conversation_dropdown.context_dest, not self.app.sideband.is_object(self.conversation_dropdown.context_dest))
-                #         self.app.conversations_view.update()
-                #     return x
-
                 def gen_copy_addr(item):
                     def x():
                         Clipboard.copy(RNS.hexrep(self.conversation_dropdown.context_dest, delimit=False))
+                        self.voice_dropdown.dismiss()
+                        self.conversation_dropdown.dismiss()
+                    return x
+
+                def gen_call(item):
+                    def x():
+                        identity = RNS.Identity.recall(self.conversation_dropdown.context_dest)
+                        if identity: self.app.dial_action(identity.hash)
+                        else: toast("Can't call, identity unknown")
                         item.dmenu.dismiss()
                     return x
 
                 item.iconr = IconRightWidget(icon="dots-vertical");
 
+                if self.voice_dropdown == None:
+                    dmi_h = 40
+                    dmv_items = [
+                        {
+                            "viewclass": "OneLineListItem",
+                            "text": "Edit",
+                            "height": dp(dmi_h),
+                            "on_release": gen_edit(item)
+                        },
+                        {
+                            "text": "Copy Identity Hash",
+                            "viewclass": "OneLineListItem",
+                            "height": dp(dmi_h),
+                            "on_release": gen_copy_addr(item)
+                        },
+                        {
+                            "text": "Delete",
+                            "viewclass": "OneLineListItem",
+                            "height": dp(dmi_h),
+                            "on_release": gen_del(item)
+                        }
+                    ]
+
+                    self.voice_dropdown = MDDropdownMenu(
+                        caller=item.iconr,
+                        items=dmv_items,
+                        position="auto",
+                        width=dp(256),
+                        elevation=0,
+                        radius=dp(3),
+                    )
+                    self.voice_dropdown.effect_cls = ScrollEffect
+                    self.voice_dropdown.md_bg_color = self.app.color_hover
+
                 if self.conversation_dropdown == None:
-                    obj_str = "conversations" if is_object else "objects"
                     dmi_h = 40
                     dm_items = [
                         {
@@ -392,17 +436,17 @@ class Conversations():
                             "on_release": gen_edit(item)
                         },
                         {
+                            "viewclass": "OneLineListItem",
+                            "text": "Call",
+                            "height": dp(dmi_h),
+                            "on_release": gen_call(item)
+                        },
+                        {
                             "text": "Copy Address",
                             "viewclass": "OneLineListItem",
                             "height": dp(dmi_h),
                             "on_release": gen_copy_addr(item)
                         },
-                        # {
-                        #     "text": "Move to objects",
-                        #     "viewclass": "OneLineListItem",
-                        #     "height": dp(dmi_h),
-                        #     "on_release": gen_move_to(item)
-                        # },
                         {
                             "text": "Clear Messages",
                             "viewclass": "OneLineListItem",
@@ -434,11 +478,15 @@ class Conversations():
                     self.conversation_dropdown.effect_cls = ScrollEffect
                     self.conversation_dropdown.md_bg_color = self.app.color_hover
 
-                item.dmenu = self.conversation_dropdown
+                if conv_type == self.app.sideband.CONV_VOICE:
+                    item.dmenu = self.voice_dropdown
+                else:
+                    item.dmenu = self.conversation_dropdown
 
                 def callback_factory(ref, dest):
                     def x(sender):
                         self.conversation_dropdown.context_dest = dest
+                        self.voice_dropdown.context_dest = dest
                         ref.dmenu.caller = ref.iconr
                         ref.dmenu.open()
                     return x
@@ -448,6 +496,7 @@ class Conversations():
                 item.add_widget(item.iconr)
 
                 item.trusted = self.app.sideband.is_trusted(context_dest, conv_data=existing_conv)
+                item.conv_type = conv_type
                 
                 self.added_item_dests.append(context_dest)
                 self.list.add_widget(item)
@@ -519,7 +568,7 @@ Builder.load_string("""
     orientation: "vertical"
     spacing: "24dp"
     size_hint_y: None
-    height: dp(250)
+    height: dp(260)
 
     MDTextField:
         id: n_address_field
@@ -540,7 +589,7 @@ Builder.load_string("""
         orientation: "horizontal"
         size_hint_y: None
         padding: [0,0,dp(8),dp(24)]
-        height: dp(48)
+        height: dp(24)
         MDLabel:
             id: "trusted_switch_label"
             text: "Trusted"
@@ -548,6 +597,21 @@ Builder.load_string("""
 
         MDSwitch:
             id: n_trusted
+            pos_hint: {"center_y": 0.3}
+            active: False
+
+    MDBoxLayout:
+        orientation: "horizontal"
+        size_hint_y: None
+        padding: [0,0,dp(8),dp(24)]
+        height: dp(24)
+        MDLabel:
+            id: "trusted_switch_label"
+            text: "Voice Only"
+            font_style: "H6"
+
+        MDSwitch:
+            id: n_voice_only
             pos_hint: {"center_y": 0.3}
             active: False
 

@@ -1,6 +1,6 @@
 __debug_build__ = False
 __disable_shaders__ = False
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 __variant__ = ""
 
 import sys
@@ -1597,13 +1597,17 @@ class SidebandApp(MDApp):
                 self.conversation_action(item)
 
     def conversation_action(self, sender):
-        context_dest = sender.sb_uid
-        def cb(dt):
-            self.open_conversation(context_dest)
-        def cbu(dt):
-            self.conversations_view.update()
-        Clock.schedule_once(cb, 0.15)
-        Clock.schedule_once(cbu, 0.15+0.25)
+        if sender.conv_type == self.sideband.CONV_P2P:
+            context_dest = sender.sb_uid
+            def cb(dt): self.open_conversation(context_dest)
+            def cbu(dt): self.conversations_view.update()
+            Clock.schedule_once(cb, 0.15)
+            Clock.schedule_once(cbu, 0.15+0.25)
+
+        elif sender.conv_type == self.sideband.CONV_VOICE:
+            identity_hash = sender.sb_uid
+            def cb(dt): self.dial_action(identity_hash)
+            Clock.schedule_once(cb, 0.15)
 
     def open_conversation(self, context_dest, direction="left"):
         self.rec_dialog_is_open = False
@@ -2750,7 +2754,8 @@ class SidebandApp(MDApp):
                     n_address = dialog.d_content.ids["n_address_field"].text
                     n_name = dialog.d_content.ids["n_name_field"].text
                     n_trusted = dialog.d_content.ids["n_trusted"].active
-                    new_result = self.sideband.new_conversation(n_address, n_name, n_trusted)
+                    n_voice_only = dialog.d_content.ids["n_voice_only"].active
+                    new_result = self.sideband.new_conversation(n_address, n_name, n_trusted, n_voice_only)
 
                 except Exception as e:
                     RNS.log("Error while creating conversation: "+str(e), RNS.LOG_ERROR)
@@ -5257,7 +5262,7 @@ class SidebandApp(MDApp):
             self.voice_screen = Voice(self)
             self.voice_ready = True
     
-    def voice_open(self, sender=None, direction="left", no_transition=False):
+    def voice_open(self, sender=None, direction="left", no_transition=False, dial_on_complete=None):
         if no_transition:
             self.root.ids.screen_manager.transition = self.no_transition
         else:
@@ -5271,21 +5276,29 @@ class SidebandApp(MDApp):
         if no_transition:
             self.root.ids.screen_manager.transition = self.slide_transition
 
-    def voice_action(self, sender=None, direction="left"):
+        self.voice_screen.update_call_status()
+        if dial_on_complete:
+            self.voice_screen.dial_target = dial_on_complete
+            self.voice_screen.screen.ids.identity_hash.text = RNS.hexrep(dial_on_complete, delimit=False)
+            Clock.schedule_once(self.voice_screen.dial_action, 0.25)
+
+    def voice_action(self, sender=None, direction="left", dial_on_complete=None):
         if self.voice_ready:
-            self.voice_open(direction=direction)
+            self.voice_open(direction=direction, dial_on_complete=dial_on_complete)
         else:
             self.loader_action(direction=direction)
             def final(dt):
                 self.voice_init()
                 def o(dt):
-                    self.voice_open(no_transition=True)
+                    self.voice_open(no_transition=True, dial_on_complete=dial_on_complete)
                 Clock.schedule_once(o, ll_ot)
             Clock.schedule_once(final, ll_ft)
 
     def close_sub_voice_action(self, sender=None):
         self.voice_action(direction="right")
 
+    def dial_action(self, identity_hash):
+        self.voice_action(dial_on_complete=identity_hash)
 
     ### Telemetry Screen
     ######################################

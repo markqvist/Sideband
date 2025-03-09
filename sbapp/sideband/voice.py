@@ -92,18 +92,13 @@ class ReticulumTelephone():
         self.telephone.teardown()
         self.telephone = None
 
+    def hangup(self): self.telephone.hangup()
+    def answer(self): self.telephone.answer(self.caller)
+    def set_busy(self, busy): self.telephone.set_busy(busy)
+
     def dial(self, identity_hash):
         self.last_dialled_identity_hash = identity_hash
-        self.telephone.set_busy(True)
-        identity_hash = bytes.fromhex(identity_hash)
         destination_hash = RNS.Destination.hash_from_name_and_identity("lxst.telephony", identity_hash)
-        if not RNS.Transport.has_path(destination_hash):
-            RNS.Transport.request_path(destination_hash)
-            def spincheck(): return RNS.Transport.has_path(destination_hash)
-            self.__spin(spincheck, "Requesting path for call to "+RNS.prettyhexrep(identity_hash), self.path_time)
-            if not spincheck(): RNS.log("Path request timed out", RNS.LOG_DEBUG)
-
-        self.telephone.set_busy(False)
         if RNS.Transport.has_path(destination_hash):
             call_hops = RNS.Transport.hops_to(destination_hash)
             cs = "" if call_hops == 1 else "s"
@@ -111,7 +106,7 @@ class ReticulumTelephone():
             identity = RNS.Identity.recall(destination_hash)
             self.call(identity)
         else:
-            pass
+            return "no_path"
 
     def redial(self, args=None):
         if self.last_dialled_identity_hash: self.dial(self.last_dialled_identity_hash)

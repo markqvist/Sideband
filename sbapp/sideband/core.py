@@ -107,6 +107,7 @@ class SidebandCore():
     CONV_P2P       = 0x01
     CONV_GROUP     = 0x02
     CONV_BROADCAST = 0x03
+    CONV_VOICE     = 0x04
 
     MAX_ANNOUNCES  = 24
 
@@ -2639,6 +2640,7 @@ class SidebandCore():
                         "last_rx": last_rx,
                         "last_tx": last_tx,
                         "last_activity": last_activity,
+                        "type": entry[4],
                         "trust": entry[5],
                         "data": data,
                     }
@@ -2787,6 +2789,27 @@ class SidebandCore():
 
         if name != None and name != "":
             self._db_conversation_set_name(context_dest, name)
+
+        self.__event_conversations_changed()
+
+    def _db_create_voice_object(self, identity_hash, name = None, trust = False):
+        RNS.log("Creating voice object for "+RNS.prettyhexrep(identity_hash), RNS.LOG_DEBUG)
+        with self.db_lock:
+            db = self.__db_connect()
+            dbc = db.cursor()
+
+            def_name = "".encode("utf-8")
+            query = "INSERT INTO conv (dest_context, last_tx, last_rx, unread, type, trust, name, data) values (?, ?, ?, ?, ?, ?, ?, ?)"
+            data = (identity_hash, 0, time.time(), 0, SidebandCore.CONV_VOICE, 0, def_name, msgpack.packb(None))
+
+            dbc.execute(query, data)
+            db.commit()
+
+        if trust:
+            self._db_conversation_set_trusted(identity_hash, True)
+
+        if name != None and name != "":
+            self._db_conversation_set_name(identity_hash, name)
 
         self.__event_conversations_changed()
 
@@ -4630,7 +4653,7 @@ class SidebandCore():
                 RNS.log("Error while sending message: "+str(e), RNS.LOG_ERROR)
                 return False
 
-    def new_conversation(self, dest_str, name = "", trusted = False):
+    def new_conversation(self, dest_str, name = "", trusted = False, voice_only = False):
         if len(dest_str) != RNS.Reticulum.TRUNCATED_HASHLENGTH//8*2:
             return False
 
@@ -4640,7 +4663,8 @@ class SidebandCore():
                 RNS.log("Cannot create conversation with own LXMF address", RNS.LOG_ERROR)
                 return False
             else:
-                self._db_create_conversation(addr_b, name, trusted)
+                if not voice_only: self._db_create_conversation(addr_b, name, trusted)
+                else:              self._db_create_voice_object(addr_b, name, trusted)
 
         except Exception as e:
             RNS.log("Error while creating conversation: "+str(e), RNS.LOG_ERROR)
