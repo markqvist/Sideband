@@ -6,6 +6,7 @@ sbapp/bin
 sbapp/app_storage
 sbapp/RNS
 sbapp/LXMF
+sbapp/LXST
 sbapp/precompiled
 sbapp/*.DS_Store
 sbapp/*.pyc

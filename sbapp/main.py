@@ -2572,21 +2572,27 @@ class SidebandApp(MDApp):
         if RNS.vendor.platformutils.is_android():
             hs = dp(22)
             yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+            full_button = MDRectangleFlatButton(text="Full RNS Status",font_size=dp(18), theme_text_color="Custom", line_color=self.color_accept, text_color=self.color_accept)
             dialog = MDDialog(
                 title="Connectivity Status",
                 text=str(self.get_connectivity_text()),
-                buttons=[ yes_button ],
+                buttons=[full_button, yes_button],
                 # elevation=0,
             )
             def cs_updater(dt):
                 dialog.text = str(self.get_connectivity_text())
             def dl_yes(s):
-                self.connectivity_updater.cancel()
                 dialog.dismiss()
                 if self.connectivity_updater != None:
                     self.connectivity_updater.cancel()
+            def cb_rns(sender):
+                dialog.dismiss()
+                if self.connectivity_updater != None:
+                    self.connectivity_updater.cancel()
+                self.rnstatus_action()
 
             yes_button.bind(on_release=dl_yes)
+            full_button.bind(on_release=cb_rns)
             dialog.open()
 
             if self.connectivity_updater != None:
@@ -2595,9 +2601,12 @@ class SidebandApp(MDApp):
             self.connectivity_updater = Clock.schedule_interval(cs_updater, 2.0)
 
         else:
-            if not self.utilities_ready:
-                self.utilities_init()
-            self.utilities_screen.rnstatus_action()
+            self.rnstatus_action()
+
+    def rnstatus_action(self, sender=None):
+        if not self.utilities_ready:
+            self.utilities_init()
+        self.utilities_screen.rnstatus_action()
 
     def ingest_lxm_action(self, sender):
         def cb(dt):
