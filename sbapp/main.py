@@ -1096,6 +1096,10 @@ class SidebandApp(MDApp):
                         self.hw_error_dialog.open()
                         self.hw_error_dialog.is_open = True
 
+            incoming_call = self.sideband.getstate("voice.incoming_call")
+            if incoming_call:
+                self.sideband.setstate("voice.incoming_call", None)
+                toast(f"Call from {incoming_call}", duration=7)
 
         if self.root.ids.screen_manager.current == "messages_screen":
             self.messages_view.update()
@@ -1369,6 +1373,15 @@ class SidebandApp(MDApp):
 
                     if text == "o":
                         self.objects_action()
+
+                    if text == "e":
+                        self.voice_action()
+
+                    if text == " ":
+                        self.voice_answer_action()
+
+                    if text == ".":
+                        self.voice_reject_action()
 
                     if text == "r":
                         if self.root.ids.screen_manager.current == "conversations_screen":
@@ -5309,6 +5322,16 @@ class SidebandApp(MDApp):
     def dial_action(self, identity_hash):
         self.voice_action(dial_on_complete=identity_hash)
 
+    def voice_answer_action(self, sender=None):
+        if self.sideband.voice_running:
+            if self.sideband.telephone.is_ringing: self.sideband.telephone.answer()
+
+    def voice_reject_action(self, sender=None):
+        if self.sideband.voice_running:
+            if self.sideband.telephone.is_ringing or self.sideband.telephone.is_in_call:
+                self.sideband.telephone.hangup()
+                toast("Call ended")
+
     ### Telemetry Screen
     ######################################
 
@@ -6241,15 +6264,21 @@ If you use Reticulum and LXMF on hardware that does not carry any identifiers ti
  - [b]Ctrl-Shift-F[/b] add file
  - [b]Ctrl-D[/b] or [b]Ctrl-S[/b] Send message
 
- [b]Voice & PTT[/b]
+ [b]Voice & PTT Messages[/b]
  - [b]Space[/b] Start/stop recording
  - [b]Enter[/b] Save recording to message
  - With PTT enabled, hold [b]Space[/b] to talk
+
+ [b]Voice Calls[/b]
+ - [b]Ctrl-Space[/b] Answer incoming call
+ - [b]Ctrl-.[/b] Reject incoming call
+ - [b]Ctrl-.[/b] Hang up active call
 
  [b]Navigation[/b]
  - [b]Ctrl-[i]n[/i][/b] Go to conversation number [i]n[/i]
  - [b]Ctrl-R[/b] Go to Conversations
  - [b]Ctrl-O[/b] Go to Objects & Devices
+ - [b]Ctrl-E[/b] Go to Voice
  - [b]Ctrl-L[/b] Go to Announce Stream
  - [b]Ctrl-M[/b] Go to Situation Map
  - [b]Ctrl-U[/b] Go to Utilities

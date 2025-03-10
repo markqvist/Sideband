@@ -22,9 +22,10 @@ class ReticulumTelephone():
     WAIT_TIME        = 60
     PATH_TIME        = 10
 
-    def __init__(self, identity, verbosity = 0, service = False):
+    def __init__(self, identity, owner = None, service = False):
         self.identity          = identity
         self.service           = service
+        self.owner             = owner
         self.config            = None
         self.should_run        = False
         self.telephone         = None
@@ -124,6 +125,8 @@ class ReticulumTelephone():
         self.caller  = remote_identity
         self.direction = "from" if self.direction == None else "to"
         RNS.log(f"Incoming call from {RNS.prettyhexrep(self.caller.hash)}", RNS.LOG_DEBUG)
+        if self.owner:
+            self.owner.incoming_call(remote_identity)
 
     def call_ended(self, remote_identity):
         if self.is_in_call or self.is_ringing or self.call_is_connecting:

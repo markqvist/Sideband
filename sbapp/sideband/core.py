@@ -1224,6 +1224,27 @@ class SidebandCore():
             RNS.log("Could not decode a valid peer name from data: "+str(e), RNS.LOG_DEBUG)
             return RNS.prettyhexrep(context_dest)
 
+    def voice_display_name(self, identity_hash):
+        context_dest = identity_hash
+        if context_dest == self.lxmf_destination.hash:
+            return self.config["display_name"]
+
+        try:
+            lxmf_destination_hash = RNS.Destination.hash_from_name_and_identity("lxmf.delivery", identity_hash)
+            existing_voice = self._db_conversation(context_dest)
+            existing_lxmf  = self._db_conversation(lxmf_destination_hash)
+
+            print(RNS.prettyhexrep(lxmf_destination_hash))
+            print(f"VOICE {existing_voice}")
+            print(f"LXMF  {existing_lxmf}")
+
+            if existing_lxmf: return self.peer_display_name(lxmf_destination_hash)
+            else: return self.peer_display_name(identity_hash)
+
+        except Exception as e:
+            RNS.log("Could not decode a valid peer name from data: "+str(e), RNS.LOG_DEBUG)
+            return RNS.prettyhexrep(context_dest)
+
     def clear_conversation(self, context_dest):
         self._db_clear_conversation(context_dest)
 
@@ -5220,7 +5241,7 @@ class SidebandCore():
                 RNS.log("Starting voice service", RNS.LOG_DEBUG)
                 self.voice_running = True
                 from .voice import ReticulumTelephone
-                self.telephone = ReticulumTelephone(self.identity)
+                self.telephone = ReticulumTelephone(self.identity, owner=self)
                 ringtone_path = os.path.join(self.asset_dir, "audio", "notifications", "soft1.opus")
                 self.telephone.set_ringtone(ringtone_path)
 
@@ -5243,6 +5264,10 @@ class SidebandCore():
         except Exception as e:
             RNS.log(f"An error occurred while stopping voice services, the contained exception was: {e}", RNS.LOG_ERROR)
             RNS.trace_exception(e)
+
+    def incoming_call(self, remote_identity):
+        display_name = self.voice_display_name(remote_identity.hash)
+        self.setstate("voice.incoming_call", display_name)
 
 rns_config = """# This template is used to generate a
 # running configuration for Sideband's

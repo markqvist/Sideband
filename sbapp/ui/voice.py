@@ -54,7 +54,9 @@ class Voice():
         if self.app.root.ids.screen_manager.current == "voice_screen":
             if self.ui_updater == None: self.ui_updater = Clock.schedule_interval(self.update_call_status, 0.5)
         else:
-            if self.ui_updater: self.ui_updater.cancel()
+            if self.ui_updater:
+                self.ui_updater.cancel()
+                self.ui_updater = None
 
         db = self.screen.ids.dial_button
         ih = self.screen.ids.identity_hash
