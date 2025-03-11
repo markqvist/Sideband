@@ -25,8 +25,8 @@ import base64
 import threading
 import RNS.vendor.umsgpack as msgpack
 
-WINDOW_DEFAULT_WIDTH  = "494"
-WINDOW_DEFAULT_HEIGHT = "800"
+WINDOW_DEFAULT_WIDTH  = 494
+WINDOW_DEFAULT_HEIGHT = 800
 
 app_ui_scaling_path = None
 def apply_ui_scale():
@@ -176,9 +176,25 @@ if not args.daemon:
         sys.path.append(local)
 
     if not RNS.vendor.platformutils.is_android():
+        model = None
+        max_width = WINDOW_DEFAULT_WIDTH
+        max_height = WINDOW_DEFAULT_HEIGHT
+
+        try:
+            if os.path.isfile("/sys/firmware/devicetree/base/model"):
+                with open("/sys/firmware/devicetree/base/model", "r") as mf:
+                    model = mf.read()
+        except: pass
+
+        if model:
+            if model.startswith("Raspberry Pi "): max_height = 625
+
+        window_width = min(WINDOW_DEFAULT_WIDTH, max_width)
+        window_height = min(WINDOW_DEFAULT_HEIGHT, max_height)
+
         from kivy.config import Config
-        Config.set("graphics", "width", WINDOW_DEFAULT_WIDTH)
-        Config.set("graphics", "height", WINDOW_DEFAULT_HEIGHT)
+        Config.set("graphics", "width", str(window_width))
+        Config.set("graphics", "height", str(window_height))
 
 if args.daemon:
     from .sideband.core import SidebandCore
