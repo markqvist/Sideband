@@ -292,7 +292,7 @@ class Conversations():
 
                             yes_button.bind(on_release=dl_yes)
                             no_button.bind(on_release=dl_no)
-                            item.dmenu.dismiss()
+                            self.voice_dropdown.dismiss(); self.conversation_dropdown.dismiss()
                             dialog.open()
                             RNS.log("Generated edit dialog in "+str(RNS.prettytime(time.time()-t_s)), RNS.LOG_DEBUG)
 
@@ -321,7 +321,7 @@ class Conversations():
                             yes_button.bind(on_release=dl_yes)
                             no_button.bind(on_release=dl_no)
 
-                        item.dmenu.dismiss()
+                        self.voice_dropdown.dismiss(); self.conversation_dropdown.dismiss()
                         self.clear_dialog.open()
                     return x
 
@@ -345,7 +345,7 @@ class Conversations():
                             yes_button.bind(on_release=dl_yes)
                             no_button.bind(on_release=dl_no)
 
-                        item.dmenu.dismiss()
+                        self.voice_dropdown.dismiss(); self.conversation_dropdown.dismiss()
                         self.clear_telemetry_dialog.open()
                     return x
 
@@ -371,15 +371,14 @@ class Conversations():
                             yes_button.bind(on_release=dl_yes)
                             no_button.bind(on_release=dl_no)
 
-                        item.dmenu.dismiss()
+                        self.voice_dropdown.dismiss(); self.conversation_dropdown.dismiss()
                         self.delete_dialog.open()
                     return x
 
                 def gen_copy_addr(item):
                     def x():
                         Clipboard.copy(RNS.hexrep(self.conversation_dropdown.context_dest, delimit=False))
-                        self.voice_dropdown.dismiss()
-                        self.conversation_dropdown.dismiss()
+                        self.voice_dropdown.dismiss(); self.conversation_dropdown.dismiss()
                     return x
 
                 def gen_call(item):
@@ -387,7 +386,7 @@ class Conversations():
                         identity = RNS.Identity.recall(self.conversation_dropdown.context_dest)
                         if identity: self.app.dial_action(identity.hash)
                         else: toast("Can't call, identity unknown")
-                        item.dmenu.dismiss()
+                        self.voice_dropdown.dismiss(); self.conversation_dropdown.dismiss()
                     return x
 
                 item.iconr = IconRightWidget(icon="dots-vertical");
