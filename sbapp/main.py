@@ -1289,13 +1289,13 @@ class SidebandApp(MDApp):
                             self.messages_view.ids.message_text.write_tab = True
                         Clock.schedule_once(tab_job, 0.15)
 
-                elif self.rec_dialog != None and self.rec_dialog_is_open:
+                elif len(modifiers) == 0 and self.rec_dialog != None and self.rec_dialog_is_open:
                         if text == " ":
                             self.msg_rec_a_rec(None)
                         elif keycode == 40:
                             self.msg_rec_a_save(None)
 
-                elif not self.rec_dialog_is_open and not self.messages_view.ids.message_text.focus and self.messages_view.ptt_enabled and keycode == 44:
+                elif len(modifiers) == 0 and not self.rec_dialog_is_open and not self.messages_view.ids.message_text.focus and self.messages_view.ptt_enabled and keycode == 44:
                     if not self.key_ptt_down:
                         self.key_ptt_down = True
                         self.message_ptt_down_action()
