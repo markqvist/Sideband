@@ -324,26 +324,6 @@ You can help support the continued development of open, free and private communi
 
 <br/>
 
-# Planned Features
-
-- <s>Secure and private location and telemetry sharing</s>
-- <s>Including images in messages</s>
-- <s>Sending file attachments</s>
-- <s>Offline and online maps</s>
-- <s>Paper messages</s>
-- <s>Using Sideband as a Reticulum Transport Instance</s>
-- <s>Encryption keys export and import</s>
-- <s>Plugin support for commands, services and telemetry</s>
-- <s>Sending voice messages (using Codec2 and Opus)</s>
-- <s>Adding a Linux desktop integration</s>
-- <s>Adding prebuilt Windows binaries to the releases</s>
-- <s>Adding prebuilt macOS binaries to the releases</s>
-- <s>A debug log viewer</s>
-- Adding a Nomad Net page browser
-- LXMF sneakernet functionality
-- Network visualisation and test tools
-- Better message sorting mechanism
-
 # License
 Unless otherwise noted, this work is licensed under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License][cc-by-nc-sa].
 
