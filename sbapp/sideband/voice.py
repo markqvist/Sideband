@@ -51,6 +51,7 @@ class ReticulumTelephone():
         self.telephone.set_speaker(self.speaker_device)
         self.telephone.set_microphone(self.microphone_device)
         self.telephone.set_ringer(self.ringer_device)
+        self.telephone.set_allowed(self.__is_allowed)
         RNS.log(f"{self} initialised", RNS.LOG_DEBUG)
 
     def set_ringtone(self, ringtone_path):
@@ -154,6 +155,11 @@ class ReticulumTelephone():
         if self.call_is_connecting or self.is_ringing:
             self.state = self.STATE_IN_CALL
             RNS.log(f"Call established with {RNS.prettyhexrep(self.caller.hash)}", RNS.LOG_DEBUG)
+
+    def __is_allowed(self, identity_hash):
+        if self.owner.config["voice_trusted_only"]:
+            return self.owner.voice_is_trusted(identity_hash)
+        else: return True
 
     def __spin(self, until=None, msg=None, timeout=None):
         if msg: RNS.log(msg, RNS.LOG_DEBUG)

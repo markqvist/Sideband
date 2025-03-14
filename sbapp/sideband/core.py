@@ -853,6 +853,8 @@ class SidebandCore():
             self.config["voice_input"] = None
         if not "voice_ringer" in self.config:
             self.config["voice_ringer"] = None
+        if not "voice_trusted_only" in self.config:
+            self.config["voice_trusted_only"] = False
 
         # Make sure we have a database
         if not os.path.isfile(self.db_path):
@@ -1072,6 +1074,20 @@ class SidebandCore():
 
         except Exception as e:
             RNS.log("Error while checking trust for "+RNS.prettyhexrep(context_dest)+": "+str(e), RNS.LOG_ERROR)
+            return False
+
+    def voice_is_trusted(self, identity_hash):
+        context_dest = identity_hash
+        try:
+            lxmf_destination_hash = RNS.Destination.hash_from_name_and_identity("lxmf.delivery", identity_hash)
+            existing_voice = self._db_conversation(context_dest)
+            existing_lxmf  = self._db_conversation(lxmf_destination_hash)
+            if existing_lxmf: trust = existing_lxmf["trust"]
+            else: trust = existing_voice["trust"]
+            return trust == 1
+
+        except Exception as e:
+            RNS.log("Could not decode a valid peer name from data: "+str(e), RNS.LOG_DEBUG)
             return False
 
     def is_object(self, context_dest, conv_data = None):

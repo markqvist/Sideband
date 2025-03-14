@@ -200,6 +200,9 @@ class Voice():
             if not self.app.sideband.config["voice_ringer"] in self.output_devices: self.output_devices.append(self.app.sideband.config["voice_ringer"])
 
     def update_settings_screen(self, sender=None):
+        self.voice_settings_screen.ids.voice_trusted_only.active = self.app.sideband.config["voice_trusted_only"]
+        self.voice_settings_screen.ids.voice_trusted_only.bind(active=self.settings_save_action)
+
         bp = 6; ml = 45; fs = 16; ics = 14
         self.update_devices()
 
@@ -257,6 +260,9 @@ class Voice():
                 self.voice_settings_screen.ids.ringer_devices.add_widget(device_button)
                 self.listed_ringer_devices.append(device)
 
+    def settings_save_action(self, sender=None, event=None):
+        self.app.sideband.config["voice_trusted_only"] = self.voice_settings_screen.ids.voice_trusted_only.active
+        self.app.sideband.save_configuration()
 
     def output_device_action(self, sender=None):
         self.app.sideband.config["voice_output"] = sender.device
@@ -377,7 +383,42 @@ MDScreen:
                 orientation: "vertical"
                 size_hint_y: None
                 height: self.minimum_height
-                padding: [dp(28), dp(32), dp(28), dp(16)]
+                padding: [dp(28), dp(48), dp(28), dp(16)]
+
+                MDLabel:
+                    text: "Call Handling"
+                    font_style: "H6"
+                    height: self.texture_size[1]
+                    padding: [dp(0), dp(0), dp(0), dp(12)]
+
+                MDLabel:
+                    id: voice_settings_info
+                    markup: True
+                    text: "You can block calls from all other callers than contacts marked as trusted, by enabling the following option."
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+                    padding: [dp(0), dp(16), dp(0), dp(16)]
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: [0,0,dp(24),0]
+                    size_hint_y: None
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Block non-trusted callers"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: voice_trusted_only
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDLabel:
+                    text: "Audio Devices"
+                    font_style: "H6"
+                    padding: [dp(0), dp(96), dp(0), dp(12)]
 
                 MDLabel:
                     id: voice_settings_info
@@ -386,11 +427,12 @@ MDScreen:
                     size_hint_y: None
                     text_size: self.width, None
                     height: self.texture_size[1]
-                    padding: [dp(0), dp(0), dp(0), dp(48)]
+                    padding: [dp(0), dp(64), dp(0), dp(32)]
 
                 MDLabel:
-                    text: "Output Device"
-                    font_style: "H6"
+                    text: "[b]Output[/b]"
+                    font_size: dp(18)
+                    markup: True
 
                 MDBoxLayout:
                     id: output_devices
@@ -398,7 +440,7 @@ MDScreen:
                     spacing: "12dp"
                     size_hint_y: None
                     height: self.minimum_height
-                    padding: [dp(0), dp(35), dp(0), dp(48)]
+                    padding: [dp(0), dp(24), dp(0), dp(48)]
 
                     # MDRectangleFlatIconButton:
                     #     id: output_default_button
@@ -411,8 +453,9 @@ MDScreen:
                     #     disabled: False
 
                 MDLabel:
-                    text: "Input Device"
-                    font_style: "H6"
+                    text: "[b]Input[/b]"
+                    font_size: dp(18)
+                    markup: True
 
                 MDBoxLayout:
                     id: input_devices
@@ -420,11 +463,12 @@ MDScreen:
                     spacing: "12dp"
                     size_hint_y: None
                     height: self.minimum_height
-                    padding: [dp(0), dp(35), dp(0), dp(48)]
+                    padding: [dp(0), dp(24), dp(0), dp(48)]
 
                 MDLabel:
-                    text: "Ringer Device"
-                    font_style: "H6"
+                    text: "[b]Ringer[/b]"
+                    font_size: dp(18)
+                    markup: True
 
                 MDBoxLayout:
                     id: ringer_devices
@@ -432,6 +476,6 @@ MDScreen:
                     spacing: "12dp"
                     size_hint_y: None
                     height: self.minimum_height
-                    padding: [dp(0), dp(35), dp(0), dp(48)]
+                    padding: [dp(0), dp(24), dp(0), dp(48)]
 
 """
