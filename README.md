@@ -271,7 +271,19 @@ Since this installation method automatically installs the `rns` and `lxmf` packa
 
 Sideband features a flexible and extensible plugin system, that allows you to hook all kinds of control, status reporting, command execution and telemetry collection into the LXMF messaging system. Plugins can be created as either *Telemetry*, *Command* or *Service* plugins, for different use-cases.
 
-To create plugins for Sideband, you can find a variety of [code examples](https://github.com/markqvist/Sideband/tree/main/docs/example_plugins), that you can use as a basis for writing your own plugins. Sideband includes 20+ built-in sensor types to chose from, for representing all kinds telemetry data. If none of those fit your needs, there is a `Custom` sensor type, that can include any kind of data.
+To create plugins for Sideband, you can find a variety of [code examples](https://github.com/markqvist/Sideband/tree/main/docs/example_plugins) in this repository, that you can use as a basis for writing your own plugins. The example plugins include:
+
+- [Custom telemetry](https://github.com/markqvist/Sideband/blob/main/docs/example_plugins/telemetry.py)
+- [Getting BME280 temperature, humidity and pressure](https://github.com/markqvist/Sideband/blob/main/docs/example_plugins/bme280_telemetry.py)
+- [Basic commands](https://github.com/markqvist/Sideband/blob/main/docs/example_plugins/basic.py)
+- [Location telemetry from GPSd on Linux](https://github.com/markqvist/Sideband/blob/main/docs/example_plugins/gpsd_location.py)
+- [Location telemetry from Windows Location Provider](https://github.com/markqvist/Sideband/blob/main/docs/example_plugins/windows_location.py)
+- [Getting statistics from your LXMF propagation node](https://github.com/markqvist/Sideband/blob/main/docs/example_plugins/lxmd_telemetry.py)
+- [Viewing cameras and streams](https://github.com/markqvist/Sideband/blob/main/docs/example_plugins/view.py)
+- [Fetching an XKCD comic](https://github.com/markqvist/Sideband/blob/main/docs/example_plugins/comic.py)
+- [Creating a service plugin](https://github.com/markqvist/Sideband/blob/main/docs/example_plugins/service.py)
+
+For creating telemetry plugins, Sideband includes 20+ built-in sensor types to chose from, for representing all kinds telemetry data. If none of those fit your needs, there is a `Custom` sensor type, that can include any kind of data.
 
 Command plugins allow you to define any kind of action or command to be run when receiving command messages from other LXMF clients. In the example directory, you will find various command plugin templates, for example for viewing security cameras or webcams through Sideband.
 
