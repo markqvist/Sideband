@@ -6155,7 +6155,7 @@ class SidebandApp(MDApp):
 
                 latest_viewable = None
                 if not skip:
-                    for telemetry_entry in telemetry_entries[telemetry_source]:
+                    for telemetry_entry in sorted(telemetry_entries[telemetry_source], key=lambda t: t[0], reverse=True):
                         telemetry_timestamp = telemetry_entry[0]
                         telemetry_data = telemetry_entry[1]
                         t = Telemeter.from_packed(telemetry_data)
@@ -6163,6 +6163,10 @@ class SidebandApp(MDApp):
                             telemetry = t.read_all()
                             if "location" in telemetry and telemetry["location"] != None and telemetry["location"]["latitude"] != None and telemetry["location"]["longitude"] != None:
                                 latest_viewable = telemetry
+                                break
+                            elif "connection_map" in telemetry:
+                                # TODO: Telemetry entries with connection map sensor types are skipped for now,
+                                # until a proper rendering mechanism is implemented
                                 break
 
                     if latest_viewable != None:
