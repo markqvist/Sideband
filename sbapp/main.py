@@ -3383,6 +3383,7 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.settings_voice_enabled.active = self.sideband.config["voice_enabled"]
             self.settings_screen.ids.settings_voice_enabled.bind(active=save_voice_enabled)
+            if RNS.vendor.platformutils.is_android(): self.settings_screen.ids.settings_voice_enabled.disabled = True
 
             self.settings_screen.ids.settings_debug.active = self.sideband.config["debug"]
             self.settings_screen.ids.settings_debug.bind(active=save_debug)
