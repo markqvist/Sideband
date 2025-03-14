@@ -80,7 +80,10 @@ After installation, you can now run Sideband in a number of different ways:
 pipx ensurepath
 
 # The first time you run Sideband, you will need to do it
-# from the terminal:
+# from the terminal, for the application launcher item to
+# show up. On some distros you may also need to log out
+# and back in again, or simply reboot the machine for the
+# application entry to show up in your menu.
 sideband
 
 # At the first launch, it will add an application icon
