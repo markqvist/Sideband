@@ -169,6 +169,7 @@ class SidebandCore():
         self.reticulum = None
         self.webshare_server = None
         self.voice_running = False
+        self.telephone = None
         self.telemeter = None
         self.telemetry_running = False
         self.latest_telemetry = None
