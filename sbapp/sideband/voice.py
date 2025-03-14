@@ -22,7 +22,7 @@ class ReticulumTelephone():
     WAIT_TIME        = 60
     PATH_TIME        = 10
 
-    def __init__(self, identity, owner = None, service = False):
+    def __init__(self, identity, owner = None, service = False, speaker=None, microphone=None, ringer=None):
         self.identity          = identity
         self.service           = service
         self.owner             = owner
@@ -37,9 +37,9 @@ class ReticulumTelephone():
         self.last_input        = None
         self.first_run         = False
         self.ringtone_path     = None
-        self.speaker_device    = None
-        self.microphone_device = None
-        self.ringer_device     = None
+        self.speaker_device    = speaker
+        self.microphone_device = microphone
+        self.ringer_device     = ringer
         self.phonebook         = {}
         self.aliases           = {}
         self.names             = {}
@@ -57,6 +57,21 @@ class ReticulumTelephone():
         if os.path.isfile(ringtone_path):
             self.ringtone_path = ringtone_path
             self.telephone.set_ringtone(self.ringtone_path)
+
+    def set_speaker(self, device):
+        self.speaker_device = device
+        self.telephone.set_speaker(self.speaker_device)
+
+    def set_microphone(self, device):
+        self.microphone_device = device
+        self.telephone.set_microphone(self.microphone_device)
+
+    def set_ringer(self, device):
+        self.ringer_device = device
+        self.telephone.set_ringer(self.ringer_device)
+
+    def announce(self, attached_interface=None):
+        self.telephone.announce(attached_interface=attached_interface)
 
     @property
     def is_available(self):
@@ -84,7 +99,6 @@ class ReticulumTelephone():
 
     def start(self):
         if not self.should_run:
-            self.telephone.announce()
             self.should_run = True
             self.run()
 

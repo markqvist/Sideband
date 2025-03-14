@@ -104,3 +104,4 @@ getrns:
 cleanrns:
 	-(rm ./RNS -r)
 	-(rm ./LXMF -r)
+	-(rm ./LXST -r)

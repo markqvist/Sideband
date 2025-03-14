@@ -1457,6 +1457,8 @@ class SidebandApp(MDApp):
                         self.close_sub_utilities_action()
                     elif self.root.ids.screen_manager.current == "logviewer_screen":
                         self.close_sub_utilities_action()
+                    elif self.root.ids.screen_manager.current == "voice_settings_screen":
+                        self.close_sub_voice_action()
                     else:
                         self.open_conversations(direction="right")
 
@@ -1534,6 +1536,7 @@ class SidebandApp(MDApp):
 
     def announce_now_action(self, sender=None):
         self.sideband.lxmf_announce()
+        if self.sideband.telephone: self.sideband.telephone.announce()
 
         yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
 

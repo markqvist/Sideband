@@ -40,7 +40,7 @@ class Utilities():
             self.screen.delegate = self
             self.app.root.ids.screen_manager.add_widget(self.screen)
         
-        self.screen.ids.telemetry_scrollview.effect_cls = ScrollEffect
+        self.screen.ids.utilities_scrollview.effect_cls = ScrollEffect
         info  = "This section contains various utilities and diagnostics tools, "
         info += "that can be helpful while using Sideband and Reticulum."
         
@@ -220,7 +220,7 @@ MDScreen:
                 ]
 
         ScrollView:
-            id: telemetry_scrollview
+            id: utilities_scrollview
 
             MDBoxLayout:
                 orientation: "vertical"

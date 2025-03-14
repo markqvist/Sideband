@@ -535,6 +535,9 @@ class SidebandCore():
 
         # Voice
         self.config["voice_enabled"] = False
+        self.config["voice_output"] = None
+        self.config["voice_input"] = None
+        self.config["voice_ringer"] = None
 
         if not os.path.isfile(self.db_path):
             self.__db_init()
@@ -844,6 +847,12 @@ class SidebandCore():
 
         if not "voice_enabled" in self.config:
             self.config["voice_enabled"] = False
+        if not "voice_output" in self.config:
+            self.config["voice_output"] = None
+        if not "voice_input" in self.config:
+            self.config["voice_input"] = None
+        if not "voice_ringer" in self.config:
+            self.config["voice_ringer"] = None
 
         # Make sure we have a database
         if not os.path.isfile(self.db_path):
@@ -1233,11 +1242,6 @@ class SidebandCore():
             lxmf_destination_hash = RNS.Destination.hash_from_name_and_identity("lxmf.delivery", identity_hash)
             existing_voice = self._db_conversation(context_dest)
             existing_lxmf  = self._db_conversation(lxmf_destination_hash)
-
-            print(RNS.prettyhexrep(lxmf_destination_hash))
-            print(f"VOICE {existing_voice}")
-            print(f"LXMF  {existing_lxmf}")
-
             if existing_lxmf: return self.peer_display_name(lxmf_destination_hash)
             else: return self.peer_display_name(identity_hash)
 
@@ -3458,6 +3462,7 @@ class SidebandCore():
                                     if self.config["start_announce"] == True:
                                         time.sleep(12)
                                         self.lxmf_announce(attached_interface=self.interface_local)
+                                        if self.telephone: self.telephone.announce(attached_interface=self.interface_local)
                                 threading.Thread(target=job, daemon=True).start()
 
                     if hasattr(self, "interface_rnode") and self.interface_rnode != None:
@@ -3545,6 +3550,7 @@ class SidebandCore():
                             aif = announce_attached_interface
                             time.sleep(delay)
                             self.lxmf_announce(attached_interface=aif)
+                            if self.telephone: self.telephone.announce(attached_interface=aif)
                         return x
 
                     threading.Thread(target=gen_announce_job(announce_delay, announce_attached_interface), daemon=True).start()
@@ -3759,6 +3765,7 @@ class SidebandCore():
                 def da():
                     time.sleep(8)
                     self.lxmf_announce()
+                    if self.telephone: self.telephone.announce()
                     self.last_if_change_announce = time.time()
                 threading.Thread(target=da, daemon=True).start()
 
@@ -5241,7 +5248,7 @@ class SidebandCore():
                 RNS.log("Starting voice service", RNS.LOG_DEBUG)
                 self.voice_running = True
                 from .voice import ReticulumTelephone
-                self.telephone = ReticulumTelephone(self.identity, owner=self)
+                self.telephone = ReticulumTelephone(self.identity, owner=self, speaker=self.config["voice_output"], microphone=self.config["voice_input"], ringer=self.config["voice_ringer"])
                 ringtone_path = os.path.join(self.asset_dir, "audio", "notifications", "soft1.opus")
                 self.telephone.set_ringtone(ringtone_path)
 
