@@ -36,6 +36,7 @@ def extra_datas(mydir):
 a.datas += extra_datas('sbapp')
 a.datas += extra_datas('RNS')
 a.datas += extra_datas('LXMF')
+a.datas += extra_datas('LXST')
 
 exe = EXE(
     pyz,
