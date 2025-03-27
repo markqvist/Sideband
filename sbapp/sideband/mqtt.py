@@ -49,6 +49,9 @@ class MQTT():
 
             time.sleep(MQTT.SCHEDULER_SLEEP)
 
+        try: self.disconnect()
+        except Exception as e: RNS.log(f"An error occurred while disconnecting MQTT server: {e}", RNS.LOG_ERROR)
+
         RNS.log("Stopped MQTT scheduler", RNS.LOG_DEBUG)
 
     def connect_failed(self, client, userdata):
