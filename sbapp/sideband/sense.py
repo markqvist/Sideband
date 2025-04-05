@@ -120,9 +120,11 @@ class Telemeter():
 
   def stop_all(self):
     if not self.from_packed:
-      for sensor in self.sensors:
+      sensors = self.sensors.copy()
+      for sensor in sensors:
         if not sensor == "time":
           self.sensors[sensor].stop()
+      del sensors
 
   def read(self, sensor):
     if not self.from_packed:
@@ -137,31 +139,38 @@ class Telemeter():
 
   def read_all(self):
     readings = {}
-    for sensor in self.sensors:
+    sensors = self.sensors.copy()
+    for sensor in sensors:
       if self.sensors[sensor].active:
         if not self.from_packed:
           readings[sensor] = self.sensors[sensor].data
         else:
           readings[sensor] = self.sensors[sensor]._data
 
+    del sensors
     return readings
 
   def packed(self):
     packed = {}
     packed[Sensor.SID_TIME] = int(time.time())
-    for sensor in self.sensors:
+    sensors = self.sensors.copy()
+    for sensor in sensors:
       if self.sensors[sensor].active:
         packed[self.sensors[sensor].sid] = self.sensors[sensor].pack()
+    
+    del sensors
     return umsgpack.packb(packed)
 
   def render(self, relative_to=None):
     rendered = []
-    for sensor in self.sensors:
+    sensors = self.sensors.copy()
+    for sensor in sensors:
       s = self.sensors[sensor]
       if s.active:
         r = s.render(relative_to)
         if r: rendered.append(r)
 
+    del sensors
     return rendered
 
   def check_permission(self, permission):
