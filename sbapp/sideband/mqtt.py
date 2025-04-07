@@ -44,7 +44,7 @@ class MQTT():
                         RNS.log("All MQTT messages processed", RNS.LOG_DEBUG)
 
             except Exception as e:
-                RNS.log("An error occurred while running MQTT scheduler jobs: {e}", RNS.LOG_ERROR)
+                RNS.log(f"An error occurred while running MQTT scheduler jobs: {e}", RNS.LOG_ERROR)
                 RNS.trace_exception(e)
 
             time.sleep(MQTT.SCHEDULER_SLEEP)
