@@ -575,7 +575,7 @@ class SidebandCore():
         RNS.log("Loading Sideband identity...", RNS.LOG_DEBUG)
         self.identity = RNS.Identity.from_file(self.identity_path)
 
-        self.rpc_addr = ("127.0.0.1", 48165)
+        self.rpc_addr = f"\0sideband/rpc"
         self.rpc_key  = RNS.Identity.full_hash(self.identity.get_private_key())
 
         RNS.log("Loading Sideband configuration... "+str(self.config_path), RNS.LOG_DEBUG)
@@ -1790,7 +1790,7 @@ class SidebandCore():
         try:
             with self.rpc_lock:
                 if self.rpc_connection == None:
-                    self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, authkey=self.rpc_key)
+                    self.rpc_connection = multiprocessing.connection.Client(self.rpc_addr, family="AF_UNIX", authkey=self.rpc_key)
                 self.rpc_connection.send(request)
                 response = self.rpc_connection.recv()
                 return response
@@ -1962,12 +1962,12 @@ class SidebandCore():
     def __start_rpc_listener(self):
         try:
             RNS.log("Starting RPC listener", RNS.LOG_DEBUG)
-            self.rpc_listener = multiprocessing.connection.Listener(self.rpc_addr, authkey=self.rpc_key)
+            self.rpc_listener = multiprocessing.connection.Listener(self.rpc_addr, family="AF_UNIX", authkey=self.rpc_key)
             thread = threading.Thread(target=self.__rpc_loop)
             thread.daemon = True
             thread.start()
         except Exception as e:
-            RNS.log("Could not start RPC listener on "+str(self.rpc_addr)+". Terminating now. Clear up anything using the port and try again.", RNS.LOG_ERROR)
+            RNS.log("Could not start RPC listener on @"+str(self.rpc_addr[1:])+". Terminating now. Clear up anything using the port and try again.", RNS.LOG_ERROR)
             RNS.panic()
 
     def __rpc_loop(self):
@@ -4115,13 +4115,13 @@ class SidebandCore():
                                     ifac_size = None
 
                                 interface_config = {
-                                    "name": "TCPClientInterface",
+                                    "name": "TCP Client",
                                     "target_host": tcp_host,
                                     "target_port": tcp_port,
                                     "kiss_framing": False,
                                     "i2p_tunneled": False,
                                 }
-                                tcpinterface = RNS.Interfaces.TCPInterface.TCPClientInterface(RNS.Transport, interface_config)
+                                tcpinterface = RNS.Interfaces.BackboneInterface.BackboneClientInterface(RNS.Transport, interface_config)
                                 tcpinterface.OUT = True
 
                                 if RNS.Reticulum.transport_enabled():
