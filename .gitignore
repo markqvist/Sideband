@@ -33,3 +33,4 @@ dist
 docs/build
 sideband*.egg-info
 sbapp*.egg-info
+Sideband.iml

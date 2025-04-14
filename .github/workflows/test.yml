@@ -1,0 +1,97 @@
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches: ["**"]
+
+jobs:
+  test-compile:
+    runs-on: ubuntu-latest
+    name: "Test P4A Compiling"
+    
+    steps:
+      - name: Clone LXMF
+        run: git clone https://github.com/markqvist/LXMF $GITHUB_WORKSPACE/LXMF
+
+      - name: Clone LXST
+        run: git clone https://github.com/markqvist/LXST $GITHUB_WORKSPACE/LXST
+
+      - name: Clone rnsh
+        run: git clone https://github.com/acehoss/rnsh $GITHUB_WORKSPACE/rnsh
+
+      - name: Clone Reticulum
+        run: git clone https://github.com/markqvist/Reticulum $GITHUB_WORKSPACE/Reticulum
+
+      - name: Clone rnode-flasher
+        run: git clone https://github.com/liamcottle/rnode-flasher $GITHUB_WORKSPACE/rnode-flasher
+
+      - name: Clone NomadNet
+        run: git clone https://github.com/markqvist/nomadnet $GITHUB_WORKSPACE/NomadNet
+
+      - name: Clone reticulum_website
+        run: git clone https://github.com/markqvist/reticulum_website $GITHUB_WORKSPACE/reticulum_website
+
+      - name: Checkout Sideband
+        uses: actions/checkout@v3
+        with:
+          path: Sideband/
+          
+      # Set up caching for general cache directory
+      - name: Cache pip build cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache
+          key: ${{ runner.os }}-build-cache-${{ hashFiles('**/buildozer.spec') }}
+          restore-keys: |
+            ${{ runner.os }}-build-cache-
+      
+      # Set up caching for buildozer directories
+      - name: Cache buildozer
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.buildozer
+            ${{ github.workspace }}/**/.buildozer
+            ${{ github.workspace }}/**/.buildozer-container
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('**/buildozer.spec') }}
+          restore-keys: |
+            ${{ runner.os }}-buildozer-
+            
+      # Set up caching for Gradle
+      - name: Cache Gradle files
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.gradle/daemon
+            ~/.gradle/native
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/buildozer.spec') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Create Android SDK directory
+        run: mkdir -p ~/.android
+
+      - name: Generate debug keystore
+        run: |
+          keytool -genkeypair \
+            -keystore ~/.android/debug.keystore \
+            -storepass android \
+            -keypass android \
+            -alias androiddebugkey \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Attempt to build Sideband for Android (Debug)
+        run: |
+          cd $GITHUB_WORKSPACE/Sideband
+          ./dmake devapk
+
+      - name: Upload built APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug
+          path: ${{ github.workspace }}/Sideband/sbapp/bin/*.apk
