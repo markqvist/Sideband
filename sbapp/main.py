@@ -9,6 +9,7 @@ parser = argparse.ArgumentParser(description="Sideband LXMF Client")
 parser.add_argument("-v", "--verbose", action='store_true', default=False, help="increase logging verbosity")
 parser.add_argument("-c", "--config", action='store', default=None, help="specify path of config directory")
 parser.add_argument("-d", "--daemon", action='store_true', default=False, help="run as a daemon, without user interface")
+parser.add_argument("-i", "--interactive", action='store_true', default=False, help="connect interactive console after daemon init")
 parser.add_argument("--export-settings", action='store', default=None, help="export application settings to file")
 parser.add_argument("--import-settings", action='store', default=None, help="import application settings from file")
 parser.add_argument("--version", action="version", version="sideband {version}".format(version=__version__))
@@ -1701,14 +1702,12 @@ class SidebandApp(MDApp):
             if self.outbound_mode_command:
                 return
 
-        def cb(dt):
-            self.message_send_dispatch(sender)
+        def cb(dt): self.message_send_dispatch(sender)
         Clock.schedule_once(cb, 0.20)
 
     def message_send_dispatch(self, sender=None):
         self.messages_view.ids.message_send_button.disabled = True
-        def cb(dt):
-            self.messages_view.ids.message_send_button.disabled = False
+        def cb(dt): self.messages_view.ids.message_send_button.disabled = False
         Clock.schedule_once(cb, 0.5)
 
         if self.root.ids.screen_manager.current == "messages_screen":
@@ -6448,8 +6447,14 @@ def run():
 
         sideband.version_str = "v"+__version__+" "+__variant__
         sideband.start()
-        while True:
-            time.sleep(5)
+        
+        if args.interactive:
+            global sbcore; sbcore = sideband
+            while not sbcore.getstate("core.started") == True: time.sleep(0.1)
+            time.sleep(1)
+            import code; code.interact(local=globals())
+        else:
+            while True: time.sleep(5)
     else:
         ExceptionManager.add_handler(SidebandExceptionHandler())
         SidebandApp().run()
