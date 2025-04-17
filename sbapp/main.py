@@ -2857,7 +2857,7 @@ class SidebandApp(MDApp):
             self.information_screen.ids.information_scrollview.effect_cls = ScrollEffect
             self.information_screen.ids.information_logo.icon = self.sideband.asset_dir+"/rns_256.png"
 
-            str_comps  =   " - [b]Reticulum[/b] (MIT License)\n - [b]LXMF[/b] (MIT License)\n - [b]KivyMD[/b] (MIT License)"
+            str_comps  =   " - [b]Reticulum[/b] (Reticulum License)\n - [b]LXMF[/b] (Reticulum License)\n - [b]KivyMD[/b] (MIT License)"
             str_comps += "\n - [b]Kivy[/b] (MIT License)\n - [b]Codec2[/b] (LGPL License)\n - [b]PyCodec2[/b] (BSD-3 License)"
             str_comps += "\n - [b]PyDub[/b] (MIT License)\n - [b]PyOgg[/b] (Public Domain)\n - [b]FFmpeg[/b] (GPL3 License)"
             str_comps += "\n - [b]GeoidHeight[/b] (LGPL License)\n - [b]Paho MQTT[/b] (EPL2 License)\n - [b]Python[/b] (PSF License)"
@@ -6442,6 +6442,7 @@ def run():
             config_path=args.config,
             is_client=False,
             verbose=(args.verbose or __debug_build__),
+            quiet=(args.interactive and not args.verbose),
             is_daemon=True
         )
 
@@ -6449,10 +6450,10 @@ def run():
         sideband.start()
         
         if args.interactive:
-            global sbcore; sbcore = sideband
-            while not sbcore.getstate("core.started") == True: time.sleep(0.1)
-            time.sleep(1)
-            import code; code.interact(local=globals())
+            while not sideband.getstate("core.started") == True: time.sleep(0.1)
+            from .sideband import console
+            console.attach(sideband)
+            
         else:
             while True: time.sleep(5)
     else:

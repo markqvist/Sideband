@@ -148,7 +148,7 @@ class SidebandCore():
 
             self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter, stamp_cost=sc, link_stats=link_stats)
 
-    def __init__(self, owner_app, config_path = None, is_service=False, is_client=False, android_app_dir=None, verbose=False, owner_service=None, service_context=None, is_daemon=False, load_config_only=False):
+    def __init__(self, owner_app, config_path = None, is_service=False, is_client=False, android_app_dir=None, verbose=False, quiet=False, owner_service=None, service_context=None, is_daemon=False, load_config_only=False):
         self.is_service = is_service
         self.is_client = is_client
         self.is_daemon = is_daemon
@@ -164,7 +164,8 @@ class SidebandCore():
         else:
             self.is_standalone = False
 
-        self.log_verbose = verbose
+        self.log_verbose = (verbose and not quiet)
+        self.log_quiet = quiet
         self.log_deque = deque(maxlen=self.LOG_DEQUE_MAXLEN)
         self.owner_app = owner_app
         self.reticulum = None
@@ -4023,10 +4024,9 @@ class SidebandCore():
 
     def _reticulum_log_debug(self, debug=False):
         self.log_verbose = debug
-        if self.log_verbose:
-            selected_level = 6
-        else:
-            selected_level = 2
+        if self.log_quiet: selected_level = 0
+        elif self.log_verbose: selected_level = 6
+        else: selected_level = 2
 
         RNS.loglevel = selected_level
         if self.is_client:
@@ -4041,7 +4041,9 @@ class SidebandCore():
         return "\n".join(self.log_deque)
 
     def __start_jobs_immediate(self):
-        if self.log_verbose:
+        if self.log_quiet:
+            selected_level = 0
+        elif self.log_verbose:
             selected_level = 6
         else:
             selected_level = 2
