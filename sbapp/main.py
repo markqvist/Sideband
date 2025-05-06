@@ -8,6 +8,7 @@ import argparse
 parser = argparse.ArgumentParser(description="Sideband LXMF Client")
 parser.add_argument("-v", "--verbose", action='store_true', default=False, help="increase logging verbosity")
 parser.add_argument("-c", "--config", action='store', default=None, help="specify path of config directory")
+parser.add_argument("-r", "--rnsconfig", action='store', default=None, help="specify path of RNS config directory")
 parser.add_argument("-d", "--daemon", action='store_true', default=False, help="run as a daemon, without user interface")
 parser.add_argument("-i", "--interactive", action='store_true', default=False, help="connect interactive console after daemon init")
 parser.add_argument("--export-settings", action='store', default=None, help="export application settings to file")
@@ -346,7 +347,7 @@ class SidebandApp(MDApp):
         if RNS.vendor.platformutils.get_platform() == "android":
             self.sideband = SidebandCore(self, config_path=self.config_path, is_client=True, android_app_dir=self.app_dir, verbose=__debug_build__)
         else:
-            self.sideband = SidebandCore(self, config_path=self.config_path, is_client=False, verbose=(args.verbose or __debug_build__))
+            self.sideband = SidebandCore(self, config_path=self.config_path, is_client=False, verbose=(args.verbose or __debug_build__),rns_config_path=args.rnsconfig)
 
         self.sideband.version_str = "v"+__version__+" "+__variant__
 
@@ -6443,7 +6444,8 @@ def run():
             is_client=False,
             verbose=(args.verbose or __debug_build__),
             quiet=(args.interactive and not args.verbose),
-            is_daemon=True
+            is_daemon=True,
+            rns_config_path=args.rnsconfig,
         )
 
         sideband.version_str = "v"+__version__+" "+__variant__
