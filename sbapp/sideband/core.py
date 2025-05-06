@@ -148,7 +148,7 @@ class SidebandCore():
 
             self.log_announce(destination_hash, app_data, dest_type=SidebandCore.aspect_filter, stamp_cost=sc, link_stats=link_stats)
 
-    def __init__(self, owner_app, config_path = None, is_service=False, is_client=False, android_app_dir=None, verbose=False, quiet=False, owner_service=None, service_context=None, is_daemon=False, load_config_only=False):
+    def __init__(self, owner_app, config_path = None, is_service=False, is_client=False, android_app_dir=None, verbose=False, quiet=False, owner_service=None, service_context=None, is_daemon=False, load_config_only=False, rns_config_path=None):
         self.is_service = is_service
         self.is_client = is_client
         self.is_daemon = is_daemon
@@ -209,7 +209,7 @@ class SidebandCore():
 
         self.cache_dir       = self.app_dir+"/cache"
         
-        self.rns_configdir = None
+        self.rns_configdir = rns_config_path
 
         core_path          = os.path.abspath(__file__)
         if "core.pyc" in core_path:
@@ -1957,6 +1957,38 @@ class SidebandCore():
                     return self.service_rpc_request({"get_destination_edr": destination_hash})
                 except Exception as e:
                     ed = "Error while getting destination link EIFR over RPC: "+str(e)
+                    RNS.log(ed, RNS.LOG_DEBUG)
+                    return None
+
+    def _get_destination_lmd(self, destination_hash):
+        try:
+            mr = self.message_router
+            oh = destination_hash
+            ol = None
+            if oh in mr.direct_links:
+                ol = mr.direct_links[oh]
+            elif oh in mr.backchannel_links:
+                ol = mr.backchannel_links[oh]
+
+            if ol != None: return ol.get_mode()
+
+            return None
+
+        except Exception as e:
+            RNS.trace_exception(e)
+            return None
+
+    def get_destination_lmd(self, destination_hash):
+        if not RNS.vendor.platformutils.is_android():
+            return self._get_destination_lmd(destination_hash)
+        else:
+            if self.is_service:
+                return self._get_destination_lmd(destination_hash)
+            else:
+                try:
+                    return self.service_rpc_request({"get_destination_lmd": destination_hash})
+                except Exception as e:
+                    ed = "Error while getting destination link mode over RPC: "+str(e)
                     RNS.log(ed, RNS.LOG_DEBUG)
                     return None
 

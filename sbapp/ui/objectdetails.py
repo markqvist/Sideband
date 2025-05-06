@@ -830,12 +830,19 @@ class RVDetails(MDRecycleView):
                     ler = self.delegate.app.sideband.get_destination_establishment_rate(self.delegate.object_hash)
                     mtu = self.delegate.app.sideband.get_destination_mtu(self.delegate.object_hash) or RNS.Reticulum.MTU
                     edr = self.delegate.app.sideband.get_destination_edr(self.delegate.object_hash)
+                    lmd = self.delegate.app.sideband.get_destination_lmd(self.delegate.object_hash)
                     if ler:
                         lers = RNS.prettyspeed(ler, "b")
                         mtus = RNS.prettysize(mtu)
                         edrs = f"{RNS.prettyspeed(edr)}" if edr != None else ""
                         self.entries.append({"icon": "lock-check-outline", "text": f"Link established, LER is [b]{lers}[/b], MTU is [b]{mtus}[/b]", "on_release": pass_job})
                         if edr: self.entries.append({"icon": "approximately-equal", "text": f"Expected data rate is [b]{edrs}[/b]", "on_release": pass_job})
+                        if lmd != None:
+                            if lmd in RNS.Link.MODE_DESCRIPTIONS: lmds = RNS.Link.MODE_DESCRIPTIONS[lmd]
+                            else: lmds = "unknown"
+                            if lmds == "AES_128_CBC": lmds = "X25519/AES128"
+                            elif lmds == "AES_256_CBC": lmds = "X25519/AES256"
+                            self.entries.append({"icon": "link-lock", "text": f"Link mode is [b]{lmds}[/b]", "on_release": pass_job})
                 except Exception as e:
                     RNS.trace_exception(e)
 
