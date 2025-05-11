@@ -319,6 +319,19 @@ class Messages():
                         prgstr = ""
                         sphrase = "Sending"
                         prg = self.app.sideband.get_lxm_progress(msg["hash"])
+                        if not hasattr(w, "last_prg_update"):
+                            w.last_prg_update = time.time()
+                            w.last_prg = prg
+                            speed = None
+                        else:
+                            now = time.time()
+                            size = msg["lxm"].packed_size
+                            td = now - w.last_prg_update
+                            if td == 0: speed = None
+                            else:
+                                bd = prg*size - w.last_prg*size
+                                speed = (bd/td)*8
+
                         if prg != None:
                             prgstr = ", "+str(round(prg*100, 1))+"% done"
                             if prg <= 0.00:
@@ -336,6 +349,7 @@ class Messages():
                                 sphrase = "Link established"
                             elif prg >= 0.05:
                                 sphrase = "Sending"
+                                if speed != None: prgstr += f", {RNS.prettyspeed(speed)}"
                             
                         if msg["title"]:
                             titlestr = "[b]Title[/b] "+msg["title"].decode("utf-8")+"\n"
@@ -1450,7 +1464,10 @@ Builder.load_string("""
             id: heading_text
             markup: True
             text: root.heading
-            adaptive_size: True
+            size_hint_y: None
+            height: self.texture_size[1]
+            # adaptive_size: True
+
             # theme_text_color: 'Custom'
             # text_color: rgba(255,255,255,100)
             pos: 0, root.height - (self.height + root.padding[0] + dp(8))
