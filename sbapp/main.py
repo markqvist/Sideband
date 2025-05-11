@@ -5464,7 +5464,7 @@ class SidebandApp(MDApp):
                 self.telemetry_info_dialog.dismiss()
             ok_button.bind(on_release=dl_ok)
 
-        result = self.sideband.request_latest_telemetry(from_addr=self.sideband.config["telemetry_collector"])
+        result = self.sideband.request_latest_telemetry(from_addr=self.sideband.config["telemetry_collector"], is_collector_request=True)
 
         if result == "no_address":
             title_str = "Invalid Address"
