@@ -327,7 +327,7 @@ class Messages():
                             now = time.time()
                             size = msg["lxm"].packed_size
                             td = now - w.last_prg_update
-                            if td == 0: speed = None
+                            if td == 0 or prg == None or w.last_prg == None: speed = None
                             else:
                                 bd = prg*size - w.last_prg*size
                                 speed = (bd/td)*8
