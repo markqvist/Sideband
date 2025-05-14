@@ -3540,6 +3540,7 @@ class SidebandApp(MDApp):
                 
             def save_connectivity(sender=None, event=None):
                 self.sideband.config["connect_transport"] = self.connectivity_screen.ids.connectivity_enable_transport.active
+                self.sideband.config["connect_share_instance"] = self.connectivity_screen.ids.connectivity_share_instance.active
                 self.sideband.config["connect_local"] = self.connectivity_screen.ids.connectivity_use_local.active
                 self.sideband.config["connect_local_groupid"] = self.connectivity_screen.ids.connectivity_local_groupid.text
                 self.sideband.config["connect_local_ifac_netname"] = self.connectivity_screen.ids.connectivity_local_ifac_netname.text
@@ -3697,6 +3698,10 @@ class SidebandApp(MDApp):
                     self.connectivity_screen.ids.connectivity_enable_transport.active = self.sideband.config["connect_transport"]
                     con_collapse_transport(collapse=not self.sideband.config["connect_transport"])
                     self.connectivity_screen.ids.connectivity_enable_transport.bind(active=save_connectivity)
+
+                    self.connectivity_screen.ids.connectivity_share_instance.active = self.sideband.config["connect_share_instance"]
+                    self.connectivity_screen.ids.connectivity_share_instance.bind(active=save_connectivity)
+
                     self.connectivity_screen.ids.connectivity_local_ifmode.text = self.sideband.config["connect_ifmode_local"].capitalize()
                     self.connectivity_screen.ids.connectivity_tcp_ifmode.text = self.sideband.config["connect_ifmode_tcp"].capitalize()
                     self.connectivity_screen.ids.connectivity_i2p_ifmode.text = self.sideband.config["connect_ifmode_i2p"].capitalize()
@@ -3776,7 +3781,8 @@ class SidebandApp(MDApp):
                 dialog.dismiss()
             yes_button.bind(on_release=dl_yes)
 
-            rpc_string = "rpc_key = "+RNS.hexrep(self.sideband.reticulum.rpc_key, delimit=False)
+            rpc_string  = "shared_instance_type = tcp\n"
+            rpc_string += "rpc_key = "+RNS.hexrep(self.sideband.reticulum.rpc_key, delimit=False)
             Clipboard.copy(rpc_string)
             dialog.open()
         

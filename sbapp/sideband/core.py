@@ -663,6 +663,8 @@ class SidebandCore():
             self.config["config_template"] = None
         if not "connect_transport" in self.config:
             self.config["connect_transport"] = False
+        if not "connect_share_instance" in self.config:
+            self.config["connect_share_instance"] = False
         if not "connect_rnode" in self.config:
             self.config["connect_rnode"] = False
         if not "connect_rnode_ifac_netname" in self.config:
@@ -4114,7 +4116,11 @@ class SidebandCore():
         self.setstate("init.loadingstate", "Substantiating Reticulum")
         
         try:
-            self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=selected_level, logdest=self._log_handler)
+            if RNS.vendor.platformutils.is_android() and self.config["connect_share_instance"] == True:
+                self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=selected_level, logdest=self._log_handler, shared_instance_type="tcp")
+            else:
+                self.reticulum = RNS.Reticulum(configdir=self.rns_configdir, loglevel=selected_level, logdest=self._log_handler)
+            
             if RNS.vendor.platformutils.is_android():
                 if self.is_service:
                     if os.path.isfile(self.rns_configdir+"/config_template_invalid"):
