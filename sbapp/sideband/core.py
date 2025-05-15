@@ -1896,12 +1896,12 @@ class SidebandCore():
             mr = self.message_router
             oh = destination_hash
             ol = None
-            if oh in mr.direct_links:
+            if oh in mr.direct_links and mr.direct_links[oh].status == RNS.Link.ACTIVE:
                 ol = mr.direct_links[oh]
             elif oh in mr.backchannel_links:
                 ol = mr.backchannel_links[oh]
 
-            if ol != None:
+            if ol != None and ol.status == RNS.Link.ACTIVE:
                 ler = ol.get_establishment_rate()
                 if ler:
                     return ler
@@ -1931,12 +1931,12 @@ class SidebandCore():
             mr = self.message_router
             oh = destination_hash
             ol = None
-            if oh in mr.direct_links:
+            if oh in mr.direct_links and mr.direct_links[oh].status == RNS.Link.ACTIVE:
                 ol = mr.direct_links[oh]
             elif oh in mr.backchannel_links:
                 ol = mr.backchannel_links[oh]
 
-            if ol != None:
+            if ol != None and ol.status == RNS.Link.ACTIVE:
                 return ol.get_mtu()
 
             return None
@@ -1964,12 +1964,12 @@ class SidebandCore():
             mr = self.message_router
             oh = destination_hash
             ol = None
-            if oh in mr.direct_links:
+            if oh in mr.direct_links and mr.direct_links[oh].status == RNS.Link.ACTIVE:
                 ol = mr.direct_links[oh]
             elif oh in mr.backchannel_links:
                 ol = mr.backchannel_links[oh]
 
-            if ol != None:
+            if ol != None and ol.status == RNS.Link.ACTIVE:
                 return ol.get_expected_rate()
 
             return None
@@ -1997,12 +1997,12 @@ class SidebandCore():
             mr = self.message_router
             oh = destination_hash
             ol = None
-            if oh in mr.direct_links:
+            if oh in mr.direct_links and mr.direct_links[oh].status == RNS.Link.ACTIVE:
                 ol = mr.direct_links[oh]
             elif oh in mr.backchannel_links:
                 ol = mr.backchannel_links[oh]
 
-            if ol != None: return ol.get_mode()
+            if ol != None and ol.status == RNS.Link.ACTIVE: return ol.get_mode()
 
             return None
 
@@ -2072,6 +2072,8 @@ class SidebandCore():
                                     connection.send(self._get_destination_mtu(call["get_destination_mtu"]))
                                 elif "get_destination_edr" in call:
                                     connection.send(self._get_destination_edr(call["get_destination_edr"]))
+                                elif "get_destination_lmd" in call:
+                                    connection.send(self._get_destination_lmd(call["get_destination_lmd"]))
                                 elif "send_message" in call:
                                     args = call["send_message"]
                                     send_result = self.send_message(
