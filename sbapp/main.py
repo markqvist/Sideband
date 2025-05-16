@@ -5480,10 +5480,10 @@ class SidebandApp(MDApp):
             info_str  = "No keys known for the destination. Connected reticules have been queried for the keys. Try again when an announce for the destination has arrived."
         elif result == "in_progress":
             title_str = "Transfer In Progress"
-            info_str  = "There is already a telemetry request transfer in progress for this peer."
+            info_str  = "There is already a telemetry request transfer in progress to the collector."
         elif result == "sent":
             title_str = "Request Sent"
-            info_str  = "A telemetry request was sent to the peer. The peer should send any available telemetry shortly."
+            info_str  = "A telemetry request was sent to the collector. The collector should send any available telemetry shortly."
         elif result == "not_sent":
             title_str = "Not Sent"
             info_str  = "A telemetry request could not be sent."
