@@ -653,7 +653,7 @@ MDScreen:
                     height: dp(24)
                     
                     MDLabel:
-                        id: connectivity_shared_label
+                        id: connectivity_shared_access_label
                         text: "Share Reticulum Instance"
                         font_style: "H6"
                         # disabled: True
