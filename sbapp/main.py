@@ -461,6 +461,67 @@ class SidebandApp(MDApp):
             argument = self.app_dir
             self.android_service.start(mActivity, argument)
 
+    def stop_service(self):
+        RNS.log("Stopping service...")
+        self.sideband.setstate("wants.service_stop", True)
+        while self.sideband.service_available(): time.sleep(0.2)
+        RNS.log("Service stopped")
+
+    def restart_service_action(self, sender):
+        if hasattr(self, "service_restarting") and self.service_restarting == True:
+            toast(f"Service restart already in progress")
+        else:
+            toast(f"Restarting RNS service...")
+            if hasattr(self, "connectivity_screen") and self.connectivity_screen != None:
+                self.connectivity_screen.ids.button_service_restart.disabled = True
+            def job():
+                if self.restart_service():
+                    def tj(delta_time):
+                        toast(f"Service restarted successfully!")
+                        if hasattr(self, "connectivity_screen") and self.connectivity_screen != None:
+                            self.connectivity_screen.ids.button_service_restart.disabled = False
+                    Clock.schedule_once(tj, 0.1)
+                else:
+                    def tj(delta_time):
+                        toast(f"Service restart failed")
+                        if hasattr(self, "connectivity_screen") and self.connectivity_screen != None:
+                            self.connectivity_screen.ids.button_service_restart.disabled = False
+                    Clock.schedule_once(tj, 0.1)
+
+            threading.Thread(target=job, daemon=True).start()
+
+    def restart_service(self):
+        if hasattr(self, "service_restarting") and self.service_restarting == True:
+            return False
+        else:
+            self.service_restarting = True
+            self.stop_service()
+            RNS.log("Waiting for service shutdown", RNS.LOG_DEBUG)
+            while self.sideband.service_rpc_request({"getstate": "service.heartbeat"}):
+                time.sleep(1)
+            time.sleep(4)
+
+            self.final_load_completed = False
+            self.sideband.service_stopped = True
+            
+            RNS.log("Starting service...", RNS.LOG_DEBUG)
+            self.start_service()
+            RNS.log("Waiting for service restart...", RNS.LOG_DEBUG)
+            restart_timeout = time.time() + 45
+            while not self.sideband.service_rpc_request({"getstate": "service.heartbeat"}):
+                self.sideband.rpc_connection = None
+                time.sleep(1)
+                if time.time() > restart_timeout:
+                    service_restarting = False
+                    return False
+
+            RNS.log("Service restarted", RNS.LOG_DEBUG)
+            self.sideband.service_stopped = False
+            self.final_load_completed = True
+            self.service_restarting = False
+
+            return True
+
     def start_final(self):
         # Start local core instance
         self.sideband.start()
@@ -1098,19 +1159,28 @@ class SidebandApp(MDApp):
                         description = rnode_errors["description"]
                         self.sideband.setpersistent("runtime.errors.rnode", None)
                         yes_button = MDRectangleFlatButton(
-                            text="OK",
+                            text="Ignore",
+                            font_size=dp(18),
+                        )
+                        restart_button = MDRectangleFlatButton(
+                            text="Restart RNS",
                             font_size=dp(18),
                         )
                         self.hw_error_dialog = MDDialog(
                             title="Hardware Error",
                             text="While communicating with an RNode, Reticulum reported the following error:\n\n[i]"+str(description)+"[/i]",
-                            buttons=[ yes_button ],
+                            buttons=[ yes_button, restart_button ],
                             # elevation=0,
                         )
                         def dl_yes(s):
                             self.hw_error_dialog.dismiss()
                             self.hw_error_dialog.is_open = False
+                        def dl_restart(s):
+                            self.hw_error_dialog.dismiss()
+                            self.hw_error_dialog.is_open = False
+                            self.restart_service_action(None)
                         yes_button.bind(on_release=dl_yes)
+                        restart_button.bind(on_release=dl_restart)
                         self.hw_error_dialog.open()
                         self.hw_error_dialog.is_open = True
 
@@ -3659,7 +3729,7 @@ class SidebandApp(MDApp):
                 else:
                     info =  "By default, Sideband will try to discover and connect to any available Reticulum networks via active WiFi and/or Ethernet interfaces. If any Reticulum Transport Instances are found, Sideband will use these to connect to wider Reticulum networks. You can disable this behaviour if you don't want it.\n\n"
                     info += "You can also connect to a network via a remote or local Reticulum instance using TCP or I2P. [b]Please Note![/b] Connecting via I2P requires that you already have I2P running on your device, and that the SAM API is enabled.\n\n"
-                    info += "For changes to connectivity to take effect, you must shut down and restart Sideband.\n"
+                    info += "For changes to connectivity to take effect, you must either restart the RNS service, or completely shut down and restart Sideband.\n"
                     self.connectivity_screen.ids.connectivity_info.text = info
 
                     self.connectivity_screen.ids.connectivity_use_local.active = self.sideband.config["connect_local"]

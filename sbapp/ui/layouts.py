@@ -361,6 +361,23 @@ MDScreen:
                     height: self.texture_size[1]
 
                 MDBoxLayout:
+                    id: connectivity_shared_access_fields
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [0, 0, 0, dp(32)]
+
+                    MDRectangleFlatIconButton:
+                        id: button_service_restart
+                        icon: "restart"
+                        text: "Restart RNS Service"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.app.restart_service_action(self)
+
+                MDBoxLayout:
                     orientation: "horizontal"
                     padding: [0,0,dp(24),0]
                     size_hint_y: None
