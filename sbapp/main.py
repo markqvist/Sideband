@@ -1,6 +1,6 @@
 __debug_build__ = False
 __disable_shaders__ = False
-__version__ = "1.6.1"
+__version__ = "1.7.0"
 __variant__ = ""
 
 import sys
@@ -3498,6 +3498,7 @@ class SidebandApp(MDApp):
                 self.widget_hide(self.connectivity_screen.ids.connectivity_serial_label)
                 self.widget_hide(self.connectivity_screen.ids.connectivity_use_serial)
                 self.widget_hide(self.connectivity_screen.ids.connectivity_serial_fields)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_share_instance)
                 self.widget_hide(self.connectivity_screen.ids.connectivity_shared_access)
                 self.widget_hide(self.connectivity_screen.ids.connectivity_shared_access_label)
                 self.widget_hide(self.connectivity_screen.ids.connectivity_shared_access_fields)
