@@ -2400,7 +2400,7 @@ MDScreen:
                     spacing: "24dp"
                     size_hint_y: None
                     height: self.minimum_height
-                    padding: [dp(0), dp(0), dp(0), dp(35)]
+                    padding: [dp(0), dp(0), dp(0), dp(48)]
 
                     MDRectangleFlatIconButton:
                         id: rnode_mote_export
@@ -2423,7 +2423,7 @@ MDScreen:
                         on_release: root.app.hardware_rnode_import(self)
 
                 MDLabel:
-                    text: "Radio Options"
+                    text: "Radio Options\\n"
                     font_style: "H6"
 
                 # MDTextField:
@@ -2522,8 +2522,8 @@ MDScreen:
                 MDBoxLayout:
                     orientation: "horizontal"
                     size_hint_y: None
-                    padding: [0,0,dp(24),dp(0)]
-                    height: dp(48)
+                    padding: [0,dp(14),dp(24),dp(48)]
+                    height: dp(86)
                     
                     MDLabel:
                         text: "Control RNode Display"
@@ -2533,6 +2533,18 @@ MDScreen:
                         id: hardware_rnode_framebuffer
                         pos_hint: {"center_y": 0.3}
                         active: False
+
+                MDLabel:
+                    text: "Bluetooth Settings\\n"
+                    font_style: "H6"
+
+                MDLabel:
+                    id: hardware_rnode_info
+                    markup: True
+                    text: "If you enable connection via Bluetooth, Sideband will attempt to connect to any available and paired RNodes over Bluetooth. If your RNode uses BLE (ESP32-S3 and nRF devices) instead of classic Bluetooth, enable the [i]Device requires BLE[/i] option as well."
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
 
                 MDBoxLayout:
                     orientation: "horizontal"
@@ -2567,7 +2579,65 @@ MDScreen:
                 MDLabel:
                     id: hardware_rnode_info
                     markup: True
-                    text: "If you enable connection via Bluetooth, Sideband will attempt to connect to any available and paired RNodes over Bluetooth.\\n\\nYou must first pair the RNode with your device for this to work. If your RNode does not have a physical pairing button, you can enable Bluetooth and put it into pairing mode by first connecting it via a USB cable, and using the buttons below. When plugging in the RNode over USB, you must grant Sideband permission to the USB device for this to work.\\n\\nYou can also change Bluetooth settings using the \\"rnodeconf\\" utility from a computer.\\n\\nBy default, Sideband will connect to the first available RNode that is paired. If you want to always use a specific RNode, you can enter its name in the Preferred RNode Device Name field below, for example \\"RNode A8EB\\".\\n"
+                    text: "You must first pair the RNode with your device for this to work. To put an RNode into pairing mode, hold down the multi-function user button for more than 5 seconds, and release it. The display will indicate pairing mode.You can then pair the device using the Bluetooth settings of your device, or by pressing the pairing button below.\\n"
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(0), dp(0), dp(0), dp(12)]
+
+                    MDRectangleFlatIconButton:
+                        id: hardware_rnode_bt_scan_button
+                        icon: "bluetooth-connect"
+                        text: "Pair New Device"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.app.hardware_rnode_bt_scan_action(self)
+
+                MDBoxLayout:
+                    id: rnode_scan_results
+                    orientation: "vertical"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(0), dp(0), dp(0), dp(12)]
+
+                MDLabel:
+                    id: hardware_rnode_info
+                    markup: True
+                    text: "By default, Sideband will connect to the first available RNode that is paired. If you want to always use a specific RNode, you can enter its name in the Preferred RNode Device Name field below, for example \\"RNode A8EB\\"."
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                    MDTextField:
+                        id: hardware_rnode_bt_device
+                        hint_text: "Preferred RNode Device Name"
+                        text: ""
+                        font_size: dp(24)
+
+                MDLabel:
+                    text: "\\n\\nDevice Bluetooth Control\\n"
+                    font_style: "H6"
+
+                MDLabel:
+                    id: hardware_rnode_info
+                    markup: True
+                    text: "\\n\\nIf your RNode does not have a physical pairing button, you can enable Bluetooth and put it into pairing mode by first connecting it via a USB cable, and using the buttons below. When plugging in the RNode over USB, you must grant Sideband permission to the USB device for this to work.\\n\\nYou can also change Bluetooth settings using the \\"rnodeconf\\" utility from a computer.\\n"
                     size_hint_y: None
                     text_size: self.width, None
                     height: self.texture_size[1]
@@ -2610,12 +2680,6 @@ MDScreen:
                         size_hint: [1.0, None]
                         on_release: root.app.hardware_rnode_bt_pair_action(self)
                         disabled: False
-
-                    MDTextField:
-                        id: hardware_rnode_bt_device
-                        hint_text: "Preferred RNode Device Name"
-                        text: ""
-                        font_size: dp(24)
 """
 
 layout_hardware_serial_screen = """
