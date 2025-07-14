@@ -2579,7 +2579,7 @@ MDScreen:
                 MDLabel:
                     id: hardware_rnode_info
                     markup: True
-                    text: "You must first pair the RNode with your device for this to work. To put an RNode into pairing mode, hold down the multi-function user button for more than 5 seconds, and release it. The display will indicate pairing mode.You can then pair the device using the Bluetooth settings of your device, or by pressing the pairing button below.\\n"
+                    text: "You must first pair the RNode with your device for this to work. To put an RNode into pairing mode, hold down the multi-function user button for more than 5 seconds, and release it. The display will indicate pairing mode.You can then pair the device using the Bluetooth settings of your device, or by pressing the pairing button below. The in-app scanning and pairing is supported on Android 12+. If it doesn't work, use the Bluetooth settings of your device to scan and pair.\\n"
                     size_hint_y: None
                     text_size: self.width, None
                     height: self.texture_size[1]

@@ -1061,7 +1061,8 @@ class SidebandApp(MDApp):
         if str(action) == "android.bluetooth.device.action.FOUND":
             if extras:
                 try:
-                    device = intent.getParcelableExtra("android.bluetooth.device.extra.DEVICE", BluetoothDevice)
+                    if android_api_version < 33: device = intent.getParcelableExtra("android.bluetooth.device.extra.DEVICE")
+                    else: device = intent.getParcelableExtra("android.bluetooth.device.extra.DEVICE", BluetoothDevice)
                     dev_name = device.getName()
                     dev_addr = device.getAddress()
                     if dev_name.startswith("RNode "):
