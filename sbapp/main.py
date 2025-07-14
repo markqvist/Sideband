@@ -3642,6 +3642,7 @@ class SidebandApp(MDApp):
                 self.widget_hide(self.connectivity_screen.ids.connectivity_enable_transport)
                 self.widget_hide(self.connectivity_screen.ids.connectivity_transport_info)
                 self.widget_hide(self.connectivity_screen.ids.connectivity_transport_fields)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_service_restart_fields)
 
             def con_collapse_local(collapse=True):
                 # self.widget_hide(self.connectivity_screen.ids.connectivity_local_fields, collapse)

@@ -361,7 +361,7 @@ MDScreen:
                     height: self.texture_size[1]
 
                 MDBoxLayout:
-                    id: connectivity_shared_access_fields
+                    id: connectivity_service_restart_fields
                     orientation: "vertical"
                     size_hint_y: None
                     height: self.minimum_height
