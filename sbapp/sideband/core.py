@@ -105,20 +105,20 @@ class PropagationNodeDetector():
         self.owner_app = owner.owner_app
 
 class SidebandCore():
-    CONV_P2P       = 0x01
-    CONV_GROUP     = 0x02
-    CONV_BROADCAST = 0x03
-    CONV_VOICE     = 0x04
+    CONV_P2P                        = 0x01
+    CONV_GROUP                      = 0x02
+    CONV_BROADCAST                  = 0x03
+    CONV_VOICE                      = 0x04
 
-    MAX_ANNOUNCES  = 24
+    MAX_ANNOUNCES                   = 24
 
-    SERVICE_JOB_INTERVAL   = 1
-    PERIODIC_JOBS_INTERVAL = 60
-    PERIODIC_SYNC_RETRY = 360
-    TELEMETRY_KEEP     = 60*60*24*7
-    TELEMETRY_INTERVAL = 60
-    SERVICE_TELEMETRY_INTERVAL = 300
-    TELEMETRY_CLEAN_INTERVAL = 3600
+    SERVICE_JOB_INTERVAL            = 1
+    PERIODIC_JOBS_INTERVAL          = 60
+    PERIODIC_SYNC_RETRY             = 360
+    TELEMETRY_KEEP                  = 60*60*24*7
+    TELEMETRY_INTERVAL              = 60
+    SERVICE_TELEMETRY_INTERVAL      = 300
+    TELEMETRY_CLEAN_INTERVAL        = 3600
 
     IF_CHANGE_ANNOUNCE_MIN_INTERVAL = 3.5  # In seconds
     AUTO_ANNOUNCE_RANDOM_MIN        = 90   # In minutes
@@ -127,6 +127,8 @@ class SidebandCore():
     DEFAULT_APPEARANCE = ["account", [0,0,0,1], [1,1,1,1]]
 
     LOG_DEQUE_MAXLEN = 128
+
+    ERROR_INVALID_BLE_MTU = 0x20
 
     aspect_filter = "lxmf.delivery"
     def received_announce(self, destination_hash, announced_identity, app_data, announce_packet_hash):
@@ -139,7 +141,7 @@ class SidebandCore():
                          "q": self.reticulum.get_packet_q(announce_packet_hash)}
 
             # This reformats the new v0.5.0 announce data back to the expected format
-            # for Sidebands database and other handling functions.
+            # for Sideband's database and other handling functions.
             dn = LXMF.display_name_from_app_data(app_data)
             sc = LXMF.stamp_cost_from_app_data(app_data)
             app_data = b""
@@ -3580,22 +3582,12 @@ class SidebandCore():
 
                     if hasattr(self, "interface_rnode") and self.interface_rnode != None:
                         if len(self.interface_rnode.hw_errors) > 0:
-                            self.setpersistent("runtime.errors.rnode", self.interface_rnode.hw_errors[0])
-                            self.interface_rnode.hw_errors = []
+                            if self.interface_rnode.hw_errors[0]["error"] == self.ERROR_INVALID_BLE_MTU:
+                                self.setstate("wants.rnode_ble_reset", True)
+                            else:
+                                self.setpersistent("runtime.errors.rnode", self.interface_rnode.hw_errors[0])
 
-                            # if not self.interface_rnode_adding:
-                            #     RNS.log("Hardware error on RNodeInterface, scheduling re-init", RNS.LOG_DEBUG)
-                            #     if self.interface_rnode in RNS.Transport.interfaces:
-                            #         RNS.Transport.interfaces.remove(self.interface_rnode)
-                            #     del self.interface_rnode
-                            #     self.interface_rnode = None
-                            #     self.interface_rnode_adding = True
-                            #     def job():
-                            #         self.__add_rnodeinterface(delay=5)
-                            #         if self.config["start_announce"] == True:
-                            #             time.sleep(12)
-                            #             self.lxmf_announce(attached_interface=self.interface_rnode)
-                            #     threading.Thread(target=job, daemon=True).start()
+                            self.interface_rnode.hw_errors = []
 
                     if (now - last_multicast_lock_check > 120):
                         RNS.log("Checking multicast and wake locks", RNS.LOG_DEBUG)

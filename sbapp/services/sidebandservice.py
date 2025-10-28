@@ -229,6 +229,8 @@ class SidebandService():
         self.notification_intent = None
         self.notification_small_icon = None
 
+        self.rnode_ble_reset_required = False
+
         if RNS.vendor.platformutils.is_android():
             self.android_service = autoclass('org.kivy.android.PythonService').mService
             self.app_context = self.android_service.getApplication().getApplicationContext()
@@ -475,6 +477,15 @@ class SidebandService():
             if self.sideband.getstate("wants.settings_reload"):
                 self.sideband.setstate("wants.settings_reload", False)
                 self.sideband.reload_configuration()
+
+            if self.sideband.getstate("wants.rnode_ble_reset"):
+                self.sideband.setstate("wants.rnode_ble_reset", False)
+                RNS.log("RNode BLE hardware error detected, re-initializing Android BLE dispatcher", RNS.LOG_ERROR)
+                if hasattr(self.sideband, "interface_rnode") and self.sideband.interface_rnode != None:
+                    self.sideband.interface_rnode.reset_ble()
+                    RNS.log("BLE hardware reset executed", RNS.LOG_INFO)
+                else:
+                    RNS.log("No RNode interface active, could not execute BLE hardware reset", RNS.LOG_ERROR)
 
             time.sleep(sleep_time)
 
