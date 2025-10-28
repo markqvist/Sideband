@@ -122,7 +122,7 @@ setuptools.setup(
         "materialyoucolor>=2.0.7",
         "ffpyplayer",
         "sh",
-        "numpy>=2.3.4",
+        "numpy>=2.0.0",
         "lxst>=0.3.0",
         "mistune>=3.0.2",
         "beautifulsoup4",
