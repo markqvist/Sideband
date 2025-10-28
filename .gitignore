@@ -34,3 +34,7 @@ docs/build
 sideband*.egg-info
 sbapp*.egg-info
 LXST
+environment
+archived_build_tools
+able
+.gradle
