@@ -2,6 +2,7 @@ from os.path import join
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.toolchain import current_directory, shprint
 import sh
+import os
 
 # For debugging, clean with
 # buildozer android p4a -- clean_recipe_build codec2 --local-recipes ~/Information/Source/Sideband/recipes

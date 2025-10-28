@@ -5,7 +5,7 @@ import sh
 
 # class PyCodec2Recipe(IncludedFilesBehaviour, CythonRecipe):
 class PyCodec2Recipe(CythonRecipe):
-    url = "https://github.com/markqvist/pycodec2/archive/refs/heads/main.zip"
+    url = "https://github.com/markqvist/pycodec2/archive/438ee4f2f3ee30635a34caddf520cfaccdbbc646.zip"
     # src_filename = "../../../pycodec2"
     depends = ["setuptools", "numpy", "Cython", "codec2"]
     call_hostpython_via_targetpython = False
