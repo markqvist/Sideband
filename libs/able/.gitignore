@@ -1,0 +1,16 @@
+.buildozer/
+bin/
+docs/_build/
+*~
+*.swp
+*.sublime-workspace
+*.pyo
+*.pyc
+*.so
+
+build/
+dist/
+sdist/
+wheels/
+*.egg-info
+

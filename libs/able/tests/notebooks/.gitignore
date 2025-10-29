@@ -1,0 +1,4 @@
+there.env
+.ipynb_checkpoints/
+*.asciidoc
+*.ipynb

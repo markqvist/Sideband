@@ -1,0 +1,26 @@
+[[setup]]
+= Setup
+
+[[run-ble-devices-scan]]
+= Run BLE devices scan
+
+
+----
+Started: None Completed: None
+----
+
+[[check-that-scan-started-and-completed]]
+= Check that scan started and completed
+
+
+----
+Started: 1 Completed: 1
+----
+
+[[check-that-testing-device-was-discovered]]
+= Check that testing device was discovered
+
+
+----
+True
+----

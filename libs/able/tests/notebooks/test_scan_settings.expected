@@ -1,0 +1,27 @@
+[[setup]]
+= Setup
+
+[[run-scan_mode_low_power]]
+= Run SCAN_MODE_LOW_POWER
+
+
+----
+True
+----
+
+[[run-scan_mode_low_latency]]
+= Run SCAN_MODE_LOW_LATENCY
+
+
+----
+True
+----
+
+[[check-that-received-advertisement-count-is-greater-with-scan_mode_low_latency]]
+= Check that received advertisement count is greater with
+SCAN_MODE_LOW_LATENCY
+
+
+----
+True
+----

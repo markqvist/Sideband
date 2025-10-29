@@ -1,0 +1,4 @@
+#!/bin/bash
+set -e
+
+for name in test_*.md; do ./run "${name%%.*}"; done

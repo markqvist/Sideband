@@ -1,0 +1,193 @@
+#:kivy 1.1.0
+#: import Factory kivy.factory.Factory
+#: import findall re.findall
+
+<Caption@Label>:
+    padding_left: '4sp'
+    halign: 'left'
+    text_size: self.size
+    valign: 'middle'
+
+<Value@Label>:
+    padding_left: '4sp'
+    halign: 'left'
+    text_size: self.size
+    valign: 'middle'
+
+<ConnectByMACDialog@Popup>:
+    title: 'Connect by MAC address'
+    size_hint: None, None
+    size: '400sp', '120sp'
+    BoxLayout:
+        orientation: 'vertical'
+        pos: self.pos
+        size: root.size
+
+        TextInput:
+            size_hint_y: .5
+            hint_text: 'Device address'
+            input_filter: lambda value, _ : ''.join(findall('[0-9a-fA-F:]+', value)).upper()
+            multiline: False
+            text: app.device_address
+            on_text: app.device_address = self.text
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: .5
+            Button:
+                text: 'Connect'
+                on_press: root.dismiss(), app.connect_by_mac_address()
+            Button:
+                text: 'Cancel'
+                on_press: root.dismiss()
+
+<MainLayout>:
+    padding: '10sp'
+    BoxLayout:
+        orientation: 'horizontal'
+        GridLayout:
+            cols: 2
+            padding: '0sp'
+            spacing: '0sp'
+            orientation: 'lr-tb'
+
+            Caption:
+                text: 'Adapter:'
+            Value:
+                text: app.adapter_state
+
+            Caption:
+                text: 'State:'
+            Value:
+                text: app.state
+                halign: 'left'
+                valign: 'middle'
+                text_size: self.size
+
+            Caption:
+                text: 'Read test:'
+            Value:
+                text: app.test_string
+
+            Caption:
+                text: 'Notifications count:'
+            Value:
+                text: app.notification_value
+
+            Caption:
+                text: 'N packets sended:'
+            Value:
+                text: app.increment_count_value
+
+            Caption:
+                text: 'N packets delivered:'
+            Value:
+                text: app.counter_value
+
+            Caption:
+                text: 'Total transmission time:'
+            Value:
+                text: app.counter_total_time
+
+        BoxLayout:
+            spacing: '20sp'
+            orientation: 'vertical'
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: .3
+
+                Button:
+                    text: 'Scan and connect'
+                    on_press: app.start_scan()
+
+                Button:
+                    text: 'Connect by MAC address'
+                    on_press: Factory.ConnectByMACDialog().open()
+
+            BoxLayout:
+                id: queue_box
+                orientation: 'vertical'
+                size_hint_y: .15
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    Caption:
+                        text: 'Enable GATT autoconnect:'
+                    CheckBox:
+                        id: timeout_checkbox
+                        active: app.autoconnect
+                        on_active: app.autoconnect = self.active
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: .2
+                spacing: 10
+                Button:
+                    disabled: app.state != 'connected'
+                    text: 'Read RSSI'
+                    on_press: app.read_rssi()
+                Caption:
+                    text: 'RSSI Value:'
+                Value:
+                    text: app.rssi
+
+            ToggleButton:
+                disabled: app.state != 'connected'
+                text: "Enable notifications"
+                size_hint_y: .2
+                on_state: app.enable_notifications(self.state == 'down')
+            BoxLayout:
+                id: queue_box    
+                orientation: 'vertical'
+                disabled: app.state != 'connected'
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    Caption:
+                        text: 'Enable BLE queue timeout:'
+                    CheckBox:
+                        id: timeout_checkbox    
+                        active: app.queue_timeout_enabled
+                        on_active: app.queue_timeout_enabled = self.active
+                BoxLayout:
+                    orientation: 'horizontal'
+                    Caption:
+                        text: 'BLE queue timeout (ms):'
+                    TextInput:
+                        disabled: queue_box.disabled or not timeout_checkbox.active
+                        input_filter: 'int'
+                        multiline: False
+                        text: app.queue_timeout
+                        on_text: app.queue_timeout = self.text
+                BoxLayout:
+                    Button:
+                        text: 'Apply queue settings'
+                        on_press: app.set_queue_settings()
+                            
+            BoxLayout:
+                disabled: app.state != 'connected'
+                orientation: 'vertical'
+                BoxLayout:
+                    orientation: 'horizontal'
+                    Caption:
+                        text: 'Transmission interval (ms):'
+                    TextInput:
+                        input_filter: 'int'
+                        multiline: False
+                        text: app.incremental_interval
+                        on_text: app.incremental_interval = self.text
+                BoxLayout:
+                    orientation: 'horizontal'
+                    Caption:
+                        text: 'Packet count limit:'
+                    TextInput:
+                        input_filter: 'int'
+                        multiline: False
+                        text: app.counter_max
+                        on_text: app.counter_max = self.text
+                        padding_bottom: '100sp'
+                ToggleButton:
+                    width: self.texture_size[0] + 50
+                    text: "Enable transmission"
+                    on_state: app.enable_counter(self.state == 'down')

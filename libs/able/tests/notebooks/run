@@ -1,0 +1,22 @@
+#!/bin/bash
+set -ex
+
+name="$1"
+command="${2}"
+command="${command:=test}"
+
+
+cat "${name}.md" |
+    jupytext --execute --to ipynb |
+    jupyter nbconvert --stdin --no-input --to asciidoc --output "${name}"
+
+cat "${name}".asciidoc
+
+if [ "${command}" = "test" ]; then
+   diff "${name}.asciidoc" "${name}.expected"
+elif [ "${command}" = "record" ]; then
+    cp "${name}".asciidoc "${name}".expected
+else
+    echo "Unknown command: ${command}"
+    exit 1
+fi

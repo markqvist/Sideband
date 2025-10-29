@@ -1,0 +1,72 @@
+[[setup]]
+= Setup
+
+[[test-device-is-found-with-scan-filters-set]]
+= Test device is found with scan filters set
+
+
+----
+{'KivyBLETest'}
+----
+
+[[test-device-is-not-found-filtered-out-by-name]]
+= Test device is not found: filtered out by name
+
+
+----
+[]
+----
+
+[[test-scan-filter-mathes]]
+= Test scan filter mathes
+
+
+----
+EmptyFilter() True
+EmptyFilter() True
+EmptyFilter() True
+----
+
+
+----
+DeviceAddressFilter(address='AA:AA:AA:AA:AA:AA') True
+DeviceAddressFilter(address='AA:AA:AA:AA:AA:AB') False
+AA is not a valid Bluetooth address
+----
+
+
+----
+DeviceNameFilter(name='KivyBLETest') True
+DeviceNameFilter(name='KivyBLETes') False
+----
+
+
+----
+ManufacturerDataFilter(id=76, data=[], mask=None) False
+ManufacturerDataFilter(id=76, data=[], mask=None) True
+ManufacturerDataFilter(id=76, data=[2, 21, 141, 166, 131, 214, 229], mask=None) True
+ManufacturerDataFilter(id=76, data=[2, 21, 141, 166, 131, 214, 170], mask=None) False
+ManufacturerDataFilter(id=76, data=[2, 21, 141, 166, 131, 214, 170], mask=[255, 255, 255, 255, 255, 255, 0]) True
+ManufacturerDataFilter(id=76, data=[2, 21, 141, 166, 131, 214, 170], mask=[255, 255, 255, 255, 255, 255, 255]) False
+ManufacturerDataFilter(id=76, data=[2, 0, 141, 166, 131], mask=[255, 0, 255, 255, 255]) True
+ManufacturerDataFilter(id=76, data=b'\x02\x15', mask=None) True
+ManufacturerDataFilter(id=76, data=b'\x02\x16', mask=None) False
+----
+
+
+----
+ServiceDataFilter(uid='0000180f-0000-1000-8000-00805f9b34fb', data=[], mask=None) True
+ServiceDataFilter(uid='0000180f-0000-1000-8000-00805f9b34fc', data=[], mask=None) False
+ServiceDataFilter(uid='0000180f-0000-1000-8000-00805f9b34fb', data=[34], mask=None) True
+ServiceDataFilter(uid='0000180f-0000-1000-8000-00805f9b34fb', data=[33], mask=None) False
+ServiceDataFilter(uid='0000180f-0000-1000-8000-00805f9b34fb', data=[33], mask=[240]) True
+ServiceDataFilter(uid='0000180f-0000-1000-8000-00805f9b34fb', data=[33], mask=[15]) False
+----
+
+
+----
+ServiceUUIDFilter(uid='16fe0d00-c111-11e3-b8c8-0002a5d5c51B', mask=None) True
+ServiceUUIDFilter(uid='16fe0d00-c111-11e3-b8c8-0002a5d5c51C', mask=None) False
+ServiceUUIDFilter(uid='16fe0d00-c111-11e3-b8c8-0002a5d5c51C', mask='ffffffff-ffff-ffff-ffff-ffffffffffff') False
+ServiceUUIDFilter(uid='16fe0d00-c111-11e3-b8c8-0002a5d5c51C', mask='ffffffff-ffff-ffff-ffff-fffffffffff0') True
+----

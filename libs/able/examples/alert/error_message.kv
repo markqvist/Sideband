@@ -1,0 +1,21 @@
+<ErrorMessage>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 20
+        Label:
+            size_hint_y: None
+            font_size: '18sp'
+            height: '24sp'
+            text: 'Application has crashed, details: '
+        ScrollView:
+            size_hint: 1, 1
+            TextInput:
+                text: root.message
+                size_hint: 1, None
+                height: self.minimum_height
+        Button:
+            size_hint_y: None
+            height: '40sp'
+            text: 'OK, terminate'
+            on_press: root.dismiss()
