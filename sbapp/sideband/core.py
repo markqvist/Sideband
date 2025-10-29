@@ -283,6 +283,7 @@ class SidebandCore():
         self.last_if_change_announce = 0
         self.interface_local_adding = False
         self.interface_rnode_adding = False
+        self.interface_weave_adding = False
         self.next_auto_announce = time.time() + 60*(random.random()*(SidebandCore.AUTO_ANNOUNCE_RANDOM_MAX-SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)+SidebandCore.AUTO_ANNOUNCE_RANDOM_MIN)
 
         try:
@@ -685,6 +686,12 @@ class SidebandCore():
             self.config["connect_modem_ifac_netname"] = ""
         if not "connect_modem_ifac_passphrase" in self.config:
             self.config["connect_modem_ifac_passphrase"] = ""
+        if not "connect_weave" in self.config:
+            self.config["connect_weave"] = False
+        if not "connect_weave_ifac_netname" in self.config:
+            self.config["connect_weave_ifac_netname"] = ""
+        if not "connect_weave_ifac_passphrase" in self.config:
+            self.config["connect_weave_ifac_passphrase"] = ""
 
         if not "connect_ifmode_local" in self.config:
             self.config["connect_ifmode_local"] = "full"
@@ -700,6 +707,8 @@ class SidebandCore():
             self.config["connect_ifmode_serial"] = "full"
         if not "connect_ifmode_bluetooth" in self.config:
             self.config["connect_ifmode_bluetooth"] = "full"
+        if not "connect_ifmode_weave" in self.config:
+            self.config["connect_ifmode_weave"] = "full"
 
         if not "hw_rnode_frequency" in self.config:
             self.config["hw_rnode_frequency"] = None
@@ -3343,9 +3352,7 @@ class SidebandCore():
 
     def mqtt_handle_telemetry(self, context_dest, telemetry):
         with self.mqtt_handle_lock:
-            # TODO: Remove debug
             if hasattr(self, "last_mqtt_recycle") and time.time() > self.last_mqtt_recycle + 60*4:
-                # RNS.log("Recycling MQTT handler", RNS.LOG_DEBUG)
                 self.mqtt.stop()
                 self.mqtt.client = None
                 self.mqtt = None
@@ -3358,21 +3365,6 @@ class SidebandCore():
             self.mqtt.set_server(self.config["telemetry_mqtt_host"], self.config["telemetry_mqtt_port"])
             self.mqtt.set_auth(self.config["telemetry_mqtt_user"], self.config["telemetry_mqtt_pass"])
             self.mqtt.handle(context_dest, telemetry)
-
-            # TODO: Remove debug
-            # if not hasattr(self, "memtr"):
-            #     from pympler import muppy
-            #     from pympler import summary
-            #     import resource
-            #     self.res = resource
-            #     self.ms = summary; self.mp = muppy
-            #     self.memtr = self.ms.summarize(self.mp.get_objects())
-            #     RNS.log(f"RSS: {RNS.prettysize(self.res.getrusage(self.res.RUSAGE_SELF).ru_maxrss*1000)}")
-            # else:
-            #     memsum = self.ms.summarize(self.mp.get_objects())
-            #     memdiff = self.ms.get_diff(self.memtr, memsum)
-            #     self.ms.print_(memdiff)
-            #     RNS.log(f"RSS: {RNS.prettysize(self.res.getrusage(self.res.RUSAGE_SELF).ru_maxrss*1000)}")
 
     def update_telemetry(self):
         try:
@@ -3730,6 +3722,18 @@ class SidebandCore():
                                 if self.interface_serial.port != target_device["port"]:
                                     RNS.log("Updating serial device to "+str(target_device))
                                     self.interface_serial.port = target_device["port"]
+                    
+                    if self.interface_weave != None and not self.interface_weave.online:
+                        self.owner_app.discover_usb_devices()
+                        last_usb_discovery = time.time()
+
+                        if hasattr(self.owner_app, "usb_devices") and self.owner_app.usb_devices != None:
+                            if len(self.owner_app.usb_devices) > 0:
+                                target_device = self.owner_app.usb_devices[0]
+                                if self.interface_weave.port != target_device["port"]:
+                                    RNS.log("Updating Weave device to "+str(target_device))
+                                    self.interface_weave.port = target_device["port"]
+                                    self.interface_weave.connection.port = target_device["port"]
 
                     if self.interface_modem != None and not self.interface_modem.online:
                         self.owner_app.discover_usb_devices()
@@ -3934,6 +3938,58 @@ class SidebandCore():
             RNS.log("Error while adding AutoInterface. The contained exception was: "+str(e))
             self.interface_local = None
             self.interface_local_adding = False
+
+    def __add_weaveinterface(self, delay=None):
+        self.interface_weave_adding = True
+        if delay: time.sleep(delay)
+        try:
+            RNS.log("Adding Weave Interface...", RNS.LOG_DEBUG)
+            target_device = None
+            
+            # TODO: Add more intelligent selection here
+            if len(self.owner_app.usb_devices) > 0: target_device = self.owner_app.usb_devices[0]
+
+            if target_device != None: target_port = target_device["port"]
+            else: target_port = None
+        
+            if self.config["connect_weave_ifac_netname"] == "": ifac_netname = None
+            else: ifac_netname = self.config["connect_weave_ifac_netname"]
+
+            if self.config["connect_weave_ifac_passphrase"] == "": ifac_netkey = None
+            else: ifac_netkey = self.config["connect_weave_ifac_passphrase"]
+
+            interface_config = { "name": "WeaveInterface",
+                                 "port": target_port }
+
+            weaveinterface = RNS.Interfaces.WeaveInterface.WeaveInterface(RNS.Transport, interface_config)
+            weaveinterface.OUT = True
+
+            if RNS.Reticulum.transport_enabled():
+                if_mode = Interface.Interface.MODE_FULL
+                if self.config["connect_ifmode_weave"] == "gateway":
+                    if_mode = Interface.Interface.MODE_GATEWAY
+                elif self.config["connect_ifmode_weave"] == "access point":
+                    if_mode = Interface.Interface.MODE_ACCESS_POINT
+                elif self.config["connect_ifmode_weave"] == "roaming":
+                    if_mode = Interface.Interface.MODE_ROAMING
+                elif self.config["connect_ifmode_weave"] == "boundary":
+                    if_mode = Interface.Interface.MODE_BOUNDARY
+            else:
+                if_mode = None
+                
+            self.reticulum._add_interface(weaveinterface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
+            self.interface_weave = weaveinterface
+            self.interface_weave_adding = False
+
+            if weaveinterface != None:
+                if len(weaveinterface.hw_errors) > 0:
+                    self.setpersistent("startup.errors.weave", weaveinterface.hw_errors[0])
+
+        except Exception as e:
+            RNS.log("Error while adding Weave Interface. The contained exception was: "+str(e))
+            RNS.trace_exception(e)
+            self.interface_weave = None
+            self.interface_weave_adding = False
 
     def __add_rnodeinterface(self, delay=None):
         self.interface_rnode_adding = True
@@ -4268,6 +4324,10 @@ class SidebandCore():
                 if self.config["connect_rnode"]:
                     self.setstate("init.loadingstate", "Starting RNode")
                     self.__add_rnodeinterface()
+
+                if self.config["connect_weave"] or True:
+                    self.setstate("init.loadingstate", "Starting Weave")
+                    self.__add_weaveinterface()
 
                 elif self.config["connect_serial"]:
                     self.setstate("init.loadingstate", "Starting Serial Interface")

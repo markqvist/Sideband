@@ -61,7 +61,7 @@ class SidebandService():
         0x0483: [0x5740], # ST CDC
         0x2E8A: [0x0005, 0x000A], # Raspberry Pi Pico
         0x239A: [0x8029], # Adafruit (RAK4631)
-        0x303A: [0x1001], # ESP-32S3
+        0x303A: [0x1001, 0x4001], # ESP-32S3
     }
     
     def android_notification(self, title="", content="", ticker="", group=None, context_id=None):
@@ -379,6 +379,22 @@ class SidebandService():
                     bs = f"\nBattery at {bat_percent}%"
 
                 stat += f"[b]RNode[/b]\n{rs}{bs}\n\n"
+
+            if self.sideband.interface_weave != None:
+                if self.sideband.interface_weave.online: rs = "Connected"
+                else: rs = "Interface Down"
+
+                # bs = ""
+                # bat_state = self.sideband.interface_weave.get_battery_state_string()
+                # bat_percent = self.sideband.interface_weave.get_battery_percent()
+                # if bat_state != "unknown":
+                #     bs = f"\nBattery at {bat_percent}%"
+
+                np = len(self.sideband.interface_weave.peers)
+                if np == 1: ws = "1 reachable peer"
+                else: ws = str(np)+" reachable peers"
+
+                stat += f"[b]Weave[/b]\n{rs}\n{ws}\n\n"
 
             if self.sideband.interface_modem != None:
                 if self.sideband.interface_modem.online:
