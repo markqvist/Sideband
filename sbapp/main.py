@@ -2704,11 +2704,10 @@ class SidebandApp(MDApp):
         if not self.conversations_view:
             self.conversations_view = Conversations(self)
 
-            for child in self.conversations_view.ids.conversations_scrollview.children:
-                self.conversations_view.ids.conversations_scrollview.remove_widget(child)
-
-            self.conversations_view.ids.conversations_scrollview.effect_cls = ScrollEffect
-            self.conversations_view.ids.conversations_scrollview.add_widget(self.conversations_view.get_widget())
+            # for child in self.conversations_view.ids.conversations_scrollview.children:
+            #     self.conversations_view.ids.conversations_scrollview.remove_widget(child)
+            # self.conversations_view.ids.conversations_scrollview.effect_cls = ScrollEffect
+            # self.conversations_view.ids.conversations_scrollview.add_widget(self.conversations_view.get_widget())
 
         self.root.ids.screen_manager.current = "conversations_screen"
         if self.messages_view:
