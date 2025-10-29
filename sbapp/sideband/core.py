@@ -5358,7 +5358,7 @@ class SidebandCore():
             if new_msgs == 0:
                 return "Done, no new messages"
             else:
-                return "Downloaded "+str(new_msgs)+" new messages"
+                return "Downloaded "+str(new_msgs)+" messages"
         else:
             return "Unknown"
 

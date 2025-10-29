@@ -2704,11 +2704,6 @@ class SidebandApp(MDApp):
         if not self.conversations_view:
             self.conversations_view = Conversations(self)
 
-            # for child in self.conversations_view.ids.conversations_scrollview.children:
-            #     self.conversations_view.ids.conversations_scrollview.remove_widget(child)
-            # self.conversations_view.ids.conversations_scrollview.effect_cls = ScrollEffect
-            # self.conversations_view.ids.conversations_scrollview.add_widget(self.conversations_view.get_widget())
-
         self.root.ids.screen_manager.current = "conversations_screen"
         if self.messages_view:
             self.messages_view.ids.messages_scrollview.active_conversation = None
@@ -2866,12 +2861,10 @@ class SidebandApp(MDApp):
                     dialog.dismiss()
                     self.message_sync_dialog.d_content.ids.sync_progress.value = 0.1
                     self.message_sync_dialog.d_content.ids.sync_status.text = ""
-
-                    # self.sideband.cancel_lxmf_sync()
+                    if self.sideband.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_COMPLETE:
+                        self.sideband.message_router.acknowledge_sync_completion(reset_state=True)
 
                 def dl_stop(s):                
-                    # self.sideband.setstate("app.flags.lxmf_sync_dialog_open", False)
-                    # dialog.dismiss()
                     self.sideband.cancel_lxmf_sync()
                     def cb(dt):
                         self.widget_hide(self.sync_dialog.stop_button, True)
