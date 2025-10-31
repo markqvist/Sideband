@@ -127,7 +127,16 @@ class Announces():
                             ad_text = "[size=22dp]LXMF Peer[/size]\n\n[b]Received[/b] "+ts+"\n[b]Address[/b] "+RNS.prettyhexrep(dest)+"\n[b]Name[/b] "+name+"\n[b]Stamp Cost[/b] "+cost+link_extras
 
                         if dtype == "lxmf.propagation":
-                            ad_text = "[size=22dp]LXMF Propagation Node[/size]\n\n[b]Received[/b] "+ts+"\n[b]Address[/b] "+RNS.prettyhexrep(dest)+link_extras
+                            if a_name:
+                                disp_name = multilingual_markup(escape_markup(str(a_name)).encode("utf-8")).decode("utf-8")
+                                disp_name = f"\n[b]Name[/b] {disp_name}"
+                            else: disp_name = ""
+                            if a_cost:
+                                disp_cost = str(a_cost)
+                                disp_cost = f"\n[b]Stamp Cost[/b] {disp_cost}"
+                            else: disp_cost = ""
+
+                            ad_text = f"[size=22dp]LXMF Propagation Node[/size]\n\n[b]Received[/b] {ts}\n[b]Address[/b] {RNS.prettyhexrep(dest)+link_extras}{disp_name}{disp_cost}"
 
                         dialog = MDDialog(
                             text=ad_text,
@@ -150,7 +159,9 @@ class Announces():
                     iconl = IconLeftWidget(icon=trust_icon)
 
                 elif dest_type == "lxmf.propagation":
-                    disp_name = "Propagation Node "+RNS.prettyhexrep(context_dest)
+                    if a_name: disp_name = multilingual_markup(escape_markup(str(a_name)).encode("utf-8")).decode("utf-8")
+                    else: disp_name = f"Propagation Node"
+                    disp_name = f"{disp_name} {RNS.prettyhexrep(context_dest)}"
                     iconl = IconLeftWidget(icon="upload-network")
 
                 else:

@@ -53,7 +53,7 @@ class PropagationNodeDetector():
             if app_data != None and len(app_data) > 0:
                 if pn_announce_data_is_valid(app_data):
                     unpacked = msgpack.unpackb(app_data)
-                    node_active = unpacked[0]
+                    node_active = unpacked[2]
                     emitted = unpacked[1]
                     hops = RNS.Transport.hops_to(destination_hash)
 
@@ -67,10 +67,8 @@ class PropagationNodeDetector():
                         # age = 0
                         pass
 
-                    if self.owner_app != None:
-                        stat_endpoint = self.owner_app.sideband
-                    else:
-                        stat_endpoint = self.owner
+                    if self.owner_app != None: stat_endpoint = self.owner_app.sideband
+                    else: stat_endpoint = self.owner
 
                     link_stats = {"rssi": stat_endpoint.reticulum.get_packet_rssi(announce_packet_hash),
                                  "snr": stat_endpoint.reticulum.get_packet_snr(announce_packet_hash),
@@ -2126,6 +2124,9 @@ class SidebandCore():
                                 elif "get_lxm_stamp_cost" in call:
                                     args = call["get_lxm_stamp_cost"]
                                     connection.send(self.get_lxm_stamp_cost(args["lxm_hash"]))
+                                elif "get_lxm_propagation_cost" in call:
+                                    args = call["get_lxm_propagation_cost"]
+                                    connection.send(self.get_lxm_propagation_cost(args["lxm_hash"]))
                                 elif "is_tracking" in call:
                                     connection.send(self.is_tracking(call["is_tracking"]))
                                 elif "start_tracking" in call:
@@ -2808,8 +2809,8 @@ class SidebandCore():
                                 announced_name = LXMF.display_name_from_app_data(app_data)
                                 announced_cost = self.message_router.get_outbound_stamp_cost(entry[2])
                             else:
-                                announced_name = None
-                                announced_cost = None
+                                announced_name = LXMF.pn_name_from_app_data(app_data)
+                                announced_cost = LXMF.pn_stamp_cost_from_app_data(app_data)
                             announce = {
                                 "dest"  : entry[2],
                                 "name"  : announced_name,
@@ -4641,6 +4642,32 @@ class SidebandCore():
                 return self.message_router.get_outbound_lxm_stamp_cost(lxm_hash)
             except Exception as e:
                 RNS.log("An error occurred while getting message transfer stamp cost: "+str(e), RNS.LOG_ERROR)
+                return None
+
+    def _service_get_lxm_propagation_cost(self, lxm_hash):
+        if not RNS.vendor.platformutils.is_android(): return False
+        else:
+            if self.is_client:
+                try: return self.service_rpc_request({"get_lxm_propagation_cost": { "lxm_hash": lxm_hash } })
+                except Exception as e:
+                    RNS.log("Error while sending message over RPC: "+str(e), RNS.LOG_DEBUG)
+                    RNS.trace_exception(e)
+                    return False
+            
+            else: return False
+
+    def get_lxm_propagation_cost(self, lxm_hash):
+        if self.allow_service_dispatch and self.is_client:
+            try: return self._service_get_lxm_propagation_cost(lxm_hash)
+            except Exception as e:
+                RNS.log("Error while getting message transfer stamp cost: "+str(e), RNS.LOG_ERROR)
+                RNS.trace_exception(e)
+                return False
+
+        else:
+            try: return self.message_router.get_outbound_lxm_propagation_stamp_cost(lxm_hash)
+            except Exception as e:
+                RNS.log("An error occurred while getting message propagation stamp cost: "+str(e), RNS.LOG_ERROR)
                 return None
 
     def _service_cancel_message(self, message_id):
