@@ -105,7 +105,7 @@ def voice_processing(input_path):
         ffmpeg = None
         ffmpeg = sh.ffmpeg
         if ffmpeg:
-            filters = "highpass=f=250, lowpass=f=3000,speechnorm=e=12.5:r=0.0001:l=1"
+            filters = "atrim=start=0.075, afade=t=in:st=0:d=0.085, highpass=f=250, lowpass=f=3000, speechnorm=e=12.5:r=0.0001:l=1"
             output_bitrate = "12k"
             opus_apptype = "audio"
             output_path = input_path.replace(".ogg","")+".p.ogg"
