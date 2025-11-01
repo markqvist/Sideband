@@ -1153,7 +1153,7 @@ MDScreen:
 
 
                 MDLabel:
-                    id: keys_info
+                    id: backup_info
                     markup: True
                     text: ""
                     size_hint_y: None
@@ -1169,6 +1169,25 @@ MDScreen:
                     font_size: dp(16)
                     size_hint: [1.0, None]
                     on_release: root.app.profile_backup_action(self)
+
+                MDRectangleFlatIconButton:
+                    id: keys_restore
+                    icon: "home-import-outline"
+                    text: "Restore Sideband Profile"
+                    disabled: True
+                    padding: [dp(0), dp(14), dp(0), dp(14)]
+                    icon_size: dp(24)
+                    font_size: dp(16)
+                    size_hint: [1.0, None]
+                    on_release: root.app.profile_backup_action(self)
+
+                MDLabel:
+                    id: keys_info
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
 
                 MDRectangleFlatIconButton:
                     id: keys_display

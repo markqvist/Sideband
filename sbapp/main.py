@@ -177,27 +177,6 @@ if not args.daemon:
         local = os.path.dirname(__file__)
         sys.path.append(local)
 
-    if not RNS.vendor.platformutils.is_android():
-        model = None
-        max_width = WINDOW_DEFAULT_WIDTH
-        max_height = WINDOW_DEFAULT_HEIGHT
-
-        try:
-            if os.path.isfile("/sys/firmware/devicetree/base/model"):
-                with open("/sys/firmware/devicetree/base/model", "r") as mf:
-                    model = mf.read()
-        except: pass
-
-        if model:
-            if model.startswith("Raspberry Pi "): max_height = 625
-
-        window_width = min(WINDOW_DEFAULT_WIDTH, max_width)
-        window_height = min(WINDOW_DEFAULT_HEIGHT, max_height)
-
-        from kivy.config import Config
-        Config.set("graphics", "width", str(window_width))
-        Config.set("graphics", "height", str(window_height))
-
 if args.daemon:
     from .sideband.core import SidebandCore
     class DaemonElement():
@@ -219,6 +198,34 @@ if args.daemon:
 
 else:
     apply_ui_scale()
+
+    if not RNS.vendor.platformutils.is_android():
+        scaling_factor = 1.0
+        try: scaling_factor = float(os.environ["KIVY_METRICS_DENSITY"])
+        except Exception as e: pass
+
+        if scaling_factor < 0.75: scaling_factor = 0.75
+        if scaling_factor > 2:    scaling_factor = 2
+        
+        model = None
+        max_width = WINDOW_DEFAULT_WIDTH*scaling_factor
+        max_height = WINDOW_DEFAULT_HEIGHT*scaling_factor
+
+        try:
+            if os.path.isfile("/sys/firmware/devicetree/base/model"):
+                with open("/sys/firmware/devicetree/base/model", "r") as mf:
+                    model = mf.read()
+        except: pass
+
+        if model:
+            if model.startswith("Raspberry Pi "): max_height = 625
+
+        window_width = int(min(WINDOW_DEFAULT_WIDTH*scaling_factor, max_width))
+        window_height = int(min(WINDOW_DEFAULT_HEIGHT*scaling_factor, max_height))
+
+        from kivy.config import Config
+        Config.set("graphics", "width", str(window_width))
+        Config.set("graphics", "height", str(window_height))
 
     from kivymd.app import MDApp
     app_superclass = MDApp
@@ -5209,12 +5216,14 @@ class SidebandApp(MDApp):
             self.bind_clipboard_actions(self.keys_screen.ids)
 
             self.keys_screen.ids.keys_scrollview.effect_cls = ScrollEffect
-            info = "Your primary encryption keys are stored in a Reticulum Identity within the Sideband app. If you want to backup this Identity for later use on this or another device, you can export it as a plain text blob, with the key data encoded in Base32 format. This will allow you to restore your address in Sideband or other LXMF clients at a later point.\n\n[b]Warning![/b] Anyone that gets access to the key data will be able to control your LXMF address, impersonate you, and read your messages. It is [b]extremely important[/b] that you keep the Identity data secure if you export it.\n\nBefore displaying or exporting your Identity data, make sure that no machine or person in your vicinity is able to see, copy or record your device screen or similar."
+            info1 = "[size=18dp][b]Encryption Keys[/b][/size][size=5dp]\n \n[/size]Your primary encryption keys are stored in a Reticulum Identity within the Sideband app. If you want to backup this Identity for later use on this or another device, you can export it as a plain text blob, with the key data encoded in Base32 format. This will allow you to restore your address in Sideband or other LXMF clients at a later point.\n\n[b]Warning![/b] Anyone that gets access to the key data will be able to control your LXMF address, impersonate you, and read your messages. It is [b]extremely important[/b] that you keep the Identity data secure if you export it.\n\nBefore displaying or exporting your Identity data, make sure that no machine or person in your vicinity is able to see, copy or record your device screen or similar."
+            info2 = "[size=18dp][b]Backup & Restore[/b][/size][size=5dp]\n \n[/size]You can backup your entire Sideband profile for import on a computer or other device. The exported backup archive will be saved in the downloads folder of your device. Please note that the exported archive contains all your messages, data and encryption keys. Take extreme care to keep this archive secure."
 
             if not RNS.vendor.platformutils.get_platform() == "android":
                 self.widget_hide(self.keys_screen.ids.keys_share)
 
-            self.keys_screen.ids.keys_info.text = info
+            self.keys_screen.ids.keys_info.text = info1
+            self.keys_screen.ids.backup_info.text = info2
 
     def keys_open(self, sender=None, direction="left", no_transition=False):
         if no_transition:
@@ -5233,6 +5242,34 @@ class SidebandApp(MDApp):
 
     def close_keys_action(self, sender=None):
         self.open_conversations(direction="right")
+
+    def _profile_backup_job(self):
+        import tarfile
+        from ui.helpers import file_ts_format
+        output_path = plyer.storagepath.get_downloads_dir()
+        time_str = time.strftime(file_ts_format, time.localtime(time.time()))
+        target_file = f"{output_path}/sideband_backup_{time_str}.tar.gz"
+        tar = tarfile.open(target_file, "w:gz")
+        tar.add(f"{self.sideband.app_dir}/app_storage", arcname="Sideband Backup")
+        tar.close()
+        
+        def job(dt):
+            self.keys_screen.ids.keys_backup.disabled = False
+            toast("Backup done")
+            ok_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
+            dialog = MDDialog(text=f"Backup has been saved to {target_file}",
+                              buttons=[ok_button])
+            def dl_yes(s): dialog.dismiss()
+            
+            ok_button.bind(on_release=dl_yes)
+            dialog.open()
+
+        Clock.schedule_once(job, 0.3)
+
+    def profile_backup_action(self, sender=None):
+        self.keys_screen.ids.keys_backup.disabled = True
+        toast("Creating backup...")
+        threading.Thread(target=self._profile_backup_job, daemon=True).start()
 
     def identity_display_action(self, sender=None):
         yes_button = MDRectangleFlatButton(text="OK",font_size=dp(18))
