@@ -2135,6 +2135,8 @@ class SidebandCore():
                                 elif "stop_tracking" in call:
                                     args = call["stop_tracking"]
                                     connection.send(self.stop_tracking(object_addr=args["object_addr"]))
+                                elif "get_service_log" in call:
+                                    connection.send(self.get_service_log())
                                 else:
                                     connection.send(None)
 
@@ -4155,6 +4157,34 @@ class SidebandCore():
     # TODO: Get service log on Android
     def get_log(self):
         return "\n".join(self.log_deque)
+
+    def _service_get_service_log(self):
+        if not RNS.vendor.platformutils.is_android():
+            return False
+        else:
+            if self.is_client:
+                try: return self.service_rpc_request({"get_service_log": True })
+                except Exception as e:
+                    RNS.log("Error while sending message over RPC: "+str(e), RNS.LOG_DEBUG)
+                    RNS.trace_exception(e)
+                    return False
+            else:
+                return False
+
+    def get_service_log(self):
+        if self.allow_service_dispatch and self.is_client:
+            try: return self._service_get_service_log()
+
+            except Exception as e:
+                RNS.log("Error while getting service log: "+str(e), RNS.LOG_ERROR)
+                RNS.trace_exception(e)
+                return False
+
+        else:
+            try: return "\n".join(self.log_deque)
+            except Exception as e:
+                RNS.log("An error occurred while getting message transfer stamp cost: "+str(e), RNS.LOG_ERROR)
+                return None
 
     def __start_jobs_immediate(self):
         if self.log_quiet:

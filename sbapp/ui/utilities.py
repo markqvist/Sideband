@@ -182,14 +182,23 @@ class Utilities():
         threading.Thread(target=self.update_logviewer_job, daemon=True).start()
 
     def update_logviewer_job(self, sender=None):
-        try:
-            output = self.app.sideband.get_log()
-        except Exception as e:
-            output = f"An error occurred while retrieving log entries:\n{e}"
+        try: output = self.app.sideband.get_log()
+        except Exception as e: output = f"An error occurred while retrieving log entries:\n{e}"
+
+        if not RNS.vendor.platformutils.is_android(): service_output = None
+        else:
+            try: service_output = self.app.sideband.get_service_log()
+            except Exception as e: service_output = f"An error occurred while retrieving log entries:\n{e}"
+
 
         self.logviewer_screen.log_contents = output
         def cb(dt):
-            self.logviewer_screen.ids.logviewer_output.text = f"[font=RobotoMono-Regular][size={int(dp(12))}]{output}[/size][/font]"
+            if not RNS.vendor.platformutils.is_android():
+                self.logviewer_screen.ids.logviewer_output.text  = f"[font=RobotoMono-Regular][size={int(dp(12))}]{output}[/size][/font]"
+            else:
+                self.logviewer_screen.ids.logviewer_output.text   = f"[size=18dp][b]Frontend Log[/b][/size][size=5dp]\n \n[font=RobotoMono-Regular][size={int(dp(12))}]{output}[/size][/font]"
+                self.logviewer_screen.ids.slogviewer_output.text  = f"\n[size=18dp][b]Service Log[/b][/size][size=5dp]\n \n[font=RobotoMono-Regular][size={int(dp(12))}]{service_output}[/size][/font]"
+                self.logviewer_screen.log_contents               += f"\n\n{service_output}"
         Clock.schedule_once(cb, 0.2)
 
         if self.app.root.ids.screen_manager.current == "logviewer_screen":
@@ -372,6 +381,14 @@ MDScreen:
 
                 MDLabel:
                     id: logviewer_output
+                    markup: True
+                    text: ""
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    id: slogviewer_output
                     markup: True
                     text: ""
                     size_hint_y: None
