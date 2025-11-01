@@ -163,9 +163,9 @@ MDNavigationLayout:
 
                                                        
                         OneLineIconListItem:
-                            text: "Encryption Keys"
+                            text: "Backup & Keys"
                             on_release: root.ids.screen_manager.app.keys_action(self)
-                        
+
                             IconLeftWidget:
                                 icon: "key-chain"
                                 on_release: root.ids.screen_manager.app.keys_action(self)
@@ -1131,7 +1131,7 @@ MDScreen:
         orientation: "vertical"
 
         MDTopAppBar:
-            title: "Encryption Keys"
+            title: "Backup & Keys"
             anchor_title: "left"
             elevation: 0
             left_action_items:
@@ -1159,6 +1159,16 @@ MDScreen:
                     size_hint_y: None
                     text_size: self.width, None
                     height: self.texture_size[1]
+
+                MDRectangleFlatIconButton:
+                    id: keys_backup
+                    icon: "home-export-outline"
+                    text: "Backup Sideband Profile"
+                    padding: [dp(0), dp(14), dp(0), dp(14)]
+                    icon_size: dp(24)
+                    font_size: dp(16)
+                    size_hint: [1.0, None]
+                    on_release: root.app.profile_backup_action(self)
 
                 MDRectangleFlatIconButton:
                     id: keys_display

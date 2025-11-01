@@ -405,6 +405,7 @@ class SidebandApp(MDApp):
         self.icon = self.sideband.asset_dir+"/icon.png"
         self.notification_icon = self.sideband.asset_dir+"/notification_icon.png"
 
+        self.resume_event_scheduler = None
         self.connectivity_updater = None
         self.last_map_update = 0
         self.last_telemetry_received = 0
@@ -830,16 +831,18 @@ class SidebandApp(MDApp):
     def on_pause(self):
         if self.sideband:
             RNS.log("App pausing...", RNS.LOG_DEBUG)
+            
+            if RNS.vendor.platformutils.is_android():
+                if self.resume_event_scheduler == None:
+                    self.resume_event_scheduler = Clock.schedule_interval(self.perform_paused_check, 0.1)
+
             self.sideband.setstate("app.running", True)
             self.sideband.setstate("app.foreground", False)
             self.app_state = SidebandApp.PAUSED
             self.sideband.should_persist_data()
-            if self.conversations_view != None:
-                self.conversations_view.ids.conversations_scrollview.effect_cls = ScrollEffect
-                self.conversations_view.ids.conversations_scrollview.scroll = 1
-
             RNS.log("App paused", RNS.LOG_DEBUG)
             return True
+        
         else:
             return True
 
@@ -850,17 +853,10 @@ class SidebandApp(MDApp):
             self.sideband.setstate("app.foreground", True)
             self.sideband.setstate("wants.clear_notifications", True)
             self.app_state = SidebandApp.ACTIVE
-            if self.conversations_view != None:
-                self.conversations_view.ids.conversations_scrollview.effect_cls = ScrollEffect
-                self.conversations_view.ids.conversations_scrollview.scroll = 1
-                
-            else:
-                RNS.log("Conversations view did not exist", RNS.LOG_DEBUG)
 
             def ui_update_job():
                 time.sleep(0.05)
-                def cb(dt):
-                    self.perform_wake_update()
+                def cb(dt): self.perform_wake_update()
                 Clock.schedule_once(cb, 0.1)
             threading.Thread(target=ui_update_job, daemon=True).start()
 
@@ -878,6 +874,29 @@ class SidebandApp(MDApp):
             return True
         else:
             return False
+
+    def perform_paused_check(self, delta_time):
+        # This workaround mitigates yet another bug in Kivy
+        # on Android, where the JNI/Python bridge now for
+        # Lord knows whatever reason fails to dispatch the
+        # onResume event from the Android app lifecycle
+        # management API. So we have to resort to this hack
+        # of scheduling a manual check that reads a patched-
+        # in property on the JNI side of the app activity,
+        # and then "manually" dispatch on_resume.
+        if self.app_state == SidebandApp.PAUSED:
+            # Oh hai, we're running, but we should really
+            # be paused? What gives? Must mean we've been
+            # woken up again, but someone forgot to inform
+            # us about that. Let's have a look, shall we...
+            activity = autoclass('org.kivy.android.PythonActivity').mActivity
+            if activity.activityPaused == False:
+                # Who would have thought, the activity was
+                # resumed! Good thing we can play event-
+                # dispatch pretend ourselves.
+                Clock.unschedule(self.resume_event_scheduler)
+                self.resume_event_scheduler = None
+                self.on_resume()
 
     def perform_wake_update(self):
         # This workaround mitigates a bug in Kivy on Android

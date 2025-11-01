@@ -489,6 +489,7 @@ Builder.load_string("""
         icon: "dots-vertical"
 
 <ConversationList>:
+    id: conversations_scrollview
     viewclass: "ConversationEntry"
     effect_cls: "ScrollEffect"
 

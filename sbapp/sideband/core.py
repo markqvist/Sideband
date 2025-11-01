@@ -4204,6 +4204,7 @@ class SidebandCore():
                 self.interface_tcp    = None
                 self.interface_i2p    = None
                 self.interface_rnode  = None
+                self.interface_weave  = None
                 self.interface_modem  = None
                 self.interface_serial = None
 
@@ -4326,7 +4327,7 @@ class SidebandCore():
                     self.setstate("init.loadingstate", "Starting RNode")
                     self.__add_rnodeinterface()
 
-                if self.config["connect_weave"] or True:
+                if self.config["connect_weave"]:
                     self.setstate("init.loadingstate", "Starting Weave")
                     self.__add_weaveinterface()
 
