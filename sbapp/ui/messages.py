@@ -344,7 +344,7 @@ class Messages():
                                     sphrase = f"Generating stamp with cost {stamp_cost}"
                                     prgstr = ""
                                 elif prop_cost:
-                                    sphrase = f"Generating propagation stamp with cost {prop_cost}"
+                                    sphrase = f"Generating PN stamp with cost {prop_cost}"
                                     prgstr = ""
                                 else:
                                     sphrase = "Waiting for path"
