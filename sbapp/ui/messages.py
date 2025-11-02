@@ -337,14 +337,14 @@ class Messages():
                             if prg <= 0.00:
                                 stamp_cost = self.app.sideband.get_lxm_stamp_cost(msg["hash"])
                                 prop_cost  = self.app.sideband.get_lxm_propagation_cost(msg["hash"])
-                                if stamp_cost:
+                                if stamp_cost and prop_cost:
+                                    sphrase = f"Generating stamps with cost {stamp_cost} and {prop_cost}"
+                                    prgstr = ""
+                                elif stamp_cost:
                                     sphrase = f"Generating stamp with cost {stamp_cost}"
                                     prgstr = ""
                                 elif prop_cost:
                                     sphrase = f"Generating propagation stamp with cost {prop_cost}"
-                                    prgstr = ""
-                                elif stamp_cost and prop_cost:
-                                    sphrase = f"Generating stamps with cost {stamp_cost} and {prop_cost}"
                                     prgstr = ""
                                 else:
                                     sphrase = "Waiting for path"

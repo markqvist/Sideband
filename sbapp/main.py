@@ -1787,7 +1787,7 @@ class SidebandApp(MDApp):
     def conversation_index_action(self, index):
         if self.conversations_view != None and self.conversations_view.list != None:
             i = index-1
-            c = self.conversations_view.list.children
+            c = self.conversations_view.list.children[0].children
             if len(c) > i:
                 item = c[(len(c)-1)-i]
                 self.conversation_action(item)
@@ -5465,6 +5465,10 @@ class SidebandApp(MDApp):
         else:
             perm_ok = True
             path = self.sideband.config["command_plugins_path"]
+
+        if not os.path.isdir(path):
+            if not RNS.vendor.platformutils.is_android(): path = os.path.expanduser("~")
+            else:                                         path = primary_external_storage_path()
 
         if perm_ok and path != None:
             try:

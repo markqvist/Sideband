@@ -5472,11 +5472,17 @@ class SidebandCore():
         elif self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_FAILED:
             return "Sync failed"
         elif self.message_router.propagation_transfer_state == LXMF.LXMRouter.PR_COMPLETE:
-            new_msgs = self.message_router.propagation_transfer_last_result
+            msgs_dld   = self.message_router.propagation_transfer_last_result
+            duplicates = self.message_router.propagation_transfer_last_duplicates or 0
+            new_msgs   = msgs_dld-duplicates
+            nms        = "" if new_msgs   == 1 else "s"
+            dms        = "" if duplicates == 1 else "s"
             if new_msgs == 0:
-                return "Done, no new messages"
+                if duplicates == 0: return f"Done, no new messages"
+                else:               return f"Done, no new messages\nDiscarded {duplicates} existing message{dms}"
             else:
-                return "Downloaded "+str(new_msgs)+" messages"
+                if duplicates == 0: return f"Downloaded {new_msgs} new message{nms}"
+                else:               return f"Downloaded {new_msgs} new message{nms}\nDiscarded {duplicates} existing message{dms}"
         else:
             return "Unknown"
 

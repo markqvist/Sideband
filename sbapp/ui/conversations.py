@@ -250,7 +250,7 @@ class Conversations():
         self.app = app
         self.context_dests = []
         self.added_item_dests = []
-        # self.list = None
+        self.list = None
         self.conversation_list = None
         self.ids = None
 
@@ -267,17 +267,6 @@ class Conversations():
         self.clear_telemetry_dialog = None
 
         self.update()
-
-    def reload(self):
-        self.clear_list()
-        self.update()
-
-    def clear_list(self):
-        if self.list != None:
-            self.list.clear_widgets()
-
-        self.context_dests = []
-        self.added_item_dests = []
 
     def update(self):
         self.context_dests = self.app.sideband.list_conversations(conversations=self.app.include_conversations, objects=self.app.include_objects)
@@ -435,6 +424,7 @@ class Conversations():
         RNS.log("Updating conversation list widgets", RNS.LOG_DEBUG)
         if self.conversation_list == None:
             self.conversation_list = ConversationList()
+            self.list = self.conversation_list
             self.ids.conversation_list_container.add_widget(self.conversation_list)
             
         self.update_conversation_list()
