@@ -81,8 +81,9 @@ class MQTT():
 
     def disconnect(self):
         RNS.log("Disconnecting from MQTT server", RNS.LOG_EXTREME) # TODO: Remove debug
-        self.client.disconnect()
-        self.client.loop_stop()
+        if self.client:
+            self.client.disconnect()
+            self.client.loop_stop()
         self.is_connected = False
 
     def post_message(self, topic, data):
