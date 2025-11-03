@@ -3640,6 +3640,7 @@ class SidebandApp(MDApp):
                 self.widget_hide(self.connectivity_screen.ids.connectivity_enable_transport)
                 self.widget_hide(self.connectivity_screen.ids.connectivity_serial_label)
                 self.widget_hide(self.connectivity_screen.ids.connectivity_use_serial)
+                self.widget_hide(self.connectivity_screen.ids.connectivity_use_weave)
                 self.widget_hide(self.connectivity_screen.ids.connectivity_serial_fields)
                 self.widget_hide(self.connectivity_screen.ids.connectivity_share_instance)
                 self.widget_hide(self.connectivity_screen.ids.connectivity_shared_access)
@@ -3679,6 +3680,10 @@ class SidebandApp(MDApp):
                 # self.widget_hide(self.connectivity_screen.ids.connectivity_serial_fields, collapse)
                 pass
                 
+            def con_collapse_weave(collapse=True):
+                # self.widget_hide(self.connectivity_screen.ids.connectivity_serial_fields, collapse)
+                pass
+                
             def con_collapse_transport(collapse=True):
                 # self.widget_hide(self.connectivity_screen.ids.connectivity_transport_fields, collapse)
                 pass
@@ -3707,6 +3712,10 @@ class SidebandApp(MDApp):
                 self.sideband.config["connect_serial_ifac_netname"] = self.connectivity_screen.ids.connectivity_serial_ifac_netname.text
                 self.sideband.config["connect_serial_ifac_passphrase"] = self.connectivity_screen.ids.connectivity_serial_ifac_passphrase.text
 
+                self.sideband.config["connect_weave"] = self.connectivity_screen.ids.connectivity_use_weave.active
+                self.sideband.config["connect_weave_ifac_netname"] = self.connectivity_screen.ids.connectivity_weave_ifac_netname.text
+                self.sideband.config["connect_weave_ifac_passphrase"] = self.connectivity_screen.ids.connectivity_weave_ifac_passphrase.text
+
                 self.sideband.config["connect_modem"] = self.connectivity_screen.ids.connectivity_use_modem.active
                 self.sideband.config["connect_modem_ifac_netname"] = self.connectivity_screen.ids.connectivity_modem_ifac_netname.text
                 self.sideband.config["connect_modem_ifac_passphrase"] = self.connectivity_screen.ids.connectivity_modem_ifac_passphrase.text
@@ -3724,6 +3733,7 @@ class SidebandApp(MDApp):
                 con_collapse_rnode(collapse=not self.connectivity_screen.ids.connectivity_use_rnode.active)
                 con_collapse_modem(collapse=not self.connectivity_screen.ids.connectivity_use_modem.active)
                 con_collapse_serial(collapse=not self.connectivity_screen.ids.connectivity_use_serial.active)
+                con_collapse_weave(collapse=not self.connectivity_screen.ids.connectivity_use_weave.active)
                 con_collapse_transport(collapse=not self.sideband.config["connect_transport"])
 
                 self.sideband.save_configuration()
@@ -3749,13 +3759,16 @@ class SidebandApp(MDApp):
                     self.connectivity_screen.ids.connectivity_use_rnode.unbind(active=serial_connectivity_save)
                     self.connectivity_screen.ids.connectivity_use_modem.unbind(active=serial_connectivity_save)
                     self.connectivity_screen.ids.connectivity_use_serial.unbind(active=serial_connectivity_save)
+                    self.connectivity_screen.ids.connectivity_use_weave.unbind(active=serial_connectivity_save)
                     self.connectivity_screen.ids.connectivity_use_rnode.active = False
                     self.connectivity_screen.ids.connectivity_use_modem.active = False
                     self.connectivity_screen.ids.connectivity_use_serial.active = False
+                    self.connectivity_screen.ids.connectivity_use_weave.active = False
                     sender.active = True
                     self.connectivity_screen.ids.connectivity_use_rnode.bind(active=serial_connectivity_save)
                     self.connectivity_screen.ids.connectivity_use_modem.bind(active=serial_connectivity_save)
                     self.connectivity_screen.ids.connectivity_use_serial.bind(active=serial_connectivity_save)
+                    self.connectivity_screen.ids.connectivity_use_weave.bind(active=serial_connectivity_save)
                 save_connectivity(sender, event)
 
             def focus_save(sender=None, event=None):
@@ -3840,6 +3853,11 @@ class SidebandApp(MDApp):
                     self.connectivity_screen.ids.connectivity_serial_ifac_netname.text = self.sideband.config["connect_serial_ifac_netname"]
                     self.connectivity_screen.ids.connectivity_serial_ifac_passphrase.text = self.sideband.config["connect_serial_ifac_passphrase"]
 
+                    self.connectivity_screen.ids.connectivity_use_weave.active = self.sideband.config["connect_weave"]
+                    con_collapse_weave(collapse=not self.connectivity_screen.ids.connectivity_use_weave.active)
+                    self.connectivity_screen.ids.connectivity_weave_ifac_netname.text = self.sideband.config["connect_weave_ifac_netname"]
+                    self.connectivity_screen.ids.connectivity_weave_ifac_passphrase.text = self.sideband.config["connect_weave_ifac_passphrase"]
+
                     self.connectivity_screen.ids.connectivity_enable_transport.active = self.sideband.config["connect_transport"]
                     con_collapse_transport(collapse=not self.sideband.config["connect_transport"])
                     self.connectivity_screen.ids.connectivity_enable_transport.bind(active=save_connectivity)
@@ -3881,6 +3899,10 @@ class SidebandApp(MDApp):
                     self.connectivity_screen.ids.connectivity_use_serial.bind(active=serial_connectivity_save)
                     self.connectivity_screen.ids.connectivity_serial_ifac_netname.bind(focus=focus_save)
                     self.connectivity_screen.ids.connectivity_serial_ifac_passphrase.bind(focus=focus_save)
+
+                    self.connectivity_screen.ids.connectivity_use_weave.bind(active=serial_connectivity_save)
+                    self.connectivity_screen.ids.connectivity_weave_ifac_netname.bind(focus=focus_save)
+                    self.connectivity_screen.ids.connectivity_weave_ifac_passphrase.bind(focus=focus_save)
 
                     self.connectivity_screen.ids.connectivity_local_ifmode.bind(focus=ifmode_validate)
                     self.connectivity_screen.ids.connectivity_tcp_ifmode.bind(focus=ifmode_validate)

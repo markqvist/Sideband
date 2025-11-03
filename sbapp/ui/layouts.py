@@ -626,6 +626,44 @@ MDScreen:
                         font_size: dp(24)
 
 
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: [0,0,dp(24),0]
+                    size_hint_y: None
+                    height: dp(24)
+                    
+                    MDLabel:
+                        id: connectivity_weave_label
+                        text: "Connect via Weave"
+                        font_style: "H6"
+                        disabled: False
+
+                    MDSwitch:
+                        id: connectivity_use_weave
+                        active: False
+                        pos_hint: {"center_y": 0.3}
+                        disabled: False
+
+                MDBoxLayout:
+                    id: connectivity_weave_fields
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [0, 0, 0, dp(32)]
+
+                    MDTextField:
+                        id: connectivity_weave_ifac_netname
+                        hint_text: "Optional IFAC network name"
+                        text: ""
+                        font_size: dp(24)
+
+                    MDTextField:
+                        id: connectivity_weave_ifac_passphrase
+                        hint_text: "Optional IFAC passphrase"
+                        text: ""
+                        font_size: dp(24)
+
+
                 # MDBoxLayout:
                 #     orientation: "horizontal"
                 #     padding: [0,0,dp(24),0]
