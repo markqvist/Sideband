@@ -133,32 +133,38 @@ python3 -m sbapp.main
 
 ## On Raspberry Pi
 
-You can install Sideband on all Raspberry Pi models that support 64-bit operating systems, and can run at least Python version 3.11. Since some of Sideband's dependencies don't have pre-built packages ready for 64-bit ARM processors yet, you'll need to install a few extra packages, that will allow building these while installing.
+You can install Sideband on all Raspberry Pi models that support 64-bit operating systems, and can run at least Python version 3.11.
 
-Aditionally, the `pycodec2` package needs to be installed manually. I have provided a pre-built version, that you can download and install with a single command, or if you don't want to trust my pre-built version, you can [build and install it from source yourself](https://github.com/gregorias/pycodec2/blob/main/DEV.md).
+The install instructions below assume that you are installing Sideband on 64-bit Raspberry Pi OS (based on Debian 13 "Trixie" or later). If you're running something else on your Pi, you might need to modify some commands slightly.
 
-The install instructions below assume that you are installing Sideband on 64-bit Raspberry Pi OS (based on Debian Bookworm or later). If you're running something else on your Pi, you might need to modify some commands slightly. To install Sideband on Raspberry Pi with full support for voice calls, audio messages and Codec2, follow these steps:
+To install Sideband on Raspberry Pi with full support for voice calls, audio messages and Codec2, follow these steps:
 
 ```bash
-# First of all, install the required dependencies:
-sudo apt install python3-pip python3-pyaudio python3-dev python3-cryptography build-essential libopusfile0 libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev portaudio19-dev codec2 libcodec2-1.0 xclip xsel
-
-# If you don't want to compile pycodec2 yourself,
-# download the pre-compiled package provided here:
-wget https://raw.githubusercontent.com/markqvist/Sideband/main/docs/utilities/pycodec2-3.0.1-cp311-cp311-linux_aarch64.whl
-
-# And install it:
-pip install ./pycodec2-3.0.1-cp311-cp311-linux_aarch64.whl --break-system-packages
+# First of all, install the dependencies required
+# for audio processing and voice calls.
+#
+# On Raspberry Pi OS "Trixie" (based on Debian 13)
+# or newer, install these packages:
+sudo apt install python3-pyaudio codec2 xclip xsel
 
 # You can now install Sideband
 pip install sbapp --break-system-packages
 
-# Restart your Raspberry Pi
+# Restart your Raspberry Pi to ensure the program
+# is available in your PATH and application menus:
 sudo reboot
 
 # Everything is ready! You can now run Sideband
-# from the terminal, or from the application menu
+# from the terminal, or from the application menu:
 sideband
+```
+
+If you're using an older version of Raspberry Pi OS, you will need to install these dependencies instead, before installing Sideband:
+
+```bash
+# Package dependencies for Raspberry Pi OS based
+# on Debian 12 Bookworm
+sudo apt install python3-pip python3-pyaudio python3-dev python3-cryptography build-essential libopusfile0 libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev portaudio19-dev codec2 libcodec2-1.0 xclip xsel
 ```
 
 If you do not already have Reticulum connectivity set up on your computer or local network, you will probably want to edit the Reticulum configuration file at `~/.reticulum/config` and [add any interfaces](https://reticulum.network/manual/interfaces.html) you need for connectivity.
