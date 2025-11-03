@@ -201,8 +201,9 @@ else:
 
     if not RNS.vendor.platformutils.is_android():
         scaling_factor = 1.0
-        try: scaling_factor = float(os.environ["KIVY_METRICS_DENSITY"])
-        except Exception as e: pass
+        if not RNS.vendor.platformutils.is_windows() and not RNS.vendor.platformutils.is_darwin()
+            try: scaling_factor = float(os.environ["KIVY_METRICS_DENSITY"])
+            except Exception as e: pass
 
         if scaling_factor < 0.75: scaling_factor = 0.75
         if scaling_factor > 2:    scaling_factor = 2
