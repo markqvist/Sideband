@@ -1802,8 +1802,26 @@ class SidebandApp(MDApp):
 
         elif sender.conv_type == self.sideband.CONV_VOICE:
             identity_hash = sender.sb_uid
-            def cb(dt): self.dial_action(identity_hash)
-            Clock.schedule_once(cb, 0.15)
+            if not self.sideband.config["confirm_calls"]:
+                def cb(dt): self.dial_action(identity_hash)
+                Clock.schedule_once(cb, 0.15)
+            else:
+                call_dialog_text = f"[b]Initiate Voice Call?[/b]\n\nDestination Identity:\n{RNS.prettyhexrep(identity_hash)}?"
+                if hasattr(self, "confirm_call_dialog"): self.confirm_call_dialog.text = call_dialog_text
+                else:
+                    yes_button = MDRectangleFlatButton(text="Call",font_size=dp(18), theme_text_color="Custom", line_color=self.color_accept, text_color=self.color_accept)
+                    no_button = MDRectangleFlatButton(text="Cancel",font_size=dp(18))
+                    self.confirm_call_dialog = MDDialog(text=call_dialog_text, buttons=[ no_button, yes_button ])
+                    def dl_no(s): self.confirm_call_dialog.dismiss()
+                    def dl_yes(s):
+                        self.confirm_call_dialog.dismiss()
+                        def cb(dt): self.dial_action(self.confirm_call_dialog.dest_identity_hash)
+                        Clock.schedule_once(cb, 0.15)
+
+                    yes_button.bind(on_release=dl_yes)
+                    no_button.bind(on_release=dl_no)
+                self.confirm_call_dialog.dest_identity_hash = identity_hash
+                self.confirm_call_dialog.open()
 
     def open_conversation(self, context_dest, direction="left"):
         self.rec_dialog_is_open = False

@@ -475,6 +475,7 @@ class SidebandCore():
         self.config["lxm_limit_1mb"] = True
         self.config["trusted_markup_only"] = False
         self.config["compose_in_markdown"] = False
+        self.config["confirm_calls"] = True
 
         # Connectivity
         self.config["connect_transport"] = False
@@ -652,6 +653,8 @@ class SidebandCore():
             self.config["trusted_markup_only"] = False
         if not "compose_in_markdown" in self.config:
             self.config["compose_in_markdown"] = False
+        if not "confirm_calls" in self.config:
+            self.config["confirm_calls"] = True
 
         if not "input_language" in self.config:
             self.config["input_language"] = None
