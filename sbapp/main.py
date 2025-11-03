@@ -1409,6 +1409,24 @@ class SidebandApp(MDApp):
         self.root.ids.nav_scrollview.effect_cls = ScrollEffect
         Clock.schedule_once(self.start_core, 0.25)
 
+    def close_handler(self):
+        if self.root.ids.screen_manager.current == "conversations_screen":
+            if self.include_conversations and not self.include_objects:        self.quit_action(self)
+            else:                                                              self.conversations_action(direction="right")
+        elif self.root.ids.screen_manager.current == "hardware_rnode_screen":  self.close_sub_hardware_action()
+        elif self.root.ids.screen_manager.current == "hardware_modem_screen":  self.close_sub_hardware_action()
+        elif self.root.ids.screen_manager.current == "hardware_serial_screen": self.close_sub_hardware_action()
+        elif self.root.ids.screen_manager.current == "map_settings_screen":    self.close_sub_map_action()
+        elif self.root.ids.screen_manager.current == "object_details_screen":  self.object_details_screen.close_action()
+        elif self.root.ids.screen_manager.current == "sensors_screen":         self.close_sub_telemetry_action()
+        elif self.root.ids.screen_manager.current == "icons_screen":           self.close_sub_telemetry_action()
+        elif self.root.ids.screen_manager.current == "utilities_screen":       self.close_any_action()
+        elif self.root.ids.screen_manager.current == "rnstatus_screen":        self.utilities_screen.close_rnstatus_action()
+        elif self.root.ids.screen_manager.current == "logviewer_screen":       self.close_sub_utilities_action()
+        elif self.root.ids.screen_manager.current == "advanced_screen":        self.close_sub_utilities_action()
+        elif self.root.ids.screen_manager.current == "voice_settings_screen":  self.close_sub_voice_action()
+        else:                                                                  self.close_any_action()
+
     def keyup_event(self, instance, keyboard, keycode):
         if self.keyboard_enabled:
             if self.root.ids.screen_manager.current == "messages_screen":
@@ -1490,25 +1508,8 @@ class SidebandApp(MDApp):
                     if text == "q":
                         self.quit_action(self)
                     
-                    if text == "w":
-                        if self.root.ids.screen_manager.current == "conversations_screen":
-                            if self.include_conversations and not self.include_objects:
-                                self.quit_action(self)
-                            else:
-                                self.conversations_action(direction="right")
-                        elif self.root.ids.screen_manager.current == "map_settings_screen":
-                            self.close_sub_map_action()
-                        elif self.root.ids.screen_manager.current == "object_details_screen":
-                            self.object_details_screen.close_action()
-                        elif self.root.ids.screen_manager.current == "sensors_screen":
-                            self.close_sub_telemetry_action()
-                        elif self.root.ids.screen_manager.current == "icons_screen":
-                            self.close_sub_telemetry_action()
-                        elif self.root.ids.screen_manager.current == "utilities_screen":
-                            self.close_sub_utilities_action()
-                        else:
-                            self.open_conversations(direction="right")
-                    
+                    if text == "w": self.close_handler()
+
                     if text == "s" or text == "d":
                         if self.root.ids.screen_manager.current == "messages_screen":
                             self.message_send_action()
@@ -1594,38 +1595,12 @@ class SidebandApp(MDApp):
             # Handle escape/back
             if key == 27:
                 if self.root.ids.screen_manager.current == "conversations_screen":
-                    if not self.include_conversations and self.include_objects:
-                        self.conversations_action(direction="right")
+                    if not self.include_conversations and self.include_objects: self.conversations_action(direction="right")
                     else:
-                        if time.time() - self.last_exit_event < 2:
-                            self.quit_action(self)
-                        else:
-                            self.last_exit_event = time.time()
+                        if time.time() - self.last_exit_event < 2: self.quit_action(self)
+                        else: self.last_exit_event = time.time()
 
-                else:
-                    if self.root.ids.screen_manager.current == "hardware_rnode_screen":
-                        self.close_sub_hardware_action()
-                    elif self.root.ids.screen_manager.current == "hardware_modem_screen":
-                        self.close_sub_hardware_action()
-                    elif self.root.ids.screen_manager.current == "hardware_serial_screen":
-                        self.close_sub_hardware_action()
-                    elif self.root.ids.screen_manager.current == "object_details_screen":
-                        self.object_details_screen.close_action()
-                    elif self.root.ids.screen_manager.current == "map_settings_screen":
-                        self.close_sub_map_action()
-                    elif self.root.ids.screen_manager.current == "sensors_screen":
-                        self.close_sub_telemetry_action()
-                    elif self.root.ids.screen_manager.current == "icons_screen":
-                        self.close_sub_telemetry_action()
-                    elif self.root.ids.screen_manager.current == "rnstatus_screen":
-                        self.close_sub_utilities_action()
-                    elif self.root.ids.screen_manager.current == "logviewer_screen":
-                        self.close_sub_utilities_action()
-                    elif self.root.ids.screen_manager.current == "voice_settings_screen":
-                        self.close_sub_voice_action()
-                    else:
-                        self.open_conversations(direction="right")
-
+                else: self.close_handler()
                 return True
 
     def widget_hide(self, w, hide=True):
@@ -2782,20 +2757,17 @@ class SidebandApp(MDApp):
             dialog = MDDialog(
                 title="Connectivity Status",
                 text=str(self.get_connectivity_text()),
-                buttons=[full_button, yes_button],
-                # elevation=0,
-            )
-            def cs_updater(dt):
-                dialog.text = str(self.get_connectivity_text())
+                buttons=[full_button, yes_button])
+            def cs_updater(dt): dialog.text = str(self.get_connectivity_text())
+            
             def dl_yes(s):
                 dialog.dismiss()
-                if self.connectivity_updater != None:
-                    self.connectivity_updater.cancel()
+                if self.connectivity_updater != None: self.connectivity_updater.cancel()
+            
             def cb_rns(sender):
                 dialog.dismiss()
-                if self.connectivity_updater != None:
-                    self.connectivity_updater.cancel()
-                self.rnstatus_action()
+                if self.connectivity_updater != None: self.connectivity_updater.cancel()
+                self.rnstatus_action(from_conversations=True)
 
             yes_button.bind(on_release=dl_yes)
             full_button.bind(on_release=cb_rns)
@@ -2807,12 +2779,11 @@ class SidebandApp(MDApp):
             self.connectivity_updater = Clock.schedule_interval(cs_updater, 2.0)
 
         else:
-            self.rnstatus_action()
+            self.rnstatus_action(from_conversations=True)
 
-    def rnstatus_action(self, sender=None):
-        if not self.utilities_ready:
-            self.utilities_init()
-        self.utilities_screen.rnstatus_action()
+    def rnstatus_action(self, sender=None, from_conversations=False):
+        if not self.utilities_ready: self.utilities_init()
+        self.utilities_screen.rnstatus_action(from_conversations=from_conversations)
 
     def ingest_lxm_action(self, sender):
         def cb(dt):

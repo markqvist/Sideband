@@ -81,13 +81,14 @@ class Utilities():
     ### rnstatus screen
     ######################################
 
-    def rnstatus_action(self, sender=None):
+    def rnstatus_action(self, sender=None, from_conversations=False):
         if not self.app.root.ids.screen_manager.has_screen("rnstatus_screen"):
             self.rnstatus_screen = Builder.load_string(layout_rnstatus_screen)
             self.rnstatus_screen.app = self.app
             self.rnstatus_screen.delegate = self
             self.app.root.ids.screen_manager.add_widget(self.rnstatus_screen)
 
+        self.rnstatus_screen.from_conversations = from_conversations
         self.app.root.ids.screen_manager.transition.direction = "left"
         self.app.root.ids.screen_manager.current = "rnstatus_screen"
         self.app.sideband.setstate("app.displaying", self.app.root.ids.screen_manager.current)
@@ -96,6 +97,10 @@ class Utilities():
 
     def update_rnstatus(self, sender=None):
         threading.Thread(target=self.update_rnstatus_job, daemon=True).start()
+
+    def close_rnstatus_action(self, sender=None):
+        if not self.rnstatus_screen.from_conversations: self.app.close_sub_utilities_action()
+        else: self.app.close_any_action()
 
     def update_rnstatus_job(self, sender=None):
         if self.rnstatus_instance == None:
@@ -319,7 +324,7 @@ MDScreen:
             right_action_items:
                 [
                 # ['refresh', lambda x: root.delegate.update_rnstatus()],
-                ['close', lambda x: root.app.close_sub_utilities_action(self)],
+                ['close', lambda x: root.delegate.close_rnstatus_action(self)],
                 ]
 
         MDScrollView:
