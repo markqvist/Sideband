@@ -46,28 +46,31 @@ After the application is installed on your Android device, it is also possible t
 
 ## On Linux
 
-On all Linux-based operating systems, Sideband is available as a `pipx`/`pip` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers. Below are install steps for the most common recent Linux distros. For Debian 11, see the end of this section.
+On all Linux-based operating systems, Sideband is available as a `pip`/`pipx` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers. Below are install steps for the most common recent Linux distros. For Debian 11, see the end of this section.
 
 #### Basic Installation
 You will first need to install a few dependencies for voice calls, audio messaging and Codec2 support to work:
 
 ```bash
+# For Debian (13+) and derivatives
+sudo apt install python3-pyaudio codec2 xclip xsel
+
 # For Debian (12+), Ubuntu (22.04+) and derivatives
-sudo apt install pipx python3-pyaudio python3-dev build-essential libopusfile0 portaudio19-dev codec2 xclip xsel
+sudo apt install python3-pyaudio python3-dev build-essential libopusfile0 portaudio19-dev codec2 xclip xsel
 
 # For Manjaro and derivatives
-pamac install python-pipx python-pyaudio base-devel codec2 xclip xsel
+pamac install python-pyaudio codec2 xclip xsel
 
 # For Arch and derivatives
-sudo pacman -Sy python-pipx python-pyaudio base-devel codec2 xclip xsel
+sudo pacman -Sy python-pyaudio codec2 xclip xsel
 
 ```
 
 Once those are installed, install the Sideband application itself:
 
 ```bash
-# Finally, install Sideband using pipx:
-pipx install sbapp
+# Finally, install Sideband using pip:
+pip install sbapp --break-system-packages
 ```
 
 After installation, you can now run Sideband in a number of different ways:
@@ -106,11 +109,8 @@ If you do not already have Reticulum connectivity set up on your computer or loc
 You can also install Sideband in various alternative ways:
 
 ```bash
-# Install Sideband via pip instead of pipx:
-pip install sbapp
-
-# Or, if pip is externally managed:
-pip install sbapp --break-system-packages
+# Install Sideband via pipx instead of pip:
+pipx install sbapp
 
 # Or, if you intend to run Sideband in headless
 # daemon mode, you can also install it without
