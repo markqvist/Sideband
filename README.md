@@ -52,10 +52,10 @@ On all Linux-based operating systems, Sideband is available as a `pip`/`pipx` pa
 You will first need to install a few dependencies for voice calls, audio messaging and Codec2 support to work:
 
 ```bash
-# For Debian (13+) and derivatives
+# For Debian 13+, Ubuntu 24.04+ and derivatives
 sudo apt install python3-pyaudio codec2 xclip xsel
 
-# For Debian (12+), Ubuntu (22.04+) and derivatives
+# For Debian 12+, Ubuntu 22.04+ and derivatives
 sudo apt install python3-pyaudio python3-dev build-essential libopusfile0 portaudio19-dev codec2 xclip xsel
 
 # For Manjaro and derivatives
