@@ -1467,15 +1467,12 @@ class SidebandApp(MDApp):
                     if not self.messages_view.ids.message_text.focus:
                         self.messages_view.ids.message_text.write_tab = False
                         self.messages_view.ids.message_text.focus = True
-                        def tab_job(delta):
-                            self.messages_view.ids.message_text.write_tab = True
+                        def tab_job(delta): self.messages_view.ids.message_text.write_tab = True
                         Clock.schedule_once(tab_job, 0.15)
 
                 elif len(modifiers) == 0 and self.rec_dialog != None and self.rec_dialog_is_open:
-                        if text == " ":
-                            self.msg_rec_a_rec(None)
-                        elif keycode == 40:
-                            self.msg_rec_a_save(None)
+                        if text == " ":     self.msg_rec_a_rec(None)
+                        elif keycode == 40: self.msg_rec_a_save(None)
 
                 elif len(modifiers) == 0 and not self.rec_dialog_is_open and not self.messages_view.ids.message_text.focus and self.messages_view.ptt_enabled and keycode == 44:
                     if not self.key_ptt_down:
@@ -1488,12 +1485,9 @@ class SidebandApp(MDApp):
                             self.attach_path = None
                             self.attach_type = None
                             self.update_message_widgets()
-                    if text == "a":
-                        clear_att(); self.message_attachment_action(None)
-                    if text == "i":
-                        clear_att(); self.message_attach_action(attach_type="defimg")
-                    if text == "f":
-                        clear_att(); self.message_attach_action(attach_type="file")
+                    if text == "a": clear_att(); self.message_attachment_action(None)
+                    if text == "i": clear_att(); self.message_attach_action(attach_type="defimg")
+                    if text == "f": clear_att(); self.message_attach_action(attach_type="file")
                     if text == "v":
                         clear_att()
                         self.audio_msg_mode = LXMF.AM_OPUS_OGG
