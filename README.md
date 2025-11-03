@@ -53,10 +53,10 @@ You will first need to install a few dependencies for voice calls, audio messagi
 
 ```bash
 # For Debian 13+, Ubuntu 24.04+ and derivatives
-sudo apt install python3-pyaudio codec2 xclip xsel
+sudo apt install python3-pip python3-pyaudio libopusfile0 codec2 xclip xsel
 
 # For Debian 12+, Ubuntu 22.04+ and derivatives
-sudo apt install python3-pyaudio python3-dev build-essential libopusfile0 portaudio19-dev codec2 xclip xsel
+sudo apt install python3-pip python3-pyaudio python3-dev build-essential libopusfile0 portaudio19-dev codec2 xclip xsel
 
 # For Manjaro and derivatives
 pamac install python-pyaudio codec2 xclip xsel
@@ -71,17 +71,16 @@ Once those are installed, install the Sideband application itself:
 ```bash
 # Finally, install Sideband using pip:
 pip install sbapp --break-system-packages
+
+# If Sideband does not show up in your application menu
+# or as an executable command in your terminal, reboot
+# your computer.
+sudo reboot
 ```
 
 After installation, you can now run Sideband in a number of different ways:
 
 ```bash
-# If this is the first time installing something with pipx,
-# you may need to use the following command, to make your
-# installed applications available. You'll probably need
-# to close and reopen your terminal after this.
-pipx ensurepath
-
 # The first time you run Sideband, you will need to do it
 # from the terminal, for the application launcher item to
 # show up. On some distros you may also need to log out
