@@ -292,6 +292,8 @@ class SidebandCore():
                 try:
                     self.__load_config()
                 except Exception as e:
+                    RNS.log(f"An error occurred while loading existing Sideband configuration: {e}", RNS.LOG_ERROR)
+                    RNS.trace_exception(e)
                     self.__init_config()
                     self.__load_config()
                 self.first_run = False
@@ -308,7 +310,8 @@ class SidebandCore():
                 self.clear_exports_dir()
                 
         except Exception as e:
-            RNS.log("Error while configuring Sideband: "+str(e), RNS.LOG_ERROR)
+            RNS.log(f"Error while configuring Sideband: {e}", RNS.LOG_ERROR)
+            RNS.trace_exception(e)
 
         if load_config_only:
             return
@@ -541,6 +544,8 @@ class SidebandCore():
         self.config["telemetry_icon"] = SidebandCore.DEFAULT_APPEARANCE[0]
         self.config["telemetry_send_to_trusted"] = False
         self.config["telemetry_send_to_collector"] = False
+        self.config["telemetry_allow_requests_from_anyone"] = False
+        self.config["telemetry_allow_requests_from_trusted"] = False
 
         # Voice
         self.config["voice_enabled"] = False
@@ -556,7 +561,7 @@ class SidebandCore():
             self._db_inittelemetry()
             self._db_upgradetables()
 
-        self.__save_config()
+        self.__save_config(no_thread=True)
 
     def clear_map_cache(self):
         for entry in os.scandir(self.map_cache):
@@ -929,7 +934,7 @@ class SidebandCore():
             RNS.log("Error while reloading configuration: "+str(e), RNS.LOG_ERROR)
             RNS.trace_exception(e)
 
-    def __save_config(self):
+    def __save_config(self, no_thread=False):
         RNS.log("Saving Sideband configuration...", RNS.LOG_DEBUG)
         def save_function():
             while self.saving_configuration:
@@ -943,7 +948,8 @@ class SidebandCore():
                 self.saving_configuration = False
                 RNS.log("Error while saving Sideband configuration: "+str(e), RNS.LOG_ERROR)
 
-        threading.Thread(target=save_function, daemon=True).start()
+        if no_thread: save_function()
+        else:         threading.Thread(target=save_function, daemon=True).start()
 
         if self.is_client:
             self.setstate("wants.settings_reload", True)
