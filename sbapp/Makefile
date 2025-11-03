@@ -66,8 +66,8 @@ fetchshare:
 	-(rm ./share/mirrors/* -r)
 	cp ../../dist_archive/rns-1.0.1-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/rnspure-1.0.1-py3-none-any.whl ./share/pkg/
-	cp ../../dist_archive/lxmf-0.9.0-py3-none-any.whl ./share/pkg/
-	cp ../../dist_archive/nomadnet-0.9.0-py3-none-any.whl ./share/pkg/
+	cp ../../dist_archive/lxmf-0.9.1-py3-none-any.whl ./share/pkg/
+	cp ../../dist_archive/nomadnet-0.9.1-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/rnsh-0.1.7-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/RNode_Firmware_*_Source.zip ./share/pkg/
 	zip --junk-paths ./share/pkg/example_plugins.zip ../docs/example_plugins/*.py
