@@ -29,13 +29,51 @@ import RNS.vendor.umsgpack as msgpack
 
 WINDOW_DEFAULT_WIDTH  = 494
 WINDOW_DEFAULT_HEIGHT = 800
+WINDOW_HEIGHT_MARGIN  = 0
 
-app_ui_scaling_path = None
+WINDOW_MIN_WIDTH      = 415
+WINDOW_MIN_HEIGHT     = 550
+
+app_ui_scaling_path   = None
+app_ui_wcfg_path      = None
+app_ui_window_config  = None
+app_ui_dsp_width      = None
+app_ui_dsp_height     = None
+app_init_window_state = "normal"
+
+def get_display_res():
+    global app_ui_dsp_width, app_ui_dsp_height
+    if not RNS.vendor.platformutils.is_linux(): return None, None
+    else:
+        try:
+            import subprocess
+            cmd_xrandr = subprocess.Popen(['xrandr'], stdout=subprocess.PIPE)
+            cmd_grep   = subprocess.Popen(['grep', '*'], stdin=cmd_xrandr.stdout, stdout=subprocess.PIPE)
+            cmd_xrandr.stdout.close(); res_bytes, _ = cmd_grep.communicate()
+            resolution        = res_bytes.split()[0]
+            width, height     = resolution.split(b'x')
+            app_ui_dsp_width  = int(width)
+            app_ui_dsp_height = int(height)
+            return app_ui_dsp_width, app_ui_dsp_height
+        except Exception as e:
+            RNS.log(f"Could not get display resolution: {e}", RNS.LOG_WARNING)
+            RNS.trace_exception(e)
+            return None, None
+
+
 def apply_ui_scale():
     global app_ui_scaling_path
+    global app_ui_wcfg_path
+    global app_ui_window_config
     default_scale = os.environ["KIVY_METRICS_DENSITY"] if "KIVY_METRICS_DENSITY" in os.environ else "unknown"
-    config_path = None
+    config_path   = None
     ui_scale_path = None
+    ui_wcfg_path  = None
+    res_ident     = ""
+    dsp_width, dsp_height = get_display_res()
+    if dsp_width and dsp_height:
+        RNS.log(f"Got display res: {dsp_width}x{dsp_height}", RNS.LOG_DEBUG)
+        res_ident = f"_{dsp_width}_{dsp_height}"
     
     try:
         if RNS.vendor.platformutils.is_android():
@@ -50,7 +88,12 @@ def apply_ui_scale():
             else:
                 ui_scale_path = config_path+"/app_storage/ui_scale"
 
+        if ui_scale_path:
+            ui_scale_path   = f"{ui_scale_path}{res_ident}"
+            ui_wcfg_path    = f"{ui_scale_path}_windowcfg"
+        
         app_ui_scaling_path = ui_scale_path
+        app_ui_wcfg_path    = ui_wcfg_path
     
     except Exception as e:
         RNS.log(f"Error while locating UI scale file: {e}", RNS.LOG_ERROR)
@@ -58,11 +101,10 @@ def apply_ui_scale():
     if ui_scale_path != None:
         RNS.log("Default scaling factor on this platform is "+str(default_scale), RNS.LOG_NOTICE)
         try:
-            RNS.log("Looking for scaling info in "+str(ui_scale_path))
+            RNS.log("Looking for scaling info in "+str(ui_scale_path), RNS.LOG_NOTICE)
             if os.path.isfile(ui_scale_path):
                 scale_factor = None
-                with open(ui_scale_path, "r") as sf:
-                    scale_factor = float(sf.readline())
+                with open(ui_scale_path, "r") as sf: scale_factor = float(sf.readline())
 
                 if scale_factor != None:
                     if scale_factor >= 0.3 and scale_factor <= 5.0:
@@ -74,6 +116,22 @@ def apply_ui_scale():
 
         except Exception as e:
             RNS.log(f"Error while reading UI scaling factor: {e}", RNS.LOG_ERROR)
+
+    if ui_scale_path != None:
+        try:
+            RNS.log("Looking for saved window configuration in "+str(ui_wcfg_path), RNS.LOG_NOTICE)
+            if os.path.isfile(ui_wcfg_path):
+                scale_factor = None
+                with open(ui_wcfg_path, "r") as sf: window_config = sf.readline().split()
+
+                if window_config != None:
+                    RNS.log(f"READ SAVED WINDOW CONFIGURATION: {window_config}")
+                    if type(window_config) == list and len(window_config) == 5:
+                        app_ui_window_config = window_config
+
+
+        except Exception as e:
+            RNS.log(f"Error while reading saved window configuration: {e}", RNS.LOG_ERROR)
 
 if args.export_settings:
     from .sideband.core import SidebandCore
@@ -200,33 +258,85 @@ else:
     apply_ui_scale()
 
     if not RNS.vendor.platformutils.is_android():
-        scaling_factor = 1.0
+        # Set default scaling factor and position
+        scaling_factor   = 1.0
+        window_target_x  = None
+        window_target_y  = None
+        window_state     = "normal"
+
+        # Attempt to read configured scaling factor
+        # from environment variable
         if not RNS.vendor.platformutils.is_windows() and not RNS.vendor.platformutils.is_darwin():
             try: scaling_factor = float(os.environ["KIVY_METRICS_DENSITY"])
             except Exception as e: pass
 
+        # Bound scaling factor to reasonable values
         if scaling_factor < 0.75: scaling_factor = 0.75
         if scaling_factor > 2:    scaling_factor = 2
-        
-        model = None
-        max_width = WINDOW_DEFAULT_WIDTH*scaling_factor
-        max_height = WINDOW_DEFAULT_HEIGHT*scaling_factor
 
+        # Get reasonable maximum window bounds
+        if app_ui_dsp_width and app_ui_dsp_height:
+            # Use display resolution if available
+            max_width = app_ui_dsp_width
+            max_height = app_ui_dsp_height-WINDOW_HEIGHT_MARGIN
+        else:
+            # Assume bounds from default size * scaling
+            max_width = WINDOW_DEFAULT_WIDTH*scaling_factor
+            max_height = WINDOW_DEFAULT_HEIGHT*scaling_factor
+
+        # Try to find device model to apply reasonable
+        # bounds on window sizes
+        model = None
         try:
             if os.path.isfile("/sys/firmware/devicetree/base/model"):
                 with open("/sys/firmware/devicetree/base/model", "r") as mf:
                     model = mf.read()
         except: pass
 
+        # Apply window sizing based on model
         if model:
-            if model.startswith("Raspberry Pi "): max_height = 625
+            # Decrease default height for Raspberry Pi
+            # if screen resolution is unavailable, to
+            # avoid overflow on small screens
+            if model.startswith("Raspberry Pi ") and not app_ui_dsp_height: max_height = 625
 
-        window_width = int(min(WINDOW_DEFAULT_WIDTH*scaling_factor, max_width))
-        window_height = int(min(WINDOW_DEFAULT_HEIGHT*scaling_factor, max_height))
+        # Initialize size to defaults
+        window_width_target  = int(WINDOW_DEFAULT_WIDTH)
+        window_height_target = int(WINDOW_DEFAULT_HEIGHT)
+
+        # But use saved window configuration if possible
+        if type(app_ui_window_config) == list and len(app_ui_window_config) == 5:
+            RNS.log(f"USING SAVED WINDOW CONFIGURATION: {app_ui_window_config}", RNS.LOG_NOTICE)
+            window_width_target  = int(app_ui_window_config[0])
+            window_height_target = int(app_ui_window_config[1])
+            window_target_x      = int(app_ui_window_config[2])
+            window_target_y      = int(app_ui_window_config[3])
+            window_state         = app_ui_window_config[4]
+            
+            if not window_state in ["maximized", "minimized", "normal"]: window_state = "normal"
+            if window_target_x < 0: window_target_x = 0
+            if window_target_y < 0: window_target_y = 0
+
+        # Calculate final window size
+        window_width  = int(max(min(window_width_target,  max_width),  WINDOW_MIN_WIDTH))
+        window_height = int(max(min(window_height_target, max_height), WINDOW_MIN_HEIGHT))
+
+        if app_ui_dsp_width and app_ui_dsp_height and window_target_x and window_target_y:
+            if window_target_x > (app_ui_dsp_width  - window_width):  window_target_x = app_ui_dsp_width  - window_width
+            if window_target_y > (app_ui_dsp_height - window_height): window_target_y = app_ui_dsp_height - window_height
 
         from kivy.config import Config
         Config.set("graphics", "width", str(window_width))
         Config.set("graphics", "height", str(window_height))
+        
+        if window_target_x and window_target_y:
+            Config.set('graphics', 'position', 'custom')
+            Config.set("graphics", "left", str(window_target_x))
+            Config.set("graphics", "top", str(window_target_y))
+
+        if window_state == "maximized":
+            Config.set("graphics", "window_state", "maximized")
+            app_init_window_state = window_state
 
     from kivymd.app import MDApp
     app_superclass = MDApp
@@ -410,6 +520,7 @@ class SidebandApp(MDApp):
         self.key_ptt_down = False
 
         Window.softinput_mode = "below_target"
+        self.window_state = app_init_window_state
         self.icon = self.sideband.asset_dir+"/icon.png"
         self.notification_icon = self.sideband.asset_dir+"/notification_icon.png"
 
@@ -709,6 +820,18 @@ class SidebandApp(MDApp):
         self.apply_eink_mods()
         self.set_bars_colors()
 
+    def save_window_config(self):
+        try:
+            if not RNS.vendor.platformutils.is_android():
+                wcfg = f"{Window.width} {Window.height} {Window.left} {Window.top} {self.window_state}"
+                if app_ui_wcfg_path == None: RNS.log("No path to UI window config file could be found, cannot save window config", RNS.LOG_ERROR)
+                else:
+                    try:
+                        with open(app_ui_wcfg_path, "w") as sfile: sfile.write(str(wcfg))
+                        RNS.log(f"Saved window config to {app_ui_wcfg_path}", RNS.LOG_DEBUG)
+                    except Exception as e: RNS.log(f"Error while saving window config to {app_ui_wcfg_path}: {e}", RNS.LOG_ERROR)
+        except Exception as e: RNS.log("Error while saving window configuration: {e}", RNS.LOG_ERROR)
+
     def update_ui_theme(self):
         if self.sideband.config["dark_ui"]:
             self.theme_cls.theme_style = "Dark"
@@ -877,11 +1000,15 @@ class SidebandApp(MDApp):
         self.app_state = SidebandApp.STOPPING
         RNS.log("App stopped", RNS.LOG_DEBUG)
 
+    def on_maximize(self, sender): self.window_state = "maximized"
+
+    def on_minimize(self, sender): self.window_state = "minimized"
+
+    def on_restore(self, sender): self.window_state = "normal"
+
     def is_in_foreground(self):
-        if self.app_state == SidebandApp.ACTIVE:
-            return True
-        else:
-            return False
+        if self.app_state == SidebandApp.ACTIVE: return True
+        else:                                    return False
 
     def perform_paused_check(self, delta_time):
         # This workaround mitigates yet another bug in Kivy
@@ -1399,6 +1526,10 @@ class SidebandApp(MDApp):
         EventLoop.window.bind(on_key_up=self.keyup_event)
         Window.bind(on_request_close=self.close_requested)
         Window.bind(on_drop_file=self.file_dropped)
+
+        Window.bind(on_maximize=self.on_maximize)
+        Window.bind(on_minimize=self.on_minimize)
+        Window.bind(on_restore=self.on_restore)
 
         if __variant__ != "":
             variant_str = " "+__variant__
