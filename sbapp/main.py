@@ -133,6 +133,36 @@ def apply_ui_scale():
         except Exception as e:
             RNS.log(f"Error while reading saved window configuration: {e}", RNS.LOG_ERROR)
 
+###################################################
+# Kivy/SDL2 run-time patch to fix horribly slow
+# window resize updates on Linux. For more info:
+# https://github.com/kivy/kivy/issues/9106
+#
+_sdl2_window_event_filter_original = None
+_sdl2_window_event_filter_instance = None
+def _sdl2_window_event_filter_proxy(action, *largs):
+    global _sdl2_window_event_filter_original
+    global _sdl2_window_event_filter_instance
+    if not action == 'windowresized': return _sdl2_window_event_filter_original(action, *largs)
+    else:
+        _sdl2_window_event_filter_instance._size = largs
+        _sdl2_window_event_filter_instance._win.resize_window(*_sdl2_window_event_filter_instance._size)
+        # The only change this patched method makes is to
+        # remove the offending "EventLoop.idle()" statement
+        # EventLoop.idle()
+        return 0
+
+def patch_sdl_window_events(patch_target):
+    if RNS.vendor.platformutils.is_linux():
+        global _sdl2_window_event_filter_original
+        global _sdl2_window_event_filter_instance
+        _sdl2_window_event_filter_original = patch_target._event_filter
+        _sdl2_window_event_filter_instance = patch_target
+        patch_target._event_filter = _sdl2_window_event_filter_proxy
+        patch_target._win.set_event_filter(patch_target._event_filter)
+#
+# End of Kivy/SDL2 patch ##########################
+
 if args.export_settings:
     from .sideband.core import SidebandCore
     sideband = SidebandCore(
@@ -1530,6 +1560,8 @@ class SidebandApp(MDApp):
         Window.bind(on_maximize=self.on_maximize)
         Window.bind(on_minimize=self.on_minimize)
         Window.bind(on_restore=self.on_restore)
+
+        patch_sdl_window_events(Window)
 
         if __variant__ != "":
             variant_str = " "+__variant__
