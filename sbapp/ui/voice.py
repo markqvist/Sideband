@@ -202,8 +202,10 @@ class Voice():
     def update_settings_screen(self, sender=None):
         self.voice_settings_screen.ids.voice_trusted_only.active = self.app.sideband.config["voice_trusted_only"]
         self.voice_settings_screen.ids.voice_trusted_only.bind(active=self.settings_save_action)
+        self.voice_settings_screen.ids.voice_low_latency.active = self.app.sideband.config["voice_low_latency"]
+        self.voice_settings_screen.ids.voice_low_latency.bind(active=self.settings_save_action)
 
-        bp = 6; ml = 45; fs = 16; ics = 14
+        bp = 6; ml = 38; fs = 16; ics = 14
         self.update_devices()
 
         # Output devices
@@ -216,7 +218,8 @@ class Voice():
 
         for device in self.output_devices:
             if not device in self.listed_output_devices:
-                label = device if len(device) < ml else device[:ml-3]+"..."
+                device_str = device.replace("[", "").replace("]", "")
+                label = device_str if len(device_str) < ml else device_str[:ml-3]+"..."
                 device_button = MDRectangleFlatIconButton(text=label, font_size=dp(fs), icon_size=dp(ics), on_release=self.output_device_action)
                 device_button.padding = [dp(bp), dp(bp), dp(bp), dp(bp)]; device_button.size_hint = [1.0, None]
                 if self.app.sideband.config["voice_output"] == device: device_button.icon = "check"
@@ -234,7 +237,8 @@ class Voice():
 
         for device in self.input_devices:
             if not device in self.listed_input_devices:
-                label = device if len(device) < ml else device[:ml-3]+"..."
+                device_str = device.replace("[", "").replace("]", "")
+                label = device_str if len(device_str) < ml else device_str[:ml-3]+"..."
                 device_button = MDRectangleFlatIconButton(text=label, font_size=dp(fs), icon_size=dp(ics), on_release=self.input_device_action)
                 device_button.padding = [dp(bp), dp(bp), dp(bp), dp(bp)]; device_button.size_hint = [1.0, None]
                 if self.app.sideband.config["voice_input"] == device: device_button.icon = "check"
@@ -252,7 +256,8 @@ class Voice():
 
         for device in self.output_devices:
             if not device in self.listed_ringer_devices:
-                label = device if len(device) < ml else device[:ml-3]+"..."
+                device_str = device.replace("[", "").replace("]", "")
+                label = device_str if len(device_str) < ml else device_str[:ml-3]+"..."
                 device_button = MDRectangleFlatIconButton(text=label, font_size=dp(fs), icon_size=dp(ics), on_release=self.ringer_device_action)
                 device_button.padding = [dp(bp), dp(bp), dp(bp), dp(bp)]; device_button.size_hint = [1.0, None]
                 if self.app.sideband.config["voice_ringer"] == device: device_button.icon = "check"
@@ -262,7 +267,10 @@ class Voice():
 
     def settings_save_action(self, sender=None, event=None):
         self.app.sideband.config["voice_trusted_only"] = self.voice_settings_screen.ids.voice_trusted_only.active
+        self.app.sideband.config["voice_low_latency"]  = self.voice_settings_screen.ids.voice_low_latency.active
         self.app.sideband.save_configuration()
+        if self.app.sideband.telephone:
+            self.app.sideband.telephone.set_low_latency_output(self.app.sideband.config["voice_low_latency"])
 
     def output_device_action(self, sender=None):
         self.app.sideband.config["voice_output"] = sender.device
@@ -412,6 +420,21 @@ MDScreen:
 
                     MDSwitch:
                         id: voice_trusted_only
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: [0,0,dp(24),0]
+                    size_hint_y: None
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Low-latency output"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: voice_low_latency
                         pos_hint: {"center_y": 0.3}
                         active: False
 

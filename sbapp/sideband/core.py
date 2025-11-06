@@ -906,6 +906,8 @@ class SidebandCore():
             self.config["voice_ringer"] = None
         if not "voice_trusted_only" in self.config:
             self.config["voice_trusted_only"] = False
+        if not "voice_low_latency" in self.config:
+            self.config["voice_low_latency"] = False
 
         # Make sure we have a database
         if not os.path.isfile(self.db_path):
@@ -2147,6 +2149,7 @@ class SidebandCore():
                                 elif "telephone_set_speaker" in call: connection.send(self.telephone.set_speaker(call["telephone_set_speaker"])) if self.telephone else False
                                 elif "telephone_set_microphone" in call: connection.send(self.telephone.set_microphone(call["telephone_set_microphone"])) if self.telephone else False
                                 elif "telephone_set_ringer" in call: connection.send(self.telephone.set_ringer(call["telephone_set_ringer"])) if self.telephone else False
+                                elif "telephone_set_low_latency_output" in call: connection.send(self.telephone.set_low_latency_output(call["telephone_set_low_latency_output"])) if self.telephone else False
                                 else:
                                     connection.send(None)
 
@@ -5517,6 +5520,7 @@ class SidebandCore():
                 self.telephone = ReticulumTelephone(self.identity, owner=self, speaker=self.config["voice_output"], microphone=self.config["voice_input"], ringer=self.config["voice_ringer"])
                 ringtone_path = os.path.join(self.asset_dir, "audio", "notifications", "soft1.opus")
                 self.telephone.set_ringtone(ringtone_path)
+                self.telephone.set_low_latency_output(self.config["voice_low_latency"])
                 return True
 
         except Exception as e:

@@ -111,6 +111,7 @@ class ReticulumTelephone():
     def hangup(self): self.telephone.hangup()
     def answer(self): self.telephone.answer(self.caller)
     def set_busy(self, busy): self.telephone.set_busy(busy)
+    def set_low_latency_output(self, enabled): self.telephone.set_low_latency_output(enabled)
 
     def dial(self, identity_hash):
         self.last_dialled_identity_hash = identity_hash
@@ -200,3 +201,4 @@ class ReticulumTelephoneProxy():
     def set_speaker(self, speaker): return self.owner.service_rpc_request({"telephone_set_speaker": speaker })
     def set_microphone(self, microphone): return self.owner.service_rpc_request({"telephone_set_microphone": microphone })
     def set_ringer(self, ringer): return self.owner.service_rpc_request({"telephone_set_ringer": ringer })
+    def set_low_latency_output(self, enabled): return self.owner.service_rpc_request({"telephone_set_low_latency_output": enabled})
