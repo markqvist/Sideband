@@ -65,71 +65,83 @@ class SidebandService():
     }
     
     def android_notification(self, title="", content="", ticker="", group=None, context_id=None):
-        if android_api_version < 26:
-            return
-        else:
-            package_name = "io.unsigned.sideband"
-
-            if not self.notification_service:
-                self.notification_service = cast(NotificationManager, self.app_context.getSystemService(
-                    Context.NOTIFICATION_SERVICE
-                ))
-
-            channel_id = package_name
-            group_id = ""
-            if group != None:
-                channel_id += "."+str(group)
-                group_id += str(group)
-            if context_id != None:
-                channel_id += "."+str(context_id)
-                group_id += "."+str(context_id)
-
-            if not title or title == "":
-                channel_name = "Sideband"
+        try:
+            if android_api_version < 26: return
             else:
-                channel_name = title
+                package_name = "io.unsigned.sideband"
+                silent_contexts = ["incoming_call"]
 
-            self.notification_channel = NotificationChannel(channel_id, channel_name, NotificationManager.IMPORTANCE_DEFAULT)
-            self.notification_channel.enableVibration(True)
-            self.notification_channel.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), None)
-            self.notification_channel.setShowBadge(True)
-            self.notification_service.createNotificationChannel(self.notification_channel)
+                if not self.notification_service:
+                    self.notification_service = cast(NotificationManager, self.app_context.getSystemService(Context.NOTIFICATION_SERVICE))
 
-            notification = NotificationBuilder(self.app_context, channel_id)
-            notification.setContentTitle(title)
-            notification.setContentText(AndroidString(content))
-            notification.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-            
-            # if group != None:
-            #     notification.setGroup(group_id)
+                channel_id = package_name
+                group_id = ""
+                if group != None:
+                    channel_id += "."+str(group)
+                    group_id += str(group)
+                if context_id != None:
+                    channel_id += "."+str(context_id)
+                    group_id += "."+str(context_id)
 
-            if not self.notification_small_icon:
-                # path = self.sideband.notification_icon
-                path = self.sideband.notif_icon_black
-                bitmap = BitmapFactory.decodeFile(path)
-                self.notification_small_icon = Icon.createWithBitmap(bitmap)
+                if not title or title == "": channel_name = "Sideband"
+                else: channel_name = title
 
-            notification.setSmallIcon(self.notification_small_icon)
-            # notification.setLargeIcon(self.notification_small_icon)
+                if context_id in silent_contexts: silent = True
+                else:                             silent = False
 
-            # large_icon_path = self.sideband.icon
-            # bitmap_icon = BitmapFactory.decodeFile(large_icon_path)
-            # notification.setLargeIcon(bitmap_icon)
+                self.notification_channel = NotificationChannel(channel_id, channel_name, NotificationManager.IMPORTANCE_DEFAULT)
+                self.notification_channel.enableVibration(True)
+                if not silent: self.notification_channel.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), None)
+                else:          self.notification_channel.setSound(None, None)
+                self.notification_channel.setShowBadge(True)
+                self.notification_service.createNotificationChannel(self.notification_channel)
 
-            notification_intent = Intent(self.app_context, python_act)
-            notification_intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            notification_intent.setAction(Intent.ACTION_MAIN)
-            notification_intent.addCategory(Intent.CATEGORY_LAUNCHER)
-            if context_id != None:
-                cstr = f"conversation.{context_id}"
-                notification_intent.putExtra(JString("intent_action"), JString(cstr))
-            self.notification_intent = PendingIntent.getActivity(self.app_context, 0, notification_intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT)
+                notification = NotificationBuilder(self.app_context, channel_id)
+                notification.setContentTitle(title)
+                notification.setContentText(AndroidString(content))
+                
+                if not silent: notification.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                else:          notification.setSound(None, None)
+                
+                # if group != None:
+                #     notification.setGroup(group_id)
 
-            notification.setContentIntent(self.notification_intent)
-            notification.setAutoCancel(True)
+                if not self.notification_small_icon:
+                    # path = self.sideband.notification_icon
+                    path = self.sideband.notif_icon_black
+                    bitmap = BitmapFactory.decodeFile(path)
+                    self.notification_small_icon = Icon.createWithBitmap(bitmap)
 
-            built_notification = notification.build()
-            self.notification_service.notify(0, built_notification)
+                notification.setSmallIcon(self.notification_small_icon)
+                # notification.setLargeIcon(self.notification_small_icon)
+
+                # large_icon_path = self.sideband.icon
+                # bitmap_icon = BitmapFactory.decodeFile(large_icon_path)
+                # notification.setLargeIcon(bitmap_icon)
+
+                notification_intent = Intent(self.app_context, python_act)
+                notification_intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                notification_intent.setAction(Intent.ACTION_MAIN)
+                notification_intent.addCategory(Intent.CATEGORY_LAUNCHER)
+                if context_id != None:
+                    if context_id == "incoming_call":
+                        cstr = context_id
+                        notification_intent.putExtra(JString("intent_action"), JString(cstr))
+                    else:
+                        cstr = f"conversation.{context_id}"
+                        notification_intent.putExtra(JString("intent_action"), JString(cstr))
+                
+                self.notification_intent = PendingIntent.getActivity(self.app_context, 0, notification_intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT)
+
+                notification.setContentIntent(self.notification_intent)
+                notification.setAutoCancel(True)
+
+                built_notification = notification.build()
+                self.notification_service.notify(0, built_notification)
+
+        except Exception as e:
+            RNS.log(f"Error while creating notification: {e}", RNS.LOG_ERROR)
+            RNS.trace_exception(e)
 
     def check_permission(self, permission):
         if RNS.vendor.platformutils.is_android():

@@ -1274,8 +1274,11 @@ class SidebandApp(MDApp):
                     data = extras.getString("intent_action", "undefined")
                     if data.startswith("conversation."):
                         conv_hexhash = bytes.fromhex(data.replace("conversation.", ""))
-                        def cb(dt):
-                            self.open_conversation(conv_hexhash)
+                        def cb(dt): self.open_conversation(conv_hexhash)
+                        Clock.schedule_once(cb, 0.2)
+
+                    elif data.startswith("incoming_call"):
+                        def cb(dt): self.voice_action()
                         Clock.schedule_once(cb, 0.2)
 
             except Exception as e:
