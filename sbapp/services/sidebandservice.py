@@ -103,9 +103,6 @@ class SidebandService():
                 if not silent: notification.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
                 else:          notification.setSound(None, None)
                 
-                # if group != None:
-                #     notification.setGroup(group_id)
-
                 if not self.notification_small_icon:
                     # path = self.sideband.notification_icon
                     path = self.sideband.notif_icon_black
