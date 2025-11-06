@@ -123,7 +123,7 @@ setuptools.setup(
         "ffpyplayer",
         "sh",
         "numpy>=2.0.0",
-        "lxst>=0.3.0",
+        "lxst>=0.4.0",
         "mistune>=3.0.2",
         "beautifulsoup4",
         "pycodec2>=4.1.0;sys.platform!='Windows' and sys.platform!='win32' and sys.platform!='darwin'",
