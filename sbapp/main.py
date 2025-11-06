@@ -1831,6 +1831,25 @@ class SidebandApp(MDApp):
 
         Clock.schedule_once(final_exit, 0.85)
 
+    # def test_audio_action(self, sender=None):
+    #     if not hasattr(self, "audiotestrunning") or self.audiotestrunning == False:
+    #         RNS.log("LXST audio backend test starting", RNS.LOG_DEBUG)
+    #         self.audiotestrunning = True
+    #         import LXST
+    #         ringtone_path = os.path.join(self.sideband.asset_dir, "audio", "notifications", "soft1.opus")
+    #         target_frame_ms = 40
+    #         selected_source = LXST.Sources.OpusFileSource(ringtone_path, loop=True, target_frame_ms=target_frame_ms)
+    #         line_sink       = LXST.Sinks.LineSink()
+    #         loopback        = LXST.Sources.Loopback()
+    #         raw             = LXST.Codecs.Raw()
+    #         self.input_pipeline  = LXST.Pipeline(source=selected_source, codec=raw, sink=loopback)
+    #         self.output_pipeline = LXST.Pipeline(source=loopback, codec=raw, sink=line_sink)
+    #         self.input_pipeline.start(); self.output_pipeline.start()
+    #     else:
+    #         RNS.log("LXST audio backend test stopping", RNS.LOG_DEBUG)
+    #         self.input_pipeline.stop()
+    #         self.audiotestrunning = False
+
     def announce_now_action(self, sender=None):
         self.sideband.lxmf_announce()
         if self.sideband.telephone: self.sideband.telephone.announce()
@@ -3684,7 +3703,6 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.settings_voice_enabled.active = self.sideband.config["voice_enabled"]
             self.settings_screen.ids.settings_voice_enabled.bind(active=save_voice_enabled)
-            if RNS.vendor.platformutils.is_android(): self.settings_screen.ids.settings_voice_enabled.disabled = True
 
             self.settings_screen.ids.settings_debug.active = self.sideband.config["debug"]
             self.settings_screen.ids.settings_debug.bind(active=save_debug)
