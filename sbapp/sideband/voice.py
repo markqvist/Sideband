@@ -44,7 +44,7 @@ class ReticulumTelephone():
         self.aliases           = {}
         self.names             = {}
         
-        self.telephone  = Telephone(self.identity, ring_time=self.RING_TIME, wait_time=self.WAIT_TIME)
+        self.telephone = Telephone(self.identity, ring_time=self.RING_TIME, wait_time=self.WAIT_TIME)
         self.telephone.set_ringing_callback(self.ringing)
         self.telephone.set_established_callback(self.call_established)
         self.telephone.set_ended_callback(self.call_ended)
@@ -169,3 +169,34 @@ class ReticulumTelephone():
             return False
         else:
             return True
+
+class CallerProxy():
+    def __init__(self, hash=None):
+        self.hash = hash
+
+class ReticulumTelephoneProxy():
+    PATH_TIME = ReticulumTelephone.PATH_TIME
+    def __init__(self, owner=None): self.owner = owner
+
+    @property
+    def is_available(self): return self.owner.service_rpc_request({"telephone_is_available": True })
+
+    @property
+    def is_in_call(self): return self.owner.service_rpc_request({"telephone_is_in_call": True })
+
+    @property
+    def call_is_connecting(self): return self.owner.service_rpc_request({"telephone_call_is_connecting": True })
+
+    @property
+    def is_ringing(self): return self.owner.service_rpc_request({"telephone_is_ringing": True })
+
+    @property
+    def caller(self): return CallerProxy(hash=self.owner.service_rpc_request({"telephone_caller_info": True }))
+
+    def set_busy(self, busy): return self.owner.service_rpc_request({"telephone_set_busy": busy })
+    def dial(self, dial_target): return self.owner.service_rpc_request({"telephone_dial": dial_target })
+    def hangup(self): return self.owner.service_rpc_request({"telephone_hangup": True })
+    def answer(self): return self.owner.service_rpc_request({"telephone_answer": True })
+    def set_speaker(self, speaker): return self.owner.service_rpc_request({"telephone_set_speaker": speaker })
+    def set_microphone(self, microphone): return self.owner.service_rpc_request({"telephone_set_microphone": microphone })
+    def set_ringer(self, ringer): return self.owner.service_rpc_request({"telephone_set_ringer": ringer })

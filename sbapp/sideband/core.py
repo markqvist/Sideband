@@ -1767,6 +1767,9 @@ class SidebandCore():
     def gui_conversation(self):
         return self.getstate("app.active_conversation")
 
+    def service_voice_running(self):
+        return self.getstate("voice.running")
+
     def setstate(self, prop, val):
         with self.state_lock:
             if not self.service_stopped:
@@ -2083,16 +2086,6 @@ class SidebandCore():
                                 elif "set_ui_recording" in call:
                                     self.service_rpc_set_ui_recording(call["set_ui_recording"])
                                     connection.send(True)
-                                elif "get_plugins_info" in call:
-                                    connection.send(self._get_plugins_info())
-                                elif "get_destination_establishment_rate" in call:
-                                    connection.send(self._get_destination_establishment_rate(call["get_destination_establishment_rate"]))
-                                elif "get_destination_mtu" in call:
-                                    connection.send(self._get_destination_mtu(call["get_destination_mtu"]))
-                                elif "get_destination_edr" in call:
-                                    connection.send(self._get_destination_edr(call["get_destination_edr"]))
-                                elif "get_destination_lmd" in call:
-                                    connection.send(self._get_destination_lmd(call["get_destination_lmd"]))
                                 elif "send_message" in call:
                                     args = call["send_message"]
                                     send_result = self.send_message(
@@ -2128,25 +2121,32 @@ class SidebandCore():
                                         is_authorized_telemetry_request=args["is_authorized_telemetry_request"]
                                     )
                                     connection.send(send_result)
-                                elif "get_lxm_progress" in call:
-                                    args = call["get_lxm_progress"]
-                                    connection.send(self.get_lxm_progress(args["lxm_hash"]))
-                                elif "get_lxm_stamp_cost" in call:
-                                    args = call["get_lxm_stamp_cost"]
-                                    connection.send(self.get_lxm_stamp_cost(args["lxm_hash"]))
-                                elif "get_lxm_propagation_cost" in call:
-                                    args = call["get_lxm_propagation_cost"]
-                                    connection.send(self.get_lxm_propagation_cost(args["lxm_hash"]))
-                                elif "is_tracking" in call:
-                                    connection.send(self.is_tracking(call["is_tracking"]))
-                                elif "start_tracking" in call:
-                                    args = call["start_tracking"]
-                                    connection.send(self.start_tracking(object_addr=args["object_addr"], interval=args["interval"], duration=args["duration"]))
-                                elif "stop_tracking" in call:
-                                    args = call["stop_tracking"]
-                                    connection.send(self.stop_tracking(object_addr=args["object_addr"]))
-                                elif "get_service_log" in call:
-                                    connection.send(self.get_service_log())
+                                elif "get_plugins_info" in call: connection.send(self._get_plugins_info())
+                                elif "get_destination_establishment_rate" in call: connection.send(self._get_destination_establishment_rate(call["get_destination_establishment_rate"]))
+                                elif "get_destination_mtu" in call: connection.send(self._get_destination_mtu(call["get_destination_mtu"]))
+                                elif "get_destination_edr" in call: connection.send(self._get_destination_edr(call["get_destination_edr"]))
+                                elif "get_destination_lmd" in call: connection.send(self._get_destination_lmd(call["get_destination_lmd"]))
+                                elif "get_lxm_progress" in call: connection.send(self.get_lxm_progress(call["get_lxm_progress"]["lxm_hash"]))
+                                elif "get_lxm_stamp_cost" in call: connection.send(self.get_lxm_stamp_cost(call["get_lxm_stamp_cost"]["lxm_hash"]))
+                                elif "get_lxm_propagation_cost" in call: connection.send(self.get_lxm_propagation_cost(call["get_lxm_propagation_cost"]["lxm_hash"]))
+                                elif "is_tracking" in call: connection.send(self.is_tracking(call["is_tracking"]))
+                                elif "start_tracking" in call: connection.send(self.start_tracking(object_addr=call["start_tracking"]["object_addr"], interval=args["interval"], duration=args["duration"]))
+                                elif "stop_tracking" in call: connection.send(self.stop_tracking(object_addr=call["stop_tracking"]["object_addr"]))
+                                elif "get_service_log" in call: connection.send(self.get_service_log())
+                                elif "start_voice" in call: connection.send(self.start_voice())
+                                elif "stop_voice" in call: connection.send(self.stop_voice())
+                                elif "telephone_is_available" in call: connection.send(self.telephone.is_available) if self.telephone else False
+                                elif "telephone_is_in_call" in call: connection.send(self.telephone.is_in_call) if self.telephone else False
+                                elif "telephone_call_is_connecting" in call: connection.send(self.telephone.call_is_connecting) if self.telephone else False
+                                elif "telephone_is_ringing" in call: connection.send(self.telephone.is_ringing) if self.telephone else False
+                                elif "telephone_caller_info" in call: connection.send(self.telephone.caller.hash) if self.telephone and self.telephone.caller else None
+                                elif "telephone_set_busy" in call: connection.send(self.telephone.set_busy(call["telephone_set_busy"])) if self.telephone else False
+                                elif "telephone_dial" in call: connection.send(self.telephone.dial(call["telephone_dial"])) if self.telephone else False
+                                elif "telephone_hangup" in call: connection.send(self.telephone.hangup()) if self.telephone else False
+                                elif "telephone_answer" in call: connection.send(self.telephone.answer()) if self.telephone else False
+                                elif "telephone_set_speaker" in call: connection.send(self.telephone.set_speaker(call["telephone_set_speaker"])) if self.telephone else False
+                                elif "telephone_set_microphone" in call: connection.send(self.telephone.set_microphone(call["telephone_set_microphone"])) if self.telephone else False
+                                elif "telephone_set_ringer" in call: connection.send(self.telephone.set_ringer(call["telephone_set_ringer"])) if self.telephone else False
                                 else:
                                     connection.send(None)
 
@@ -3896,8 +3896,14 @@ class SidebandCore():
 
         if self.is_standalone or self.is_client:
             if self.config["telemetry_enabled"]: self.run_telemetry()
-            if self.config["voice_enabled"]: self.start_voice()
+            if self.config["voice_enabled"]:
+                if not RNS.vendor.platformutils.is_android(): self.start_voice()
+                else:
+                    from .voice import ReticulumTelephoneProxy
+                    self.telephone = ReticulumTelephoneProxy(owner=self)
+        
         elif self.is_service:
+            if self.config["voice_enabled"]: self.start_voice()
             self.run_service_telemetry()
 
     def __add_localinterface(self, delay=None):
@@ -5501,22 +5507,40 @@ class SidebandCore():
             if not self.reticulum.is_connected_to_shared_instance:
                 RNS.Transport.detach_interfaces()
 
-    def start_voice(self):
+    def _start_voice(self):
         try:
             if not self.voice_running:
                 RNS.log("Starting voice service", RNS.LOG_DEBUG)
                 self.voice_running = True
+                self.setstate("voice.running", self.voice_running)
                 from .voice import ReticulumTelephone
                 self.telephone = ReticulumTelephone(self.identity, owner=self, speaker=self.config["voice_output"], microphone=self.config["voice_input"], ringer=self.config["voice_ringer"])
                 ringtone_path = os.path.join(self.asset_dir, "audio", "notifications", "soft1.opus")
                 self.telephone.set_ringtone(ringtone_path)
+                return True
 
         except Exception as e:
             self.voice_running = False
             RNS.log(f"An error occurred while starting voice services, the contained exception was: {e}", RNS.LOG_ERROR)
             RNS.trace_exception(e)
+            return False
 
-    def stop_voice(self):
+    def start_voice(self):
+        if not RNS.vendor.platformutils.is_android(): return self._start_voice()
+        else:
+            if self.is_service: return self._start_voice()
+            else:
+                try:
+                    if self.service_rpc_request({"start_voice": True}):
+                        from .voice import ReticulumTelephoneProxy
+                        self.telephone = ReticulumTelephoneProxy(owner=self)
+                        self.voice_running = True
+
+                except Exception as e:
+                    RNS.log("Error while starting voice service over RPC: "+str(e), RNS.LOG_DEBUG)
+                    return False
+
+    def _stop_voice(self):
         try:
             if self.voice_running:
                 RNS.log("Stopping voice service", RNS.LOG_DEBUG)
@@ -5526,10 +5550,27 @@ class SidebandCore():
 
                 self.telephone = None
                 self.voice_running = False
+                self.setstate("voice.running", self.voice_running)
+                return True
 
         except Exception as e:
             RNS.log(f"An error occurred while stopping voice services, the contained exception was: {e}", RNS.LOG_ERROR)
             RNS.trace_exception(e)
+            return False
+
+    def stop_voice(self):
+        if not RNS.vendor.platformutils.is_android(): return self._stop_voice()
+        else:
+            if self.is_service: return self._stop_voice()
+            else:
+                try:
+                    if self.service_rpc_request({"stop_voice": True}):
+                        self.telephone = None
+                        self.voice_running = False
+
+                except Exception as e:
+                    RNS.log("Error while stopping voice service over RPC: "+str(e), RNS.LOG_DEBUG)
+                    return False
 
     def incoming_call(self, remote_identity):
         display_name = self.voice_display_name(remote_identity.hash)

@@ -1385,9 +1385,8 @@ class SidebandApp(MDApp):
                         dialog = MDDialog(
                             title="Error",
                             text=info_text,
-                            buttons=[ ok_button ],
-                            # elevation=0,
-                        )
+                            buttons=[ ok_button ])
+
                         def dl_ok(s):
                             dialog.dismiss()
                             self.quit_action(s)
@@ -1434,10 +1433,16 @@ class SidebandApp(MDApp):
                         self.hw_error_dialog.open()
                         self.hw_error_dialog.is_open = True
 
+            if RNS.vendor.platformutils.is_android():
+                service_voice_running = self.sideband.service_voice_running()
+                if service_voice_running: self.sideband.voice_running = True
+                else:                     self.sideband.voice_running = False
+
             incoming_call = self.sideband.getstate("voice.incoming_call")
             if incoming_call:
                 self.sideband.setstate("voice.incoming_call", None)
-                toast(f"Call from {incoming_call}", duration=7)
+                if RNS.vendor.platformutils.is_android(): toast(f"Call from {incoming_call}")
+                else: toast(f"Call from {incoming_call}", duration=7)
 
         if self.root.ids.screen_manager.current == "messages_screen":
             self.messages_view.update()
@@ -3521,10 +3526,8 @@ class SidebandApp(MDApp):
                 self.sideband.config["voice_enabled"] = self.settings_screen.ids.settings_voice_enabled.active
                 self.sideband.save_configuration()
 
-                if self.sideband.config["voice_enabled"] == True:
-                    self.sideband.start_voice()
-                else:
-                    self.sideband.stop_voice()
+                if self.sideband.config["voice_enabled"] == True: self.sideband.start_voice()
+                else:                                             self.sideband.stop_voice()
 
             def save_print_command(sender=None, event=None):
                 if not sender.focus:
@@ -5784,7 +5787,9 @@ class SidebandApp(MDApp):
 
     def voice_answer_action(self, sender=None):
         if self.sideband.voice_running:
-            if self.sideband.telephone.is_ringing: self.sideband.telephone.answer()
+            if self.sideband.telephone.is_ringing:
+                self.sideband.telephone.answer()
+                toast("Call answered")
 
     def voice_reject_action(self, sender=None):
         if self.sideband.voice_running:
