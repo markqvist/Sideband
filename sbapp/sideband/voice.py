@@ -202,3 +202,4 @@ class ReticulumTelephoneProxy():
     def set_microphone(self, microphone): return self.owner.service_rpc_request({"telephone_set_microphone": microphone })
     def set_ringer(self, ringer): return self.owner.service_rpc_request({"telephone_set_ringer": ringer })
     def set_low_latency_output(self, enabled): return self.owner.service_rpc_request({"telephone_set_low_latency_output": enabled})
+    def announce(self): return self.owner.service_rpc_request({"telephone_announce": True})

@@ -2150,6 +2150,7 @@ class SidebandCore():
                                 elif "telephone_set_microphone" in call: connection.send(self.telephone.set_microphone(call["telephone_set_microphone"])) if self.telephone else False
                                 elif "telephone_set_ringer" in call: connection.send(self.telephone.set_ringer(call["telephone_set_ringer"])) if self.telephone else False
                                 elif "telephone_set_low_latency_output" in call: connection.send(self.telephone.set_low_latency_output(call["telephone_set_low_latency_output"])) if self.telephone else False
+                                elif "telephone_announce" in call: connection.send(self.telephone.announce()) if self.telephone else False
                                 else:
                                     connection.send(None)
 
