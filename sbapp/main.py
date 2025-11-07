@@ -3529,8 +3529,10 @@ class SidebandApp(MDApp):
                 self.sideband.config["voice_enabled"] = self.settings_screen.ids.settings_voice_enabled.active
                 self.sideband.save_configuration()
 
-                if self.sideband.config["voice_enabled"] == True: self.sideband.start_voice()
-                else:                                             self.sideband.stop_voice()
+                if self.sideband.config["voice_enabled"] == True:
+                    self.request_microphone_permission()
+                    self.sideband.start_voice()
+                else: self.sideband.stop_voice()
 
             def save_print_command(sender=None, event=None):
                 if not sender.focus:
