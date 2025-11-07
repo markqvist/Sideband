@@ -5509,7 +5509,7 @@ class SidebandCore():
     def cleanup(self):
         if RNS.vendor.platformutils.get_platform() == "android":
             if not self.reticulum.is_connected_to_shared_instance:
-                RNS.Transport.detach_interfaces()
+                RNS.Reticulum.exit_handler()
 
     def _start_voice(self):
         try:
