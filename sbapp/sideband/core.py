@@ -1854,6 +1854,7 @@ class SidebandCore():
 
         except Exception as e:
             if not type(e) == ConnectionRefusedError:
+                self.rpc_connection = None
                 RNS.log(f"An error occurred while executing the service RPC request: {request}", RNS.LOG_ERROR)
                 RNS.log(f"The contained exception was: {e}", RNS.LOG_ERROR)
 
@@ -2132,7 +2133,7 @@ class SidebandCore():
                                 elif "get_lxm_stamp_cost" in call: connection.send(self.get_lxm_stamp_cost(call["get_lxm_stamp_cost"]["lxm_hash"]))
                                 elif "get_lxm_propagation_cost" in call: connection.send(self.get_lxm_propagation_cost(call["get_lxm_propagation_cost"]["lxm_hash"]))
                                 elif "is_tracking" in call: connection.send(self.is_tracking(call["is_tracking"]))
-                                elif "start_tracking" in call: connection.send(self.start_tracking(object_addr=call["start_tracking"]["object_addr"], interval=args["interval"], duration=args["duration"]))
+                                elif "start_tracking" in call: connection.send(self.start_tracking(object_addr=call["start_tracking"]["object_addr"], interval=call["start_tracking"]["interval"], duration=call["start_tracking"]["duration"]))
                                 elif "stop_tracking" in call: connection.send(self.stop_tracking(object_addr=call["stop_tracking"]["object_addr"]))
                                 elif "get_service_log" in call: connection.send(self.get_service_log())
                                 elif "start_voice" in call: connection.send(self.start_voice())
