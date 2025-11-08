@@ -65,8 +65,11 @@ def apply_ui_scale():
     global app_ui_scaling_path
     global app_ui_wcfg_path
     global app_ui_window_config
+
+    if args.config != None: config_path = os.path.expanduser(args.config)
+    else:                   config_path = None
+
     default_scale = os.environ["KIVY_METRICS_DENSITY"] if "KIVY_METRICS_DENSITY" in os.environ else "unknown"
-    config_path   = None
     ui_scale_path = None
     ui_wcfg_path  = None
     res_ident     = ""
@@ -125,7 +128,6 @@ def apply_ui_scale():
                 with open(ui_wcfg_path, "r") as sf: window_config = sf.readline().split()
 
                 if window_config != None:
-                    RNS.log(f"READ SAVED WINDOW CONFIGURATION: {window_config}")
                     if type(window_config) == list and len(window_config) == 5:
                         app_ui_window_config = window_config
 
@@ -336,7 +338,6 @@ else:
 
         # But use saved window configuration if possible
         if type(app_ui_window_config) == list and len(app_ui_window_config) == 5:
-            RNS.log(f"USING SAVED WINDOW CONFIGURATION: {app_ui_window_config}", RNS.LOG_NOTICE)
             window_width_target  = int(app_ui_window_config[0])
             window_height_target = int(app_ui_window_config[1])
             window_target_x      = int(app_ui_window_config[2])
@@ -1077,6 +1078,16 @@ class SidebandApp(MDApp):
                 self.root.ids.nav_drawer.set_state("closed")
             Clock.schedule_once(cb, 0)
 
+    def has_location_permissions(self):
+        if RNS.vendor.platformutils.is_android():
+            if RNS.vendor.platformutils.is_android():
+                if check_permission("android.permission.ACCESS_COARSE_LOCATION") and check_permission("android.permission.ACCESS_FINE_LOCATION"): return True
+                else: return False
+
+    def request_location_permissions(self):
+        if not self.has_location_permissions():
+            RNS.log("Requesting location permission", RNS.LOG_DEBUG)
+            request_permissions(["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"])
 
     def check_bluetooth_permissions(self):
         if RNS.vendor.platformutils.get_platform() == "android":
@@ -1208,25 +1219,46 @@ class SidebandApp(MDApp):
         RNS.log(f"Updated bonded devices: {self.bt_bonded_devices}", RNS.LOG_DEBUG)
 
     def bluetooth_scan_action(self, sender=None):
-        toast("Starting Bluetooth scan...")
         self.start_bluetooth_scan()
 
     def start_bluetooth_scan(self):
-        self.check_bluetooth_permissions()
-        if not self.sideband.getpersistent("permissions.bluetooth"):
-            self.request_bluetooth_permissions()
+        if not self.has_location_permissions():
+            if not hasattr(self, "permission_dialog") or self.permission_dialog == None:
+                permission_dialog_text = "[b]Missing Permissions[/b]\n\nOn this version of Android, location permission is required to scan for Bluetooth devices. Yes, this is silly, but there's no way around it.\n\nIf you don't want Sideband to have location access, you can disable this permission after scanning and pairing your RNode, and everything will still work, as it is only the scanning process that requires this."
+                yes_button = MDRectangleFlatButton(text="Grant Permission",font_size=dp(18), theme_text_color="Custom", line_color=self.color_accept, text_color=self.color_accept)
+                no_button  = MDRectangleFlatButton(text="Cancel",font_size=dp(18))
+                self.permission_dialog = MDDialog(text=permission_dialog_text, buttons=[ no_button, yes_button ])
+                def dl_no(s): self.permission_dialog.dismiss()
+                def dl_yes(s):
+                    self.permission_dialog.dismiss()
+                    def cb(dt): self.request_location_permissions()
+                    Clock.schedule_once(cb, 0.15)
+
+                yes_button.bind(on_release=dl_yes)
+                no_button.bind(on_release=dl_no)
+            self.permission_dialog.open()
+
         else:
-            RNS.log("Starting bluetooth scan", RNS.LOG_DEBUG)
-            self.discovered_bt_devices = {}
+            self.check_bluetooth_permissions()
+            if not self.sideband.getpersistent("permissions.bluetooth"): self.request_bluetooth_permissions()
+            else:
+                if self.root.ids.screen_manager.has_screen("hardware_rnode_screen") and hasattr(self, "hardware_rnode_screen") and self.hardware_rnode_screen != None:
+                    self.hardware_rnode_screen.ids.hardware_rnode_bt_scan_button.disabled = True
+                    self.hardware_rnode_screen.ids.hardware_rnode_bt_scan_button.text = "Scanning..."
 
-            BluetoothDevice  = autoclass('android.bluetooth.BluetoothDevice')
-            self.bt_found_action = BluetoothDevice.ACTION_FOUND
-            self.broadcast_receiver = BroadcastReceiver(self.on_broadcast, actions=[self.bt_found_action])
-            self.broadcast_receiver.start()
+                toast("Starting Bluetooth scan...")
+                RNS.log("Starting bluetooth scan", RNS.LOG_DEBUG)
+                self.discovered_bt_devices = {}
+                threading.Thread(target=self.hardware_rnode_scan_job, daemon=True).start()
 
-            self.bt_adapter = BluetoothAdapter.getDefaultAdapter()
-            self.bluetooth_update_bonded_devices()
-            self.bt_adapter.startDiscovery()
+                BluetoothDevice  = autoclass('android.bluetooth.BluetoothDevice')
+                self.bt_found_action = BluetoothDevice.ACTION_FOUND
+                self.broadcast_receiver = BroadcastReceiver(self.on_broadcast, actions=[self.bt_found_action])
+                self.broadcast_receiver.start()
+
+                self.bt_adapter = BluetoothAdapter.getDefaultAdapter()
+                self.bluetooth_update_bonded_devices()
+                self.bt_adapter.startDiscovery()
 
     def stop_bluetooth_scan(self):
         RNS.log("Stopping bluetooth scan", RNS.LOG_DEBUG)
@@ -1238,25 +1270,30 @@ class SidebandApp(MDApp):
             self.bt_adapter.cancelDiscovery()
 
     def on_broadcast(self, context, intent):
-        BluetoothDevice  = autoclass('android.bluetooth.BluetoothDevice')
-        action = intent.getAction()
-        extras = intent.getExtras()
+        try:
+            BluetoothDevice  = autoclass('android.bluetooth.BluetoothDevice')
+            action = intent.getAction()
+            extras = intent.getExtras()
 
-        if str(action) == "android.bluetooth.device.action.FOUND":
-            if extras:
-                try:
-                    if android_api_version < 33: device = intent.getParcelableExtra("android.bluetooth.device.extra.DEVICE")
-                    else: device = intent.getParcelableExtra("android.bluetooth.device.extra.DEVICE", BluetoothDevice)
-                    dev_name = device.getName()
-                    dev_addr = device.getAddress()
-                    if dev_name.startswith("RNode "):
-                        dev_rssi = extras.getShort("android.bluetooth.device.extra.RSSI", -9999)
-                        discovered_device = {"name": dev_name, "address": dev_addr, "rssi": dev_rssi, "discovered": time.time()}
-                        self.discovered_bt_devices[dev_addr] = discovered_device
-                        RNS.log(f"Discovered RNode: {discovered_device}", RNS.LOG_DEBUG)
-                    
-                except Exception as e:
-                    RNS.log(f"Error while mapping discovered device: {e}", RNS.LOG_ERROR)
+            if str(action) == "android.bluetooth.device.action.FOUND":
+                if extras:
+                    try:
+                        if android_api_version < 33: device = intent.getParcelableExtra("android.bluetooth.device.extra.DEVICE")
+                        else: device = intent.getParcelableExtra("android.bluetooth.device.extra.DEVICE", BluetoothDevice)
+                        dev_name = device.getName()
+                        dev_addr = device.getAddress()
+                        if dev_name.startswith("RNode "):
+                            dev_rssi = extras.getShort("android.bluetooth.device.extra.RSSI", -9999)
+                            discovered_device = {"name": dev_name, "address": dev_addr, "rssi": dev_rssi, "discovered": time.time()}
+                            self.discovered_bt_devices[dev_addr] = discovered_device
+                            RNS.log(f"Discovered RNode: {discovered_device}", RNS.LOG_DEBUG)
+                        
+                    except Exception as e:
+                        RNS.log(f"Error while mapping discovered device: {e}", RNS.LOG_ERROR)
+
+        except Exception as e:
+            RNS.log(f"An error occurred while receiving Android broadcast intent: {e}", RNS.LOG_ERROR)
+            RNS.trace_exception(e)
 
     def on_new_intent(self, intent):
         intent_action = intent.getAction()
@@ -2551,7 +2588,7 @@ class SidebandApp(MDApp):
         def a_rec_action(sender):
             if not self.rec_dialog.recording:
                 self.sideband.ui_started_recording()
-                RNS.log("Starting recording...") # TODO: Remove
+                # RNS.log("Starting recording...") # TODO: Remove
                 self.rec_dialog.recording = True
                 el = self.rec_dialog.rec_item.children[0].children[0]
                 el.ttc = el.theme_text_color; el.tc = el.text_color
@@ -2565,7 +2602,7 @@ class SidebandApp(MDApp):
 
             else:
                 self.sideband.ui_stopped_recording()
-                RNS.log("Stopping recording...") # TODO: Remove
+                # RNS.log("Stopping recording...") # TODO: Remove
                 self.rec_dialog.recording = False
                 self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Start Recording[/size]"
                 el = self.rec_dialog.rec_item.children[0].children[0]
@@ -4545,8 +4582,11 @@ class SidebandApp(MDApp):
                         def add_job(dt):
                             pair_addr = add_device["address"]
                             btn_text = "Pair "+add_device["name"]
-                            def run_pair(sender): self.hardware_rnode_pair_device_action(pair_addr)
-                            # device_button = MDRectangleFlatButton(text=btn_text,font_size=dp(16))
+                            def run_pair(sender):
+                                self.hardware_rnode_pair_device_action(pair_addr)
+                                def job(): self.hardware_rnode_pair_check_job(pair_addr, add_device["name"])
+                                threading.Thread(target=job, daemon=True).start()
+
                             device_button = MDRectangleFlatButton(text=btn_text, font_size=dp(16), padding=[dp(0), dp(14), dp(0), dp(14)], size_hint=[1.0, None])
                             device_button.bind(on_release=run_pair)
                             self.hardware_rnode_screen.ids.rnode_scan_results.add_widget(device_button)
@@ -4565,6 +4605,17 @@ class SidebandApp(MDApp):
             def job(dt): toast("No unpaired RNodes discovered")
             Clock.schedule_once(job, 0.2)
 
+    def hardware_rnode_pair_check_job(self, pair_addr, device_name):
+        timeout = time.time()+45
+        pairing_confirmed = False
+        while not pairing_confirmed and time.time() < timeout:
+            time.sleep(2)
+            self.bluetooth_update_bonded_devices()
+            if pair_addr in self.bt_bonded_devices:
+                pairing_confirmed = True
+                RNS.log(f"Pairing with {device_name} ({pair_addr}) successful", RNS.LOG_NOTICE)
+                toast(f"Paired with {device_name}")
+
     def hardware_rnode_pair_device_action(self, pair_addr):
         RNS.log(f"Pair action for {pair_addr}", RNS.LOG_DEBUG)
         self.stop_bluetooth_scan()
@@ -4578,14 +4629,11 @@ class SidebandApp(MDApp):
 
     def hardware_rnode_bt_scan_action(self, sender=None):
         self.discovered_bt_devices = {}
-        self.hardware_rnode_screen.ids.hardware_rnode_bt_scan_button.disabled = True
-        self.hardware_rnode_screen.ids.hardware_rnode_bt_scan_button.text = "Scanning..."
         rw = []
         for child in self.hardware_rnode_screen.ids.rnode_scan_results.children: rw.append(child)
         for w in rw: self.hardware_rnode_screen.ids.rnode_scan_results.remove_widget(w)
         
         Clock.schedule_once(self.bluetooth_scan_action, 0.5)
-        threading.Thread(target=self.hardware_rnode_scan_job, daemon=True).start()
 
     def hardware_rnode_bt_on_action(self, sender=None):
         self.hardware_rnode_screen.ids.hardware_rnode_bt_pair_button.disabled = True
