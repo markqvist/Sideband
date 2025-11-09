@@ -6,6 +6,7 @@ from kivymd.uix.list import OneLineIconListItem, MDList, IconLeftWidget, IconRig
 from kivy.properties import StringProperty
 import re
 
+ts_format_date = "%Y-%m-%d"
 ts_format = "%Y-%m-%d %H:%M:%S"
 file_ts_format = "%Y_%m_%d_%H_%M_%S"
 

@@ -2138,20 +2138,21 @@ class SidebandCore():
                                 elif "get_service_log" in call: connection.send(self.get_service_log())
                                 elif "start_voice" in call: connection.send(self.start_voice())
                                 elif "stop_voice" in call: connection.send(self.stop_voice())
-                                elif "telephone_is_available" in call: connection.send(self.telephone.is_available) if self.telephone else False
-                                elif "telephone_is_in_call" in call: connection.send(self.telephone.is_in_call) if self.telephone else False
-                                elif "telephone_call_is_connecting" in call: connection.send(self.telephone.call_is_connecting) if self.telephone else False
-                                elif "telephone_is_ringing" in call: connection.send(self.telephone.is_ringing) if self.telephone else False
-                                elif "telephone_caller_info" in call: connection.send(self.telephone.caller.hash) if self.telephone and self.telephone.caller else None
-                                elif "telephone_set_busy" in call: connection.send(self.telephone.set_busy(call["telephone_set_busy"])) if self.telephone else False
-                                elif "telephone_dial" in call: connection.send(self.telephone.dial(call["telephone_dial"])) if self.telephone else False
-                                elif "telephone_hangup" in call: connection.send(self.telephone.hangup()) if self.telephone else False
-                                elif "telephone_answer" in call: connection.send(self.telephone.answer()) if self.telephone else False
-                                elif "telephone_set_speaker" in call: connection.send(self.telephone.set_speaker(call["telephone_set_speaker"])) if self.telephone else False
-                                elif "telephone_set_microphone" in call: connection.send(self.telephone.set_microphone(call["telephone_set_microphone"])) if self.telephone else False
-                                elif "telephone_set_ringer" in call: connection.send(self.telephone.set_ringer(call["telephone_set_ringer"])) if self.telephone else False
-                                elif "telephone_set_low_latency_output" in call: connection.send(self.telephone.set_low_latency_output(call["telephone_set_low_latency_output"])) if self.telephone else False
-                                elif "telephone_announce" in call: connection.send(self.telephone.announce()) if self.telephone else False
+                                elif "telephone_is_available" in call: connection.send(self.telephone.is_available if self.telephone else False)
+                                elif "telephone_is_in_call" in call: connection.send(self.telephone.is_in_call if self.telephone else False)
+                                elif "telephone_call_is_connecting" in call: connection.send(self.telephone.call_is_connecting if self.telephone else False)
+                                elif "telephone_is_ringing" in call: connection.send(self.telephone.is_ringing if self.telephone else False)
+                                elif "telephone_caller_info" in call: connection.send(self.telephone.caller.hash if self.telephone and self.telephone.caller else None)
+                                elif "telephone_set_busy" in call: connection.send(self.telephone.set_busy(call["telephone_set_busy"]) if self.telephone else False)
+                                elif "telephone_dial" in call: connection.send(self.telephone.dial(call["telephone_dial"]) if self.telephone else False)
+                                elif "telephone_hangup" in call: connection.send(self.telephone.hangup() if self.telephone else False)
+                                elif "telephone_answer" in call: connection.send(self.telephone.answer() if self.telephone else False)
+                                elif "telephone_set_speaker" in call: connection.send(self.telephone.set_speaker(call["telephone_set_speaker"]) if self.telephone else False)
+                                elif "telephone_set_microphone" in call: connection.send(self.telephone.set_microphone(call["telephone_set_microphone"]) if self.telephone else False)
+                                elif "telephone_set_ringer" in call: connection.send(self.telephone.set_ringer(call["telephone_set_ringer"]) if self.telephone else False)
+                                elif "telephone_set_low_latency_output" in call: connection.send(self.telephone.set_low_latency_output(call["telephone_set_low_latency_output"]) if self.telephone else False)
+                                elif "telephone_announce" in call: connection.send(self.telephone.announce() if self.telephone else False)
+                                elif "telephone_get_call_log" in call: connection.send(self.telephone.get_call_log() if self.telephone else [])
                                 else:
                                     connection.send(None)
 
@@ -5518,9 +5519,10 @@ class SidebandCore():
                 RNS.log("Starting voice service", RNS.LOG_DEBUG)
                 self.voice_running = True
                 self.setstate("voice.running", self.voice_running)
-                from .voice import ReticulumTelephone
-                self.telephone = ReticulumTelephone(self.identity, owner=self, speaker=self.config["voice_output"], microphone=self.config["voice_input"], ringer=self.config["voice_ringer"])
                 ringtone_path = os.path.join(self.asset_dir, "audio", "notifications", "soft1.opus")
+                call_log_path = os.path.join(self.app_dir, "app_storage", "lxst_call_log")
+                from .voice import ReticulumTelephone
+                self.telephone = ReticulumTelephone(self.identity, owner=self, speaker=self.config["voice_output"], microphone=self.config["voice_input"], ringer=self.config["voice_ringer"], logpath=call_log_path)
                 self.telephone.set_ringtone(ringtone_path)
                 self.telephone.set_low_latency_output(self.config["voice_low_latency"])
                 return True
@@ -5583,6 +5585,13 @@ class SidebandCore():
         self.setstate("voice.incoming_call", display_name)
         if self.gui_foreground(): RNS.log("Squelching call notification since GUI is in foreground", RNS.LOG_DEBUG)
         else: self.notify(title="Incoming voice call", content=f"From {display_name}", group="LXST.Telephony", context_id="incoming_call")
+
+    def missed_call(self, remote_identity):
+        display_name = self.voice_display_name(remote_identity.hash)
+        self.setstate("voice.incoming_call", display_name)
+        # if self.gui_foreground(): RNS.log("Squelching call notification since GUI is in foreground", RNS.LOG_DEBUG)
+        # else: self.notify(title="Missed voice call", content=f"From {display_name}", group="LXST.Telephony", context_id="incoming_call")
+        self.notify(title="Missed voice call", content=f"From {display_name}", group="LXST.Telephony", context_id="incoming_call")
 
 rns_config = """# This template is used to generate a
 # running configuration for Sideband's

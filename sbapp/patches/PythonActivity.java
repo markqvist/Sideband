@@ -60,7 +60,7 @@ public class PythonActivity extends SDLActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         try { this.startIntent = getIntent(); }
-        catch { Log.e(TAG, "Failed to get pending intent on activity create"); }
+        catch (Exception e) { Log.e(TAG, "Failed to get pending intent on activity create"); }
         
         Log.v(TAG, "PythonActivity onCreate running");
         resourceManager = new ResourceManager(this);

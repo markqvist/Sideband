@@ -6,6 +6,7 @@ import time
 from LXST._version import __version__
 from LXST.Primitives.Telephony import Telephone
 from RNS.vendor.configobj import ConfigObj
+import RNS.vendor.umsgpack as msgpack
 
 class ReticulumTelephone():
     STATE_AVAILABLE  = 0x00
@@ -22,7 +23,9 @@ class ReticulumTelephone():
     WAIT_TIME        = 60
     PATH_TIME        = 10
 
-    def __init__(self, identity, owner = None, service = False, speaker=None, microphone=None, ringer=None):
+    CALL_LOG_KEEP    = 30*24*60*60
+
+    def __init__(self, identity, owner = None, service = False, speaker=None, microphone=None, ringer=None, logpath=None):
         self.identity          = identity
         self.service           = service
         self.owner             = owner
@@ -40,6 +43,8 @@ class ReticulumTelephone():
         self.speaker_device    = speaker
         self.microphone_device = microphone
         self.ringer_device     = ringer
+        self.logpath           = logpath
+        self.call_log          = None
         self.phonebook         = {}
         self.aliases           = {}
         self.names             = {}
@@ -113,6 +118,54 @@ class ReticulumTelephone():
     def set_busy(self, busy): self.telephone.set_busy(busy)
     def set_low_latency_output(self, enabled): self.telephone.set_low_latency_output(enabled)
 
+    def get_call_log(self):
+        if self.call_log: return self.call_log
+        else:
+            call_log = []
+            try:
+                if os.path.isfile(self.logpath):
+                    with open(self.logpath, "rb") as logfile:
+                        read_call_log = msgpack.unpackb(logfile.read())
+                    
+                    for entry in read_call_log:
+                        age = time.time()-entry["time"]
+                        if age < self.CALL_LOG_KEEP: call_log.append(entry)
+
+            except Exception as e: RNS.log(f"Could not read call log file: {e}", RNS.LOG_ERROR)
+            self.call_log = call_log
+            return self.call_log
+
+    def log_call(self, event, identity):
+        RNS.log(f"Logging call event {event} for {RNS.prettyhexrep(identity.hash)}", RNS.LOG_DEBUG)
+        if self.logpath:
+            try:
+                if not os.path.isfile(self.logpath):
+                    try:
+                        with open(self.logpath, "wb") as logfile: logfile.write(msgpack.packb([]))
+                    except Exception as e: raise OSError("Could not create call log file")
+                
+                call_log = []
+                read_call_log = []
+                try:
+                    with open(self.logpath, "rb") as logfile: read_call_log = msgpack.unpackb(logfile.read())
+                except Exception as e:
+                    RNS.log(f"Error while reading call log file: {e}", RNS.LOG_ERROR)
+                    RNS.log(f"Call log file will be re-created", RNS.LOG_ERROR)
+
+                for entry in read_call_log:
+                    age = time.time()-entry["time"]
+                    if age < self.CALL_LOG_KEEP: call_log.append(entry)
+
+                entry = {"time": time.time(), "event": event, "identity": identity.hash}
+                call_log.append(entry)
+
+                with open(self.logpath, "wb") as logfile: logfile.write(msgpack.packb(call_log))
+                self.call_log = call_log
+
+            except Exception as e:
+                RNS.log(f"An error occurred while updating call log: {e}", RNS.LOG_ERROR)
+                RNS.trace_exception(e)
+
     def dial(self, identity_hash):
         self.last_dialled_identity_hash = identity_hash
         destination_hash = RNS.Destination.hash_from_name_and_identity("lxst.telephony", identity_hash)
@@ -145,6 +198,10 @@ class ReticulumTelephone():
             self.owner.incoming_call(remote_identity)
 
     def call_ended(self, remote_identity):
+        call_was_connecting = self.call_is_connecting
+        was_ringing         = self.is_ringing
+        was_in_call         = self.is_in_call
+
         if self.is_in_call or self.is_ringing or self.call_is_connecting:
             if self.is_in_call:         RNS.log(f"Call with {RNS.prettyhexrep(self.caller.hash)} ended\n", RNS.LOG_DEBUG)
             if self.is_ringing:         RNS.log(f"Call {self.direction} {RNS.prettyhexrep(self.caller.hash)} was not answered\n", RNS.LOG_DEBUG)
@@ -152,10 +209,22 @@ class ReticulumTelephone():
             self.direction = None
             self.state = self.STATE_AVAILABLE
 
+        if   call_was_connecting: self.log_call("outgoing-failure", remote_identity)
+        elif was_in_call:         self.log_call("ongoing-ended", remote_identity)
+        elif was_ringing:
+            self.log_call("incoming-missed", remote_identity)
+            self.owner.missed_call(remote_identity)
+
     def call_established(self, remote_identity):
+        call_was_connecting = self.call_is_connecting
+        was_ringing         = self.is_ringing
+
         if self.call_is_connecting or self.is_ringing:
             self.state = self.STATE_IN_CALL
             RNS.log(f"Call established with {RNS.prettyhexrep(self.caller.hash)}", RNS.LOG_DEBUG)
+
+        if   call_was_connecting: self.log_call("outgoing-success", remote_identity)
+        elif was_ringing:         self.log_call("incoming-success", remote_identity)
 
     def __is_allowed(self, identity_hash):
         if self.owner.config["voice_trusted_only"]:
@@ -203,3 +272,4 @@ class ReticulumTelephoneProxy():
     def set_ringer(self, ringer): return self.owner.service_rpc_request({"telephone_set_ringer": ringer })
     def set_low_latency_output(self, enabled): return self.owner.service_rpc_request({"telephone_set_low_latency_output": enabled})
     def announce(self): return self.owner.service_rpc_request({"telephone_announce": True})
+    def get_call_log(self): return self.owner.service_rpc_request({"telephone_get_call_log": True})

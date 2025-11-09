@@ -12,6 +12,8 @@ from kivymd.uix.pickers import MDColorPicker
 from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.button import MDRectangleFlatIconButton
 from kivymd.uix.dialog import MDDialog
+from kivy.properties import StringProperty, BooleanProperty, OptionProperty, ColorProperty, Property
+from kivymd.uix.list import MDList, IconLeftWidget, IconRightWidget, OneLineAvatarIconListItem
 from kivymd.icon_definitions import md_icons
 from kivymd.toast import toast
 from kivy.properties import StringProperty, BooleanProperty
@@ -22,10 +24,16 @@ import threading
 from datetime import datetime
 
 if RNS.vendor.platformutils.get_platform() == "android":
-    from ui.helpers import ts_format
+    from ui.helpers import ts_format_date
     from android.permissions import request_permissions, check_permission
 else:
-    from .helpers import ts_format
+    from .helpers import ts_format_date
+
+from kivy.utils import escape_markup
+if RNS.vendor.platformutils.get_platform() == "android":
+    from ui.helpers import multilingual_markup
+else:
+    from .helpers import multilingual_markup
 
 class Voice():
     def __init__(self, app):
@@ -37,6 +45,9 @@ class Voice():
         self.path_requesting = None
         self.output_devices = []
         self.input_devices = []
+        self.log_list = None
+        self.last_log_update = 0
+        self.log_name_cache = {}
         self.listed_output_devices = []
         self.listed_input_devices = []
         self.listed_ringer_devices = []
@@ -46,9 +57,8 @@ class Voice():
             self.screen.app = self.app
             self.screen.delegate = self
             self.app.root.ids.screen_manager.add_widget(self.screen)
+            self.update_call_log()
         
-        self.screen.ids.voice_scrollview.effect_cls = ScrollEffect
-
     def update_call_status(self, dt=None):
         if self.app.root.ids.screen_manager.current == "voice_screen":
             if self.ui_updater == None: self.ui_updater = Clock.schedule_interval(self.update_call_status, 0.5)
@@ -88,6 +98,8 @@ class Voice():
         else:
             db.disabled = True; db.text = "Voice calls disabled"
             ih.disabled = True
+
+        if time.time() > self.last_log_update+3: self.update_call_log()
 
     def target_valid(self):
         if self.app.sideband.voice_running:
@@ -170,7 +182,7 @@ class Voice():
                 self.update_call_status()
 
 
-    ### settings screen
+    ### Settings screen
     ######################################
 
     def settings_action(self, sender=None):
@@ -297,6 +309,116 @@ class Voice():
             self.app.sideband.telephone.set_ringer(self.app.sideband.config["voice_ringer"])
 
 
+    ### Call log
+    ######################################
+
+    def update_call_log(self):
+        if self.log_list == None:
+            self.log_list = CallList()
+            self.screen.ids.log_list_container.add_widget(self.log_list)
+        
+        self.update_log_list()
+        self.last_log_update = time.time()
+
+    def update_log_list(self):
+        call_log = self.app.sideband.telephone.get_call_log()
+        call_log.sort(key=lambda e: e["time"], reverse=True)
+        data = []
+        for entry in call_log:
+            try:
+                at    = entry["time"]
+                td    = int(time.time())-int(at)
+                evt   = entry["event"]
+                idnt  = entry["identity"]
+
+                if not idnt in self.log_name_cache: self.log_name_cache[idnt] = self.app.sideband.voice_display_name(idnt)
+                name = multilingual_markup(escape_markup(str(self.log_name_cache[idnt])).encode("utf-8")).decode("utf-8")
+
+                icon = None
+                if   evt == "incoming-missed":  icon = "phone-missed"
+                elif evt == "outgoing-failure": icon = "phone-cancel"
+                elif evt == "incoming-success": icon = "phone-incoming"
+                elif evt == "outgoing-success": icon = "phone-outgoing"
+
+                time_str = None
+                if td < 60:           time_str = "Just now"
+                elif td < 60*60:      td = int((td//60)*60)
+                elif td < 60*60*24:   td = int((td//60)*60)
+                elif td < 60*60*24*7: td = int((td//(60*60*24))*(60*60*24))
+                else:                 time_str = time.strftime(ts_format_date, time.localtime(at))
+
+                if time_str == None:  time_str = f"{RNS.prettytime(td)} ago"
+
+                if icon:
+                    info  = f"{name}  •  [i]{time_str}[/i]"
+                    entry = {"icon": icon, "text": f"{info}"}
+                    data.append(entry)
+
+            except Exception as e:
+                RNS.log(f"An error occurred while updating the call log list: {e}", RNS.LOG_ERROR)
+                RNS.trace_exception(e)
+
+        self.log_list.data = data
+
+class LogEntry(OneLineAvatarIconListItem):
+    app = None
+    owner_screen = None
+    conversation_dropdown = None
+    voice_dropdown = None
+    clear_dialog = None
+    clear_telemetry_dialog = None
+    delete_dialog = None
+
+    icon = StringProperty()
+    # ti_color = OptionProperty(None, options=theme_text_color_options)
+    # icon_fg = Property(None, allownone=True)
+    # icon_bg = Property(None, allownone=True)
+    
+    def __init__(self):
+        super().__init__()
+        # self.bind(on_release=self.app.conversation_action)
+        # self.ids.left_icon.bind(on_release=self.left_icon_action)
+        # self.ids.right_icon.bind(on_release=self.right_icon_action)
+
+    def left_icon_action(self, sender):
+        pass
+
+    def right_icon_action(self, sender):
+        pass
+
+class CallList(MDRecycleView):
+    def __init__(self):
+        super().__init__()
+        self.data = []
+
+Builder.load_string("""
+<LogEntry>
+    IconLeftWidget:
+        id: left_icon
+        # theme_icon_color: root.ti_color
+        # icon_color: root.icon_fg
+        # md_bg_color: root.icon_bg
+        icon: root.icon
+        _default_icon_pad: dp(14)
+        icon_size: dp(24)
+    
+    # IconRightWidget:
+    #     id: right_icon
+    #     icon: "dots-vertical"
+
+<CallList>:
+    id: calls_scrollview
+    viewclass: "LogEntry"
+    effect_cls: "ScrollEffect"
+
+    RecycleBoxLayout:
+        default_size: None, dp(57)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        orientation: "vertical"
+""")
+
 layout_voice_screen = """
 MDScreen:
     name: "voice_screen"
@@ -316,48 +438,53 @@ MDScreen:
                 ['close', lambda x: root.app.close_any_action(self)],
                 ]
 
-        ScrollView:
-            id: voice_scrollview
+        MDBoxLayout:
+            orientation: "vertical"
+            size_hint_y: None
+            height: self.minimum_height
+            padding: [dp(28), dp(32), dp(28), dp(16)]
 
             MDBoxLayout:
                 orientation: "vertical"
+                # spacing: "24dp"
                 size_hint_y: None
                 height: self.minimum_height
-                padding: [dp(28), dp(32), dp(28), dp(16)]
+                padding: [dp(0), dp(12), dp(0), dp(0)]
 
-                MDBoxLayout:
-                    orientation: "vertical"
-                    # spacing: "24dp"
-                    size_hint_y: None
-                    height: self.minimum_height
-                    padding: [dp(0), dp(12), dp(0), dp(0)]
+                MDTextField:
+                    id: identity_hash
+                    hint_text: "Identity hash"
+                    mode: "rectangle"
+                    # size_hint: [1.0, None]
+                    pos_hint: {"center_x": .5}
+                    max_text_length: 32
+                    on_text: root.delegate.target_input_action(self)
 
-                    MDTextField:
-                        id: identity_hash
-                        hint_text: "Identity hash"
-                        mode: "rectangle"
-                        # size_hint: [1.0, None]
-                        pos_hint: {"center_x": .5}
-                        max_text_length: 32
-                        on_text: root.delegate.target_input_action(self)
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: "24dp"
+                size_hint_y: None
+                height: self.minimum_height
+                padding: [dp(0), dp(35), dp(0), dp(35)]
 
-                MDBoxLayout:
-                    orientation: "vertical"
-                    spacing: "24dp"
-                    size_hint_y: None
-                    height: self.minimum_height
-                    padding: [dp(0), dp(35), dp(0), dp(35)]
+                MDRectangleFlatIconButton:
+                    id: dial_button
+                    icon: "phone-outgoing"
+                    text: "Call"
+                    padding: [dp(0), dp(14), dp(0), dp(14)]
+                    icon_size: dp(24)
+                    font_size: dp(16)
+                    size_hint: [1.0, None]
+                    on_release: root.delegate.dial_action(self)
+                    disabled: True
 
-                    MDRectangleFlatIconButton:
-                        id: dial_button
-                        icon: "phone-outgoing"
-                        text: "Call"
-                        padding: [dp(0), dp(14), dp(0), dp(14)]
-                        icon_size: dp(24)
-                        font_size: dp(16)
-                        size_hint: [1.0, None]
-                        on_release: root.delegate.dial_action(self)
-                        disabled: True
+        MDSeparator:
+            orientation: "horizontal"
+            height: dp(1)
+
+        MDBoxLayout:
+            orientation: "vertical"
+            id: log_list_container
 """
 
 layout_voice_settings_screen = """
