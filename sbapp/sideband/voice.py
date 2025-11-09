@@ -23,7 +23,7 @@ class ReticulumTelephone():
     WAIT_TIME        = 60
     PATH_TIME        = 10
 
-    CALL_LOG_KEEP    = 30*24*60*60
+    CALL_LOG_KEEP    = 14*24*60*60
 
     def __init__(self, identity, owner = None, service = False, speaker=None, microphone=None, ringer=None, logpath=None):
         self.identity          = identity
