@@ -50,6 +50,8 @@ public class PythonActivity extends SDLActivity {
     private Bundle mMetaData = null;
     private PowerManager.WakeLock mWakeLock = null;
 
+    public Intent startIntent = null;
+
     public String getAppRoot() {
         String app_root =  getFilesDir().getAbsolutePath() + "/app";
         return app_root;
@@ -57,6 +59,9 @@ public class PythonActivity extends SDLActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        try { this.startIntent = getIntent(); }
+        catch { Log.e(TAG, "Failed to get pending intent on activity create"); }
+        
         Log.v(TAG, "PythonActivity onCreate running");
         resourceManager = new ResourceManager(this);
 

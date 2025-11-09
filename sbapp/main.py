@@ -679,6 +679,25 @@ class SidebandApp(MDApp):
 
             return True
 
+    def check_launch_intent(self):
+        try:
+            if RNS.vendor.platformutils.is_android():
+                # Check for pending start intent
+                if not hasattr(mActivity, "startIntent"): RNS.log("Could not access pending intent from Android activity", RNS.LOG_ERROR)
+                else:
+                    try:
+                        pending_intent = mActivity.startIntent
+                        RNS.log(f"Passing intent {pending_intent} to intent handler...", RNS.LOG_DEBUG)
+                        self.on_new_intent(pending_intent)
+                    
+                    except Exception as e:
+                        RNS.log("An error occurred while getting pending intent on activity launch: {e}", RNS.LOG_ERROR)
+                        RNS.trace_exception(e)
+
+        except Exception as e:
+            RNS.log(f"An error occurred while checking Android launch intent: {e}", RNS.LOG_ERROR)
+            RNS.trace_exception(e)
+
     def start_final(self):
         # Start local core instance
         self.sideband.start()
@@ -753,7 +772,10 @@ class SidebandApp(MDApp):
                     self.hw_error_dialog.open()
                     self.hw_error_dialog.is_open = True
 
+        def check_intent(dt): self.check_launch_intent()
+
         Clock.schedule_once(check_errors, 1.5)
+        Clock.schedule_once(check_intent, 0.1)
 
 
     #################################################
@@ -1296,84 +1318,86 @@ class SidebandApp(MDApp):
             RNS.trace_exception(e)
 
     def on_new_intent(self, intent):
-        intent_action = intent.getAction()
-        action = None
-        data = None
+        try:
+            intent_action = intent.getAction()
+            action = None
+            data = None
 
-        RNS.log(f"Received intent: {intent_action}", RNS.LOG_DEBUG)
+            RNS.log(f"Received intent: {intent_action}", RNS.LOG_DEBUG)
 
-        if intent_action == "android.intent.action.MAIN":
-            JString = autoclass('java.lang.String')
-            Intent = autoclass("android.content.Intent")
-            try:
-                extras = intent.getExtras()
-                if extras:
-                    data = extras.getString("intent_action", "undefined")
-                    if data.startswith("conversation."):
-                        conv_hexhash = bytes.fromhex(data.replace("conversation.", ""))
-                        def cb(dt): self.open_conversation(conv_hexhash)
-                        Clock.schedule_once(cb, 0.2)
-
-                    elif data.startswith("incoming_call"):
-                        def cb(dt): self.voice_action()
-                        Clock.schedule_once(cb, 0.2)
-
-            except Exception as e:
-                RNS.log(f"Error while getting intent action data: {e}", RNS.LOG_ERROR)
-                RNS.trace_exception(e)
-
-        if intent_action == "android.intent.action.WEB_SEARCH":
-            SearchManager = autoclass('android.app.SearchManager')
-            data = intent.getStringExtra(SearchManager.QUERY)
-            
-            if data.lower().startswith(LXMF.LXMessage.URI_SCHEMA):
-                action = "lxm_uri"
-
-        if intent_action == "android.intent.action.VIEW":
-            data = intent.getData().toString()
-            if data.lower().startswith(LXMF.LXMessage.URI_SCHEMA):
-                action = "lxm_uri"
-
-        if intent_action == "android.intent.action.SEND":
-            try:
+            if intent_action == "android.intent.action.MAIN":
+                JString = autoclass('java.lang.String')
                 Intent = autoclass("android.content.Intent")
-                extras = intent.getExtras()
-                target = extras.get(Intent.EXTRA_STREAM)
-                mime_types = extras.get(Intent.EXTRA_MIME_TYPES)
-                target_uri = target.toString()
-                target_path = target.getPath()
-                target_filename = target.getLastPathSegment()
+                try:
+                    extras = intent.getExtras()
+                    if extras:
+                        data = extras.getString("intent_action", "undefined")
+                        if data.startswith("conversation."):
+                            conv_hexhash = bytes.fromhex(data.replace("conversation.", ""))
+                            def cb(dt): self.open_conversation(conv_hexhash)
+                            Clock.schedule_once(cb, 0.2)
 
-                RNS.log(f"Received share intent: {target_uri} / {target_path} / {target_filename}", RNS.LOG_DEBUG)
-                for cf in os.listdir(self.sideband.share_cache):
-                    rt = os.path.join(self.sideband.share_cache, cf)
-                    os.unlink(rt)
-                    RNS.log("Removed previously cached data: "+str(rt), RNS.LOG_DEBUG)
+                        elif data.startswith("incoming_call"):
+                            def cb(dt): self.voice_action()
+                            Clock.schedule_once(cb, 0.2)
 
-                ContentResolver = autoclass("android.content.ContentResolver")
-                cr = mActivity.getContentResolver()
-                cache_path = os.path.join(self.sideband.share_cache, target_filename)
-                input_stream = cr.openInputStream(target)
-                with open(cache_path, "wb") as cache_file:
-                    cache_file.write(bytes(input_stream.readAllBytes()))
-                    RNS.log("Cached shared data from Android intent", RNS.LOG_DEBUG)
+                except Exception as e:
+                    RNS.log(f"Error while getting intent action data: {e}", RNS.LOG_ERROR)
+                    RNS.trace_exception(e)
 
-                action = "shared_data"
-                data = {"filename": target_filename, "data_path": cache_path}
+            if intent_action == "android.intent.action.WEB_SEARCH":
+                SearchManager = autoclass('android.app.SearchManager')
+                data = intent.getStringExtra(SearchManager.QUERY)
+                
+                if data.lower().startswith(LXMF.LXMessage.URI_SCHEMA): action = "lxm_uri"
 
-            except Exception as e:
-                RNS.log(f"Error while getting intent action data: {e}", RNS.LOG_ERROR)
-                RNS.trace_exception(e)
+            if intent_action == "android.intent.action.VIEW":
+                data = intent.getData().toString()
+                if data.lower().startswith(LXMF.LXMessage.URI_SCHEMA): action = "lxm_uri"
 
-        if action != None:
-            self.handle_action(action, data)
+            if intent_action == "android.intent.action.SEND":
+                try:
+                    Intent = autoclass("android.content.Intent")
+                    extras = intent.getExtras()
+                    target = extras.get(Intent.EXTRA_STREAM)
+                    mime_types = extras.get(Intent.EXTRA_MIME_TYPES)
+                    target_uri = target.toString()
+                    target_path = target.getPath()
+                    target_filename = target.getLastPathSegment()
+
+                    RNS.log(f"Received share intent: {target_uri} / {target_path} / {target_filename}", RNS.LOG_DEBUG)
+                    for cf in os.listdir(self.sideband.share_cache):
+                        rt = os.path.join(self.sideband.share_cache, cf)
+                        os.unlink(rt)
+                        RNS.log("Removed previously cached data: "+str(rt), RNS.LOG_DEBUG)
+
+                    ContentResolver = autoclass("android.content.ContentResolver")
+                    cr = mActivity.getContentResolver()
+                    cache_path = os.path.join(self.sideband.share_cache, target_filename)
+                    input_stream = cr.openInputStream(target)
+                    with open(cache_path, "wb") as cache_file:
+                        cache_file.write(bytes(input_stream.readAllBytes()))
+                        RNS.log("Cached shared data from Android intent", RNS.LOG_DEBUG)
+
+                    action = "shared_data"
+                    data = {"filename": target_filename, "data_path": cache_path}
+
+                except Exception as e:
+                    RNS.log(f"Error while getting intent action data: {e}", RNS.LOG_ERROR)
+                    RNS.trace_exception(e)
+
+            if action != None: self.handle_action(action, data)
+
+        except Exception as e:
+            RNS.log(f"Error while handling received intent: {e}", RNS.LOG_ERROR)
+            RNS.trace_exception(e)
 
     def handle_action(self, action, data):
         if action == "lxm_uri":
             self.ingest_lxm_uri(data)
 
         if action == "shared_data":
-            RNS.log("Got shared data: "+str(data))
+            RNS.log("Got shared data from Android intent", RNS.LOG_DEBUG)
             def cb(dt):
                 try:
                     self.shared_attachment_action(data)
@@ -1608,10 +1632,8 @@ class SidebandApp(MDApp):
 
         patch_sdl_window_events(Window)
 
-        if __variant__ != "":
-            variant_str = " "+__variant__
-        else:
-            variant_str = ""
+        if __variant__ != "": variant_str = " "+__variant__
+        else:                 variant_str = ""
 
         self.root.ids.screen_manager.app = self
         self.root.ids.app_version_info.text = "Sideband v"+__version__+variant_str
@@ -2055,7 +2077,6 @@ class SidebandApp(MDApp):
         self.message_area_detect()
         self.update_message_widgets()
         self.messages_view.ids.message_text.disabled = False
-
 
         self.root.ids.screen_manager.current = "messages_screen"
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
