@@ -158,6 +158,12 @@ class Voice():
     def _path_request_failed(self, dt):
         toast("Path request timed out")
 
+    def log_dial_action(self, sender=None):
+        if sender:
+            self.screen.ids.identity_hash.text = RNS.hexrep(sender.identity, delimit=False)
+            self.dial_target = sender.identity
+            self.dial_action()
+
     def dial_action(self, sender=None):
         if self.app.sideband.voice_running:
             if self.app.sideband.telephone.is_available:
@@ -321,6 +327,7 @@ class Voice():
         self.last_log_update = time.time()
 
     def update_log_list(self):
+        LogEntry.owner = self
         call_log = self.app.sideband.telephone.get_call_log()
         call_log.sort(key=lambda e: e["time"], reverse=True)
         data = []
@@ -336,7 +343,7 @@ class Voice():
 
                 icon = None
                 if   evt == "incoming-missed":  icon = "phone-missed"
-                elif evt == "outgoing-failure": icon = "phone-cancel"
+                elif evt == "outgoing-failure": icon = "phone-remove"
                 elif evt == "incoming-success": icon = "phone-incoming"
                 elif evt == "outgoing-success": icon = "phone-outgoing"
 
@@ -351,7 +358,7 @@ class Voice():
 
                 if icon:
                     info  = f"{name}  •  [i]{time_str}[/i]"
-                    entry = {"icon": icon, "text": f"{info}"}
+                    entry = {"icon": icon, "text": f"{info}", "identity": idnt}
                     data.append(entry)
 
             except Exception as e:
@@ -361,13 +368,7 @@ class Voice():
         self.log_list.data = data
 
 class LogEntry(OneLineAvatarIconListItem):
-    app = None
-    owner_screen = None
-    conversation_dropdown = None
-    voice_dropdown = None
-    clear_dialog = None
-    clear_telemetry_dialog = None
-    delete_dialog = None
+    owner = None
 
     icon = StringProperty()
     # ti_color = OptionProperty(None, options=theme_text_color_options)
@@ -376,9 +377,12 @@ class LogEntry(OneLineAvatarIconListItem):
     
     def __init__(self):
         super().__init__()
-        # self.bind(on_release=self.app.conversation_action)
+        self.bind(on_release=self.dial_action)
         # self.ids.left_icon.bind(on_release=self.left_icon_action)
         # self.ids.right_icon.bind(on_release=self.right_icon_action)
+
+    def dial_action(self, sender=None):
+        self.owner.log_dial_action(self)
 
     def left_icon_action(self, sender):
         pass
