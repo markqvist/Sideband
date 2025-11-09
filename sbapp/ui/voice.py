@@ -68,28 +68,34 @@ class Voice():
                 self.ui_updater = None
 
         db = self.screen.ids.dial_button
+        rb = self.screen.ids.reject_button
         ih = self.screen.ids.identity_hash
         if self.app.sideband.voice_running:
             telephone = self.app.sideband.telephone
             if self.path_requesting:
                 db.disabled = True
+                rb.disabled = True
                 ih.disabled = True
 
             else:
                 if telephone.is_available:
                     ih.disabled = False
+                    rb.disabled = True
                     self.target_input_action(ih)
                 else:
                     ih.disabled = True
+                    rb.disabled = True
 
                 if telephone.is_in_call or telephone.call_is_connecting:
                     ih.disabled = True
+                    rb.disabled = True
                     db.disabled = False
                     db.text = "Hang up"
                     db.icon = "phone-hangup"
 
                 elif telephone.is_ringing:
                     ih.disabled = True
+                    rb.disabled = False
                     db.disabled = False
                     db.text = "Answer"
                     db.icon = "phone-ring"
@@ -164,6 +170,11 @@ class Voice():
             self.dial_target = sender.identity
             self.dial_action()
 
+    def reject_action(self, sender=None):
+        if self.app.sideband.voice_running:
+            if self.app.sideband.telephone.is_ringing:
+                self.app.sideband.telephone.hangup()
+    
     def dial_action(self, sender=None):
         if self.app.sideband.voice_running:
             if self.app.sideband.telephone.is_available:
@@ -469,7 +480,7 @@ MDScreen:
                 spacing: "24dp"
                 size_hint_y: None
                 height: self.minimum_height
-                padding: [dp(0), dp(35), dp(0), dp(35)]
+                padding: [dp(0), dp(35), dp(0), dp(14)]
 
                 MDRectangleFlatIconButton:
                     id: dial_button
@@ -480,6 +491,17 @@ MDScreen:
                     font_size: dp(16)
                     size_hint: [1.0, None]
                     on_release: root.delegate.dial_action(self)
+                    disabled: True
+
+                MDRectangleFlatIconButton:
+                    id: reject_button
+                    icon: "phone-cancel"
+                    text: "Reject"
+                    padding: [dp(0), dp(14), dp(0), dp(14)]
+                    icon_size: dp(24)
+                    font_size: dp(16)
+                    size_hint: [1.0, None]
+                    on_release: root.delegate.reject_action(self)
                     disabled: True
 
         MDSeparator:
