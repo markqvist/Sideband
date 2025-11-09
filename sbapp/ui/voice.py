@@ -338,45 +338,47 @@ class Voice():
         self.last_log_update = time.time()
 
     def update_log_list(self):
-        LogEntry.owner = self
-        call_log = self.app.sideband.telephone.get_call_log()
-        call_log.sort(key=lambda e: e["time"], reverse=True)
-        data = []
-        for entry in call_log:
-            try:
-                at    = entry["time"]
-                td    = int(time.time())-int(at)
-                evt   = entry["event"]
-                idnt  = entry["identity"]
+        if not self.app.sideband.telephone: self.log_list.data = []
+        else:
+            LogEntry.owner = self
+            call_log = self.app.sideband.telephone.get_call_log()
+            call_log.sort(key=lambda e: e["time"], reverse=True)
+            data = []
+            for entry in call_log:
+                try:
+                    at    = entry["time"]
+                    td    = int(time.time())-int(at)
+                    evt   = entry["event"]
+                    idnt  = entry["identity"]
 
-                if not idnt in self.log_name_cache: self.log_name_cache[idnt] = self.app.sideband.voice_display_name(idnt)
-                name = multilingual_markup(escape_markup(str(self.log_name_cache[idnt])).encode("utf-8")).decode("utf-8")
+                    if not idnt in self.log_name_cache: self.log_name_cache[idnt] = self.app.sideband.voice_display_name(idnt)
+                    name = multilingual_markup(escape_markup(str(self.log_name_cache[idnt])).encode("utf-8")).decode("utf-8")
 
-                icon = None
-                if   evt == "incoming-missed":  icon = "phone-missed"
-                elif evt == "outgoing-failure": icon = "phone-remove"
-                elif evt == "incoming-success": icon = "phone-incoming"
-                elif evt == "outgoing-success": icon = "phone-outgoing"
+                    icon = None
+                    if   evt == "incoming-missed":  icon = "phone-missed"
+                    elif evt == "outgoing-failure": icon = "phone-remove"
+                    elif evt == "incoming-success": icon = "phone-incoming"
+                    elif evt == "outgoing-success": icon = "phone-outgoing"
 
-                time_str = None
-                if td < 60:           time_str = "Just now"
-                elif td < 60*60:      td = int((td//60)*60)
-                elif td < 60*60*24:   td = int((td//60)*60)
-                elif td < 60*60*24*7: td = int((td//(60*60*24))*(60*60*24))
-                else:                 time_str = time.strftime(ts_format_date, time.localtime(at))
+                    time_str = None
+                    if td < 60:           time_str = "Just now"
+                    elif td < 60*60:      td = int((td//60)*60)
+                    elif td < 60*60*24:   td = int((td//60)*60)
+                    elif td < 60*60*24*7: td = int((td//(60*60*24))*(60*60*24))
+                    else:                 time_str = time.strftime(ts_format_date, time.localtime(at))
 
-                if time_str == None:  time_str = f"{RNS.prettytime(td)} ago"
+                    if time_str == None:  time_str = f"{RNS.prettytime(td)} ago"
 
-                if icon:
-                    info  = f"{name}  •  [i]{time_str}[/i]"
-                    entry = {"icon": icon, "text": f"{info}", "identity": idnt}
-                    data.append(entry)
+                    if icon:
+                        info  = f"{name}  •  [i]{time_str}[/i]"
+                        entry = {"icon": icon, "text": f"{info}", "identity": idnt}
+                        data.append(entry)
 
-            except Exception as e:
-                RNS.log(f"An error occurred while updating the call log list: {e}", RNS.LOG_ERROR)
-                RNS.trace_exception(e)
+                except Exception as e:
+                    RNS.log(f"An error occurred while updating the call log list: {e}", RNS.LOG_ERROR)
+                    RNS.trace_exception(e)
 
-        self.log_list.data = data
+            self.log_list.data = data
 
 class LogEntry(OneLineAvatarIconListItem):
     owner = None

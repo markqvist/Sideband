@@ -5841,6 +5841,8 @@ class SidebandApp(MDApp):
             self.voice_screen.screen.ids.identity_hash.text = RNS.hexrep(dial_on_complete, delimit=False)
             Clock.schedule_once(self.voice_screen.dial_action, 0.25)
 
+        if self.sideband.config["voice_enabled"] == True: self.request_microphone_permission()
+
     def voice_action(self, sender=None, direction="left", dial_on_complete=None):
         if self.voice_ready:
             self.voice_open(direction=direction, dial_on_complete=dial_on_complete)
