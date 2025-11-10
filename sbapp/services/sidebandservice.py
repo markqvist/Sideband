@@ -89,7 +89,10 @@ class SidebandService():
                 if context_id in silent_contexts: silent = True
                 else:                             silent = False
 
-                self.notification_channel = NotificationChannel(channel_id, channel_name, NotificationManager.IMPORTANCE_DEFAULT)
+                if context_id == "incoming_call": channel_importance = NotificationManager.IMPORTANCE_HIGH
+                else:                             channel_importance = NotificationManager.IMPORTANCE_DEFAULT
+
+                self.notification_channel = NotificationChannel(channel_id, channel_name, channel_importance)
                 self.notification_channel.enableVibration(True)
                 if not silent: self.notification_channel.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), None)
                 else:          self.notification_channel.setSound(None, None)
