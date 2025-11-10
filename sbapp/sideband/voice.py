@@ -136,35 +136,36 @@ class ReticulumTelephone():
             return self.call_log
 
     def log_call(self, event, identity):
-        RNS.log(f"Logging call event {event} for {RNS.prettyhexrep(identity.hash)}", RNS.LOG_DEBUG)
-        if self.logpath:
-            try:
-                if not os.path.isfile(self.logpath):
-                    try:
-                        with open(self.logpath, "wb") as logfile: logfile.write(msgpack.packb([]))
-                    except Exception as e: raise OSError("Could not create call log file")
-                
-                call_log = []
-                read_call_log = []
+        if identity:
+            RNS.log(f"Logging call event {event} for {RNS.prettyhexrep(identity.hash)}", RNS.LOG_DEBUG)
+            if self.logpath:
                 try:
-                    with open(self.logpath, "rb") as logfile: read_call_log = msgpack.unpackb(logfile.read())
+                    if not os.path.isfile(self.logpath):
+                        try:
+                            with open(self.logpath, "wb") as logfile: logfile.write(msgpack.packb([]))
+                        except Exception as e: raise OSError("Could not create call log file")
+                    
+                    call_log = []
+                    read_call_log = []
+                    try:
+                        with open(self.logpath, "rb") as logfile: read_call_log = msgpack.unpackb(logfile.read())
+                    except Exception as e:
+                        RNS.log(f"Error while reading call log file: {e}", RNS.LOG_ERROR)
+                        RNS.log(f"Call log file will be re-created", RNS.LOG_ERROR)
+
+                    for entry in read_call_log:
+                        age = time.time()-entry["time"]
+                        if age < self.CALL_LOG_KEEP: call_log.append(entry)
+
+                    entry = {"time": time.time(), "event": event, "identity": identity.hash}
+                    call_log.append(entry)
+
+                    with open(self.logpath, "wb") as logfile: logfile.write(msgpack.packb(call_log))
+                    self.call_log = call_log
+
                 except Exception as e:
-                    RNS.log(f"Error while reading call log file: {e}", RNS.LOG_ERROR)
-                    RNS.log(f"Call log file will be re-created", RNS.LOG_ERROR)
-
-                for entry in read_call_log:
-                    age = time.time()-entry["time"]
-                    if age < self.CALL_LOG_KEEP: call_log.append(entry)
-
-                entry = {"time": time.time(), "event": event, "identity": identity.hash}
-                call_log.append(entry)
-
-                with open(self.logpath, "wb") as logfile: logfile.write(msgpack.packb(call_log))
-                self.call_log = call_log
-
-            except Exception as e:
-                RNS.log(f"An error occurred while updating call log: {e}", RNS.LOG_ERROR)
-                RNS.trace_exception(e)
+                    RNS.log(f"An error occurred while updating call log: {e}", RNS.LOG_ERROR)
+                    RNS.trace_exception(e)
 
     def dial(self, identity_hash):
         self.last_dialled_identity_hash = identity_hash

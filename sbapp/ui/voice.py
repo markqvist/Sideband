@@ -165,10 +165,12 @@ class Voice():
         toast("Path request timed out")
 
     def log_dial_action(self, sender=None):
-        if sender:
-            self.screen.ids.identity_hash.text = RNS.hexrep(sender.identity, delimit=False)
-            self.dial_target = sender.identity
-            self.dial_action()
+        if sender and self.app.sideband.voice_running and self.app.sideband.telephone != None:
+            telephone = self.app.sideband.telephone
+            if not telephone.is_ringing and not telephone.is_in_call and not telephone.call_is_connecting:
+                self.screen.ids.identity_hash.text = RNS.hexrep(sender.identity, delimit=False)
+                self.dial_target = sender.identity
+                self.dial_action()
 
     def reject_action(self, sender=None):
         if self.app.sideband.voice_running:

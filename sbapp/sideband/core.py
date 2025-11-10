@@ -5583,15 +5583,15 @@ class SidebandCore():
     def incoming_call(self, remote_identity):
         display_name = self.voice_display_name(remote_identity.hash)
         self.setstate("voice.incoming_call", display_name)
-        if self.gui_foreground(): RNS.log("Squelching call notification since GUI is in foreground", RNS.LOG_DEBUG)
-        else: self.notify(title="Incoming voice call", content=f"From {display_name}", group="LXST.Telephony", context_id="incoming_call")
+        if self.gui_foreground() and self.getstate("app.displaying") == "voice_screen": RNS.log("Squelching call notification since voice screen is active", RNS.LOG_DEBUG)
+        else: self.notify(title="Incoming call", content=f"From {display_name}", group="lxst.telephony.call", context_id="incoming_call")
 
     def missed_call(self, remote_identity):
         display_name = self.voice_display_name(remote_identity.hash)
-        self.setstate("voice.incoming_call", display_name)
+        self.setstate("voice.missed_call", display_name)
         # if self.gui_foreground(): RNS.log("Squelching call notification since GUI is in foreground", RNS.LOG_DEBUG)
         # else: self.notify(title="Missed voice call", content=f"From {display_name}", group="LXST.Telephony", context_id="incoming_call")
-        self.notify(title="Missed voice call", content=f"From {display_name}", group="LXST.Telephony", context_id="incoming_call")
+        self.notify(title="Missed call", content=f"From {display_name}", group="lxst.telephony.call", context_id="incoming_call")
 
 rns_config = """# This template is used to generate a
 # running configuration for Sideband's
