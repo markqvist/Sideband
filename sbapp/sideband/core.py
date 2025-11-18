@@ -680,8 +680,10 @@ class SidebandCore():
         if not "hw_rnode_beacondata" in self.config:                   self.config["hw_rnode_beacondata"] = None
         if not "hw_rnode_bluetooth" in self.config:                    self.config["hw_rnode_bluetooth"] = False
         if not "hw_rnode_ble" in self.config:                          self.config["hw_rnode_ble"] = False
+        if not "hw_rnode_tcp" in self.config:                          self.config["hw_rnode_tcp"] = False
         if not "hw_rnode_enable_framebuffer" in self.config:           self.config["hw_rnode_enable_framebuffer"] = False
         if not "hw_rnode_bt_device" in self.config:                    self.config["hw_rnode_bt_device"] = None
+        if not "hw_rnode_tcp_host" in self.config:                     self.config["hw_rnode_tcp_host"] = None
         if not "hw_rnode_atl_short" in self.config:                    self.config["hw_rnode_atl_short"] = None
         if not "hw_rnode_atl_long" in self.config:                     self.config["hw_rnode_atl_long"] = None
 

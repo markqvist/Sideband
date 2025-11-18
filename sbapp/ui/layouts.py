@@ -2589,8 +2589,8 @@ MDScreen:
                 MDBoxLayout:
                     orientation: "horizontal"
                     size_hint_y: None
-                    padding: [0,dp(14),dp(24),dp(48)]
-                    height: dp(86)
+                    padding: [0,dp(14),dp(24),dp(0)]
+                    height: dp(48)
                     
                     MDLabel:
                         text: "Control RNode Display"
@@ -2602,13 +2602,71 @@ MDScreen:
                         active: False
 
                 MDLabel:
-                    text: "Bluetooth Settings\\n"
+                    text: "•"
+                    font_style: "H6"
+                    text_size: self.size
+                    halign: "center"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    padding: [0, dp(2+14), 0, dp(22+24)]
+
+                MDLabel:
+                    text: "WiFi & Ethernet Connection\\n"
+                    font_style: "H6"
+
+                MDLabel:
+                    id: hardware_rnode_info_wifi
+                    markup: True
+                    text: "If your device is hosting or connected to a WiFi network, you can connect it by entering its IP address or hostname below."
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,dp(12),dp(24),dp(0)]
+                    height: dp(36)
+                    
+                    MDLabel:
+                        text: "Connect using WiFi"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: hardware_rnode_tcp
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    # spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    # padding: [dp(0), dp(0), dp(0), dp(35)]
+
+                    MDTextField:
+                        id: hardware_rnode_tcp_host
+                        hint_text: "RNode IP address or hostname"
+                        text: ""
+                        font_size: dp(24)
+
+                MDLabel:
+                    text: "•"
+                    font_style: "H6"
+                    text_size: self.size
+                    halign: "center"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    padding: [0, dp(2+14), 0, dp(22+24)]
+
+                MDLabel:
+                    text: "Bluetooth Connection\\n"
                     font_style: "H6"
 
                 MDLabel:
                     id: hardware_rnode_info
                     markup: True
-                    text: "If you enable connection via Bluetooth, Sideband will attempt to connect to any available and paired RNodes over Bluetooth. If your RNode uses BLE (ESP32-S3 and nRF devices) instead of classic Bluetooth, enable the [i]Device requires BLE[/i] option as well."
+                    text: "If you enable connection via Bluetooth, Sideband will attempt to connect to any available and paired RNodes over Bluetooth.\\n\\nIf your RNode uses BLE (ESP32-S3 and nRF devices) instead of classic Bluetooth, enable the [i]Device requires BLE[/i] option as well."
                     size_hint_y: None
                     text_size: self.width, None
                     height: self.texture_size[1]
@@ -2631,8 +2689,8 @@ MDScreen:
                 MDBoxLayout:
                     orientation: "horizontal"
                     size_hint_y: None
-                    padding: [0,0,dp(24),dp(0)]
-                    height: dp(48)
+                    padding: [0,0,dp(24),dp(48)]
+                    height: dp(86)
                     
                     MDLabel:
                         text: "Device requires BLE"
@@ -2644,9 +2702,13 @@ MDScreen:
                         active: False
 
                 MDLabel:
+                    text: "Bluetooth Pairing\\n"
+                    font_style: "H6"
+
+                MDLabel:
                     id: hardware_rnode_info
                     markup: True
-                    text: "You must first pair the RNode with your device for this to work. To put an RNode into pairing mode, hold down the multi-function user button for more than 5 seconds, and release it. The display will indicate pairing mode.You can then pair the device using the Bluetooth settings of your device, or by pressing the pairing button below. On older Android versions, the in-app scanning and pairing may not work. In this case, use the Bluetooth settings of your device to scan and pair.\\n"
+                    text: "To put an RNode into pairing mode, hold down the multi-function user button for more than 5 seconds, and release it. The display will indicate pairing mode. If the in-app pairing does not find any devices, use the Bluetooth settings of your device to scan and pair.\\n"
                     size_hint_y: None
                     text_size: self.width, None
                     height: self.texture_size[1]
@@ -2674,12 +2736,16 @@ MDScreen:
                     spacing: "24dp"
                     size_hint_y: None
                     height: self.minimum_height
-                    padding: [dp(0), dp(0), dp(0), dp(12)]
+                    padding: [dp(0), dp(0), dp(0), dp(12+24)]
+
+                MDLabel:
+                    text: "Preffered Bluetooth Device\\n"
+                    font_style: "H6"
 
                 MDLabel:
                     id: hardware_rnode_info
                     markup: True
-                    text: "By default, Sideband will connect to the first available RNode that is paired. If you want to always use a specific RNode, you can enter its name in the Preferred RNode Device Name field below, for example \\"RNode A8EB\\"."
+                    text: "Sideband will connect to the first available RNode that is paired. If you want to always use a specific RNode, you can enter its name here, for example \\"RNode A8EB\\"."
                     size_hint_y: None
                     text_size: self.width, None
                     height: self.texture_size[1]
@@ -2696,6 +2762,15 @@ MDScreen:
                         hint_text: "Preferred RNode Device Name"
                         text: ""
                         font_size: dp(24)
+
+                MDLabel:
+                    text: "•"
+                    font_style: "H6"
+                    text_size: self.size
+                    halign: "center"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    padding: [0, dp(2+14), 0, dp(22)]
 
                 MDLabel:
                     text: "\\n\\nDevice Bluetooth Control\\n"

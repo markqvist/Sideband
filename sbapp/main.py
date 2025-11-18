@@ -4533,58 +4533,40 @@ class SidebandApp(MDApp):
             self.root.ids.screen_manager.transition = self.slide_transition
 
     def hardware_rnode_save(self):
-        try:
-            self.sideband.config["hw_rnode_frequency"] = int(float(self.hardware_rnode_screen.ids.hardware_rnode_frequency.text)*1000000)
-        except:
-            pass
+        try: self.sideband.config["hw_rnode_frequency"] = int(float(self.hardware_rnode_screen.ids.hardware_rnode_frequency.text)*1000000)
+        except: pass
 
-        try:
-            self.sideband.config["hw_rnode_bandwidth"] = int(float(self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.text)*1000)
-        except:
-            pass
+        try: self.sideband.config["hw_rnode_bandwidth"] = int(float(self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.text)*1000)
+        except: pass
 
-        try:
-            self.sideband.config["hw_rnode_tx_power"] = int(self.hardware_rnode_screen.ids.hardware_rnode_txpower.text)
-        except:
-            pass
+        try: self.sideband.config["hw_rnode_tx_power"] = int(self.hardware_rnode_screen.ids.hardware_rnode_txpower.text)
+        except: pass
 
-        try:
-            self.sideband.config["hw_rnode_spreading_factor"] = int(self.hardware_rnode_screen.ids.hardware_rnode_spreadingfactor.text)
-        except:
-            pass
+        try: self.sideband.config["hw_rnode_spreading_factor"] = int(self.hardware_rnode_screen.ids.hardware_rnode_spreadingfactor.text)
+        except: pass
         
-        try:
-            self.sideband.config["hw_rnode_coding_rate"] = int(self.hardware_rnode_screen.ids.hardware_rnode_codingrate.text)
-        except:
-            pass
+        try: self.sideband.config["hw_rnode_coding_rate"] = int(self.hardware_rnode_screen.ids.hardware_rnode_codingrate.text)
+        except: pass
         
-        try:
-            self.sideband.config["hw_rnode_atl_short"] = float(self.hardware_rnode_screen.ids.hardware_rnode_atl_short.text)
-        except:
-            self.sideband.config["hw_rnode_atl_short"] = None
+        try: self.sideband.config["hw_rnode_atl_short"] = float(self.hardware_rnode_screen.ids.hardware_rnode_atl_short.text)
+        except: self.sideband.config["hw_rnode_atl_short"] = None
 
-        try:
-            self.sideband.config["hw_rnode_atl_long"] = float(self.hardware_rnode_screen.ids.hardware_rnode_atl_long.text)
-        except:
-            self.sideband.config["hw_rnode_atl_long"] = None
+        try: self.sideband.config["hw_rnode_atl_long"] = float(self.hardware_rnode_screen.ids.hardware_rnode_atl_long.text)
+        except: self.sideband.config["hw_rnode_atl_long"] = None
         
-        if self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text == "":
-            self.sideband.config["hw_rnode_beaconinterval"] = None
+        if self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text == "": self.sideband.config["hw_rnode_beaconinterval"] = None
         else:
-            try:
-                self.sideband.config["hw_rnode_beaconinterval"] = int(self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text)
-            except:
-                pass
+            try: self.sideband.config["hw_rnode_beaconinterval"] = int(self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text)
+            except: pass
 
-        if self.hardware_rnode_screen.ids.hardware_rnode_beacondata.text == "":
-            self.sideband.config["hw_rnode_beacondata"] = None
-        else:
-            self.sideband.config["hw_rnode_beacondata"] = self.hardware_rnode_screen.ids.hardware_rnode_beacondata.text
+        if self.hardware_rnode_screen.ids.hardware_rnode_beacondata.text == "": self.sideband.config["hw_rnode_beacondata"] = None
+        else: self.sideband.config["hw_rnode_beacondata"] = self.hardware_rnode_screen.ids.hardware_rnode_beacondata.text
 
-        if self.hardware_rnode_screen.ids.hardware_rnode_bt_device.text == "":
-            self.sideband.config["hw_rnode_bt_device"] = None
-        else:
-            self.sideband.config["hw_rnode_bt_device"] = self.hardware_rnode_screen.ids.hardware_rnode_bt_device.text
+        if self.hardware_rnode_screen.ids.hardware_rnode_bt_device.text == "": self.sideband.config["hw_rnode_bt_device"] = None
+        else: self.sideband.config["hw_rnode_bt_device"] = self.hardware_rnode_screen.ids.hardware_rnode_bt_device.text
+
+        if self.hardware_rnode_screen.ids.hardware_rnode_tcp_host.text == "": self.sideband.config["hw_rnode_tcp_host"] = None
+        else: self.sideband.config["hw_rnode_tcp_host"] = self.hardware_rnode_screen.ids.hardware_rnode_tcp_host.text
 
         self.sideband.save_configuration()
 
@@ -4724,6 +4706,12 @@ class SidebandApp(MDApp):
 
         self.sideband.save_configuration()
     
+    def hardware_rnode_tcp_toggle_action(self, sender=None, event=None):
+        if sender.active: self.sideband.config["hw_rnode_tcp"] = True
+        else: self.sideband.config["hw_rnode_tcp"] = False
+
+        self.sideband.save_configuration()
+    
     def hardware_rnode_init(self, sender=None):
         if not self.hardware_rnode_ready:
             if not self.root.ids.screen_manager.has_screen("hardware_rnode_screen"):
@@ -4773,6 +4761,8 @@ class SidebandApp(MDApp):
                 t_btd = str(self.sideband.config["hw_rnode_bt_device"])
             else:
                 t_btd = ""
+            if self.sideband.config["hw_rnode_tcp_host"] != None: t_th = str(self.sideband.config["hw_rnode_tcp_host"])
+            else: t_th = ""
             if self.sideband.config["hw_rnode_atl_short"] != None:
                 t_ats = str(self.sideband.config["hw_rnode_atl_short"])
             else:
@@ -4784,6 +4774,7 @@ class SidebandApp(MDApp):
 
             self.hardware_rnode_screen.ids.hardware_rnode_bluetooth.active = self.sideband.config["hw_rnode_bluetooth"]
             self.hardware_rnode_screen.ids.hardware_rnode_ble.active = self.sideband.config["hw_rnode_ble"]
+            self.hardware_rnode_screen.ids.hardware_rnode_tcp.active = self.sideband.config["hw_rnode_tcp"]
             self.hardware_rnode_screen.ids.hardware_rnode_framebuffer.active = self.sideband.config["hw_rnode_enable_framebuffer"]
             self.hardware_rnode_screen.ids.hardware_rnode_frequency.text = t_freq
             self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.text = t_bw
@@ -4793,6 +4784,7 @@ class SidebandApp(MDApp):
             self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.text = t_bi
             self.hardware_rnode_screen.ids.hardware_rnode_beacondata.text = t_bd
             self.hardware_rnode_screen.ids.hardware_rnode_bt_device.text = t_btd
+            self.hardware_rnode_screen.ids.hardware_rnode_tcp_host.text = t_th
             self.hardware_rnode_screen.ids.hardware_rnode_atl_short.text = t_ats
             self.hardware_rnode_screen.ids.hardware_rnode_atl_long.text = t_atl
             self.hardware_rnode_screen.ids.hardware_rnode_frequency.bind(focus=focus_save)
@@ -4803,6 +4795,7 @@ class SidebandApp(MDApp):
             self.hardware_rnode_screen.ids.hardware_rnode_beaconinterval.bind(focus=focus_save)
             self.hardware_rnode_screen.ids.hardware_rnode_beacondata.bind(focus=focus_save)
             self.hardware_rnode_screen.ids.hardware_rnode_bt_device.bind(focus=focus_save)
+            self.hardware_rnode_screen.ids.hardware_rnode_tcp_host.bind(focus=focus_save)
             self.hardware_rnode_screen.ids.hardware_rnode_frequency.bind(on_text_validate=save_connectivity)
             self.hardware_rnode_screen.ids.hardware_rnode_bandwidth.bind(on_text_validate=save_connectivity)
             self.hardware_rnode_screen.ids.hardware_rnode_txpower.bind(on_text_validate=save_connectivity)
@@ -4815,6 +4808,7 @@ class SidebandApp(MDApp):
             self.hardware_rnode_screen.ids.hardware_rnode_bluetooth.bind(active=self.hardware_rnode_bt_toggle_action)
             self.hardware_rnode_screen.ids.hardware_rnode_ble.bind(active=self.hardware_rnode_ble_toggle_action)
             self.hardware_rnode_screen.ids.hardware_rnode_framebuffer.bind(active=self.hardware_rnode_framebuffer_toggle_action)
+            self.hardware_rnode_screen.ids.hardware_rnode_tcp.bind(active=self.hardware_rnode_tcp_toggle_action)
 
             self.hardware_rnode_ready = True
 
