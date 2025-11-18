@@ -620,298 +620,160 @@ class SidebandCore():
         config_file.close()
 
         # Migration actions from earlier config formats
-        if not "debug" in self.config:
-            self.config["debug"] = False
-        if not "dark_ui" in self.config:
-            self.config["dark_ui"] = True
-        if not "advanced_stats" in self.config:
-            self.config["advanced_stats"] = True
-        if not "lxmf_periodic_sync" in self.config:
-            self.config["lxmf_periodic_sync"] = False
-        if not "lxmf_ignore_unknown" in self.config:
-            self.config["lxmf_ignore_unknown"] = False
-        if not "lxmf_sync_interval" in self.config:
-            self.config["lxmf_sync_interval"] = 43200
-        if not "lxmf_try_propagation_on_fail" in self.config:
-            self.config["lxmf_try_propagation_on_fail"] = True
-        if not "lxmf_require_stamps" in self.config:
-            self.config["lxmf_require_stamps"] = False
-        if not "lxmf_ignore_invalid_stamps" in self.config:
-            self.config["lxmf_ignore_invalid_stamps"] = True
-        if not "lxmf_inbound_stamp_cost" in self.config:
-            self.config["lxmf_inbound_stamp_cost"] = None
-        if not "notifications_on" in self.config:
-            self.config["notifications_on"] = True
-        if not "print_command" in self.config:
-            self.config["print_command"] = "lp"
-        if not "eink_mode" in self.config:
-            self.config["eink_mode"] = True
-        if not "classic_message_colors" in self.config:
-            self.config["classic_message_colors"] = False
-        if not "display_style_in_contact_list" in self.config:
-            self.config["display_style_in_contact_list"] = True
-        if not "lxm_limit_1mb" in self.config:
-            self.config["lxm_limit_1mb"] = True
-        if not "hq_ptt" in self.config:
-            self.config["hq_ptt"] = False
-        if not "trusted_markup_only" in self.config:
-            self.config["trusted_markup_only"] = False
-        if not "compose_in_markdown" in self.config:
-            self.config["compose_in_markdown"] = False
-        if not "confirm_calls" in self.config:
-            self.config["confirm_calls"] = True
+        if not "debug" in self.config:                                 self.config["debug"] = False
+        if not "dark_ui" in self.config:                               self.config["dark_ui"] = True
+        if not "advanced_stats" in self.config:                        self.config["advanced_stats"] = True
+        if not "lxmf_periodic_sync" in self.config:                    self.config["lxmf_periodic_sync"] = False
+        if not "lxmf_ignore_unknown" in self.config:                   self.config["lxmf_ignore_unknown"] = False
+        if not "lxmf_sync_interval" in self.config:                    self.config["lxmf_sync_interval"] = 43200
+        if not "lxmf_try_propagation_on_fail" in self.config:          self.config["lxmf_try_propagation_on_fail"] = True
+        if not "lxmf_require_stamps" in self.config:                   self.config["lxmf_require_stamps"] = False
+        if not "lxmf_ignore_invalid_stamps" in self.config:            self.config["lxmf_ignore_invalid_stamps"] = True
+        if not "lxmf_inbound_stamp_cost" in self.config:               self.config["lxmf_inbound_stamp_cost"] = None
+        if not "notifications_on" in self.config:                      self.config["notifications_on"] = True
+        if not "print_command" in self.config:                         self.config["print_command"] = "lp"
+        if not "eink_mode" in self.config:                             self.config["eink_mode"] = True
+        if not "classic_message_colors" in self.config:                self.config["classic_message_colors"] = False
+        if not "display_style_in_contact_list" in self.config:         self.config["display_style_in_contact_list"] = True
+        if not "lxm_limit_1mb" in self.config:                         self.config["lxm_limit_1mb"] = True
+        if not "hq_ptt" in self.config:                                self.config["hq_ptt"] = False
+        if not "trusted_markup_only" in self.config:                   self.config["trusted_markup_only"] = False
+        if not "compose_in_markdown" in self.config:                   self.config["compose_in_markdown"] = False
+        if not "confirm_calls" in self.config:                         self.config["confirm_calls"] = True
 
-        if not "input_language" in self.config:
-            self.config["input_language"] = None
-        if not "allow_predictive_text" in self.config:
-            self.config["allow_predictive_text"] = False
-        if not "block_predictive_text" in self.config:
-            self.config["block_predictive_text"] = False
+        if not "input_language" in self.config:                        self.config["input_language"] = None
+        if not "allow_predictive_text" in self.config:                 self.config["allow_predictive_text"] = False
+        if not "block_predictive_text" in self.config:                 self.config["block_predictive_text"] = False
 
-        if not "config_template" in self.config:
-            self.config["config_template"] = None
-        if not "connect_transport" in self.config:
-            self.config["connect_transport"] = False
-        if not "connect_share_instance" in self.config:
-            self.config["connect_share_instance"] = False
-        if not "connect_rnode" in self.config:
-            self.config["connect_rnode"] = False
-        if not "connect_rnode_ifac_netname" in self.config:
-            self.config["connect_rnode_ifac_netname"] = ""
-        if not "connect_rnode_ifac_passphrase" in self.config:
-            self.config["connect_rnode_ifac_passphrase"] = ""
-        if not "connect_serial" in self.config:
-            self.config["connect_serial"] = False
-        if not "connect_serial_ifac_netname" in self.config:
-            self.config["connect_serial_ifac_netname"] = ""
-        if not "connect_serial_ifac_passphrase" in self.config:
-            self.config["connect_serial_ifac_passphrase"] = ""
-        if not "connect_modem" in self.config:
-            self.config["connect_modem"] = False
-        if not "connect_modem_ifac_netname" in self.config:
-            self.config["connect_modem_ifac_netname"] = ""
-        if not "connect_modem_ifac_passphrase" in self.config:
-            self.config["connect_modem_ifac_passphrase"] = ""
-        if not "connect_weave" in self.config:
-            self.config["connect_weave"] = False
-        if not "connect_weave_ifac_netname" in self.config:
-            self.config["connect_weave_ifac_netname"] = ""
-        if not "connect_weave_ifac_passphrase" in self.config:
-            self.config["connect_weave_ifac_passphrase"] = ""
+        if not "config_template" in self.config:                       self.config["config_template"] = None
+        if not "connect_transport" in self.config:                     self.config["connect_transport"] = False
+        if not "connect_share_instance" in self.config:                self.config["connect_share_instance"] = False
+        if not "connect_rnode" in self.config:                         self.config["connect_rnode"] = False
+        if not "connect_rnode_ifac_netname" in self.config:            self.config["connect_rnode_ifac_netname"] = ""
+        if not "connect_rnode_ifac_passphrase" in self.config:         self.config["connect_rnode_ifac_passphrase"] = ""
+        if not "connect_serial" in self.config:                        self.config["connect_serial"] = False
+        if not "connect_serial_ifac_netname" in self.config:           self.config["connect_serial_ifac_netname"] = ""
+        if not "connect_serial_ifac_passphrase" in self.config:        self.config["connect_serial_ifac_passphrase"] = ""
+        if not "connect_modem" in self.config:                         self.config["connect_modem"] = False
+        if not "connect_modem_ifac_netname" in self.config:            self.config["connect_modem_ifac_netname"] = ""
+        if not "connect_modem_ifac_passphrase" in self.config:         self.config["connect_modem_ifac_passphrase"] = ""
+        if not "connect_weave" in self.config:                         self.config["connect_weave"] = False
+        if not "connect_weave_ifac_netname" in self.config:            self.config["connect_weave_ifac_netname"] = ""
+        if not "connect_weave_ifac_passphrase" in self.config:         self.config["connect_weave_ifac_passphrase"] = ""
 
-        if not "connect_ifmode_local" in self.config:
-            self.config["connect_ifmode_local"] = "full"
-        if not "connect_ifmode_tcp" in self.config:
-            self.config["connect_ifmode_tcp"] = "full"
-        if not "connect_ifmode_i2p" in self.config:
-            self.config["connect_ifmode_i2p"] = "full"
-        if not "connect_ifmode_rnode" in self.config:
-            self.config["connect_ifmode_rnode"] = "full"
-        if not "connect_ifmode_modem" in self.config:
-            self.config["connect_ifmode_modem"] = "full"
-        if not "connect_ifmode_serial" in self.config:
-            self.config["connect_ifmode_serial"] = "full"
-        if not "connect_ifmode_bluetooth" in self.config:
-            self.config["connect_ifmode_bluetooth"] = "full"
-        if not "connect_ifmode_weave" in self.config:
-            self.config["connect_ifmode_weave"] = "full"
+        if not "connect_ifmode_local" in self.config:                  self.config["connect_ifmode_local"] = "full"
+        if not "connect_ifmode_tcp" in self.config:                    self.config["connect_ifmode_tcp"] = "full"
+        if not "connect_ifmode_i2p" in self.config:                    self.config["connect_ifmode_i2p"] = "full"
+        if not "connect_ifmode_rnode" in self.config:                  self.config["connect_ifmode_rnode"] = "full"
+        if not "connect_ifmode_modem" in self.config:                  self.config["connect_ifmode_modem"] = "full"
+        if not "connect_ifmode_serial" in self.config:                 self.config["connect_ifmode_serial"] = "full"
+        if not "connect_ifmode_bluetooth" in self.config:              self.config["connect_ifmode_bluetooth"] = "full"
+        if not "connect_ifmode_weave" in self.config:                  self.config["connect_ifmode_weave"] = "full"
 
-        if not "hw_rnode_frequency" in self.config:
-            self.config["hw_rnode_frequency"] = None
-        if not "hw_rnode_modulation" in self.config:
-            self.config["hw_rnode_modulation"] = "LoRa"
-        if not "hw_rnode_bandwidth" in self.config:
-            self.config["hw_rnode_bandwidth"] = 62500
-        if not "hw_rnode_spreading_factor" in self.config:
-            self.config["hw_rnode_spreading_factor"] = 8
-        if not "hw_rnode_coding_rate" in self.config:
-            self.config["hw_rnode_coding_rate"] = 6
-        if not "hw_rnode_tx_power" in self.config:
-            self.config["hw_rnode_tx_power"] = 0
-        if not "hw_rnode_beaconinterval" in self.config:
-            self.config["hw_rnode_beaconinterval"] = None
-        if not "hw_rnode_beacondata" in self.config:
-            self.config["hw_rnode_beacondata"] = None
-        if not "hw_rnode_bluetooth" in self.config:
-            self.config["hw_rnode_bluetooth"] = False
-        if not "hw_rnode_ble" in self.config:
-            self.config["hw_rnode_ble"] = False
-        if not "hw_rnode_enable_framebuffer" in self.config:
-            self.config["hw_rnode_enable_framebuffer"] = False
-        if not "hw_rnode_bt_device" in self.config:
-            self.config["hw_rnode_bt_device"] = None
-        if not "hw_rnode_atl_short" in self.config:
-            self.config["hw_rnode_atl_short"] = None
-        if not "hw_rnode_atl_long" in self.config:
-            self.config["hw_rnode_atl_long"] = None
+        if not "hw_rnode_frequency" in self.config:                    self.config["hw_rnode_frequency"] = None
+        if not "hw_rnode_modulation" in self.config:                   self.config["hw_rnode_modulation"] = "LoRa"
+        if not "hw_rnode_bandwidth" in self.config:                    self.config["hw_rnode_bandwidth"] = 62500
+        if not "hw_rnode_spreading_factor" in self.config:             self.config["hw_rnode_spreading_factor"] = 8
+        if not "hw_rnode_coding_rate" in self.config:                  self.config["hw_rnode_coding_rate"] = 6
+        if not "hw_rnode_tx_power" in self.config:                     self.config["hw_rnode_tx_power"] = 0
+        if not "hw_rnode_beaconinterval" in self.config:               self.config["hw_rnode_beaconinterval"] = None
+        if not "hw_rnode_beacondata" in self.config:                   self.config["hw_rnode_beacondata"] = None
+        if not "hw_rnode_bluetooth" in self.config:                    self.config["hw_rnode_bluetooth"] = False
+        if not "hw_rnode_ble" in self.config:                          self.config["hw_rnode_ble"] = False
+        if not "hw_rnode_enable_framebuffer" in self.config:           self.config["hw_rnode_enable_framebuffer"] = False
+        if not "hw_rnode_bt_device" in self.config:                    self.config["hw_rnode_bt_device"] = None
+        if not "hw_rnode_atl_short" in self.config:                    self.config["hw_rnode_atl_short"] = None
+        if not "hw_rnode_atl_long" in self.config:                     self.config["hw_rnode_atl_long"] = None
 
-        if not "hw_modem_baudrate" in self.config:
-            self.config["hw_modem_baudrate"] = 115200
-        if not "hw_modem_databits" in self.config:
-            self.config["hw_modem_databits"] = 8
-        if not "hw_modem_stopbits" in self.config:
-            self.config["hw_modem_stopbits"] = 1
-        if not "hw_modem_parity" in self.config:
-            self.config["hw_modem_parity"] = "none"
-        if not "hw_modem_preamble" in self.config:
-            self.config["hw_modem_preamble"] = 150
-        if not "hw_modem_tail" in self.config:
-            self.config["hw_modem_tail"] = 20
-        if not "hw_modem_persistence" in self.config:
-            self.config["hw_modem_persistence"] = 220
-        if not "hw_modem_slottime" in self.config:
-            self.config["hw_modem_slottime"] = 20
-        if not "hw_modem_beaconinterval" in self.config:
-            self.config["hw_modem_beaconinterval"] = None
-        if not "hw_modem_beacondata" in self.config:
-            self.config["hw_modem_beacondata"] = None
+        if not "hw_modem_baudrate" in self.config:                     self.config["hw_modem_baudrate"] = 115200
+        if not "hw_modem_databits" in self.config:                     self.config["hw_modem_databits"] = 8
+        if not "hw_modem_stopbits" in self.config:                     self.config["hw_modem_stopbits"] = 1
+        if not "hw_modem_parity" in self.config:                       self.config["hw_modem_parity"] = "none"
+        if not "hw_modem_preamble" in self.config:                     self.config["hw_modem_preamble"] = 150
+        if not "hw_modem_tail" in self.config:                         self.config["hw_modem_tail"] = 20
+        if not "hw_modem_persistence" in self.config:                  self.config["hw_modem_persistence"] = 220
+        if not "hw_modem_slottime" in self.config:                     self.config["hw_modem_slottime"] = 20
+        if not "hw_modem_beaconinterval" in self.config:               self.config["hw_modem_beaconinterval"] = None
+        if not "hw_modem_beacondata" in self.config:                   self.config["hw_modem_beacondata"] = None
         
-        if not "hw_serial_baudrate" in self.config:
-            self.config["hw_serial_baudrate"] = 57600
-        if not "hw_serial_databits" in self.config:
-            self.config["hw_serial_databits"] = 8
-        if not "hw_serial_stopbits" in self.config:
-            self.config["hw_serial_stopbits"] = 1
-        if not "hw_serial_parity" in self.config:
-            self.config["hw_serial_parity"] = "none"
+        if not "hw_serial_baudrate" in self.config:                    self.config["hw_serial_baudrate"] = 57600
+        if not "hw_serial_databits" in self.config:                    self.config["hw_serial_databits"] = 8
+        if not "hw_serial_stopbits" in self.config:                    self.config["hw_serial_stopbits"] = 1
+        if not "hw_serial_parity" in self.config:                      self.config["hw_serial_parity"] = "none"
 
-        if not "telemetry_enabled" in self.config:
-            self.config["telemetry_enabled"] = False
-        if not "telemetry_collector" in self.config:
-            self.config["telemetry_collector"] = None
-        if not "telemetry_send_to_trusted" in self.config:
-            self.config["telemetry_send_to_trusted"] = False
-        if not "telemetry_send_to_collector" in self.config:
-            self.config["telemetry_send_to_collector"] = False
-        if not "telemetry_request_from_collector" in self.config:
-            self.config["telemetry_request_from_collector"] = False
-        if not "telemetry_send_interval" in self.config:
-            self.config["telemetry_send_interval"] = 43200
-        if not "telemetry_request_interval" in self.config:
-            self.config["telemetry_request_interval"] = 43200
-        if not "telemetry_collector_enabled" in self.config:
-            self.config["telemetry_collector_enabled"] = False
-        if not "telemetry_to_mqtt" in self.config:
-            self.config["telemetry_to_mqtt"] = False
-        if not "telemetry_mqtt_host" in self.config:
-            self.config["telemetry_mqtt_host"] = None
-        if not "telemetry_mqtt_port" in self.config:
-            self.config["telemetry_mqtt_port"] = None
-        if not "telemetry_mqtt_user" in self.config:
-            self.config["telemetry_mqtt_user"] = None
-        if not "telemetry_mqtt_pass" in self.config:
-            self.config["telemetry_mqtt_pass"] = None
-        if not "telemetry_mqtt_validate_ssl" in self.config:
-            self.config["telemetry_mqtt_validate_ssl"] = False
+        if not "telemetry_enabled" in self.config:                     self.config["telemetry_enabled"] = False
+        if not "telemetry_collector" in self.config:                   self.config["telemetry_collector"] = None
+        if not "telemetry_send_to_trusted" in self.config:             self.config["telemetry_send_to_trusted"] = False
+        if not "telemetry_send_to_collector" in self.config:           self.config["telemetry_send_to_collector"] = False
+        if not "telemetry_request_from_collector" in self.config:      self.config["telemetry_request_from_collector"] = False
+        if not "telemetry_send_interval" in self.config:               self.config["telemetry_send_interval"] = 43200
+        if not "telemetry_request_interval" in self.config:            self.config["telemetry_request_interval"] = 43200
+        if not "telemetry_collector_enabled" in self.config:           self.config["telemetry_collector_enabled"] = False
+        if not "telemetry_to_mqtt" in self.config:                     self.config["telemetry_to_mqtt"] = False
+        if not "telemetry_mqtt_host" in self.config:                   self.config["telemetry_mqtt_host"] = None
+        if not "telemetry_mqtt_port" in self.config:                   self.config["telemetry_mqtt_port"] = None
+        if not "telemetry_mqtt_user" in self.config:                   self.config["telemetry_mqtt_user"] = None
+        if not "telemetry_mqtt_pass" in self.config:                   self.config["telemetry_mqtt_pass"] = None
+        if not "telemetry_mqtt_validate_ssl" in self.config:           self.config["telemetry_mqtt_validate_ssl"] = False
 
-        if not "telemetry_icon" in self.config:
-            self.config["telemetry_icon"] = SidebandCore.DEFAULT_APPEARANCE[0]
-        if not "telemetry_fg" in self.config:
-            self.config["telemetry_fg"] = SidebandCore.DEFAULT_APPEARANCE[1]
-        if not "telemetry_bg" in self.config:
-            self.config["telemetry_bg"] = SidebandCore.DEFAULT_APPEARANCE[2]
-        if not "telemetry_send_appearance" in self.config:
-            self.config["telemetry_send_appearance"] = True
-        if not "telemetry_display_trusted_only" in self.config:
-            self.config["telemetry_display_trusted_only"] = False
-        if not "display_style_from_all" in self.config:
-            self.config["display_style_from_all"] = True
-        if not "telemetry_receive_trusted_only" in self.config:
-            self.config["telemetry_receive_trusted_only"] = False
+        if not "telemetry_icon" in self.config:                        self.config["telemetry_icon"] = SidebandCore.DEFAULT_APPEARANCE[0]
+        if not "telemetry_fg" in self.config:                          self.config["telemetry_fg"] = SidebandCore.DEFAULT_APPEARANCE[1]
+        if not "telemetry_bg" in self.config:                          self.config["telemetry_bg"] = SidebandCore.DEFAULT_APPEARANCE[2]
+        if not "telemetry_send_appearance" in self.config:             self.config["telemetry_send_appearance"] = True
+        if not "telemetry_display_trusted_only" in self.config:        self.config["telemetry_display_trusted_only"] = False
+        if not "display_style_from_all" in self.config:                self.config["display_style_from_all"] = True
+        if not "telemetry_receive_trusted_only" in self.config:        self.config["telemetry_receive_trusted_only"] = False
 
-        if not "telemetry_send_all_to_collector" in self.config:
-            self.config["telemetry_send_all_to_collector"] = False
-        if not "telemetry_use_propagation_only" in self.config:
-            self.config["telemetry_use_propagation_only"] = False
-        if not "telemetry_try_propagation_on_fail" in self.config:
-            self.config["telemetry_try_propagation_on_fail"] = True
-        if not "telemetry_requests_only_send_latest" in self.config:
-            self.config["telemetry_requests_only_send_latest"] = True
-        if not "telemetry_allow_requests_from_trusted" in self.config:
-            self.config["telemetry_allow_requests_from_trusted"] = False
-        if not "telemetry_allow_requests_from_anyone" in self.config:
-            self.config["telemetry_allow_requests_from_anyone"] = False
+        if not "telemetry_send_all_to_collector" in self.config:       self.config["telemetry_send_all_to_collector"] = False
+        if not "telemetry_use_propagation_only" in self.config:        self.config["telemetry_use_propagation_only"] = False
+        if not "telemetry_try_propagation_on_fail" in self.config:     self.config["telemetry_try_propagation_on_fail"] = True
+        if not "telemetry_requests_only_send_latest" in self.config:   self.config["telemetry_requests_only_send_latest"] = True
+        if not "telemetry_allow_requests_from_trusted" in self.config: self.config["telemetry_allow_requests_from_trusted"] = False
+        if not "telemetry_allow_requests_from_anyone" in self.config:  self.config["telemetry_allow_requests_from_anyone"] = False
 
-        if not "telemetry_s_location" in self.config:
-            self.config["telemetry_s_location"] = False
-        if not "telemetry_s_battery" in self.config:
-            self.config["telemetry_s_battery"] = False
-        if not "telemetry_s_pressure" in self.config:
-            self.config["telemetry_s_pressure"] = False
-        if not "telemetry_s_temperature" in self.config:
-            self.config["telemetry_s_temperature"] = False
-        if not "telemetry_s_humidity" in self.config:
-            self.config["telemetry_s_humidity"] = False
-        if not "telemetry_s_magnetic_field" in self.config:
-            self.config["telemetry_s_magnetic_field"] = False
-        if not "telemetry_s_ambient_light" in self.config:
-            self.config["telemetry_s_ambient_light"] = False
-        if not "telemetry_s_gravity" in self.config:
-            self.config["telemetry_s_gravity"] = False
-        if not "telemetry_s_angular_velocity" in self.config:
-            self.config["telemetry_s_angular_velocity"] = False
-        if not "telemetry_s_acceleration" in self.config:
-            self.config["telemetry_s_acceleration"] = False
-        if not "telemetry_s_proximity" in self.config:
-            self.config["telemetry_s_proximity"] = False
-        if not "telemetry_s_rns_transport" in self.config:
-            self.config["telemetry_s_rns_transport"] = False
-        if not "telemetry_s_fixed_location" in self.config:
-            self.config["telemetry_s_fixed_location"] = False
-        if not "telemetry_s_fixed_latlon" in self.config:
-            self.config["telemetry_s_fixed_latlon"] = [0.0, 0.0]
-        if not "telemetry_s_fixed_altitude" in self.config:
-            self.config["telemetry_s_fixed_altitude"] = 0.0
-        if not "telemetry_s_information" in self.config:
-            self.config["telemetry_s_information"] = False
-        if not "telemetry_s_information_text" in self.config:
-            self.config["telemetry_s_information_text"] = ""
+        if not "telemetry_s_location" in self.config:                  self.config["telemetry_s_location"] = False
+        if not "telemetry_s_battery" in self.config:                   self.config["telemetry_s_battery"] = False
+        if not "telemetry_s_pressure" in self.config:                  self.config["telemetry_s_pressure"] = False
+        if not "telemetry_s_temperature" in self.config:               self.config["telemetry_s_temperature"] = False
+        if not "telemetry_s_humidity" in self.config:                  self.config["telemetry_s_humidity"] = False
+        if not "telemetry_s_magnetic_field" in self.config:            self.config["telemetry_s_magnetic_field"] = False
+        if not "telemetry_s_ambient_light" in self.config:             self.config["telemetry_s_ambient_light"] = False
+        if not "telemetry_s_gravity" in self.config:                   self.config["telemetry_s_gravity"] = False
+        if not "telemetry_s_angular_velocity" in self.config:          self.config["telemetry_s_angular_velocity"] = False
+        if not "telemetry_s_acceleration" in self.config:              self.config["telemetry_s_acceleration"] = False
+        if not "telemetry_s_proximity" in self.config:                 self.config["telemetry_s_proximity"] = False
+        if not "telemetry_s_rns_transport" in self.config:             self.config["telemetry_s_rns_transport"] = False
+        if not "telemetry_s_fixed_location" in self.config:            self.config["telemetry_s_fixed_location"] = False
+        if not "telemetry_s_fixed_latlon" in self.config:              self.config["telemetry_s_fixed_latlon"] = [0.0, 0.0]
+        if not "telemetry_s_fixed_altitude" in self.config:            self.config["telemetry_s_fixed_altitude"] = 0.0
+        if not "telemetry_s_information" in self.config:               self.config["telemetry_s_information"] = False
+        if not "telemetry_s_information_text" in self.config:          self.config["telemetry_s_information_text"] = ""
 
-        if not "service_plugins_enabled" in self.config:
-            self.config["service_plugins_enabled"] = False
-        if not "command_plugins_enabled" in self.config:
-            self.config["command_plugins_enabled"] = False
-        if not "command_plugins_path" in self.config:
-            self.config["command_plugins_path"] = None
+        if not "service_plugins_enabled" in self.config:               self.config["service_plugins_enabled"] = False
+        if not "command_plugins_enabled" in self.config:               self.config["command_plugins_enabled"] = False
+        if not "command_plugins_path" in self.config:                  self.config["command_plugins_path"] = None
 
-        if not "map_history_limit" in self.config:
-            self.config["map_history_limit"] = 7*24*60*60
-        if not "map_lat" in self.config:
-            self.config["map_lat"] = 0.0
-        if not "map_lon" in self.config:
-            self.config["map_lon"] = 0.0
-        if not "map_zoom" in self.config:
-            self.config["map_zoom"] = 3
-        if not "map_storage_external" in self.config:
-            self.config["map_storage_external"] = False
-        if not "map_use_offline" in self.config:
-            self.config["map_use_offline"] = False
-        if not "map_use_online" in self.config:
-            self.config["map_use_online"] = True
-        if not "map_layer" in self.config:
-            self.config["map_layer"] = None
+        if not "map_history_limit" in self.config:                     self.config["map_history_limit"] = 7*24*60*60
+        if not "map_lat" in self.config:                               self.config["map_lat"] = 0.0
+        if not "map_lon" in self.config:                               self.config["map_lon"] = 0.0
+        if not "map_zoom" in self.config:                              self.config["map_zoom"] = 3
+        if not "map_storage_external" in self.config:                  self.config["map_storage_external"] = False
+        if not "map_use_offline" in self.config:                       self.config["map_use_offline"] = False
+        if not "map_use_online" in self.config:                        self.config["map_use_online"] = True
+        if not "map_layer" in self.config:                             self.config["map_layer"] = None
         
-        if not "map_storage_path" in self.config:
-            self.config["map_storage_path"] = None
-        if not "map_storage_file" in self.config:
-            self.config["map_storage_file"] = None
+        if not "map_storage_path" in self.config:                      self.config["map_storage_path"] = None
+        if not "map_storage_file" in self.config:                      self.config["map_storage_file"] = None
 
-        if not "voice_enabled" in self.config:
-            self.config["voice_enabled"] = False
-        if not "voice_output" in self.config:
-            self.config["voice_output"] = None
-        if not "voice_input" in self.config:
-            self.config["voice_input"] = None
-        if not "voice_ringer" in self.config:
-            self.config["voice_ringer"] = None
-        if not "voice_trusted_only" in self.config:
-            self.config["voice_trusted_only"] = False
-        if not "voice_low_latency" in self.config:
-            self.config["voice_low_latency"] = False
+        if not "voice_enabled" in self.config:                         self.config["voice_enabled"] = False
+        if not "voice_output" in self.config:                          self.config["voice_output"] = None
+        if not "voice_input" in self.config:                           self.config["voice_input"] = None
+        if not "voice_ringer" in self.config:                          self.config["voice_ringer"] = None
+        if not "voice_trusted_only" in self.config:                    self.config["voice_trusted_only"] = False
+        if not "voice_low_latency" in self.config:                     self.config["voice_low_latency"] = False
 
         # Make sure we have a database
-        if not os.path.isfile(self.db_path):
-            self.__db_init()
+        if not os.path.isfile(self.db_path): self.__db_init()
         else:
             self._db_initstate()
             self._db_initpersistent()
