@@ -3901,6 +3901,7 @@ class SidebandCore():
             bt_device_name = None
             rnode_allow_bluetooth = False
             rnode_allow_ble = False
+            rnode_allow_tcp = False
             if self.getpersistent("permissions.bluetooth"):
                 if self.config["hw_rnode_bluetooth"]:
                     RNS.log("Allowing RNode bluetooth", RNS.LOG_DEBUG)
@@ -3923,25 +3924,19 @@ class SidebandCore():
                 RNS.log("Disallowing RNode bluetooth due to missing permission", RNS.LOG_DEBUG)
                 rnode_allow_bluetooth = False
 
-            if self.config["connect_rnode_ifac_netname"] == "":
-                ifac_netname = None
-            else:
-                ifac_netname = self.config["connect_rnode_ifac_netname"]
+            if self.config["hw_rnode_tcp"] and self.config["hw_rnode_tcp_host"]:
+                rnode_allow_bluetooth = False
+                rnode_allow_ble = False
+                rnode_allow_tcp = True
 
-            if self.config["connect_rnode_ifac_passphrase"] == "":
-                ifac_netkey = None
-            else:
-                ifac_netkey = self.config["connect_rnode_ifac_passphrase"]
-
-            if self.config["hw_rnode_atl_short"] == "":
-                atl_short = None
-            else:
-                atl_short = self.config["hw_rnode_atl_short"]
-
-            if self.config["hw_rnode_atl_long"] == "":
-                atl_long = None
-            else:
-                atl_long = self.config["hw_rnode_atl_long"]
+            if self.config["connect_rnode_ifac_netname"] == "":    ifac_netname = None
+            else:                                                  ifac_netname = self.config["connect_rnode_ifac_netname"]
+            if self.config["connect_rnode_ifac_passphrase"] == "": ifac_netkey = None
+            else:                                                  ifac_netkey = self.config["connect_rnode_ifac_passphrase"]
+            if self.config["hw_rnode_atl_short"] == "":            atl_short = None
+            else:                                                  atl_short = self.config["hw_rnode_atl_short"]
+            if self.config["hw_rnode_atl_long"] == "":             atl_long = None
+            else:                                                  atl_long = self.config["hw_rnode_atl_long"]
 
             interface_config = None
             if rnode_allow_ble:
@@ -3963,6 +3958,28 @@ class SidebandCore():
                     "force_ble": True,
                     "ble_name": bt_device_name,
                     "ble_addr": None,
+                }
+
+            elif rnode_allow_tcp:
+                interface_config = {
+                    "name": "RNodeInterface",
+                    "port": None,
+                    "frequency": self.config["hw_rnode_frequency"],
+                    "bandwidth": self.config["hw_rnode_bandwidth"],
+                    "txpower": self.config["hw_rnode_tx_power"],
+                    "spreadingfactor": self.config["hw_rnode_spreading_factor"],
+                    "codingrate": self.config["hw_rnode_coding_rate"],
+                    "flow_control": False,
+                    "id_interval": self.config["hw_rnode_beaconinterval"],
+                    "id_callsign": self.config["hw_rnode_beacondata"],
+                    "st_alock": atl_short,
+                    "lt_alock": atl_long,
+                    "allow_bluetooth": False,
+                    "target_device_name": None,
+                    "force_ble": False,
+                    "ble_name": None,
+                    "ble_addr": None,
+                    "tcp_host": self.config["hw_rnode_tcp_host"],
                 }
 
             else:
@@ -3991,16 +4008,12 @@ class SidebandCore():
 
             if RNS.Reticulum.transport_enabled():
                 if_mode = Interface.Interface.MODE_FULL
-                if self.config["connect_ifmode_rnode"] == "gateway":
-                    if_mode = Interface.Interface.MODE_GATEWAY
-                elif self.config["connect_ifmode_rnode"] == "access point":
-                    if_mode = Interface.Interface.MODE_ACCESS_POINT
-                elif self.config["connect_ifmode_rnode"] == "roaming":
-                    if_mode = Interface.Interface.MODE_ROAMING
-                elif self.config["connect_ifmode_rnode"] == "boundary":
-                    if_mode = Interface.Interface.MODE_BOUNDARY
-            else:
-                if_mode = None
+                if   self.config["connect_ifmode_rnode"] == "gateway":      if_mode = Interface.Interface.MODE_GATEWAY
+                elif self.config["connect_ifmode_rnode"] == "access point": if_mode = Interface.Interface.MODE_ACCESS_POINT
+                elif self.config["connect_ifmode_rnode"] == "roaming":      if_mode = Interface.Interface.MODE_ROAMING
+                elif self.config["connect_ifmode_rnode"] == "boundary":     if_mode = Interface.Interface.MODE_BOUNDARY
+            
+            else: if_mode = None
                 
             self.reticulum._add_interface(rnodeinterface, mode = if_mode, ifac_netname = ifac_netname, ifac_netkey = ifac_netkey)
             self.interface_rnode = rnodeinterface
