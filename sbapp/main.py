@@ -4729,48 +4729,38 @@ class SidebandApp(MDApp):
                     if not sender.focus:
                         save_connectivity(sender=sender)
 
-            if self.sideband.config["hw_rnode_frequency"] != None:
-                t_freq = str(self.sideband.config["hw_rnode_frequency"]/1000000.0)
-            else:
-                t_freq = ""
-            if self.sideband.config["hw_rnode_bandwidth"] != None:
-                t_bw = str(self.sideband.config["hw_rnode_bandwidth"]/1000.0)
-            else:
-                t_bw = str(62.5)
-            if self.sideband.config["hw_rnode_tx_power"] != None:
-                t_p = str(self.sideband.config["hw_rnode_tx_power"])
-            else:
-                t_p = str(0)
-            if self.sideband.config["hw_rnode_spreading_factor"] != None:
-                t_sf = str(self.sideband.config["hw_rnode_spreading_factor"])
-            else:
-                t_sf = str(8)
-            if self.sideband.config["hw_rnode_coding_rate"] != None:
-                t_cr = str(self.sideband.config["hw_rnode_coding_rate"])
-            else:
-                t_cr = str(6)
-            if self.sideband.config["hw_rnode_beaconinterval"] != None:
-                t_bi = str(self.sideband.config["hw_rnode_beaconinterval"])
-            else:
-                t_bi = ""
-            if self.sideband.config["hw_rnode_beacondata"] != None:
-                t_bd = str(self.sideband.config["hw_rnode_beacondata"])
-            else:
-                t_bd = ""
-            if self.sideband.config["hw_rnode_bt_device"] != None:
-                t_btd = str(self.sideband.config["hw_rnode_bt_device"])
-            else:
-                t_btd = ""
-            if self.sideband.config["hw_rnode_tcp_host"] != None: t_th = str(self.sideband.config["hw_rnode_tcp_host"])
-            else: t_th = ""
-            if self.sideband.config["hw_rnode_atl_short"] != None:
-                t_ats = str(self.sideband.config["hw_rnode_atl_short"])
-            else:
-                t_ats = ""
-            if self.sideband.config["hw_rnode_atl_long"] != None:
-                t_atl = str(self.sideband.config["hw_rnode_atl_long"])
-            else:
-                t_atl = ""
+            if self.sideband.config["hw_rnode_frequency"] != None:        t_freq = str(self.sideband.config["hw_rnode_frequency"]/1000000.0)
+            else:                                                         t_freq = ""
+            
+            if self.sideband.config["hw_rnode_bandwidth"] != None:        t_bw = str(self.sideband.config["hw_rnode_bandwidth"]/1000.0)
+            else:                                                         t_bw = str(62.5)
+            
+            if self.sideband.config["hw_rnode_tx_power"] != None:         t_p = str(self.sideband.config["hw_rnode_tx_power"])
+            else:                                                         t_p = str(0)
+            
+            if self.sideband.config["hw_rnode_spreading_factor"] != None: t_sf = str(self.sideband.config["hw_rnode_spreading_factor"])
+            else:                                                         t_sf = str(8)
+            
+            if self.sideband.config["hw_rnode_coding_rate"] != None:      t_cr = str(self.sideband.config["hw_rnode_coding_rate"])
+            else:                                                         t_cr = str(6)
+
+            if self.sideband.config["hw_rnode_beaconinterval"] != None:   t_bi = str(self.sideband.config["hw_rnode_beaconinterval"])
+            else:                                                         t_bi = ""
+            
+            if self.sideband.config["hw_rnode_beacondata"] != None:       t_bd = str(self.sideband.config["hw_rnode_beacondata"])
+            else:                                                         t_bd = ""
+            
+            if self.sideband.config["hw_rnode_bt_device"] != None:        t_btd = str(self.sideband.config["hw_rnode_bt_device"])
+            else:                                                         t_btd = ""
+            
+            if self.sideband.config["hw_rnode_tcp_host"] != None:         t_th = str(self.sideband.config["hw_rnode_tcp_host"])
+            else:                                                         t_th = ""
+            
+            if self.sideband.config["hw_rnode_atl_short"] != None:        t_ats = str(self.sideband.config["hw_rnode_atl_short"])
+            else:                                                         t_ats = ""
+            
+            if self.sideband.config["hw_rnode_atl_long"] != None:         t_atl = str(self.sideband.config["hw_rnode_atl_long"])
+            else:                                                         t_atl = ""
 
             self.hardware_rnode_screen.ids.hardware_rnode_bluetooth.active = self.sideband.config["hw_rnode_bluetooth"]
             self.hardware_rnode_screen.ids.hardware_rnode_ble.active = self.sideband.config["hw_rnode_ble"]
