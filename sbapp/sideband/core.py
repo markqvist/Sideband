@@ -2407,7 +2407,7 @@ class SidebandCore():
                 if not "appearance" in data_dict:
                     data_dict["appearance"] = None
 
-                if from_bulk_telemetry and data_dict["appearance"] != SidebandCore.DEFAULT_APPEARANCE:
+                if from_bulk_telemetry and data_dict["appearance"] != SidebandCore.DEFAULT_APPEARANCE and data_dict["appearance"] != None:
                     RNS.log("Aborting appearance update from bulk transfer, since conversation already has appearance set: "+str(appearance)+" / "+str(data_dict["appearance"]), RNS.LOG_DEBUG)
                     return
 
