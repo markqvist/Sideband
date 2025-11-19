@@ -4284,7 +4284,7 @@ class SidebandApp(MDApp):
                     ipstr += "[u][ref=link]"+ipurl+"[/ref][u]\n"
                     if self.repository_url == None:
                         self.repository_url = ipurl
-                        self.rnode_flasher_url = ipurl+"mirrors/rnode-flasher/index.html"
+                        self.rnode_flasher_url = ipurl+"mirrors/rnode-flasher/RNode_Flasher.html"
 
                 ms = "" if len(ips) == 1 else "es"
                 info += "The repository server is running at the following address" + ms +":\n\n"+ipstr
