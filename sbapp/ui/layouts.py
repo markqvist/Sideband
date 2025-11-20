@@ -1666,6 +1666,21 @@ MDScreen:
                         pos_hint: {"center_y": 0.3}
                         active: False
 
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    padding: [0,0,dp(24),dp(0)]
+                    height: dp(48)
+                    
+                    MDLabel:
+                        text: "Start at boot"
+                        font_style: "H6"
+
+                    MDSwitch:
+                        id: settings_start_at_boot
+                        pos_hint: {"center_y": 0.3}
+                        active: False
+
                 MDLabel:
                     text: "•"
                     font_style: "H6"

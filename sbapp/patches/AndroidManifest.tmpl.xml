@@ -121,6 +121,12 @@
         <service android:name="{{ name }}" />
         {% endfor %}
 
+        <receiver android:name="{{ args.service_class_name }}$ServiceBootReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
         {% if args.billing_pubkey %}
         <service android:name="org.kivy.android.billing.BillingReceiver"
                  android:process=":pythonbilling" />

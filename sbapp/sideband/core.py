@@ -623,6 +623,7 @@ class SidebandCore():
         if not "debug" in self.config:                                 self.config["debug"] = False
         if not "dark_ui" in self.config:                               self.config["dark_ui"] = True
         if not "advanced_stats" in self.config:                        self.config["advanced_stats"] = True
+        if not "start_at_boot" in self.config:                         self.config["start_at_boot"] = False
         if not "lxmf_periodic_sync" in self.config:                    self.config["lxmf_periodic_sync"] = False
         if not "lxmf_ignore_unknown" in self.config:                   self.config["lxmf_ignore_unknown"] = False
         if not "lxmf_sync_interval" in self.config:                    self.config["lxmf_sync_interval"] = 43200
@@ -807,9 +808,15 @@ class SidebandCore():
                 time.sleep(0.15)
             try:
                 self.saving_configuration = True
-                with open(self.config_path, "wb") as config_file:
-                    config_file.write(msgpack.packb(self.config))
+                with open(self.config_path, "wb") as config_file: config_file.write(msgpack.packb(self.config))
                 self.saving_configuration = False
+                if RNS.vendor.platformutils.is_android():
+                    boot_toggle_path = self.app_dir+"/app_storage/boot_toggle"
+                    boot_toggle_exists = os.path.isfile(boot_toggle_path)
+                    if self.config["start_at_boot"] == True and not boot_toggle_exists:
+                        with open(boot_toggle_path, "w") as f: f.write("true")
+                    elif self.config["start_at_boot"] == False and boot_toggle_exists:
+                        os.unlink(boot_toggle_path)
             except Exception as e:
                 self.saving_configuration = False
                 RNS.log("Error while saving Sideband configuration: "+str(e), RNS.LOG_ERROR)

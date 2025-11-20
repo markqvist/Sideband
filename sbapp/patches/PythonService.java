@@ -25,7 +25,31 @@ import android.graphics.drawable.Icon;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 
+import java.util.Objects;
+import android.content.BroadcastReceiver;
+
+import io.unsigned.sideband.ServiceSidebandservice;
+
 public class PythonService extends Service implements Runnable {
+
+    public static class ServiceBootReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            try {
+                if (Objects.equals(intent.getAction(), "android.intent.action.BOOT_COMPLETED")) {
+                    boolean should_start = false;
+                    String app_dir = context.getFilesDir().getParentFile().getParent();
+                    String toggle_path = context.getFilesDir()+"/app_storage/";
+                    File file = new File(toggle_path, "boot_toggle");
+                    if (file.exists()) { should_start = true; }
+                    if (should_start) {
+                        ServiceSidebandservice svc = new ServiceSidebandservice();
+                        svc.start(context, app_dir);
+                    }
+                }
+            } catch (Exception e) { Log.e("sidebandservice", "Could not start Sideband service at boot: "+e); }
+        }
+    }
 
     // Thread for Python code
     private Thread pythonThread = null;

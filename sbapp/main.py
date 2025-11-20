@@ -3592,6 +3592,10 @@ class SidebandApp(MDApp):
                     self.sideband.start_voice()
                 else: self.sideband.stop_voice()
 
+            def save_start_at_boot(sender=None, event=None):
+                self.sideband.config["start_at_boot"] = self.settings_screen.ids.settings_start_at_boot.active
+                self.sideband.save_configuration()
+
             def save_print_command(sender=None, event=None):
                 if not sender.focus:
                     in_cmd = self.settings_screen.ids.settings_print_command.text
@@ -3671,11 +3675,10 @@ class SidebandApp(MDApp):
             else:
                 self.settings_screen.ids.settings_print_command.text = self.sideband.config["print_command"]
                 self.settings_screen.ids.settings_print_command.bind(focus=save_print_command)
+                self.settings_screen.ids.settings_start_at_boot.disabled = True
 
-            if self.sideband.config["lxmf_propagation_node"] == None:
-                prop_node_addr = ""
-            else:
-                prop_node_addr = RNS.hexrep(self.sideband.config["lxmf_propagation_node"], delimit=False)
+            if self.sideband.config["lxmf_propagation_node"] == None: prop_node_addr = ""
+            else: prop_node_addr = RNS.hexrep(self.sideband.config["lxmf_propagation_node"], delimit=False)
 
             self.settings_screen.ids.settings_propagation_node_address.text = prop_node_addr
             self.settings_screen.ids.settings_propagation_node_address.bind(focus=save_prop_addr)
@@ -3704,6 +3707,9 @@ class SidebandApp(MDApp):
 
             self.settings_screen.ids.settings_advanced_statistics.active = self.sideband.config["advanced_stats"]
             self.settings_screen.ids.settings_advanced_statistics.bind(active=save_advanced_stats)
+
+            self.settings_screen.ids.settings_start_at_boot.active = self.sideband.config["start_at_boot"]
+            self.settings_screen.ids.settings_start_at_boot.bind(active=save_start_at_boot)
 
             self.settings_screen.ids.settings_start_announce.active = self.sideband.config["start_announce"]
             self.settings_screen.ids.settings_start_announce.bind(active=save_start_announce)
