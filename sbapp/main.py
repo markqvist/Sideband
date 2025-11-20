@@ -6958,8 +6958,13 @@ def run():
         
         if args.interactive:
             while not sideband.getstate("core.started") == True: time.sleep(0.1)
-            from .sideband import console
-            console.attach(sideband)
+            import importlib
+            if importlib.util.find_spec('prompt_toolkit') != None:
+                from .sideband import console
+                console.attach(sideband)
+            else:
+                print("Could not start Sideband console, since the \"prompt-toolkit\" module is not available")
+                print("You can install it with \"pip install prompt-toolkit\"")
             
         else:
             while True: time.sleep(5)

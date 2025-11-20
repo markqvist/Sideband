@@ -898,7 +898,7 @@ class SidebandCore():
 
     def save_configuration(self):
         self.__save_config()
-        if self.is_standalone: self.owner_app.save_window_config()
+        if self.is_standalone and not self.is_daemon: self.owner_app.save_window_config()
 
     def set_active_propagation_node(self, dest):
         if dest == None:
