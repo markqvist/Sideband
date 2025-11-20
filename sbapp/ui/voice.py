@@ -164,6 +164,10 @@ class Voice():
     def _path_request_failed(self, dt):
         toast("Path request timed out")
 
+    def clear_log_action(self, sender=None):
+        self.app.sideband.telephone.clear_call_log()
+        self.update_call_log()
+
     def log_dial_action(self, sender=None):
         def job(dt=None):
             if not self.app.root.ids.screen_manager.current == "voice_screen": return
@@ -177,7 +181,6 @@ class Voice():
                     self.app.confirm_call_dialog.open()
 
         Clock.schedule_once(job, 0.1)
-
 
     def reject_action(self, sender=None):
         if self.app.sideband.voice_running:
@@ -522,6 +525,26 @@ MDScreen:
         MDBoxLayout:
             orientation: "vertical"
             id: log_list_container
+
+        MDSeparator:
+            orientation: "horizontal"
+            height: dp(1)
+
+        MDBoxLayout:
+            orientation: "vertical"
+            size_hint_y: None
+            height: self.minimum_height
+            padding: [dp(28), dp(24), dp(28), dp(24)]
+
+            MDRectangleFlatIconButton:
+                id: clear_log_button
+                icon: "playlist-remove"
+                text: "Clear Log"
+                padding: [dp(0), dp(14), dp(0), dp(14)]
+                icon_size: dp(24)
+                font_size: dp(16)
+                size_hint: [1.0, None]
+                on_release: root.delegate.clear_log_action(self)
 """
 
 layout_voice_settings_screen = """

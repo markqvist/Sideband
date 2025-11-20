@@ -118,6 +118,12 @@ class ReticulumTelephone():
     def set_busy(self, busy): self.telephone.set_busy(busy)
     def set_low_latency_output(self, enabled): self.telephone.set_low_latency_output(enabled)
 
+    def clear_call_log(self):
+        self.call_log = []
+        try:
+            with open(self.logpath, "wb") as logfile: logfile.write(msgpack.packb([]))
+        except Exception as e: raise OSError("Could not clear call log file")
+    
     def get_call_log(self):
         if self.call_log: return self.call_log
         else:
@@ -264,13 +270,14 @@ class ReticulumTelephoneProxy():
     @property
     def caller(self): return CallerProxy(hash=self.owner.service_rpc_request({"telephone_caller_info": True }))
 
-    def set_busy(self, busy): return self.owner.service_rpc_request({"telephone_set_busy": busy })
-    def dial(self, dial_target): return self.owner.service_rpc_request({"telephone_dial": dial_target })
-    def hangup(self): return self.owner.service_rpc_request({"telephone_hangup": True })
-    def answer(self): return self.owner.service_rpc_request({"telephone_answer": True })
-    def set_speaker(self, speaker): return self.owner.service_rpc_request({"telephone_set_speaker": speaker })
-    def set_microphone(self, microphone): return self.owner.service_rpc_request({"telephone_set_microphone": microphone })
-    def set_ringer(self, ringer): return self.owner.service_rpc_request({"telephone_set_ringer": ringer })
+    def set_busy(self, busy):                  return self.owner.service_rpc_request({"telephone_set_busy": busy })
+    def dial(self, dial_target):               return self.owner.service_rpc_request({"telephone_dial": dial_target })
+    def hangup(self):                          return self.owner.service_rpc_request({"telephone_hangup": True })
+    def answer(self):                          return self.owner.service_rpc_request({"telephone_answer": True })
+    def set_speaker(self, speaker):            return self.owner.service_rpc_request({"telephone_set_speaker": speaker })
+    def set_microphone(self, microphone):      return self.owner.service_rpc_request({"telephone_set_microphone": microphone })
+    def set_ringer(self, ringer):              return self.owner.service_rpc_request({"telephone_set_ringer": ringer })
     def set_low_latency_output(self, enabled): return self.owner.service_rpc_request({"telephone_set_low_latency_output": enabled})
-    def announce(self): return self.owner.service_rpc_request({"telephone_announce": True})
-    def get_call_log(self): return self.owner.service_rpc_request({"telephone_get_call_log": True})
+    def announce(self):                        return self.owner.service_rpc_request({"telephone_announce": True})
+    def get_call_log(self):                    return self.owner.service_rpc_request({"telephone_get_call_log": True})
+    def clear_call_log(self):                  return self.owner.service_rpc_request({"telephone_clear_call_log": True})
