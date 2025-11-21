@@ -35,6 +35,8 @@ if RNS.vendor.platformutils.get_platform() == "android":
 else:
     from .helpers import multilingual_markup
 
+from LXST.Primitives.Telephony import Telephone, Profiles
+
 class Voice():
     def __init__(self, app):
         self.app = app
@@ -51,6 +53,7 @@ class Voice():
         self.listed_output_devices = []
         self.listed_input_devices = []
         self.listed_ringer_devices = []
+        self.call_profile = Profiles.DEFAULT_PROFILE
     
         if not self.app.root.ids.screen_manager.has_screen("voice_screen"):
             self.screen = Builder.load_string(layout_voice_screen)
@@ -70,6 +73,7 @@ class Voice():
         db = self.screen.ids.dial_button
         rb = self.screen.ids.reject_button
         ih = self.screen.ids.identity_hash
+        pb = self.screen.ids.call_profile_button
         if self.app.sideband.voice_running:
             telephone = self.app.sideband.telephone
             if self.path_requesting:
@@ -81,29 +85,39 @@ class Voice():
                 if telephone.is_available:
                     ih.disabled = False
                     rb.disabled = True
+                    pb.disabled = False
                     self.target_input_action(ih)
                 else:
                     ih.disabled = True
                     rb.disabled = True
+                    pb.disabled = True
 
                 if telephone.is_in_call or telephone.call_is_connecting:
                     ih.disabled = True
                     rb.disabled = True
                     db.disabled = False
+                    pb.disabled = True
                     db.text = "Hang up"
                     db.icon = "phone-hangup"
+                    if telephone.active_profile: self.call_profile = telephone.active_profile
 
                 elif telephone.is_ringing:
                     ih.disabled = True
                     rb.disabled = False
                     db.disabled = False
+                    pb.disabled = True
                     db.text = "Answer"
                     db.icon = "phone-ring"
                     if telephone.caller: ih.text = RNS.hexrep(telephone.caller.hash, delimit=False)
+                    if telephone.active_profile: self.call_profile = telephone.active_profile
 
         else:
             db.disabled = True; db.text = "Voice calls disabled"
             ih.disabled = True
+            rb.disabled = True
+            pb.disabled = True
+
+        pb.text = Profiles.profile_abbrevation(self.call_profile)
 
         if time.time() > self.last_log_update+3: self.update_call_log()
 
@@ -151,7 +165,7 @@ class Voice():
         self.app.sideband.telephone.set_busy(False)
         if RNS.Transport.has_path(self.path_requesting):
             RNS.log(f"Calling {RNS.prettyhexrep(self.dial_target)}...", RNS.LOG_DEBUG)
-            self.app.sideband.telephone.dial(self.dial_target)
+            self.app.sideband.telephone.dial(self.dial_target, profile=self.call_profile)
             Clock.schedule_once(self.update_call_status, 0.1)
 
         else:
@@ -163,6 +177,12 @@ class Voice():
 
     def _path_request_failed(self, dt):
         toast("Path request timed out")
+
+    def call_profile_action(self, sender=None):
+        pb = self.screen.ids.call_profile_button
+        self.call_profile = Profiles.next_profile(self.call_profile)
+        pb.text = Profiles.profile_abbrevation(self.call_profile)
+        toast(f"Call Profile: {Profiles.profile_name(self.call_profile)}")
 
     def clear_log_action(self, sender=None):
         self.app.sideband.telephone.clear_call_log()
@@ -197,7 +217,7 @@ class Voice():
 
                 else:
                     RNS.log(f"Calling {RNS.prettyhexrep(self.dial_target)}...", RNS.LOG_DEBUG)
-                    self.app.sideband.telephone.dial(self.dial_target)
+                    self.app.sideband.telephone.dial(self.dial_target, profile=self.call_profile)
                     self.update_call_status()
 
             elif self.app.sideband.telephone.is_in_call or self.app.sideband.telephone.call_is_connecting:
@@ -245,6 +265,8 @@ class Voice():
         self.voice_settings_screen.ids.voice_trusted_only.bind(active=self.settings_save_action)
         self.voice_settings_screen.ids.voice_low_latency.active = self.app.sideband.config["voice_low_latency"]
         self.voice_settings_screen.ids.voice_low_latency.bind(active=self.settings_save_action)
+
+        if not RNS.vendor.platformutils.is_android(): self.voice_settings_screen.ids.voice_low_latency.disabled = True
 
         bp = 6; ml = 38; fs = 16; ics = 14
         self.update_devices()
@@ -471,7 +493,7 @@ MDScreen:
             orientation: "vertical"
             size_hint_y: None
             height: self.minimum_height
-            padding: [dp(28), dp(32), dp(28), dp(16)]
+            padding: [dp(28), dp(12), dp(28), dp(16)]
 
             MDBoxLayout:
                 orientation: "vertical"
@@ -496,16 +518,34 @@ MDScreen:
                 height: self.minimum_height
                 padding: [dp(0), dp(35), dp(0), dp(14)]
 
-                MDRectangleFlatIconButton:
-                    id: dial_button
-                    icon: "phone-outgoing"
-                    text: "Call"
-                    padding: [dp(0), dp(14), dp(0), dp(14)]
-                    icon_size: dp(24)
-                    font_size: dp(16)
-                    size_hint: [1.0, None]
-                    on_release: root.delegate.dial_action(self)
-                    disabled: True
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    spacing: "24dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [dp(0), dp(0), dp(0), dp(0)]
+
+                    MDRectangleFlatIconButton:
+                        id: call_profile_button
+                        icon: "account-voice"
+                        text: "HQ"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [1.0, None]
+                        on_release: root.delegate.call_profile_action(self)
+                        disabled: False
+
+                    MDRectangleFlatIconButton:
+                        id: dial_button
+                        icon: "phone-outgoing"
+                        text: "Call"
+                        padding: [dp(0), dp(14), dp(0), dp(14)]
+                        icon_size: dp(24)
+                        font_size: dp(16)
+                        size_hint: [2.0, None]
+                        on_release: root.delegate.dial_action(self)
+                        disabled: True
 
                 MDRectangleFlatIconButton:
                     id: reject_button

@@ -80,28 +80,25 @@ class ReticulumTelephone():
         self.telephone.announce(attached_interface=attached_interface)
 
     @property
-    def is_available(self):
-        return self.state == self.STATE_AVAILABLE
+    def is_available(self): return self.state == self.STATE_AVAILABLE
 
     @property
-    def is_in_call(self):
-        return self.state == self.STATE_IN_CALL
+    def is_in_call(self): return self.state == self.STATE_IN_CALL
 
     @property
-    def is_ringing(self):
-        return self.state == self.STATE_RINGING
+    def is_ringing(self): return self.state == self.STATE_RINGING
 
     @property
-    def call_is_connecting(self):
-        return self.state == self.STATE_CONNECTING
+    def call_is_connecting(self): return self.state == self.STATE_CONNECTING
 
     @property
-    def hw_is_idle(self):
-        return self.hw_state == self.HW_STATE_IDLE
+    def hw_is_idle(self): return self.hw_state == self.HW_STATE_IDLE
 
     @property
-    def hw_is_dialing(self):
-        return self.hw_state == self.HW_STATE_DIAL
+    def hw_is_dialing(self): return self.hw_state == self.HW_STATE_DIAL
+
+    @property
+    def active_profile(self): return self.telephone.active_profile
 
     def start(self):
         if not self.should_run:
@@ -173,7 +170,7 @@ class ReticulumTelephone():
                     RNS.log(f"An error occurred while updating call log: {e}", RNS.LOG_ERROR)
                     RNS.trace_exception(e)
 
-    def dial(self, identity_hash):
+    def dial(self, identity_hash, profile=None):
         self.last_dialled_identity_hash = identity_hash
         destination_hash = RNS.Destination.hash_from_name_and_identity("lxst.telephony", identity_hash)
         if RNS.Transport.has_path(destination_hash):
@@ -181,19 +178,19 @@ class ReticulumTelephone():
             cs = "" if call_hops == 1 else "s"
             RNS.log(f"Connecting call over {call_hops} hop{cs}...", RNS.LOG_DEBUG)
             identity = RNS.Identity.recall(destination_hash)
-            self.call(identity)
+            self.call(identity, profile=profile)
         else:
             return "no_path"
 
     def redial(self, args=None):
         if self.last_dialled_identity_hash: self.dial(self.last_dialled_identity_hash)
 
-    def call(self, remote_identity):
+    def call(self, remote_identity, profile=None):
         RNS.log(f"Calling {RNS.prettyhexrep(remote_identity.hash)}...", RNS.LOG_DEBUG)
         self.state = self.STATE_CONNECTING
         self.caller = remote_identity
         self.direction = "to"
-        self.telephone.call(self.caller)
+        self.telephone.call(self.caller, profile=profile)
 
     def ringing(self, remote_identity):
         if self.hw_state == self.HW_STATE_SLEEP: self.hw_state = self.HW_STATE_IDLE
@@ -270,8 +267,11 @@ class ReticulumTelephoneProxy():
     @property
     def caller(self): return CallerProxy(hash=self.owner.service_rpc_request({"telephone_caller_info": True }))
 
+    @property
+    def active_profile(self): return self.owner.service_rpc_request({"telephone_active_profile": True })
+
     def set_busy(self, busy):                  return self.owner.service_rpc_request({"telephone_set_busy": busy })
-    def dial(self, dial_target):               return self.owner.service_rpc_request({"telephone_dial": dial_target })
+    def dial(self, dial_target, profile=None): return self.owner.service_rpc_request({"telephone_dial": dial_target, "profile": profile })
     def hangup(self):                          return self.owner.service_rpc_request({"telephone_hangup": True })
     def answer(self):                          return self.owner.service_rpc_request({"telephone_answer": True })
     def set_speaker(self, speaker):            return self.owner.service_rpc_request({"telephone_set_speaker": speaker })
