@@ -4627,7 +4627,8 @@ class SidebandApp(MDApp):
             if pair_addr in self.bt_bonded_devices:
                 pairing_confirmed = True
                 RNS.log(f"Pairing with {device_name} ({pair_addr}) successful", RNS.LOG_NOTICE)
-                toast(f"Paired with {device_name}")
+                def job(dt=None): toast(f"Paired with {device_name}")
+                Clock.schedule_once(job, 0.2)
 
     def hardware_rnode_pair_device_action(self, pair_addr):
         RNS.log(f"Pair action for {pair_addr}", RNS.LOG_DEBUG)
