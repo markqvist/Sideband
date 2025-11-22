@@ -306,6 +306,7 @@ from kivymd.font_definitions import theme_font_styles
 from kivymd.theming import ThemableBehavior
 from kivymd.uix.behaviors import DeclarativeBehavior
 from kivymd.uix.label import MDIcon
+from kivy.utils import platform
 
 with open(
     os.path.join(uix_path, "textfield", "textfield.kv"), encoding="utf-8"
@@ -1483,7 +1484,8 @@ class MDTextField(
             Animation(_hint_y=y, duration=0.2, t="out_quad").start(self)
             if self.mode == "rectangle":
                 if not self.icon_left:
-                    _hint_x = x
+                    if platform == "android": _hint_x = x+dp(7)
+                    else: _hint_x = x
                 else:
                     if y == dp(10):
                         _hint_x = dp(-4)
