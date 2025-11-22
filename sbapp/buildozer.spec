@@ -10,7 +10,7 @@ source.exclude_patterns = app_storage/*,venv/*,Makefile,./Makefil*,requirements,
 
 version.regex = __version__ = ['"](.*)['"]
 version.filename = %(source.dir)s/main.py
-android.numeric_version = 20251103
+android.numeric_version = 20251122
 
 requirements = kivy==2.3.0,libbz2,sqlite3,pillow==10.2.0,qrcode==7.3.1,usb4a,usbserial4a,able_recipe,libwebp,libogg,libopus,opusfile,numpy,cryptography,ffpyplayer,codec2,pycodec2,sh,pynacl,typing-extensions,mistune>=3.0.2,beautifulsoup4
 
