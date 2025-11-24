@@ -59,10 +59,10 @@ sudo apt install python3-pip python3-pyaudio libopusfile0 codec2 xclip xsel
 sudo apt install python3-pip python3-pyaudio python3-dev build-essential libopusfile0 portaudio19-dev codec2 xclip xsel
 
 # For Manjaro and derivatives
-pamac install python-pyaudio codec2 xclip xsel
+pamac install python-pyaudio opusfile codec2 xclip xsel
 
 # For Arch and derivatives
-sudo pacman -Sy python-pyaudio codec2 xclip xsel
+sudo pacman -Sy python-pyaudio opusfile codec2 xclip xsel
 
 ```
 
