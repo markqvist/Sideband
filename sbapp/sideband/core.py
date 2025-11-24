@@ -5475,9 +5475,10 @@ class SidebandCore():
     def missed_call(self, remote_identity):
         display_name = self.voice_display_name(remote_identity.hash)
         self.setstate("voice.missed_call", display_name)
-        # if self.gui_foreground(): RNS.log("Squelching call notification since GUI is in foreground", RNS.LOG_DEBUG)
-        # else: self.notify(title="Missed voice call", content=f"From {display_name}", group="LXST.Telephony", context_id="incoming_call")
         self.notify(title="Missed call", content=f"From {display_name}", group="lxst.telephony.call", context_id="incoming_call")
+
+    def ended_call(self, remote_identity):
+        self.setstate("voice.ongoing_ended", True)
 
 rns_config = """# This template is used to generate a
 # running configuration for Sideband's

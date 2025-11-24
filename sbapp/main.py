@@ -1504,11 +1504,17 @@ class SidebandApp(MDApp):
                 if service_voice_running: self.sideband.voice_running = True
                 else:                     self.sideband.voice_running = False
 
-            incoming_call = self.sideband.getstate("voice.incoming_call")
-            if incoming_call:
-                self.sideband.setstate("voice.incoming_call", None)
-                if RNS.vendor.platformutils.is_android(): toast(f"Call from {incoming_call}")
-                else: toast(f"Call from {incoming_call}", duration=7)
+            if self.sideband.voice_running:
+                incoming_call = self.sideband.getstate("voice.incoming_call")
+                ended_call    = self.sideband.getstate("voice.ongoing_ended")
+                if incoming_call:
+                    self.sideband.setstate("voice.incoming_call", None)
+                    dn = multilingual_markup(escape_markup(str(incoming_call)).encode("utf-8")).decode("utf-8")
+                    toast(f"Call from {dn}", duration=4)
+
+                if ended_call:
+                    self.sideband.setstate("voice.ongoing_ended", False)
+                    toast("Call ended", duration=4)
 
         if self.root.ids.screen_manager.current == "messages_screen":
             self.messages_view.update()
@@ -5866,7 +5872,6 @@ class SidebandApp(MDApp):
         if self.sideband.voice_running:
             if self.sideband.telephone.is_ringing or self.sideband.telephone.is_in_call:
                 self.sideband.telephone.hangup()
-                toast("Call ended")
 
     ### Telemetry Screen
     ######################################

@@ -213,8 +213,12 @@ class ReticulumTelephone():
             self.direction = None
             self.state = self.STATE_AVAILABLE
 
-        if   call_was_connecting: self.log_call("outgoing-failure", remote_identity)
-        elif was_in_call:         self.log_call("ongoing-ended", remote_identity)
+        if call_was_connecting:
+            self.log_call("outgoing-failure", remote_identity)
+            self.owner.setstate("voice.connection_failure", True)
+        elif was_in_call:
+            self.log_call("ongoing-ended", remote_identity)
+            self.owner.ended_call(remote_identity)
         elif was_ringing:
             self.log_call("incoming-missed", remote_identity)
             self.owner.missed_call(remote_identity)

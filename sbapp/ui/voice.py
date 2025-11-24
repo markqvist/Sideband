@@ -111,6 +111,10 @@ class Voice():
                     if telephone.caller: ih.text = RNS.hexrep(telephone.caller.hash, delimit=False)
                     if telephone.active_profile: self.call_profile = telephone.active_profile
 
+            if self.app.sideband.getstate("voice.connection_failure"):
+                self.app.sideband.setstate("voice.connection_failure", False)
+                toast("Could not connect call", duration=5)
+
         else:
             db.disabled = True; db.text = "Voice calls disabled"
             ih.disabled = True
@@ -212,12 +216,11 @@ class Voice():
             if self.app.sideband.telephone.is_available:
 
                 destination_hash = RNS.Destination.hash_from_name_and_identity("lxst.telephony", self.dial_target)
-                if not RNS.Transport.has_path(destination_hash):
-                    self.request_path(destination_hash)
-
+                if not RNS.Transport.has_path(destination_hash): self.request_path(destination_hash)
                 else:
                     RNS.log(f"Calling {RNS.prettyhexrep(self.dial_target)}...", RNS.LOG_DEBUG)
-                    self.app.sideband.telephone.dial(self.dial_target, profile=self.call_profile)
+                    if self.app.sideband.telephone.dial(self.dial_target, profile=self.call_profile) == "no_path":
+                        self.request_path(destination_hash)
                     self.update_call_status()
 
             elif self.app.sideband.telephone.is_in_call or self.app.sideband.telephone.call_is_connecting:
