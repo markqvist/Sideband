@@ -47,6 +47,11 @@ injectxml:
 	cp patches/AndroidManifest.tmpl.xml .buildozer/android/platform/build-arm64-v8a/dists/sideband/templates/
 	cp patches/p4a_build.py .buildozer/android/platform/build-arm64-v8a/dists/sideband/build.py
 	
+injectlibs:
+	@(echo Injecting native libs...)
+	cp .buildozer/android/platform/build-arm64-v8a/dists/sideband/_python_bundle__arm64-v8a/_python_bundle/site-packages/LXST/filterlib.so LXST/
+	@(sleep 1)
+
 debug:
 	buildozer android debug
 
@@ -83,10 +88,11 @@ release:
 
 postbuild:
 	$(MAKE) cleanrns
+	-(rm ../LXST/filterlib.so)
 
-apk: prepare prebake pacthfiles fetchshare release postbuild
+apk: prepare prebake pacthfiles fetchshare injectlibs release postbuild
 
-devapk: prepare prebake pacthfiles fetchshare debug postbuild
+devapk: prepare prebake pacthfiles fetchshare injectlibs debug postbuild
 
 version:
 	@(echo $$(python ./gv.py))
