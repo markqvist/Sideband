@@ -2026,6 +2026,7 @@ class SidebandCore():
                                 elif "telephone_announce" in call:                 connection.send(self.telephone.announce() if self.telephone else False)
                                 elif "telephone_get_call_log" in call:             connection.send(self.telephone.get_call_log() if self.telephone else [])
                                 elif "telephone_clear_call_log" in call:           connection.send(self.telephone.clear_call_log() if self.telephone else False)
+                                elif "telephone_switch_profile" in call:           connection.send(self.telephone.switch_profile(call["telephone_switch_profile"]) if self.telephone else False)
                                 else:
                                     connection.send(None)
 

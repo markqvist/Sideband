@@ -126,7 +126,7 @@ setuptools.setup(
         "lxst>=0.4.2",
         "mistune>=3.0.2",
         "beautifulsoup4",
-        "pycodec2>=4.1.0;sys.platform!='Windows' and sys.platform!='win32' and sys.platform!='darwin'",
+        "pycodec2>=4.1.0",
         "pyaudio;sys.platform=='linux'",
         "pyobjus;sys.platform=='darwin'",
         "pyogg;sys.platform=='Windows' and sys.platform!='win32'",

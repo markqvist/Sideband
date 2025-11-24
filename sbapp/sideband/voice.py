@@ -39,6 +39,7 @@ class ReticulumTelephone():
         self.direction         = None
         self.last_input        = None
         self.first_run         = False
+        self.user_hung_up      = False
         self.ringtone_path     = None
         self.speaker_device    = speaker
         self.microphone_device = microphone
@@ -110,7 +111,10 @@ class ReticulumTelephone():
         self.telephone.teardown()
         self.telephone = None
 
-    def hangup(self): self.telephone.hangup()
+    def hangup(self):
+        self.user_hung_up = True
+        self.telephone.hangup()
+
     def answer(self): self.telephone.answer(self.caller)
     def set_busy(self, busy): self.telephone.set_busy(busy)
     def set_low_latency_output(self, enabled): self.telephone.set_low_latency_output(enabled)
@@ -192,6 +196,9 @@ class ReticulumTelephone():
         self.direction = "to"
         self.telephone.call(self.caller, profile=profile)
 
+    def switch_profile(self, profile):
+        self.telephone.switch_profile(profile)
+
     def ringing(self, remote_identity):
         if self.hw_state == self.HW_STATE_SLEEP: self.hw_state = self.HW_STATE_IDLE
         self.state = self.STATE_RINGING
@@ -205,6 +212,8 @@ class ReticulumTelephone():
         call_was_connecting = self.call_is_connecting
         was_ringing         = self.is_ringing
         was_in_call         = self.is_in_call
+        user_hung_up        = self.user_hung_up
+        self.user_hung_up   = False
 
         if self.is_in_call or self.is_ringing or self.call_is_connecting:
             if self.is_in_call:         RNS.log(f"Call with {RNS.prettyhexrep(self.caller.hash)} ended\n", RNS.LOG_DEBUG)
@@ -215,7 +224,7 @@ class ReticulumTelephone():
 
         if call_was_connecting:
             self.log_call("outgoing-failure", remote_identity)
-            self.owner.setstate("voice.connection_failure", True)
+            if not user_hung_up: self.owner.setstate("voice.connection_failure", True)
         elif was_in_call:
             self.log_call("ongoing-ended", remote_identity)
             self.owner.ended_call(remote_identity)
@@ -285,3 +294,4 @@ class ReticulumTelephoneProxy():
     def announce(self):                        return self.owner.service_rpc_request({"telephone_announce": True})
     def get_call_log(self):                    return self.owner.service_rpc_request({"telephone_get_call_log": True})
     def clear_call_log(self):                  return self.owner.service_rpc_request({"telephone_clear_call_log": True})
+    def switch_profile(self, profile):         return self.owner.service_rpc_request({"telephone_switch_profile": profile})

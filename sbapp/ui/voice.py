@@ -96,7 +96,8 @@ class Voice():
                     ih.disabled = True
                     rb.disabled = True
                     db.disabled = False
-                    pb.disabled = True
+                    if telephone.call_is_connecting: pb.disabled = True
+                    if telephone.is_in_call:         pb.disabled = False
                     db.text = "Hang up"
                     db.icon = "phone-hangup"
                     if telephone.active_profile: self.call_profile = telephone.active_profile
@@ -183,10 +184,24 @@ class Voice():
         toast("Path request timed out")
 
     def call_profile_action(self, sender=None):
-        pb = self.screen.ids.call_profile_button
-        self.call_profile = Profiles.next_profile(self.call_profile)
-        pb.text = Profiles.profile_abbrevation(self.call_profile)
-        toast(f"Call Profile: {Profiles.profile_name(self.call_profile)}")
+        if self.app.sideband.telephone.is_in_call: self.switch_profile_action()
+        else:
+            pb = self.screen.ids.call_profile_button
+            self.call_profile = Profiles.next_profile(self.call_profile)
+            pb.text = Profiles.profile_abbrevation(self.call_profile)
+            toast(f"Call Profile: {Profiles.profile_name(self.call_profile)}")
+
+    def switch_profile_action(self, sender=None):
+        if self.initial_call_profile == None: self.initial_call_profile = self.call_profile
+        if self.initial_call_profile < Profiles.QUALITY_MEDIUM: alt_profile = Profiles.QUALITY_MEDIUM
+        else:                                                   alt_profile = Profiles.BANDWIDTH_LOW
+        switch_profiles = [alt_profile, self.initial_call_profile]
+        if self.call_profile == switch_profiles[0]:
+            RNS.log(f"Switching to {Profiles.profile_name(switch_profiles[1])}", RNS.LOG_DEBUG)
+            self.app.sideband.telephone.switch_profile(switch_profiles[1])
+        else:
+            RNS.log(f"Switching to {Profiles.profile_name(switch_profiles[0])}", RNS.LOG_DEBUG)
+            self.app.sideband.telephone.switch_profile(switch_profiles[0])
 
     def clear_log_action(self, sender=None):
         self.app.sideband.telephone.clear_call_log()
@@ -210,6 +225,7 @@ class Voice():
         if self.app.sideband.voice_running:
             if self.app.sideband.telephone.is_ringing:
                 self.app.sideband.telephone.hangup()
+                self.initial_call_profile = None
     
     def dial_action(self, sender=None):
         if self.app.sideband.voice_running:
@@ -232,6 +248,8 @@ class Voice():
                 RNS.log(f"Answering", RNS.LOG_DEBUG)
                 self.app.sideband.telephone.answer()
                 self.update_call_status()
+
+            self.initial_call_profile = None
 
 
     ### Settings screen
