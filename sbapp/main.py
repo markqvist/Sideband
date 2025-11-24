@@ -145,7 +145,7 @@ def apply_ui_scale():
                 with open(ui_wcfg_path, "r") as sf: window_config = sf.readline().split()
 
                 if window_config != None:
-                    if type(window_config) == list and len(window_config) == 5:
+                    if type(window_config) == list and len(window_config) >= 5:
                         app_ui_window_config = window_config
 
 
@@ -181,6 +181,9 @@ def patch_sdl_window_events(patch_target):
         patch_target._win.set_event_filter(patch_target._event_filter)
 #
 # End of Kivy/SDL2 patch ##########################
+
+window_x_offset = 0
+window_y_offset = 0
 
 if args.export_settings:
     from .sideband.core import SidebandCore
@@ -354,12 +357,15 @@ else:
         window_height_target = int(WINDOW_DEFAULT_HEIGHT)
 
         # But use saved window configuration if possible
-        if type(app_ui_window_config) == list and len(app_ui_window_config) == 5:
+        if type(app_ui_window_config) == list and len(app_ui_window_config) >= 5:
             window_width_target  = int(app_ui_window_config[0])
             window_height_target = int(app_ui_window_config[1])
             window_target_x      = int(app_ui_window_config[2])
             window_target_y      = int(app_ui_window_config[3])
             window_state         = app_ui_window_config[4]
+
+            if len(app_ui_window_config) > 5: window_x_offset = int(app_ui_window_config[5])
+            if len(app_ui_window_config) > 6: window_y_offset = int(app_ui_window_config[6])
             
             if not window_state in ["maximized", "minimized", "normal"]: window_state = "normal"
             if window_target_x < 0: window_target_x = 0
@@ -379,8 +385,10 @@ else:
         
         if window_target_x and window_target_y:
             Config.set('graphics', 'position', 'custom')
-            Config.set("graphics", "left", str(window_target_x))
-            Config.set("graphics", "top", str(window_target_y))
+            Config.set("graphics", "left", str(window_target_x+window_x_offset))
+            Config.set("graphics", "top", str(window_target_y+window_y_offset))
+            _window_init_x = window_target_x
+            _window_init_y = window_target_y
 
         if window_state == "maximized":
             Config.set("graphics", "window_state", "maximized")
@@ -893,7 +901,7 @@ class SidebandApp(MDApp):
     def save_window_config(self):
         try:
             if not RNS.vendor.platformutils.is_android():
-                wcfg = f"{Window.width} {Window.height} {Window.left} {Window.top} {self.window_state}"
+                wcfg = f"{Window.width} {Window.height} {Window.left} {Window.top} {self.window_state} {window_x_offset} {window_y_offset}"
                 if app_ui_wcfg_path == None: RNS.log("No path to UI window config file could be found, cannot save window config", RNS.LOG_ERROR)
                 else:
                     try:
