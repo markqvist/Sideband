@@ -49,6 +49,8 @@ if RNS.vendor.platformutils.is_darwin():
 from kivy.lang.builder import Builder
 from kivymd.uix.list import OneLineIconListItem, IconLeftWidget
 
+MSG_RENDER_LIMIT = 11000
+
 class DialogItem(OneLineIconListItem):
     divider = None
     icon = StringProperty()
@@ -735,8 +737,11 @@ class Messages():
                     alstr = RNS.prettysize(len(audio_field[1]))
                     heading_str += f"\n[b]Audio Message[/b] ({alstr})"
 
+                final_content = pre_content+message_markup.decode("utf-8")+extra_content
+                if len(final_content) > MSG_RENDER_LIMIT:
+                    final_content = pre_content+"[i]The content of this message is too large to display in the message stream. You can copy the message content into another program by using the context menu of this message, and selecting [b]Copy[/b].[/i]"+extra_content
                 item = ListLXMessageCard(
-                    text=pre_content+message_markup.decode("utf-8")+extra_content,
+                    text=final_content,
                     heading=heading_str,
                     md_bg_color=msg_color,
                 )
