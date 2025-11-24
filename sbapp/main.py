@@ -49,11 +49,26 @@ def get_display_res():
     else:
         try:
             import subprocess
-            cmd_xrandr = subprocess.Popen(['xrandr'], stdout=subprocess.PIPE)
-            cmd_grep   = subprocess.Popen(['grep', '*'], stdin=cmd_xrandr.stdout, stdout=subprocess.PIPE)
+            # Try to get connected and primary display
+            cmd_xrandr = subprocess.Popen(["xrandr"], stdout=subprocess.PIPE)
+            cmd_grep   = subprocess.Popen(["grep", " connected primary"], stdin=cmd_xrandr.stdout, stdout=subprocess.PIPE)
             cmd_xrandr.stdout.close(); res_bytes, _ = cmd_grep.communicate()
-            resolution        = res_bytes.split()[0]
-            width, height     = resolution.split(b'x')
+            if not (len(res_bytes) > 25 and b"x" in res_bytes):
+                # Try to get connected display
+                cmd_xrandr = subprocess.Popen(["xrandr"], stdout=subprocess.PIPE)
+                cmd_grep   = subprocess.Popen(["grep", " connected"], stdin=cmd_xrandr.stdout, stdout=subprocess.PIPE)
+                cmd_xrandr.stdout.close(); res_bytes, _ = cmd_grep.communicate()
+
+            resolution_es = res_bytes.split()
+            for e in resolution_es:
+                if b"x" in e:
+                    if b"+" in e: e = e.split(b"+")[0]
+                    cs = e.split(b"x")
+                    if len(cs) == 2:
+                        resolution = e
+                        break
+
+            width, height     = resolution.split(b"x")
             app_ui_dsp_width  = int(width)
             app_ui_dsp_height = int(height)
             return app_ui_dsp_width, app_ui_dsp_height
