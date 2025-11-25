@@ -44,7 +44,7 @@ For your Android devices, you can download an [APK on the latest release page](h
 
 After the application is installed on your Android device, it is also possible to pull updates directly through the **Repository** section of the application.
 
-The Sideband APK file is always signed with a consistent signing certificate directly at build time. After downloading the APK, you can verify that it has not been modified, by checking that the APK file's signing certificate matches these hashes:
+The Sideband APK file is always signed with a consistent signing certificate directly at build time. Before installing it for the first time, you can verify that the APK has not been modified, by checking that the APK file's signing certificate matches these hashes:
 
 ```text
 SHA-256 digest: 1c65f01f586a2b73ac4eb8bf48730b3899d046447185fd9d005685a4af20cdea
