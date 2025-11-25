@@ -44,6 +44,20 @@ For your Android devices, you can download an [APK on the latest release page](h
 
 After the application is installed on your Android device, it is also possible to pull updates directly through the **Repository** section of the application.
 
+The Sideband APK file is always signed with a consistent signing certificate directly at build time. After downloading the APK, you can verify that it has not been modified, by checking that the APK file's signing certificate matches these hashes:
+
+```text
+SHA-256 digest: 1c65f01f586a2b73ac4eb8bf48730b3899d046447185fd9d005685a4af20cdea
+SHA-1 digest: 4ab9269c320c72f4e4057ec7ea5acade320c2a48
+MD5 digest: 09afff8c505089a544ad2bf371c29422
+```
+
+Sideband will never be released on app store platforms that does not support complete control of the APK signing directly from the developer. If you download Sideband from any other source than this repository, and the certificate hashes do not match, **do not install it**.
+
+The Android version of Sideband has been carefully set up to **not** use any Android APIs or functionality that is dependent on Google (or other vendor-specific) components or libraries. It uses only raw Android OS APIs, and accesses them directly, instead of through "compatibility", "support" or "helper" libraries, which can often hijack application data flow into privacy-compromising pipelines controlled by Google or other vendors.
+
+This also means that Sideband is designed to be fully compatible with custom (and more privacy-friendly) Android versions and ROMs.
+
 ## On Linux
 
 On all Linux-based operating systems, Sideband is available as a `pip`/`pipx` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers. Below are install steps for the most common recent Linux distros. For Debian 11, see the end of this section.
