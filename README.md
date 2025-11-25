@@ -60,7 +60,9 @@ This also means that Sideband is designed to be fully compatible with custom (an
 
 ## On Linux
 
-On all Linux-based operating systems, Sideband is available as a `pip`/`pipx` package. This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers. Below are install steps for the most common recent Linux distros. For Debian 11, see the end of this section.
+On all Linux-based operating systems, Sideband is available as a `pip`/`pipx` package. You can either pull and install Sideband directly from the `pip` repository, or download and install locally using `whl` package from the [latest release page](https://github.com/markqvist/Sideband/releases/latest).
+
+This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers. Below are install steps for the most common recent Linux distros. For Debian 11, see the end of this section.
 
 #### Basic Installation
 You will first need to install a few dependencies for voice calls, audio messaging and Codec2 support to work:
@@ -126,14 +128,17 @@ You can also install Sideband in various alternative ways:
 pipx install sbapp
 
 # Or, if you intend to run Sideband in headless
-# daemon mode, you can also install it without
-# any of the normal UI dependencies:
+# daemon or console mode, you can also install
+# it without any of the normal UI dependencies:
 pip install sbapp --no-dependencies
 
 # In the case of using --no-dependencies, you
 # will still need to manually install the RNS
 # and LXMF dependencies:
 pip install rns lxmf
+
+# Dependencies can vary slightly on older OS
+# versions, due to different package names.
 
 # Install Sideband on Debian 11 and derivatives:
 sudo apt install python3-pip python3-pyaudio python3-dev build-essential libopusfile0 portaudio19-dev codec2 xclip xsel
@@ -213,8 +218,6 @@ If you do not already have Reticulum connectivity set up on your computer or loc
 #### Source Package Install
 
 For more advanced setups, including the ability to run Sideband in headless daemon mode, enable debug logging output, configuration import and export and more, you may want to install it from the source package via `pip` instead.
-
-**Please note!** The very latest Python release, Python 3.13 is currently **not** compatible with the Kivy framework, that Sideband uses to render its user interface. If your version of macOS uses Python 3.13 as its default Python installation, you will need to install an earlier version as well. Using [the latest release of Python 3.12](https://www.python.org/downloads/release/python-3127/) is recommended.
 
 To install Sideband via `pip`, follow these instructions:
 
