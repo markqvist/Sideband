@@ -56,7 +56,7 @@ Sideband will never be released on app store platforms that does not support com
 
 The Android version of Sideband has been carefully set up to **not** use any Android APIs or functionality that are dependent on Google (or other vendor-specific) components or libraries. It uses only raw Android OS APIs, and accesses them directly, instead of through "compatibility", "support" or "helper" libraries, which can often hijack application data flow into privacy-compromising pipelines controlled by Google or other vendors.
 
-This also means that Sideband is designed to be fully compatible with custom (and more privacy-friendly) Android versions and ROMs, such as GrapheneOS, de-googled devices and privacy-improved Android versions.
+This also means that Sideband is designed to be fully compatible with custom (and more privacy-friendly) Android versions and ROMs, such as GrapheneOS, de-googled devices and other custom ROMs.
 
 ## On Linux
 
