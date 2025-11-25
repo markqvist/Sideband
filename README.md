@@ -54,7 +54,7 @@ MD5 digest: 09afff8c505089a544ad2bf371c29422
 
 Sideband will never be released on app store platforms that does not support complete control of the APK signing directly from the developer. If you download Sideband from any other source than this repository, and the certificate hashes do not match, **do not install it**.
 
-The Android version of Sideband has been carefully set up to **not** use any Android APIs or functionality that is dependent on Google (or other vendor-specific) components or libraries. It uses only raw Android OS APIs, and accesses them directly, instead of through "compatibility", "support" or "helper" libraries, which can often hijack application data flow into privacy-compromising pipelines controlled by Google or other vendors.
+The Android version of Sideband has been carefully set up to **not** use any Android APIs or functionality that are dependent on Google (or other vendor-specific) components or libraries. It uses only raw Android OS APIs, and accesses them directly, instead of through "compatibility", "support" or "helper" libraries, which can often hijack application data flow into privacy-compromising pipelines controlled by Google or other vendors.
 
 This also means that Sideband is designed to be fully compatible with custom (and more privacy-friendly) Android versions and ROMs.
 
