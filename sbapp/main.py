@@ -2422,116 +2422,66 @@ class SidebandApp(MDApp):
         self.compat_error_dialog.open()
 
     def play_audio_field(self, audio_field):
-        if RNS.vendor.platformutils.is_darwin():
-            if self.compat_error_dialog == None:
-                def cb(sender):
-                    self.compat_error_dialog.dismiss()
-                self.compat_error_dialog = MDDialog(
-                    title="Unsupported Feature on macOS",
-                    text="Audio message functionality is currently only implemented on Linux and Android. Please support the development if you need this feature on macOS.",
-                    buttons=[
-                        MDRectangleFlatButton(
-                            text="OK",
-                            font_size=dp(18),
-                            on_release=cb
-                        )
-                    ],
-                )
-            self.compat_error_dialog.open()
-            return
-        elif RNS.vendor.platformutils.is_windows():
-            if self.compat_error_dialog == None:
-                def cb(sender):
-                    self.compat_error_dialog.dismiss()
-                self.compat_error_dialog = MDDialog(
-                    title="Unsupported Feature on Windows",
-                    text="Audio message functionality is currently only implemented on Linux and Android. Please support the development if you need this feature on Windows.",
-                    buttons=[
-                        MDRectangleFlatButton(
-                            text="OK",
-                            font_size=dp(18),
-                            on_release=cb
-                        )
-                    ],
-                )
-            self.compat_error_dialog.open()
-            return
-        else:
-            try:
-                temp_path = None
-                if self.last_msg_audio != audio_field[1]:
-                    RNS.log("Reloading audio source", RNS.LOG_DEBUG)
-                    if len(audio_field[1]) > 10:
-                        self.last_msg_audio = audio_field[1]
+        try:
+            if self.msg_sound != None and self.msg_sound.playing:
+                RNS.log("Stopping playback", RNS.LOG_DEBUG)
+                self.msg_sound.stop()
+                return
+
+            temp_path = None
+            if self.last_msg_audio != audio_field[1]:
+                RNS.log("Reloading audio source", RNS.LOG_DEBUG)
+                if len(audio_field[1]) > 10: self.last_msg_audio = audio_field[1]
+                else:
+                    self.last_msg_audio = None
+                    return
+
+                if audio_field[0] == LXMF.AM_OPUS_OGG:
+                    temp_path = self.sideband.rec_cache+"/msg.ogg"
+                    with open(temp_path, "wb") as af: af.write(self.last_msg_audio)
+
+                elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
+                    temp_path = self.sideband.rec_cache+"/msg.ogg"
+                    from sideband.audioproc import samples_to_ogg, decode_codec2, detect_codec2
+                    
+                    target_rate = 8000
+                    if RNS.vendor.platformutils.is_linux(): target_rate = 48000
+
+                    if detect_codec2():
+                        if samples_to_ogg(decode_codec2(audio_field[1], audio_field[0]), temp_path, input_rate=8000, output_rate=target_rate): RNS.log("Wrote OGG file to: "+temp_path, RNS.LOG_DEBUG)
+                        else: RNS.log("OGG write failed", RNS.LOG_DEBUG)
                     else:
                         self.last_msg_audio = None
+                        self.display_codec2_error()
                         return
+                
+                else: raise NotImplementedError(audio_field[0])
 
-                    if audio_field[0] == LXMF.AM_OPUS_OGG:
-                        temp_path = self.sideband.rec_cache+"/msg.ogg"
-                        with open(temp_path, "wb") as af:
-                            af.write(self.last_msg_audio)
+                if self.msg_sound == None:
+                    from LXST.Primitives.Players import FilePlayer
+                    self.msg_sound = FilePlayer()
 
-                    elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
-                        temp_path = self.sideband.rec_cache+"/msg.ogg"
-                        from sideband.audioproc import samples_to_ogg, decode_codec2, detect_codec2
-                        
-                        target_rate = 8000
-                        if RNS.vendor.platformutils.is_linux():
-                            target_rate = 48000
+                self.msg_sound.set_source(temp_path)
 
-                        if detect_codec2():
-                            if samples_to_ogg(decode_codec2(audio_field[1], audio_field[0]), temp_path, input_rate=8000, output_rate=target_rate):
-                                RNS.log("Wrote OGG file to: "+temp_path, RNS.LOG_DEBUG)
-                            else:
-                                RNS.log("OGG write failed", RNS.LOG_DEBUG)
-                        else:
-                            self.last_msg_audio = None
-                            self.display_codec2_error()
-                            return
-                    
-                    else:
-                        raise NotImplementedError(audio_field[0])
+            if self.msg_sound != None:
+                RNS.log("Starting playback", RNS.LOG_DEBUG)
+                self.msg_sound.play()
+            else:
+                RNS.log("Playback was requested, but no audio data was loaded for playback", RNS.LOG_ERROR)
 
-                    if self.msg_sound == None:
-                        if RNS.vendor.platformutils.is_android():
-                            from plyer import audio
-                            self.request_microphone_permission()
-                        else:
-                            from sbapp.plyer import audio
-                        
-                        self.msg_sound = audio
-
-                    self.msg_sound._file_path = temp_path
-                    self.msg_sound.reload()
-
-                if self.msg_sound != None and self.msg_sound.playing():
-                    RNS.log("Stopping playback", RNS.LOG_DEBUG)
-                    self.msg_sound.stop()
-                else:
-                    if self.msg_sound != None:
-                        RNS.log("Starting playback", RNS.LOG_DEBUG)
-                        self.msg_sound.play()
-                    else:
-                        RNS.log("Playback was requested, but no audio data was loaded for playback", RNS.LOG_ERROR)
-
-            except Exception as e:
-                RNS.log("Error while playing message audio:"+str(e))
-                RNS.trace_exception(e)
+        except Exception as e:
+            RNS.log("Error while playing message audio:"+str(e))
+            RNS.trace_exception(e)
 
     def message_ptt_down_action(self, sender=None):
-        if self.sideband.ui_recording:
-            return
+        if self.sideband.ui_recording: return
 
         self.sideband.ui_started_recording()
-        if self.sideband.config["hq_ptt"]:
-            self.audio_msg_mode = LXMF.AM_OPUS_OGG
-        else:
-            self.audio_msg_mode = LXMF.AM_CODEC2_2400
+        if self.sideband.config["hq_ptt"]: self.audio_msg_mode = LXMF.AM_OPUS_OGG
+        else: self.audio_msg_mode = LXMF.AM_CODEC2_2400
 
         self.message_attach_action(attach_type="audio", nodialog=True)
-        if self.rec_dialog == None:
-            self.message_init_rec_dialog()
+        if self.rec_dialog == None: self.message_init_rec_dialog()
         self.rec_dialog.recording = True
         el_button = self.messages_view.ids.message_ptt_button
         el_icon = self.messages_view.ids.message_ptt_button.children[0].children[1]
@@ -2540,14 +2490,12 @@ class SidebandApp(MDApp):
         el_button.line_color=mdc("Orange","400")
         el_icon.theme_text_color="Custom"
         el_icon.text_color=mdc("Orange","400")
-        def cb(dt):
-            self.msg_audio.start()
+        def cb(dt): self.msg_audio.start()
         Clock.schedule_once(cb, 0.15)
         
 
     def message_ptt_up_action(self, sender=None):
-        if not self.sideband.ui_recording:
-            return
+        if not self.sideband.ui_recording: return
 
         self.rec_dialog.recording = False
         el_button = self.messages_view.ids.message_ptt_button
@@ -2558,8 +2506,7 @@ class SidebandApp(MDApp):
         el_icon.theme_text_color="Custom"
         el_icon.text_color=mdc("BlueGray","500")
         def cb_s(dt):
-            try:
-                self.msg_audio.stop()
+            try: self.msg_audio.stop()
             except Exception as e:
                 RNS.log("An error occurred while stopping recording: "+str(e), RNS.LOG_ERROR)
                 RNS.trace_exception(e)
