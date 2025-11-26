@@ -2721,14 +2721,6 @@ class SidebandApp(MDApp):
                         DialogItem(IconLeftWidget(icon="account-voice", on_release=a_audio_lb), text="[size="+str(ss)+"]Low-bandwidth Voice[/size]", on_release=a_audio_lb),
                         DialogItem(IconLeftWidget(icon="microphone-message", on_release=a_audio_hq), text="[size="+str(ss)+"]High-quality Voice[/size]", on_release=a_audio_hq),
                         DialogItem(IconLeftWidget(icon="file-outline", on_release=a_file), text="[size="+str(ss)+"]File Attachment[/size]", on_release=a_file)]
-                
-                if RNS.vendor.platformutils.is_windows():
-                    ad_items.pop(3)
-                    ad_items.pop(3)
-
-                if RNS.vendor.platformutils.is_darwin():
-                    ad_items.pop(3)
-                    ad_items.pop(3)
 
                 if RNS.vendor.platformutils.is_android() and android_api_version < 29:
                     ad_items.pop(3)
