@@ -2427,9 +2427,7 @@ class SidebandApp(MDApp):
                     temp_path = self.sideband.rec_cache+"/msg.ogg"
                     from sideband.audioproc import samples_to_ogg, decode_codec2, detect_codec2
                     
-                    target_rate = 8000
-                    if RNS.vendor.platformutils.is_linux(): target_rate = 48000
-
+                    target_rate = 48000
                     if detect_codec2():
                         if samples_to_ogg(decode_codec2(audio_field[1], audio_field[0]), temp_path, input_rate=8000, output_rate=target_rate): RNS.log("Wrote OGG file to: "+temp_path, RNS.LOG_DEBUG)
                         else: RNS.log("OGG write failed", RNS.LOG_DEBUG)
