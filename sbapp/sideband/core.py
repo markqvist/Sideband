@@ -202,13 +202,12 @@ class SidebandCore():
         self.default_config_template = rns_config
 
         if config_path == None:
-            self.app_dir     = plyer.storagepath.get_home_dir()+"/.config/sideband"
-            if self.app_dir.startswith("file://"):
-                self.app_dir = self.app_dir.replace("file://", "")
+            self.app_dir     = os.path.join(plyer.storagepath.get_home_dir(), ".config", "sideband")
+            if self.app_dir.startswith("file://"): self.app_dir = self.app_dir.replace("file://", "")
         else:
             self.app_dir     = config_path
 
-        self.cache_dir       = self.app_dir+"/cache"
+        self.cache_dir       = os.path.join(self.app_dir, "cache")
         
         self.rns_configdir = rns_config_path
 
@@ -217,10 +216,10 @@ class SidebandCore():
             core_path      = core_path.replace("core.pyc", "core.py")
 
         if RNS.vendor.platformutils.is_android():
-            self.app_dir = android_app_dir+"/io.unsigned.sideband/files/"
-            self.cache_dir = self.app_dir+"/cache"
-            self.rns_configdir = self.app_dir+"/app_storage/reticulum"
-            self.asset_dir     = self.app_dir+"/app/assets"
+            self.app_dir = os.path.join(android_app_dir, "io.unsigned.sideband", "files")
+            self.cache_dir = os.path.join(self.app_dir, "cache")
+            self.rns_configdir = os.path.join(self.app_dir, "app_storage", "reticulum")
+            self.asset_dir     = os.path.join(self.app_dir, "app", "assets")
         elif RNS.vendor.platformutils.is_darwin():
             self.asset_dir     = core_path.replace("/sideband/core.py", "/assets")
         elif RNS.vendor.platformutils.get_platform() == "linux":
@@ -228,40 +227,41 @@ class SidebandCore():
         elif RNS.vendor.platformutils.is_windows():
             self.asset_dir     = core_path.replace("\\sideband\\core.py", "\\assets")
         else:
-            self.asset_dir     = plyer.storagepath.get_application_dir()+"/sbapp/assets"
+            self.asset_dir     = os.path.join(plyer.storagepath.get_application_dir(), "sbapp", "assets")
 
-        self.map_cache         = self.cache_dir+"/maps"
+        self.map_cache         = os.path.join(self.cache_dir, "maps")
         if not os.path.isdir(self.map_cache):
             os.makedirs(self.map_cache)
 
-        self.rec_cache         = self.cache_dir+"/rec"
+        self.rec_cache         = os.path.join(self.cache_dir, "rec")
         if not os.path.isdir(self.rec_cache):
             os.makedirs(self.rec_cache)
 
-        self.share_cache       = self.cache_dir+"/share"
+        self.share_cache       = os.path.join(self.cache_dir, "share")
         if not os.path.isdir(self.share_cache):
             os.makedirs(self.share_cache)
 
-        self.icon              = self.asset_dir+"/icon.png"
-        self.icon_48           = self.asset_dir+"/icon_48.png"
-        self.icon_32           = self.asset_dir+"/icon_32.png"
-        self.icon_macos        = self.asset_dir+"/icon_macos.png"
-        self.notification_icon = self.asset_dir+"/notification_icon.png"
-        self.notif_icon_black  = self.asset_dir+"/notification_icon_black.png"
+        self.icon              = os.path.join(self.asset_dir, "icon.png")
+        self.icon_48           = os.path.join(self.asset_dir, "icon_48.png")
+        self.icon_32           = os.path.join(self.asset_dir, "icon_32.png")
+        self.icon_macos        = os.path.join(self.asset_dir, "icon_macos.png")
+        self.icon_windows      = os.path.join(self.asset_dir, "icon.ico")
+        self.notification_icon = os.path.join(self.asset_dir, "notification_icon.png")
+        self.notif_icon_black  = os.path.join(self.asset_dir, "notification_icon_black.png")
 
         os.environ["TELEMETER_GEOID_PATH"] = os.path.join(self.asset_dir, "geoids")
 
-        if not os.path.isdir(self.app_dir+"/app_storage"):
-            os.makedirs(self.app_dir+"/app_storage")
+        if not os.path.isdir(os.path.join(self.app_dir, "app_storage")):
+            os.makedirs(os.path.join(self.app_dir, "app_storage"))
 
-        self.config_path            = self.app_dir+"/app_storage/sideband_config"
-        self.identity_path          = self.app_dir+"/app_storage/primary_identity"
-        self.db_path                = self.app_dir+"/app_storage/sideband.db"
-        self.lxmf_storage           = self.app_dir+"/app_storage/"
-        self.log_dir                = self.app_dir+"/app_storage/"
-        self.tmp_dir                = self.app_dir+"/app_storage/tmp"
-        self.exports_dir            = self.app_dir+"/exports"
-        self.telemetry_exclude_path = self.app_dir+"/app_storage/collector_response_excluded"
+        self.config_path            = os.path.join(self.app_dir, "app_storage", "sideband_config")
+        self.identity_path          = os.path.join(self.app_dir, "app_storage", "primary_identity")
+        self.db_path                = os.path.join(self.app_dir, "app_storage", "sideband.db")
+        self.lxmf_storage           = os.path.join(self.app_dir, "app_storage")
+        self.log_dir                = os.path.join(self.app_dir, "app_storage")
+        self.tmp_dir                = os.path.join(self.app_dir, "app_storage", "tmp")
+        self.exports_dir            = os.path.join(self.app_dir, "exports")
+        self.telemetry_exclude_path = os.path.join(self.app_dir, "app_storage", "collector_response_excluded")
 
         if RNS.vendor.platformutils.is_android():
             self.webshare_dir  = "./share/"
@@ -269,8 +269,8 @@ class SidebandCore():
             sideband_dir = os.path.dirname(os.path.abspath(__file__))
             self.webshare_dir  = os.path.abspath(os.path.join(sideband_dir, "..", "share"))
 
-        self.webshare_ssl_key_path  = self.app_dir+"/app_storage/ssl_key.pem"
-        self.webshare_ssl_cert_path = self.app_dir+"/app_storage/ssl_cert.pem"
+        self.webshare_ssl_key_path  = os.path.join(self.app_dir, "app_storage", "ssl_key.pem")
+        self.webshare_ssl_cert_path = os.path.join(self.app_dir, "app_storage", "ssl_cert.pem")
 
         self.mqtt = None
         self.mqtt_handle_lock = threading.Lock()
@@ -319,9 +319,9 @@ class SidebandCore():
         if RNS.vendor.platformutils.is_android():
             if self.config["config_template"] != None:
                 try:
-                    if not os.path.isfile(self.rns_configdir+"/config_template_invalid"):
+                    if not os.path.isfile(os.path.join(self.rns_configdir, "config_template_invalid")):
                         if self.is_service:
-                            with open(self.rns_configdir+"/config_template_invalid", "w") as invalidation_file:
+                            with open(os.path.join(self.rns_configdir, "config_template_invalid"), "w") as invalidation_file:
                                 invalidation_file.write("\n")
 
                         ct = self.config["config_template"]
@@ -342,7 +342,7 @@ class SidebandCore():
         # Initialise Reticulum configuration
         if RNS.vendor.platformutils.get_platform() == "android":
             try:
-                self.rns_configdir = self.app_dir+"/app_storage/reticulum"
+                self.rns_configdir = os.path.join(self.app_dir, "app_storage", "reticulum")
                 if not os.path.isdir(self.rns_configdir):
                     os.makedirs(self.rns_configdir)
 
@@ -354,7 +354,7 @@ class SidebandCore():
                     RNS.log("Not enabling Reticulum Transport")
                     generated_config = self.config_template.replace("TRANSPORT_IS_ENABLED", "No")
 
-                config_file = open(self.rns_configdir+"/config", "wb")
+                config_file = open(os.path.join(self.rns_configdir, "config"), "wb")
                 config_file.write(generated_config.encode("utf-8"))
                 config_file.close()
 
@@ -389,10 +389,10 @@ class SidebandCore():
                         app_entry_dir = os.path.expanduser("~/.local/share/applications")
                         icon_dir = os.path.expanduser("~/.local/share/icons/hicolor/512x512/apps")
                         de_filename = "io.unsigned.sideband.desktop"
-                        de_source = self.asset_dir+"/"+de_filename
-                        de_target = app_entry_dir+"/"+de_filename
-                        icn_source = self.asset_dir+"/icon.png"
-                        icn_target = icon_dir+"/io.unsigned.sideband.png"
+                        de_source = os.path.join(self.asset_dir, de_filename)
+                        de_target = os.path.join(app_entry_dir, de_filename)
+                        icn_source = os.path.join(self.asset_dir, "icon.png")
+                        icn_target = os.path.join(icon_dir, "io.unsigned.sideband.png")
                         if os.path.isdir(local_share_dir):
                             if not os.path.exists(app_entry_dir):
                                 os.makedirs(app_entry_dir)
@@ -435,13 +435,13 @@ class SidebandCore():
     def clear_tmp_dir(self):
         if os.path.isdir(self.tmp_dir):
             for file in os.listdir(self.tmp_dir):
-                fpath = self.tmp_dir+"/"+file
+                fpath = os.path.join(self.tmp_dir, file)
                 os.unlink(fpath)
 
     def clear_exports_dir(self):
         if os.path.isdir(self.exports_dir):
             for file in os.listdir(self.exports_dir):
-                fpath = self.exports_dir+"/"+file
+                fpath = os.path.join(self.exports_dir, file)
                 RNS.log("Clearing "+str(fpath))
                 os.unlink(fpath)
 
@@ -637,7 +637,7 @@ class SidebandCore():
         if not "classic_message_colors" in self.config:                self.config["classic_message_colors"] = False
         if not "display_style_in_contact_list" in self.config:         self.config["display_style_in_contact_list"] = True
         if not "lxm_limit_1mb" in self.config:                         self.config["lxm_limit_1mb"] = True
-        if not "hq_ptt" in self.config:                                self.config["hq_ptt"] = False
+        if not "hq_ptt" in self.config:                                self.config["hq_ptt"] = True
         if not "trusted_markup_only" in self.config:                   self.config["trusted_markup_only"] = False
         if not "compose_in_markdown" in self.config:                   self.config["compose_in_markdown"] = False
         if not "confirm_calls" in self.config:                         self.config["confirm_calls"] = True
@@ -811,7 +811,7 @@ class SidebandCore():
                 with open(self.config_path, "wb") as config_file: config_file.write(msgpack.packb(self.config))
                 self.saving_configuration = False
                 if RNS.vendor.platformutils.is_android():
-                    boot_toggle_path = self.app_dir+"/app_storage/boot_toggle"
+                    boot_toggle_path = os.path.join(self.app_dir, "app_storage", "boot_toggle")
                     boot_toggle_exists = os.path.isfile(boot_toggle_path)
                     if self.config["start_at_boot"] == True and not boot_toggle_exists:
                         with open(boot_toggle_path, "w") as f: f.write("true")
@@ -942,12 +942,11 @@ class SidebandCore():
                 if notifications_permitted:
                     try:
                         if RNS.vendor.platformutils.get_platform() == "android":
-                            if self.is_service:
-                                self.owner_service.android_notification(title, content, group=group, context_id=context_id)
-                            else:
-                                plyer.notification.notify(title, content, notification_icon=self.notification_icon, context_override=None)
+                            if self.is_service: self.owner_service.android_notification(title, content, group=group, context_id=context_id)
+                            else: plyer.notification.notify(title, content, notification_icon=self.notification_icon, context_override=None)
                         else:
-                            plyer.notification.notify(title, content, app_icon=self.icon_32)
+                            if not RNS.vendor.platformutils.is_windows(): plyer.notification.notify(title, content, app_name="Sideband", app_icon=self.icon_48)
+                            else: plyer.notification.notify(title, content, app_name="Sideband", app_icon=self.icon_windows)
                     except Exception as e:
                         RNS.log("An error occurred while posting a notification to the operating system: {e}", RNS.LOG_ERROR)
 
@@ -4113,8 +4112,8 @@ class SidebandCore():
             
             if RNS.vendor.platformutils.is_android():
                 if self.is_service:
-                    if os.path.isfile(self.rns_configdir+"/config_template_invalid"):
-                        os.unlink(self.rns_configdir+"/config_template_invalid")
+                    if os.path.isfile(os.path.join(self.rns_configdir, "config_template_invalid")):
+                        os.unlink(os.path.join(self.rns_configdir, "config_template_invalid"))
                     else:
                         pass
 
@@ -5003,11 +5002,11 @@ class SidebandCore():
                         return
 
                     if audio_field[0] == LXMF.AM_OPUS_OGG:
-                        temp_path = self.rec_cache+"/ptt_msg.ogg"
+                        temp_path = os.path.join(self.rec_cache, "ptt_msg.ogg")
                         with open(temp_path, "wb") as af: af.write(self.last_msg_audio)
 
                     elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
-                        temp_path = self.rec_cache+"/ptt_msg.ogg"
+                        temp_path = os.path.join(self.rec_cache, "ptt_msg.ogg")
                         from sideband.audioproc import samples_to_ogg, decode_codec2, detect_codec2
                         
                         target_rate = 48000

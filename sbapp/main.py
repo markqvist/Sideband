@@ -102,15 +102,14 @@ def apply_ui_scale():
     try:
         if RNS.vendor.platformutils.is_android():
             import plyer
-            ui_scale_path = plyer.storagepath.get_application_dir()+"/io.unsigned.sideband/files/app_storage/ui_scale"
+            ui_scale_path = os.path.join(plyer.storagepath.get_application_dir(), "io.unsigned.sideband", "files", "app_storage", "ui_scale")
         else:
             if config_path == None:
                 import sbapp.plyer as plyer
-                ui_scale_path = plyer.storagepath.get_home_dir()+"/.config/sideband/app_storage/ui_scale"
-                if ui_scale_path.startswith("file://"):
-                    ui_scale_path = ui_scale_path.replace("file://", "")
+                ui_scale_path = os.path.join(plyer.storagepath.get_home_dir(), ".config", "sideband", "app_storage", "ui_scale")
+                if ui_scale_path.startswith("file://"): ui_scale_path = ui_scale_path.replace("file://", "")
             else:
-                ui_scale_path = config_path+"/app_storage/ui_scale"
+                ui_scale_path = os.path.join(config_path, "app_storage", "ui_scale")
 
         if ui_scale_path:
             ui_scale_path   = f"{ui_scale_path}{res_ident}"
@@ -449,8 +448,8 @@ else:
         from android.permissions import request_permissions, check_permission
         from android.storage import primary_external_storage_path, secondary_external_storage_path
 
-        import pyogg
-        from pydub import AudioSegment
+        import LXST.Codecs.libs.pyogg as pyogg
+        from LXST.Codecs.libs.pydub import AudioSegment
 
         from kivymd.utils.set_bars_colors import set_bars_colors
         android_api_version = autoclass('android.os.Build$VERSION').SDK_INT
@@ -473,8 +472,8 @@ else:
         from .ui.helpers import ContentNavigationDrawer, DrawerList, IconListItem
         from .ui.helpers import multilingual_markup, mdc
 
-        import sbapp.pyogg as pyogg
-        from sbapp.pydub import AudioSegment
+        import LXST.Codecs.libs.pyogg as pyogg
+        from LXST.Codecs.libs.pydub import AudioSegment
 
         from kivymd.toast import toast
 
@@ -572,6 +571,7 @@ class SidebandApp(MDApp):
         self.attach_dialog = None
         self.shared_attach_dialog = None
         self.rec_dialog = None
+        self.recording_started = None
         self.last_msg_audio = None
         self.msg_sound = None
         self.audio_msg_mode = LXMF.AM_OPUS_OGG
@@ -581,8 +581,8 @@ class SidebandApp(MDApp):
 
         Window.softinput_mode = "below_target"
         self.window_state = app_init_window_state
-        self.icon = self.sideband.asset_dir+"/icon.png"
-        self.notification_icon = self.sideband.asset_dir+"/notification_icon.png"
+        self.icon = os.path.join(self.sideband.asset_dir, "icon.png")
+        self.notification_icon = os.path.join(self.sideband.asset_dir, "notification_icon.png")
 
         self.resume_event_scheduler = None
         self.connectivity_updater = None
@@ -830,40 +830,40 @@ class SidebandApp(MDApp):
 
     def font_config(self):
         from kivy.core.text import LabelBase, DEFAULT_FONT
-        fb_path = self.sideband.asset_dir+"/fonts/"
+        fb_path = os.path.join(self.sideband.asset_dir, "fonts")
         LabelBase.register(name="hebrew",
-            fn_regular=fb_path+"NotoSansHebrew-Regular.ttf",
-            fn_bold=fb_path+"NotoSansHebrew-Bold.ttf",)
+                           fn_regular=os.path.join(fb_path, "NotoSansHebrew-Regular.ttf"),
+                           fn_bold=os.path.join(fb_path, "NotoSansHebrew-Bold.ttf"))
 
         LabelBase.register(name="japanese",
-            fn_regular=fb_path+"NotoSansJP-Regular.ttf")
+                           fn_regular=os.path.join(fb_path, "NotoSansJP-Regular.ttf"))
 
         LabelBase.register(name="chinese",
-            fn_regular=fb_path+"NotoSansSC-Regular.ttf")
+                           fn_regular=os.path.join(fb_path, "NotoSansSC-Regular.ttf"))
 
         LabelBase.register(name="korean",
-            fn_regular=fb_path+"NotoSansKR-Regular.ttf")
+                           fn_regular=os.path.join(fb_path, "NotoSansKR-Regular.ttf"))
 
         LabelBase.register(name="emoji",
-            fn_regular=fb_path+"NotoEmoji-Regular.ttf")
+                           fn_regular=os.path.join(fb_path, "NotoEmoji-Regular.ttf"))
 
         LabelBase.register(name="defaultinput",
-            fn_regular=fb_path+"DefaultInput.ttf")
+                           fn_regular=os.path.join(fb_path, "DefaultInput.ttf"))
 
         LabelBase.register(name="combined",
-            fn_regular=fb_path+"NotoSans-Regular.ttf",
-            fn_bold=fb_path+"NotoSans-Bold.ttf",
-            fn_italic=fb_path+"NotoSans-Italic.ttf",
-            fn_bolditalic=fb_path+"NotoSans-BoldItalic.ttf")
+                           fn_regular=os.path.join(fb_path, "NotoSans-Regular.ttf"),
+                           fn_bold=os.path.join(fb_path, "NotoSans-Bold.ttf"),
+                           fn_italic=os.path.join(fb_path, "NotoSans-Italic.ttf"),
+                           fn_bolditalic=os.path.join(fb_path, "NotoSans-BoldItalic.ttf"))
 
         LabelBase.register(name="mono",
-            fn_regular=fb_path+"RobotoMonoNerdFont-Regular.ttf")
+                           fn_regular=os.path.join(fb_path, "RobotoMonoNerdFont-Regular.ttf"))
 
         LabelBase.register(name="term",
-            fn_regular=fb_path+"BigBlueTerm437NerdFont-Regular.ttf")
+                           fn_regular=os.path.join(fb_path, "BigBlueTerm437NerdFont-Regular.ttf"))
 
         LabelBase.register(name="nf",
-            fn_regular=fb_path+"RobotoMonoNerdFont-Regular.ttf")
+                           fn_regular=os.path.join(fb_path, "RobotoMonoNerdFont-Regular.ttf"))
 
     def update_input_language(self):
         language = self.sideband.config["input_language"]
@@ -1001,7 +1001,7 @@ class SidebandApp(MDApp):
     def share_image(self, image, filename):
         if RNS.vendor.platformutils.get_platform() == "android":
             save_path = self.sideband.exports_dir
-            file_path = save_path+"/"+filename
+            file_path = os.path.join(save_path, filename)
 
             try:
                 if not os.path.isdir(save_path):
@@ -1440,11 +1440,9 @@ class SidebandApp(MDApp):
         self.sideband.lxm_ingest_uri(lxm_uri)
         
     def build(self):
-        FONT_PATH = self.sideband.asset_dir+"/fonts"
-        if RNS.vendor.platformutils.is_darwin():
-            self.icon = self.sideband.asset_dir+"/icon_macos_formed.png"
-        else:
-            self.icon = self.sideband.asset_dir+"/icon.png"
+        FONT_PATH = os.path.join(self.sideband.asset_dir, "fonts")
+        if RNS.vendor.platformutils.is_darwin(): self.icon = os.path.join(self.sideband.asset_dir, "icon_macos_formed.png")
+        else: self.icon = os.path.join(self.sideband.asset_dir, "icon.png")
 
         self.announces_view = None
 
@@ -2422,11 +2420,11 @@ class SidebandApp(MDApp):
                     return
 
                 if audio_field[0] == LXMF.AM_OPUS_OGG:
-                    temp_path = self.sideband.rec_cache+"/msg.ogg"
+                    temp_path = os.path.join(self.sideband.rec_cache, "msg.ogg")
                     with open(temp_path, "wb") as af: af.write(self.last_msg_audio)
 
                 elif audio_field[0] >= LXMF.AM_CODEC2_700C and audio_field[0] <= LXMF.AM_CODEC2_3200:
-                    temp_path = self.sideband.rec_cache+"/msg.ogg"
+                    temp_path = os.path.join(self.sideband.rec_cache, "msg.ogg")
                     from sideband.audioproc import samples_to_ogg, decode_codec2, detect_codec2
                     
                     target_rate = 48000
@@ -2459,11 +2457,12 @@ class SidebandApp(MDApp):
         if self.sideband.ui_recording: return
 
         self.sideband.ui_started_recording()
+        self.recording_started = time.time()
         if self.sideband.config["hq_ptt"]: self.audio_msg_mode = LXMF.AM_OPUS_OGG
         else: self.audio_msg_mode = LXMF.AM_CODEC2_2400
 
         if not hasattr(self, "ptt_recorder") or self.ptt_recorder == None:
-            self.ptt_recording_path = self.sideband.rec_cache+"/ptt_recording.ogg"
+            self.ptt_recording_path = os.path.join(self.sideband.rec_cache, "ptt_recording.ogg")
             self.ptt_recorder = FileRecorder(self.ptt_recording_path, profile=Opus.PROFILE_VOICE_HIGH, gain=2.0,
                                              skip=0.075, ease_in=0.125, filters=[BandPass(300, 8500), AGC(target_level=-15.0)])
 
@@ -2488,6 +2487,7 @@ class SidebandApp(MDApp):
         el_button.line_color=mdc("BlueGray","500")
         el_icon.theme_text_color="Custom"
         el_icon.text_color=mdc("BlueGray","500")
+        
         def job():
             try:
                 self.ptt_recorder.stop()
@@ -2497,9 +2497,16 @@ class SidebandApp(MDApp):
                 RNS.trace_exception(e)
 
             self.sideband.ui_stopped_recording()
-            if self.message_process_audio(self.ptt_recording_path):
-                if self.outbound_mode_command: self.outbound_mode_reset()
-                self.message_send_action()
+            if self.recording_started != None:
+                duration = time.time() - self.recording_started
+                self.recording_started = None
+                if duration < 0.6: RNS.log(f"Discarding recording, only {RNS.prettyshorttime(duration)} of audio", RNS.LOG_WARNING)
+                else:
+                    if os.path.isfile(self.ptt_recording_path):
+                        if self.message_process_audio(self.ptt_recording_path):
+                            if self.outbound_mode_command: self.outbound_mode_reset()
+                            self.message_send_action()
+
         threading.Thread(target=job, daemon=True).start()
 
     def message_process_audio(self, input_path):
@@ -2546,7 +2553,7 @@ class SidebandApp(MDApp):
                     ap_duration = time.time() - ap_start
                     RNS.log("Audio processing complete in "+RNS.prettytime(ap_duration), RNS.LOG_DEBUG)
 
-                    export_path = self.sideband.rec_cache+"/recording.enc"
+                    export_path = os.path.join(self.sideband.rec_cache, "recording.enc")
                     with open(export_path, "wb") as export_file:
                         export_file.write(encoded)
                     self.attach_path = export_path
@@ -2658,7 +2665,7 @@ class SidebandApp(MDApp):
         self.rec_dialog.rec_item = rec_item
         self.rec_dialog.play_item = play_item
         self.rec_dialog.save_item = save_item
-        self.rec_dialog.file_path = self.sideband.rec_cache+"/recording.ogg"
+        self.rec_dialog.file_path = os.path.join(self.sideband.rec_cache, "recording.ogg")
 
     def message_record_audio_action(self):
         ss = int(dp(18))
@@ -3178,7 +3185,7 @@ class SidebandApp(MDApp):
                 threading.Thread(target=lj, daemon=True).start()
 
             self.information_screen.ids.information_scrollview.effect_cls = ScrollEffect
-            self.information_screen.ids.information_logo.icon = self.sideband.asset_dir+"/rns_256.png"
+            self.information_screen.ids.information_logo.icon = os.path.join(self.sideband.asset_dir, "rns_256.png")
 
             str_comps  =   " - [b]Reticulum[/b] (Reticulum License)\n - [b]LXMF[/b] (Reticulum License)\n - [b]KivyMD[/b] (MIT License)"
             str_comps += "\n - [b]Kivy[/b] (MIT License)\n - [b]Codec2[/b] (LGPL License)\n - [b]PyCodec2[/b] (BSD-3 License)"
