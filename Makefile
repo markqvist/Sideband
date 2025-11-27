@@ -24,6 +24,18 @@ cleanbuildozer:
 
 cleanall: clean cleanbuildozer
 
+remove_symlinks:
+	@echo Removing symlinks for build...
+	-rm ./RNS
+	-rm ./LXST
+	-rm ./LXMF
+
+create_symlinks:
+	@echo Creating symlinks...
+	-ln -s ../Reticulum/RNS ./RNS
+	-ln -s ../LXST/LXST ./LXST
+	-ln -s ../LXMF/LXMF ./LXMF
+
 preparewheel:
 	pyclean .
 	$(MAKE) -C sbapp cleanrns

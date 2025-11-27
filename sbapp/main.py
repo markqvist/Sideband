@@ -4109,12 +4109,14 @@ class SidebandApp(MDApp):
                     info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
                     info += "To get connectivity status, use the [b]rnstatus[/b] utility.\n\n"
                     info += "To configure connectivity, edit the configuration file located at:\n\n"
-                    info += str(RNS.Reticulum.configpath)
+                    if not RNS.vendor.platformutils.is_windows(): info += str(RNS.Reticulum.configpath)
+                    else:                                         info += str(RNS.Reticulum.configpath.replace("/", "\\"))
                 else:
                     info =  "Sideband is currently running a standalone or master Reticulum instance on this system.\n\n"
                     info += "To get connectivity status, use the [b]rnstatus[/b] utility.\n\n"
                     info += "To configure connectivity, edit the configuration file located at:\n\n"
-                    info += str(RNS.Reticulum.configpath)
+                    if not RNS.vendor.platformutils.is_windows(): info += str(RNS.Reticulum.configpath)
+                    else:                                         info += str(RNS.Reticulum.configpath.replace("/", "\\"))
 
                 self.connectivity_screen.ids.connectivity_info.text = info
 
@@ -4438,11 +4440,13 @@ class SidebandApp(MDApp):
                 if self.sideband.reticulum.is_connected_to_shared_instance:
                     info =  "Sideband is connected via a shared Reticulum instance running on this system.\n\n"
                     info += "To configure hardware parameters, edit the configuration file located at:\n\n"
-                    info += str(RNS.Reticulum.configpath)
+                    if not RNS.vendor.platformutils.is_windows(): info += str(RNS.Reticulum.configpath)
+                    else:                                         info += str(RNS.Reticulum.configpath.replace("/", "\\"))
                 else:
                     info =  "Sideband is currently running a standalone or master Reticulum instance on this system.\n\n"
                     info += "To configure hardware parameters, edit the configuration file located at:\n\n"
-                    info += str(RNS.Reticulum.configpath)
+                    if not RNS.vendor.platformutils.is_windows(): info += str(RNS.Reticulum.configpath)
+                    else:                                         info += str(RNS.Reticulum.configpath.replace("/", "\\"))
 
                 self.hardware_screen.ids.hardware_info.text = info
 

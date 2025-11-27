@@ -204,11 +204,11 @@ If you install Sideband from the DMG file, it is still recommended to install th
 
 ```bash
 # Install Reticulum and utilities with pip:
-pip3 install rns
+pip3 install rns --user
 
 # On some versions, you may need to use the
 # flag --break-system-packages to install:
-pip3 install rns --break-system-packages
+pip3 install rns --user --break-system-packages
 ```
 
 If you do not have Python and `pip` available, [download and install it](https://www.python.org/downloads/) first.
@@ -223,7 +223,10 @@ To install Sideband via `pip`, follow these instructions:
 
 ```bash
 # Install Sideband and dependencies on macOS using pip:
-pip3 install sbapp
+pip3 install sbapp --user
+
+# Or, if your Python environment is externally managed:
+pip3 install sbapp --user --break-system-packages
 
 # Run Sideband from the terminal:
 #################################
