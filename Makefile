@@ -75,9 +75,11 @@ prepare_win_pkg: clean build_spkg
 	cd build/winpkg; tar -zxf sbapp-*.*.*.tar.gz
 	mv build/winpkg/sbapp-*.*.*/* build/winpkg; rm -r build/winpkg/sbapp-*.*.*
 	rm build/winpkg/LXST/Codecs/libs/pyogg/libs/macos -r
-	cp winbuild.bat winbuild.ps1 build/
+	rm build/winpkg/sbapp/Makefile
+	rm build/winpkg/sbapp/buildozer.spec
+	cp winbuild.bat build/
 	mv build/winpkg build/sideband_sources
-	cd build; zip -r winbuild.zip sideband_sources winbuild.bat winbuild.ps1
+	cd build; zip -r winbuild.zip sideband_sources winbuild.bat
 	mv build/winbuild.zip dist/winbuild.zip
 
 build_winexe: prepare_win_pkg
