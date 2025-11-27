@@ -1,3 +1,5 @@
+include environment
+
 devapk:
 	make -C sbapp devapk
 
@@ -43,10 +45,43 @@ preparewheel:
 compile_wheel:
 	python3 setup.py bdist_wheel
 
-build_wheel: remove_symlinks compile_wheel create_symlinks
+compile_sourcepkg:
+	python3 setup.py sdist
 
-build_win_exe:
-	python -m PyInstaller sideband.spec --noconfirm
+update_share:
+	$(MAKE) -C sbapp fetchshare
+
+build_wheel: remove_symlinks update_share compile_wheel create_symlinks
+
+build_spkg: remove_symlinks update_share compile_sourcepkg create_symlinks
+
+prepare_win_pkg: clean build_spkg
+	-rm -r build/winpkg
+	mkdir -p build/winpkg
+	LC_ALL=C $(MAKE) -C ../Reticulum clean build_spkg
+	cp ../Reticulum/dist/rns-*.*.*.tar.gz build/winpkg
+	cd build/winpkg; tar -zxf rns-*.*.*.tar.gz
+	mv build/winpkg/rns-*.*.*/RNS build/winpkg; rm -r build/winpkg/rns-*.*.*
+	LC_ALL=C $(MAKE) -C ../LXMF clean build_spkg
+	cp ../LXMF/dist/lxmf-*.*.*.tar.gz build/winpkg
+	cd build/winpkg; tar -zxf lxmf-*.*.*.tar.gz
+	mv build/winpkg/lxmf-*.*.*/LXMF build/winpkg; rm -r build/winpkg/lxmf-*.*.*
+	LC_ALL=C $(MAKE) -C ../LXST clean build_spkg
+	cp ../LXST/dist/lxst-*.*.*.tar.gz build/winpkg
+	cd build/winpkg; tar -zxf lxst-*.*.*.tar.gz
+	mv build/winpkg/lxst-*.*.*/LXST build/winpkg; rm -r build/winpkg/lxst-*.*.*
+	rm build/winpkg/LXST/filterlib*.so
+	cp dist/sbapp-*.*.*.tar.gz build/winpkg
+	cd build/winpkg; tar -zxf sbapp-*.*.*.tar.gz
+	mv build/winpkg/sbapp-*.*.*/* build/winpkg; rm -r build/winpkg/sbapp-*.*.*
+	rm build/winpkg/LXST/Codecs/libs/pyogg/libs/macos -r
+	cp winbuild.bat winbuild.ps1 build/
+	mv build/winpkg build/sideband_sources
+	cd build; zip -r winbuild.zip sideband_sources winbuild.bat winbuild.ps1
+	mv build/winbuild.zip dist/winbuild.zip
+
+build_winexe: prepare_win_pkg
+	cp dist/winbuild.zip $(WINDOWS_BUILD_TARGET)
 
 release: build_wheel apk fetchapk
 

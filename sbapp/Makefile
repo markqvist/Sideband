@@ -69,18 +69,18 @@ endif
 fetchshare:
 	-(rm ./share/pkg/*)
 	-(rm ./share/mirrors/* -r)
-	cp ../../dist_archive/rns-1.0.3-py3-none-any.whl ./share/pkg/
-	cp ../../dist_archive/rnspure-1.0.3-py3-none-any.whl ./share/pkg/
+	cp ../../dist_archive/rns-1.0.4-py3-none-any.whl ./share/pkg/
+	cp ../../dist_archive/rnspure-1.0.4-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/lxmf-0.9.3-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/nomadnet-0.9.1-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/rnsh-0.1.7-py3-none-any.whl ./share/pkg/
 	cp ../../dist_archive/RNode_Firmware_*_Source.zip ./share/pkg/
 	zip --junk-paths ./share/pkg/example_plugins.zip ../docs/example_plugins/*.py
 	cp -r ../../dist_archive/reticulum.network ./share/mirrors/
-	cp -r ../../dist_archive/unsigned.io ./share/mirrors/
 	cp ../../dist_archive/Reticulum\ Manual.pdf ./share/mirrors/Reticulum_Manual.pdf
 	cp ../../dist_archive/Reticulum\ Manual.epub ./share/mirrors/Reticulum_Manual.epub
-	cp -r ../../rnode-flasher ./share/mirrors/
+	mkdir ./share/mirrors/rnode-flasher
+	cp ../../rnode-flasher/RNode_Flasher.html ./share/mirrors/rnode-flasher
 	-(rm ./share/mirrors/rnode-flasher/.git -rf)
 
 release:
