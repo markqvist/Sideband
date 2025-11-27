@@ -228,6 +228,15 @@ pip3 install sbapp --user
 # Or, if your Python environment is externally managed:
 pip3 install sbapp --user --break-system-packages
 
+# Important note! On some macOS versions, programs that
+# were installed with pip does not get added to your
+# PATH environment variable. If this is the case, pip
+# will print out a warning about it during installation.
+# In that case, you will have to manually add the path
+# shown in the installation warning to your PATH, before
+# you can run commands such as "sideband" or "rnstatus"
+# from your shell.
+
 # Run Sideband from the terminal:
 #################################
 sideband
