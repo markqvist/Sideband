@@ -30,6 +30,8 @@ import RNS.vendor.umsgpack as msgpack
 from LXST._version import __version__ as lxst_version
 from LXST.Primitives.Recorders import FileRecorder
 from LXST.Primitives.Players import FilePlayer
+from LXST.Codecs import Opus
+from LXST.Filters import BandPass, AGC
 
 WINDOW_DEFAULT_WIDTH  = 494
 WINDOW_DEFAULT_HEIGHT = 800
@@ -2462,7 +2464,8 @@ class SidebandApp(MDApp):
 
         if not hasattr(self, "ptt_recorder") or self.ptt_recorder == None:
             self.ptt_recording_path = self.sideband.rec_cache+"/ptt_recording.ogg"
-            self.ptt_recorder = FileRecorder(self.ptt_recording_path)
+            self.ptt_recorder = FileRecorder(self.ptt_recording_path, profile=Opus.PROFILE_VOICE_HIGH, gain=2.0,
+                                             skip=0.075, ease_in=0.125, filters=[BandPass(300, 8500), AGC(target_level=-15.0)])
 
         self.message_attach_action(attach_type="audio", nodialog=True)
         el_button = self.messages_view.ids.message_ptt_button
@@ -2562,8 +2565,9 @@ class SidebandApp(MDApp):
         def a_rec_action(sender):
             if not self.rec_dialog.recording and not self.rec_dialog.recorder:
                 self.sideband.ui_started_recording()
-                self.rec_dialog.recorder = FileRecorder(self.rec_dialog.file_path)
-                RNS.log("Starting recording...") # TODO: Remove
+                self.rec_dialog.recorder = FileRecorder(self.rec_dialog.file_path, profile=Opus.PROFILE_VOICE_HIGH, gain=2.0,
+                                                        skip=0.075, ease_in=0.125, filters=[BandPass(300, 8500), AGC(target_level=-15.0)])
+                RNS.log("Starting recording...", RNS.LOG_DEBUG) # TODO: Remove
                 self.rec_dialog.recording = True
                 el = self.rec_dialog.rec_item.children[0].children[0]
                 el.ttc = el.theme_text_color; el.tc = el.text_color
@@ -2574,10 +2578,10 @@ class SidebandApp(MDApp):
                 self.rec_dialog.recorder.start()
 
             else:
-                RNS.log("Stopping recording...") # TODO: Remove
+                RNS.log("Stopping recording...", RNS.LOG_DEBUG) # TODO: Remove
                 self.rec_dialog.recorder.stop()
                 self.rec_dialog.recorder = None
-                RNS.log("Recording stopped") # TODO: Remove
+                RNS.log("Recording stopped", RNS.LOG_DEBUG) # TODO: Remove
                 self.rec_dialog.rec_item.text = "[size="+str(ss)+"]Start Recording[/size]"
                 el = self.rec_dialog.rec_item.children[0].children[0]
                 el.icon = "record"
