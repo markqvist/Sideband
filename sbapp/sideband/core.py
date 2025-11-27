@@ -5110,8 +5110,7 @@ class SidebandCore():
                                 self.wfile.write(es.encode("utf-8"))
                         else:
                             try:
-                                with open(path, 'rb') as f:
-                                    data = f.read()
+                                with open(path.replace("%20", " "), "rb") as f: data = f.read()
                                 self.send_response(200)
                                 if path.lower().endswith(".apk"):
                                     self.send_header("Content-type", "application/vnd.android.package-archive")
