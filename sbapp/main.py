@@ -3182,7 +3182,7 @@ class SidebandApp(MDApp):
 
             str_comps  =   " - [b]Reticulum[/b] (Reticulum License)\n - [b]LXMF[/b] (Reticulum License)\n - [b]KivyMD[/b] (MIT License)"
             str_comps += "\n - [b]Kivy[/b] (MIT License)\n - [b]Codec2[/b] (LGPL License)\n - [b]PyCodec2[/b] (BSD-3 License)"
-            str_comps += "\n - [b]PyDub[/b] (MIT License)\n - [b]PyOgg[/b] (Public Domain)\n - [b]Able[/b] (MIT License)\n - [b]FFmpeg[/b] (GPL3 License)"
+            str_comps += "\n - [b]PyDub[/b] (MIT License)\n - [b]PyOgg[/b] (Public Domain)\n - [b]Able[/b] (MIT License)"
             str_comps += "\n - [b]GeoidHeight[/b] (LGPL License)\n - [b]Paho MQTT[/b] (EPL2 License)\n - [b]Python[/b] (PSF License)"
             str_comps += "\n\nGo to [u][ref=link]https://unsigned.io/donate[/ref][/u] to support the project.\n\nThe Sideband app is Copyright © 2025 Mark Qvist / unsigned.io\n\nPermission is granted to freely share and distribute binary copies of "+self.root.ids.app_version_info.text+", so long as no payment or compensation is charged for said distribution or sharing.\n\nIf you were charged or paid anything for this copy of Sideband, please report it to [b]license@unsigned.io[/b].\n\nTHIS IS EXPERIMENTAL SOFTWARE - SIDEBAND COMES WITH ABSOLUTELY NO WARRANTY - USE AT YOUR OWN RISK AND RESPONSIBILITY"
             info = "This is "+self.root.ids.app_version_info.text+"\nRunning on RNS v"+RNS.__version__+", LXMF v"+LXMF.__version__+" and LXST v"+lxst_version+".\n\nHumbly build using the following open components:\n\n"+str_comps
