@@ -6,7 +6,7 @@ Interface of all the features available.
 
 '''
 
-__all__ = ('Accelerometer', 'Audio', 'Barometer', 'Battery', 'Call', 'Camera',
+__all__ = ('Accelerometer', 'Barometer', 'Battery', 'Call', 'Camera',
            'Compass', 'Email', 'FileChooser', 'GPS', 'Gravity', 'Gyroscope',
            'IrBlaster', 'Light', 'Orientation', 'Notification', 'Proximity',
            'Sms', 'TTS', 'UniqueID', 'Vibrator', 'Wifi', 'Flash', 'CPU',
@@ -17,7 +17,6 @@ __all__ = ('Accelerometer', 'Audio', 'Barometer', 'Battery', 'Call', 'Camera',
 import RNS
 if RNS.vendor.platformutils.is_android():
     from plyer.facades.accelerometer import Accelerometer
-    from plyer.facades.audio import Audio
     from plyer.facades.barometer import Barometer
     from plyer.facades.battery import Battery
     from plyer.facades.call import Call
@@ -53,7 +52,6 @@ if RNS.vendor.platformutils.is_android():
     from plyer.facades.devicename import DeviceName
 else:
     from sbapp.plyer.facades.accelerometer import Accelerometer
-    from sbapp.plyer.facades.audio import Audio
     from sbapp.plyer.facades.barometer import Barometer
     from sbapp.plyer.facades.battery import Battery
     from sbapp.plyer.facades.call import Call

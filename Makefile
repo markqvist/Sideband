@@ -40,8 +40,10 @@ preparewheel:
 	pyclean .
 	$(MAKE) -C sbapp cleanrns
 
-build_wheel:
-	python3 setup.py sdist bdist_wheel
+compile_wheel:
+	python3 setup.py bdist_wheel
+
+build_wheel: remove_symlinks compile_wheel create_symlinks
 
 build_win_exe:
 	python -m PyInstaller sideband.spec --noconfirm

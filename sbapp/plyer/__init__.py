@@ -5,7 +5,7 @@ Plyer
 '''
 
 __all__ = (
-    'accelerometer', 'audio', 'barometer', 'battery', 'bluetooth',
+    'accelerometer', 'barometer', 'battery', 'bluetooth',
     'brightness', 'call', 'camera', 'compass', 'cpu', 'email', 'filechooser',
     'flash', 'gps', 'gravity', 'gyroscope', 'humidity', 'irblaster',
     'keystore', 'light', 'notification', 'orientation', 'processors',
@@ -28,9 +28,6 @@ accelerometer = Proxy('accelerometer', facades.Accelerometer)
 
 #: Keyring proxy to :class::`plyer.facades.Keystore`
 keystore = Proxy('keystore', facades.Keystore)
-
-#: Audio proxy to :class:`plyer.facades.Audio`
-audio = Proxy('audio', facades.Audio)
 
 #: Barometer proxy to :class:`plyer.facades.Barometer`
 barometer = Proxy('barometer', facades.Barometer)
