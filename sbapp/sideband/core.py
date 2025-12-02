@@ -202,6 +202,10 @@ class SidebandCore():
         self.default_config_template = rns_config
 
         if config_path == None:
+            # h_dir             = plyer.storagepath.get_home_dir()
+            # if type(h_dir) == bytes: h_dir = h_dir.decode("utf-8")
+            # self.app_dir     = os.path.join(h_dir, ".config", "sideband")
+            # if self.app_dir.startswith("file://"): self.app_dir = self.app_dir.replace("file://", "")
             self.app_dir     = os.path.join(plyer.storagepath.get_home_dir(), ".config", "sideband")
             if self.app_dir.startswith("file://"): self.app_dir = self.app_dir.replace("file://", "")
         else:
@@ -4433,17 +4437,16 @@ class SidebandCore():
         if message.state == LXMF.LXMessage.FAILED and hasattr(message, "try_propagation_on_fail") and message.try_propagation_on_fail:
             if hasattr(message, "stamp_generation_failed") and message.stamp_generation_failed == True:
                 RNS.log(f"Could not send {message} due to a stamp generation failure", RNS.LOG_ERROR)
-                if not no_display:
-                    self.lxm_ingest(message, originator=True)
+                if not no_display: self.lxm_ingest(message, originator=True)
             else:
                 RNS.log("Direct delivery of "+str(message)+" failed. Retrying as propagated message.", RNS.LOG_VERBOSE)
                 message.try_propagation_on_fail = None
                 message.delivery_attempts = 0
-                if hasattr(message, "next_delivery_attempt"):
-                    del message.next_delivery_attempt
+                if hasattr(message, "next_delivery_attempt"): del message.next_delivery_attempt
                 message.packed = None
                 message.desired_method = LXMF.LXMessage.PROPAGATED
                 self._db_message_set_method(message.hash, LXMF.LXMessage.PROPAGATED)
+                self._db_message_set_state(message.hash, LXMF.LXMessage.OUTBOUND)
                 self.message_router.handle_outbound(message)
         else:
             if not no_display:
