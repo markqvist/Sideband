@@ -3502,7 +3502,6 @@ class SidebandCore():
                             if not self.interface_local.had_peers and have_peers:
                                 RNS.log("Peers became reachable on the interface "+str(self.interface_local), RNS.LOG_DEBUG)
                                 needs_if_change_announce = True
-                                announce_attached_interface = self.interface_local
                                 announce_delay = 10
 
                             if self.interface_local.had_peers and not have_peers:
