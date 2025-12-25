@@ -5345,56 +5345,40 @@ class SidebandApp(MDApp):
         if not self.announces_view:
             self.announces_view = Announces(self)
             self.sideband.setstate("app.flags.new_announces", True)
-
-            for child in self.announces_view.ids.announces_scrollview.children:
-                self.announces_view.ids.announces_scrollview.remove_widget(child)
-
+            for child in self.announces_view.ids.announces_scrollview.children: self.announces_view.ids.announces_scrollview.remove_widget(child)
             self.announces_view.ids.announces_scrollview.effect_cls = ScrollEffect
             self.announces_view.ids.announces_scrollview.add_widget(self.announces_view.get_widget())
-
             self.announces_view.update()
 
     def announces_action(self, sender=None, direction="left"):
-        if self.announces_view:
-            self.announces_open(direction=direction)
+        if self.announces_view: self.announces_open(direction=direction)
         else:
             self.loader_action(direction=direction)
             def final(dt):
                 self.init_announces_view()
-                def o(dt):
-                    self.announces_open(no_transition=True)
+                def o(dt): self.announces_open(no_transition=True)
                 Clock.schedule_once(o, ll_ot)
             Clock.schedule_once(final, ll_ft)
 
     def announces_open(self, sender=None, direction="left", no_transition=False):
-        if no_transition:
-            self.root.ids.screen_manager.transition = self.no_transition
+        if no_transition: self.root.ids.screen_manager.transition = self.no_transition
         else:
             self.root.ids.screen_manager.transition = self.slide_transition
             self.root.ids.screen_manager.transition.direction = direction
 
         self.root.ids.nav_drawer.set_state("closed")
-        
-        if self.sideband.getstate("app.flags.new_announces"):
-            self.announces_view.update()
-
+        if self.sideband.getstate("app.flags.new_announces"): self.announces_view.update()
         self.root.ids.screen_manager.current = "announces_screen"
         self.sideband.setstate("app.displaying", self.root.ids.screen_manager.current)
+        if no_transition: self.root.ids.screen_manager.transition = self.slide_transition
 
-        if no_transition:
-            self.root.ids.screen_manager.transition = self.slide_transition
+    def close_announces_action(self, sender=None): self.open_conversations(direction="right")
 
-    def close_announces_action(self, sender=None):
-        self.open_conversations(direction="right")
-
-    def announce_filter_action(self, sender=None):
-        pass
+    def announce_filter_action(self, sender=None): pass
 
     def screen_transition_complete(self, sender):
-        if self.root.ids.screen_manager.current == "announces_screen":
-            pass
-        if self.root.ids.screen_manager.current == "conversations_screen":
-            pass
+        if self.root.ids.screen_manager.current == "announces_screen": pass
+        if self.root.ids.screen_manager.current == "conversations_screen": pass
 
     ### Keys screen
     ######################################
