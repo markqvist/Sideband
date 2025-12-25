@@ -51,7 +51,6 @@ class Hardware():
             self.hardware_screen.ids.hardware_scrollview.effect_cls = ScrollEffect
 
             def con_hide_settings():
-                return # TODO: RESET
                 self.app.widget_hide(self.hardware_screen.ids.hardware_rnode_button)
                 self.app.widget_hide(self.hardware_screen.ids.hardware_modem_button)
                 self.app.widget_hide(self.hardware_screen.ids.hardware_serial_button)
