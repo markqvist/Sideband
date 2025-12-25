@@ -2036,10 +2036,8 @@ class SidebandCore():
                         except Exception as e:
                             RNS.log("Error on client RPC connection: "+str(e), RNS.LOG_ERROR)
                             RNS.trace_exception(e)
-                            try:
-                                connection.close()
-                            except:
-                                pass
+                            try: connection.close()
+                            except: pass
 
                     return rpc_client_job
 
