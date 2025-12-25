@@ -43,6 +43,8 @@ color_failed_alt = "Red"
 color_unknown_alt = "Gray"
 color_cancelled_alt = "Red"
 
+dark_theme_text_color = "ddd"
+
 class ContentNavigationDrawer(Screen):
     pass
 
