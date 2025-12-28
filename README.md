@@ -1,6 +1,8 @@
 Sideband <img align="right" src="https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg"/>
 =========
 
+*This repository is [a public mirror](./MIRROR.md). All development is happening elsewhere.*
+
 Sideband is an extensible LXMF messaging and LXST telephony client, situational awareness tracker and remote control and monitoring system for Android, Linux, macOS and Windows. It allows you to communicate with other people or LXMF-compatible systems over Reticulum networks using LoRa, Packet Radio, WiFi, I2P, Encrypted QR Paper Messages, or anything else Reticulum supports.
 
 ![Screenshot](https://github.com/markqvist/Sideband/raw/main/docs/screenshots/devices_small.webp)
