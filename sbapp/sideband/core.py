@@ -3097,7 +3097,13 @@ class SidebandCore():
                     else:
                         RNS.log("Received telemetry stream field with no data: "+str(lxm.fields[LXMF.FIELD_TELEMETRY_STREAM]), RNS.LOG_DEBUG)
 
-        if own_command or len(lxm.content) != 0 or len(lxm.title) != 0:
+        attach_msg = False
+        if lxm.fields != None and len(lxm.fields) > 0:
+            if LXMF.FIELD_IMAGE in lxm.fields: attach_msg = True
+            if LXMF.FIELD_AUDIO in lxm.fields: attach_msg = True
+            if LXMF.FIELD_FILE_ATTACHMENTS in lxm.fields: attach_msg = True
+
+        if own_command or len(lxm.content) != 0 or len(lxm.title) != 0 or attach_msg:
             with self.db_lock:
                 db = self.__db_connect()
                 dbc = db.cursor()
