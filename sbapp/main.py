@@ -27,12 +27,6 @@ import base64
 import threading
 import RNS.vendor.umsgpack as msgpack
 
-from LXST._version import __version__ as lxst_version
-from LXST.Primitives.Recorders import FileRecorder
-from LXST.Primitives.Players import FilePlayer
-from LXST.Codecs import Opus
-from LXST.Filters import BandPass, AGC
-
 WINDOW_DEFAULT_WIDTH  = 494
 WINDOW_DEFAULT_HEIGHT = 800
 WINDOW_HEIGHT_MARGIN  = 0
@@ -257,6 +251,12 @@ elif args.import_settings:
         exit(1)
 
 if not args.daemon:
+    from LXST._version import __version__ as lxst_version
+    from LXST.Primitives.Recorders import FileRecorder
+    from LXST.Primitives.Players import FilePlayer
+    from LXST.Codecs import Opus
+    from LXST.Filters import BandPass, AGC
+    
     from kivy.logger import Logger, LOG_LEVELS
     from PIL import Image as PilImage
     import io
