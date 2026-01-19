@@ -14,6 +14,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
 from kivy.utils import escape_markup
+from kivy.app import App
 
 from kivymd.uix.button import MDRectangleFlatButton, MDRectangleFlatIconButton
 from kivymd.uix.dialog import MDDialog
@@ -48,17 +49,47 @@ if RNS.vendor.platformutils.is_darwin():
 
 from kivy.lang.builder import Builder
 from kivymd.uix.list import OneLineIconListItem, IconLeftWidget
+import re
+import webbrowser
 
 MSG_RENDER_LIMIT = 11000
+
+# Match URLs starting with http(s):// or www.
+_url_pattern = re.compile(r"(https?://[^\s\]]+|www\.[^\s\]]+)")
+
+
+def _add_url_refs(text: str) -> str:
+    """Wrap plain URLs in Kivy [ref] markup.
+
+    - Supports links like:
+        * http://example.com
+        * https://example.com
+        * www.example.com
+    - If the text already contains [ref=...] markup, leave it untouched to
+      avoid double-wrapping existing references.
+    """
+    if "[ref=" in text:
+        return text
+    return _url_pattern.sub(r"[ref=\1]\1[/ref]", text)
+
 
 class DialogItem(OneLineIconListItem):
     divider = None
     icon = StringProperty()
 
+
 class ListLXMessageCard(MDCard):
 # class ListLXMessageCard(MDCard, FakeRectangularElevationBehavior):
     text = StringProperty()
     heading = StringProperty()
+
+    def on_ref_press(self, instance, ref):
+        try:
+            if isinstance(ref, str) and (ref.startswith("http://") or ref.startswith("https://")):
+                webbrowser.open(ref)
+        except Exception as e:
+            RNS.log(f"Error opening URL reference {ref}: {e}", RNS.LOG_ERROR)
+            RNS.trace_exception(e)
 
 class Messages():
     def __init__(self, app, context_dest):
@@ -535,7 +566,10 @@ class Messages():
                     if not ("lxm" in m and m["lxm"] != None and m["lxm"].fields != None and LXMF.FIELD_COMMANDS in m["lxm"].fields):
                         message_input = "[i]This message contains no text content[/i]".encode("utf-8")
 
-                message_markup = multilingual_markup(message_input)
+                # Add clickable URL refs before multilingual font markup is applied
+                message_text_for_markup = message_input.decode("utf-8")
+                message_text_for_markup = _add_url_refs(message_text_for_markup)
+                message_markup = multilingual_markup(message_text_for_markup.encode("utf-8"))
 
                 txstr = time.strftime(ts_format, time.localtime(m["sent"]))
                 rxstr = time.strftime(ts_format, time.localtime(m["received"]))
@@ -1489,6 +1523,7 @@ Builder.load_string("""
             id: content_text
             text: root.text
             markup: True
+            on_ref_press: root.on_ref_press(*args)
             size_hint_y: None
             text_size: self.width, None
             height: self.texture_size[1]
