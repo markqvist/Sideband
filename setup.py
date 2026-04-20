@@ -37,7 +37,7 @@ __variant__ = get_variant()
 
 def glob_paths(pattern):
     out_files = []
-    src_path = os.path.join(os.path.dirname(__file__), "kivymd")
+    src_path = os.path.join(os.path.dirname(__file__), "sbapp/kivymd")
 
     for root, dirs, files in os.walk(src_path):
         for file in files:
