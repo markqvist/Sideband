@@ -363,7 +363,7 @@ class Messages():
                                     sphrase = f"Generating PN stamp with cost {prop_cost}"
                                     prgstr = ""
                                 else:
-                                    sphrase = "Waiting for path"
+                                    sphrase = "Preparing"
                             elif prg <= 0.01:
                                 sphrase = "Waiting for path"
                             elif prg <= 0.03:
