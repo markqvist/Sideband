@@ -20,7 +20,7 @@ from copy import deepcopy
 from threading import Lock
 from collections import deque
 from .res import sideband_fb_data
-from .sense import Telemeter, Commands
+from .sense import Telemeter, Commands, valid_telemetry_timebase, TB_DIFF_GRACE
 from .plugins import SidebandCommandPlugin, SidebandServicePlugin, SidebandTelemetryPlugin
 from .mqtt import MQTT
 
@@ -114,6 +114,7 @@ class SidebandCore():
     PERIODIC_JOBS_INTERVAL          = 60
     PERIODIC_SYNC_RETRY             = 360
     TELEMETRY_KEEP                  = 60*60*24*7
+    TELEMETRY_FUTURE_GRACE          = TB_DIFF_GRACE
     TELEMETRY_INTERVAL              = 60
     SERVICE_TELEMETRY_INTERVAL      = 300
     TELEMETRY_CLEAN_INTERVAL        = 3600
@@ -1352,7 +1353,7 @@ class SidebandCore():
                             else:
                                 desired_method = LXMF.LXMessage.DIRECT
 
-                        request_timebase = self.getpersistent(f"telemetry.{RNS.hexrep(from_addr, delimit=False)}.timebase") or now - self.telemetry_request_max_history
+                        request_timebase = self._telemetry_timebase(from_addr) or now - self.telemetry_request_max_history
                         lxm_fields = { LXMF.FIELD_COMMANDS: [
                             {Commands.TELEMETRY_REQUEST: [request_timebase, is_collector_request]},
                         ]}
@@ -1431,6 +1432,27 @@ class SidebandCore():
                     RNS.log(ed, RNS.LOG_DEBUG)
                     return ed
 
+    def _last_telemetry_send_success_timebase(self, addr):
+        tb = self.getpersistent(f"telemetry.{RNS.hexrep(addr, delimit=False)}.last_send_success_timebase")
+        if tb == None: return None
+        if not valid_telemetry_timebase(tb):
+            RNS.log(f"Invalid telemetry send success timebase found for {RNS.prettyhexrep(addr)}, clearing value", RNS.LOG_WARNING)
+            self.setpersistent(f"telemetry.{RNS.hexrep(addr, delimit=False)}.last_send_success_timebase", None)
+            return None
+
+        else: return tb
+
+    
+    def _telemetry_timebase(self, addr):
+        tb = self.getpersistent(f"telemetry.{RNS.hexrep(addr, delimit=False)}.timebase")
+        if tb == None: return None
+        if not valid_telemetry_timebase(tb):
+            RNS.log(f"Invalid telemetry timebase found for {RNS.prettyhexrep(addr)}, clearing value", RNS.LOG_WARNING)
+            self.setpersistent(f"telemetry.{RNS.hexrep(addr, delimit=False)}.timebase", None)
+            return None
+
+        else: return tb
+
     def _service_send_latest_telemetry(self, to_addr=None, stream=None, is_authorized_telemetry_request=False):
         if not RNS.vendor.platformutils.is_android():
             return False
@@ -1452,17 +1474,15 @@ class SidebandCore():
 
     def send_latest_telemetry(self, to_addr=None, stream=None, is_authorized_telemetry_request=False, is_collector_response=False):
         if self.allow_service_dispatch and self.is_client:
-            try:
-                return self._service_send_latest_telemetry(to_addr, stream, is_authorized_telemetry_request)
+            try: return self._service_send_latest_telemetry(to_addr, stream, is_authorized_telemetry_request)
 
             except Exception as e:
-                RNS.log("Error requesting latest telemetry: "+str(e), RNS.LOG_ERROR)
+                RNS.log("Error sending latest telemetry: "+str(e), RNS.LOG_ERROR)
                 RNS.trace_exception(e)
                 return "not_sent"
 
         else:
-            if to_addr == None or to_addr == self.lxmf_destination.hash:
-                return "no_address"
+            if to_addr == None or to_addr == self.lxmf_destination.hash: return "no_address"
             else:
                 if to_addr == self.config["telemetry_collector"]:
                     is_authorized_telemetry_request = True
@@ -1483,22 +1503,19 @@ class SidebandCore():
                         dest = RNS.Destination(dest_identity, RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
                         source = self.lxmf_destination
                         
-                        if self.config["telemetry_use_propagation_only"] == True:
-                            desired_method = LXMF.LXMessage.PROPAGATED
+                        if self.config["telemetry_use_propagation_only"] == True: desired_method = LXMF.LXMessage.PROPAGATED
                         else:
                             if not self.message_router.delivery_link_available(to_addr) and RNS.Identity.current_ratchet_id(to_addr) != None:
                                 RNS.log(f"Have ratchet for {RNS.prettyhexrep(to_addr)}, requesting opportunistic delivery of telemetry", RNS.LOG_DEBUG)
                                 desired_method = LXMF.LXMessage.OPPORTUNISTIC
-                            else:
-                                desired_method = LXMF.LXMessage.DIRECT
+                            
+                            else: desired_method = LXMF.LXMessage.DIRECT
 
                         lxm_fields = self.get_message_fields(to_addr, is_authorized_telemetry_request=is_authorized_telemetry_request, signal_already_sent=True, is_collector_response=is_collector_response)
-                        if lxm_fields == False and stream == None:
-                            return "already_sent"
+                        if lxm_fields == False and stream == None: return "already_sent"
 
                         if stream != None and len(stream) > 0:
-                            if lxm_fields == False:
-                                lxm_fields = {}
+                            if lxm_fields == False: lxm_fields = {}
                             lxm_fields[LXMF.FIELD_TELEMETRY_STREAM] = stream
 
                         if lxm_fields != None and lxm_fields != False and (LXMF.FIELD_TELEMETRY in lxm_fields or LXMF.FIELD_TELEMETRY_STREAM in lxm_fields):
@@ -1509,9 +1526,14 @@ class SidebandCore():
                                 telemetry_timebase = 0
                                 for te in lxm_fields[LXMF.FIELD_TELEMETRY_STREAM]:
                                     ts = te[1]
-                                    telemetry_timebase = max(telemetry_timebase, ts)
+                                    t_src = RNS.prettyhexrep(te[0]) if te[0] else "unknown"
+                                    if not valid_telemetry_timebase(ts):
+                                        RNS.log(f"Skipping invalid timebase {ts} from {t_src} in send timebase accounting for {RNS.prettyhexrep(to_addr)}", RNS.LOG_WARNING)
 
-                            if telemetry_timebase > (self.getpersistent(f"telemetry.{RNS.hexrep(to_addr, delimit=False)}.last_send_success_timebase") or 0):
+                                    else: telemetry_timebase = max(telemetry_timebase, ts)
+
+                            last_sent_timebase = (self._last_telemetry_send_success_timebase(to_addr) or 0)
+                            if telemetry_timebase > last_sent_timebase:
                                 lxm = LXMF.LXMessage(dest, source, "", desired_method=desired_method, fields = lxm_fields, include_ticket=self.is_trusted(to_addr))
                                 lxm.telemetry_timebase = telemetry_timebase
                                 lxm.register_delivery_callback(self.outbound_telemetry_finished)
@@ -2314,6 +2336,12 @@ class SidebandCore():
                 read_telemetry = remote_telemeter.read_all()
                 telemetry_timestamp = read_telemetry["time"]["utc"]
 
+                if not valid_telemetry_timebase(telemetry_timestamp):
+                    now = time.time()
+                    RNS.log(f"Invalid timestamp in telemetry from source {RNS.prettyhexrep(context_dest)}, not saving", RNS.LOG_WARNING)
+                    if telemetry_timestamp > now: RNS.log(f"The timestamp was {RNS.prettytime(telemetry_timestamp - now)} in the future", RNS.LOG_WARNING)
+                    return None
+
                 db = self.__db_connect()
                 dbc = db.cursor()
 
@@ -2361,6 +2389,7 @@ class SidebandCore():
 
                     if "by" in remote_telemeter.sensors["received"].data:
                         remote_telemeter.sensors["received"].by = remote_telemeter.sensors["received"].data["by"]
+                    
                     if "distance" in remote_telemeter.sensors["received"].data:
                         remote_telemeter.sensors["received"].geodesic_distance = remote_telemeter.sensors["received"].data["distance"]["geodesic"]
                         remote_telemeter.sensors["received"].euclidian_distance = remote_telemeter.sensors["received"].data["distance"]["euclidian"]
@@ -2373,21 +2402,16 @@ class SidebandCore():
                 data = (context_dest, telemetry_timestamp, telemetry)
                 dbc.execute(query, data)
 
-                try:
-                    db.commit()
+                try: db.commit()
                 except Exception as e:
                     RNS.log("An error occurred while commiting telemetry to database: "+str(e), RNS.LOG_ERROR)
                     self.__db_reconnect()
-                    # if not is_retry:
-                    #     RNS.log("Retrying operation...", RNS.LOG_ERROR)
-                    #     self._db_save_telemetry(context_dest, telemetry, physical_link, source_dest, via, is_retry = True)
                     return
 
                 self.setstate("app.flags.last_telemetry", time.time())
 
                 if self.config["telemetry_to_mqtt"] == True:
-                    def mqtt_job():
-                        self.mqtt_handle_telemetry(context_dest, telemetry)
+                    def mqtt_job(): self.mqtt_handle_telemetry(context_dest, telemetry)
                     threading.Thread(target=mqtt_job, daemon=True).start()
 
                 return telemetry
@@ -2850,18 +2874,27 @@ class SidebandCore():
             db.commit()
 
     def _db_clean_telemetry(self):
-        RNS.log("Cleaning telemetry... ", RNS.LOG_DEBUG)
+        RNS.log("Cleaning telemetry...", RNS.LOG_NOTICE)
         clean_time = time.time()-self.TELEMETRY_KEEP
+        future_time = time.time()-self.TELEMETRY_FUTURE_GRACE
         with self.db_lock:
             db = self.__db_connect()
             dbc = db.cursor()
 
             query = f"delete from telemetry where (ts < {clean_time});"
-            dbc.execute(query, {"outbound_state": LXMF.LXMessage.OUTBOUND, "sending_state": LXMF.LXMessage.SENDING})
+            dbc.execute(query)
+            cleaned_old = dbc.rowcount
+
+            query = f"delete from telemetry where (ts > {future_time});"
+            dbc.execute(query)
+            cleaned_future = dbc.rowcount
+            
             db.commit()
 
             self.last_telemetry_clean = time.time()
 
+            if cleaned_old: RNS.log(f"Cleaned {cleaned_old} expired telemetry entries", RNS.LOG_NOTICE)
+            if cleaned_future: RNS.log(f"Cleaned {cleaned_future} telemetry entries with timestamps too far in the future", RNS.LOG_NOTICE)
 
     def _db_message_set_state(self, lxm_hash, state, is_retry=False, ratchet_id=None, originator_stamp=None):
         msg_extras = None
@@ -3088,25 +3121,25 @@ class SidebandCore():
                     packed_telemetry = self._db_save_telemetry(context_dest, lxm.fields[LXMF.FIELD_TELEMETRY], physical_link=physical_link, source_dest=context_dest)
 
                 if LXMF.FIELD_TELEMETRY_STREAM in lxm.fields:
-                    max_timebase = self.getpersistent(f"telemetry.{RNS.hexrep(context_dest, delimit=False)}.timebase") or 0
+                    max_timebase = self._telemetry_timebase(context_dest) or 0
                     if lxm.fields[LXMF.FIELD_TELEMETRY_STREAM] != None and len(lxm.fields[LXMF.FIELD_TELEMETRY_STREAM]) > 0:
                         for telemetry_entry in lxm.fields[LXMF.FIELD_TELEMETRY_STREAM]:
                             tsource = telemetry_entry[0]
                             ttstamp = telemetry_entry[1]
                             tpacked = telemetry_entry[2]
                             appearance = telemetry_entry[3]
-                            max_timebase = max(max_timebase, ttstamp)
 
                             if self._db_save_telemetry(tsource, tpacked, via = context_dest):
                                 RNS.log("Saved telemetry stream entry from "+RNS.prettyhexrep(tsource), RNS.LOG_DEBUG)
+                                max_timebase = max(max_timebase, ttstamp)
                                 if appearance != None:
                                     self._db_update_appearance(tsource, ttstamp, appearance, from_bulk_telemetry=True)
                                     RNS.log("Updated appearance entry from "+RNS.prettyhexrep(tsource), RNS.LOG_DEBUG)
 
                         self.setpersistent(f"telemetry.{RNS.hexrep(context_dest, delimit=False)}.timebase", max_timebase)
+                        RNS.log(f"Telemetry timebase for {RNS.hexrep(context_dest, delimit=False)} is now {max_timebase}", RNS.LOG_DEBUG)
 
-                    else:
-                        RNS.log("Received telemetry stream field with no data: "+str(lxm.fields[LXMF.FIELD_TELEMETRY_STREAM]), RNS.LOG_DEBUG)
+                    else: RNS.log("Received telemetry stream field with no data: "+str(lxm.fields[LXMF.FIELD_TELEMETRY_STREAM]), RNS.LOG_DEBUG)
 
         attach_msg = False
         if lxm.fields != None and len(lxm.fields) > 0:
@@ -3683,7 +3716,7 @@ class SidebandCore():
                             try:
                                 now = time.time()
                                 collector_address = self.config["telemetry_collector"]
-                                last_send_timebase = self.getpersistent(f"telemetry.{RNS.hexrep(collector_address, delimit=False)}.last_send_success_timebase") or 0
+                                last_send_timebase = self._last_telemetry_send_success_timebase(collector_address) or 0
                                 send_interval = self.config["telemetry_send_interval"]
                                 next_send = last_send_timebase+send_interval
 
@@ -3698,7 +3731,7 @@ class SidebandCore():
                                         self.pending_telemetry_send = True
                                         self.pending_telemetry_send_try += 1
                                         if self.config["telemetry_send_all_to_collector"]:
-                                            last_timebase = (self.getpersistent(f"telemetry.{RNS.hexrep(collector_address, delimit=False)}.last_send_success_timebase") or 0)
+                                            last_timebase = self._last_telemetry_send_success_timebase(collector_address) or 0
                                             self.create_telemetry_collector_response(to_addr=collector_address, timebase=last_timebase, is_authorized_telemetry_request=True)
                                         else:
                                             self.send_latest_telemetry(to_addr=collector_address)
@@ -4446,8 +4479,7 @@ class SidebandCore():
                 self._db_message_set_state(message.hash, LXMF.LXMessage.OUTBOUND)
                 self.message_router.handle_outbound(message)
         else:
-            if not no_display:
-                self.lxm_ingest(message, originator=True)
+            if not no_display: self.lxm_ingest(message, originator=True)
 
             if message.fields != None and LXMF.FIELD_TELEMETRY in message.fields:
                 if len(message.fields[LXMF.FIELD_TELEMETRY]) > 0:
@@ -4467,9 +4499,9 @@ class SidebandCore():
         if send_telemetry and self.latest_packed_telemetry != None:
             telemeter = Telemeter.from_packed(self.latest_packed_telemetry)
             telemetry_timebase = telemeter.read_all()["time"]["utc"]
-            last_success_tb = (self.getpersistent(f"telemetry.{RNS.hexrep(context_dest, delimit=False)}.last_send_success_timebase") or 0)
+            last_success_tb = self._last_telemetry_send_success_timebase(context_dest) or 0
             if is_collector_response and self.lxmf_destination.hash in self.telemetry_response_excluded:
-                RNS.log("Not embedding own telemetry collector response since own destination hash is excluded", RNS.LOG_DEBUG)
+                RNS.log("Not embedding own telemetry in collector response since own destination hash is excluded", RNS.LOG_DEBUG)
                 send_telemetry = False
             elif telemetry_timebase > last_success_tb:
                 RNS.log("Embedding own telemetry in message since current telemetry is newer than latest successful timebase", RNS.LOG_DEBUG)
@@ -5212,10 +5244,8 @@ class SidebandCore():
                 if self.allow_request_from(context_dest):
                     commands = message.fields[LXMF.FIELD_COMMANDS]
                     self.handle_commands(commands, message)
-                else:
-                    # TODO: Add these event to built-in log/event viewer
-                    # when it is implemented.
-                    RNS.log("Unauthorized command received from "+RNS.prettyhexrep(context_dest), RNS.LOG_WARNING)
+                
+                else: RNS.log("Unauthorized command received from "+RNS.prettyhexrep(context_dest), RNS.LOG_WARNING)
 
             else:
                 self.lxm_ingest(message)
@@ -5250,8 +5280,9 @@ class SidebandCore():
                         command_timebase = command[Commands.TELEMETRY_REQUEST]
                         enable_collector_request = True
 
-                    timebase = int(command_timebase)
-                    RNS.log("Handling telemetry request with timebase "+str(timebase), RNS.LOG_DEBUG)
+                    timebase = int(command_timebase); tbdiff = time.time()-timebase
+                    if tbdiff < 0: RNS.log(f"Request timebase is in {RNS.prettytime(abs(tbdiff))} the future", RNS.LOG_WARNING)
+                    RNS.log(f"Handling telemetry request with timebase "+str(timebase), RNS.LOG_DEBUG)
                     if self.config["telemetry_collector_enabled"] and enable_collector_request:
                         RNS.log(f"Collector requests enabled, returning complete telemetry response for all known objects since {timebase}", RNS.LOG_DEBUG)
                         self.create_telemetry_collector_response(to_addr=context_dest, timebase=timebase, is_authorized_telemetry_request=True, is_collector_response=True)

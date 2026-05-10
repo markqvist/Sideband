@@ -364,7 +364,9 @@ class RVDetails(MDRecycleView):
                         ts = s["values"]["UTC"]
                         if ts != None:
                             ts_str = datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
-                            formatted_values = f"Recorded [b]{RNS.prettytime(time.time()-ts, compact=True)} ago[/b] ({ts_str})"
+                            tsdiff = time.time()-ts
+                            tspec  = "ago" if tsdiff >= 0 else "in the future"
+                            formatted_values = f"Recorded [b]{RNS.prettytime(abs(tsdiff), compact=True)} {tspec}[/b] ({ts_str})"
                             def copy_info(e=None):
                                 Clipboard.copy(ts_str)
                                 toast("Copied to clipboard")

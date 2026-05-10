@@ -329,29 +329,23 @@ class Time(Sensor):
 
   def pack(self):
     d = self.data
-    if d == None:
-      return None
-    else:
-      return d["utc"]
+    if d == None: return None
+    else:         return d["utc"]
 
   def unpack(self, packed):
     try:
-      if packed == None:
-        return None
-      else:
-        return {"utc": packed}
-    except:
-      return None
+      if packed == None: return None
+      else:              return {"utc": packed}
+    
+    except: return None
 
   def render(self, relative_to=None):
     if self.data != None:
-      rendered = {
-        "icon": "clock-time-ten-outline",
-        "name": "Timestamp",
-        "values": { "UTC": self.data["utc"] },
-      }
-    else:
-      rendered = None
+      rendered = { "icon": "clock-time-ten-outline",
+                   "name": "Timestamp",
+                   "values": { "UTC": self.data["utc"] } }
+    
+    else: rendered = None
 
     return rendered
 
@@ -3149,3 +3143,9 @@ def mqtt_hash(ihash):
     return RNS.hexrep(ihash, delimit=False)
   else:
     return None
+
+TB_DIFF_GRACE = 4*60
+def valid_telemetry_timebase(ts):
+    if type(ts) not in [int, float]:  return False
+    if ts > time.time()+TB_DIFF_GRACE: return False
+    else:                              return True
