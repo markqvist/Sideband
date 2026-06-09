@@ -64,7 +64,31 @@ This also means that Sideband is designed to be fully compatible with custom (an
 
 ## On Linux
 
-On all Linux-based operating systems, Sideband is available as a `pip`/`pipx` package. You can either pull and install Sideband directly from the `pip` repository, or download and install locally using `whl` package from the [latest release page](https://github.com/markqvist/Sideband/releases/latest).
+On most Linux-based operating systems, you can simply download the pre-compiled AppImage from the [latest release page](https://github.com/markqvist/Sideband/releases/latest) and run it.
+
+Depending on your Linux distribution, you may need to install a few other packages for full voice call, audio messaging and clipboard functionality. Make sure you have `opusfile`, and a clipboard manager like `xclip` or `wl-clipboard` installed:
+
+```bash
+# For Debian 13+, Ubuntu 24.04+ and derivatives
+sudo apt install libopusfile0 xclip xsel
+
+# For Debian 12+, Ubuntu 22.04+ and derivatives
+sudo apt install libopusfile0 xclip xsel
+
+# For Manjaro and derivatives
+pamac install opusfile xclip xsel
+
+# For Arch and derivatives
+sudo pacman -Sy opusfile xclip xsel
+
+# Clipboard support on Wayland: If the clipboard is not
+# working correctly on Wayland with xclip and xsel, you
+# can install wl-clipboard and wl-clipboard-x11 instead.
+pamac remove xclip xsel
+pamac install wl-clipboard wl-clipboard-x11
+```
+
+You can also install Sideband as a `pip`/`pipx` package. You can either pull and install Sideband directly from the `pip` repository, or download and install locally using `whl` package from the [latest release page](https://github.com/markqvist/Sideband/releases/latest).
 
 This installation method **includes desktop integration**, so that Sideband will show up in your applications menu and launchers. Below are install steps for the most common recent Linux distros. For Debian 11, see the end of this section.
 
