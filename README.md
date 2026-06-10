@@ -69,9 +69,6 @@ On most Linux-based operating systems, you can simply download the pre-compiled 
 Depending on your Linux distribution, you may need to install a few other packages for full voice call, audio messaging and clipboard functionality. Make sure you have `opusfile`, and a clipboard manager like `xclip` or `wl-clipboard` installed:
 
 ```bash
-# For Debian 13+, Ubuntu 24.04+ and derivatives
-sudo apt install libopusfile0 xclip xsel
-
 # For Debian 12+, Ubuntu 22.04+ and derivatives
 sudo apt install libopusfile0 xclip xsel
 
